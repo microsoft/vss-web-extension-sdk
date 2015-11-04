@@ -1,5 +1,5 @@
 {
-  "name": "vsts-sdk",
+  "name": "vss-sdk",
   "version": "0.90.0",
   "description": "SDK for Visual Studio Extensions",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Microsoft/vsts-sdk.git"
+    "url": "https://github.com/Microsoft/vss-sdk.git"
   },
   "keywords": [
     "extensions",
@@ -17,7 +17,7 @@
   "author": "serkan-inci",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Microsoft/vsts-sdk/issues"
+    "url": "https://github.com/Microsoft/vss-sdk/issues"
   },
   "homepage": "https://www.visualstudio.com/integrate/extensions/overview"
 }
