@@ -1,6 +1,6 @@
-# SDK for Visual Studio Online Extensions
+# Visual Studio Services Client SDK
 
-This repo contains core client SDK file and TypeScript declare files for [Visual Studio Online extensions](https://www.visualstudio.com/integrate/extensions/overview).
+This repo contains core client SDK file and TypeScript declare files needed for developing [Visual Studio Online Extensions](https://www.visualstudio.com/integrate/extensions/overview).
 
 **VSS.SDK.js** enables an extension to communicate to host to perform operations like initializing, notifying extension is loaded or getting context about the current page on the host.
 
