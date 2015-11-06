@@ -34,7 +34,7 @@ Next step is initializing the extension using two options below:
 	  });
       
       // Perform some async operation here
-      doSomeAsynStuff().then(
+      doSomeAsyncStuff().then(
           function(result) {
               // Succeeded
               VSS.notifyLoadSucceeded();
