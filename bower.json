@@ -1,6 +1,6 @@
 {
   "name": "vss-sdk",
-  "description": "SDK for Visual Studio Extensions",
+  "description": "Visual Studio Services Client SDK. JavaScript library for Visual Studio Online extensions.",
   "authors": [
     "serkan-inci"
   ],
@@ -13,6 +13,12 @@
   "moduleType": [
     "amd"
   ],
+  "typescript": {
+    "definitions": [
+        "typings/tfs.d.ts",
+        "typings/vss.d.ts"
+    ]   
+  },
   "ignore": [
     "**/.*",
     "node_modules",
