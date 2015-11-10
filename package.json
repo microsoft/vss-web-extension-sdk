@@ -1,6 +1,6 @@
 {
   "name": "vss-sdk",
-  "version": "0.91.0",
+  "version": "0.91.1",
   "description": "Visual Studio Services Client SDK. JavaScript library for Visual Studio Online extensions.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
