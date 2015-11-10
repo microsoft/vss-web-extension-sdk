@@ -1,0 +1,23 @@
+{
+  "name": "vss-sdk",
+  "description": "SDK for Visual Studio Extensions",
+  "authors": [
+    "serkan-inci"
+  ],
+  "license": "ISC",
+  "keywords": [
+    "extensions",
+    "visual studio online"
+  ],
+  "homepage": "https://github.com/Microsoft/vss-sdk",
+  "moduleType": [
+    "amd"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
