@@ -51,5 +51,16 @@ Next step is initializing the extension using two options below:
 Full API reference of VSS.SDK.js can be found at [Core Client SDK](https://www.visualstudio.com/en-us/integrate/extensions/reference/client/core-sdk) page.
 
 ## Types
- * Typescript types of VSS.SDK.js are available in typings/vss.d.ts. 
- * REST Client types are available in typings/tfs.d.ts 
+ * Types of VSS.SDK.js are available in typings/vss.d.ts. 
+ * REST Client types are available in typings/tfs.d.ts
+ 
+### Using tsd
+Although TypeScript declare files do not exist at [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) repo, they can still be used through [tsd](https://www.npmjs.com/package/tsd).
+
+1. First, make sure that the dependencies are loaded using below command:
+ * `tsd install jquery knockout q --save`
+ 
+2. Next, run below command to get vss-sdk types added to tsd.d.ts:
+ * `tsd link`
+
+3. Finally, add only reference to typings/tsd.d.ts in your TypeScript files. 
