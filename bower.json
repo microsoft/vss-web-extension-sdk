@@ -13,6 +13,9 @@
   "moduleType": [
     "amd"
   ],
+  "main": [
+    "lib/VSS.SDK.js"
+  ],
   "typescript": {
     "definitions": [
         "typings/tfs.d.ts",
