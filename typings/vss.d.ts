@@ -1,11 +1,10 @@
-// Type definitions for Microsoft Visual Studio Services v91.20151110.0924
+﻿// Type definitions for Microsoft Visual Studio Services v92.20151216.1125
 // Project: http://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
 /// <reference path='../../../typings/knockout/knockout.d.ts' />
 /// <reference path='../../../typings/jquery/jquery.d.ts' />
 /// <reference path='../../../typings/q/q.d.ts' />
-
 //----------------------------------------------------------
 // Common interfaces specific to WebPlatform area
 //----------------------------------------------------------
@@ -2361,6 +2360,9 @@ export var TypeInfo: {
 declare module "VSS/Accounts/RestClient" {
 import Contracts = require("VSS/Accounts/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class AccountsHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -2755,6 +2757,9 @@ export var TypeInfo: {
 declare module "VSS/Authentication/RestClient" {
 import Contracts = require("VSS/Authentication/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class AuthenticationHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -2765,6 +2770,9 @@ export class AuthenticationHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     createSessionToken(sessionToken: Contracts.WebSessionToken): IPromise<Contracts.WebSessionToken>;
 }
+/**
+ * @exemptedapi
+ */
 export class AuthenticationHttpClient2_1 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -3598,6 +3606,9 @@ export var TypeInfo: {
 declare module "VSS/Commerce/RestClient" {
 import Contracts = require("VSS/Commerce/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class CommerceHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -3793,6 +3804,9 @@ export class CommerceHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     reportUsage(usageEvent: Contracts.UsageEvent): IPromise<void>;
 }
+/**
+ * @exemptedapi
+ */
 export class CommerceHttpClient2_1 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -5663,6 +5677,30 @@ export interface Extension extends ExtensionManifest {
     version: string;
 }
 /**
+ * Depending on the event type, some or all of the fields will have valid values.  Created: All fields will be filled in with the appropriate values. Updated: All fields will be filled in with the appropriate values. Deleted: PublisherName, ExtensionName, ExtensionId, Version Shared/Unshared: The only type where the HostId field will be used will be supplied, null for version will mean all versions. Disabled: This will be event type when an extension is being disabled for everyone that has it installed. Enabled: This will be event type when a disabled extension is re-enabled.  All fields will be filled in with the appropriate values.
+ */
+export interface ExtensionChangeEvent {
+    eventType: ExtensionEventType;
+    extensionId: string;
+    extensionName: string;
+    flags: number;
+    hostId: string;
+    publisherName: string;
+    version: string;
+}
+/**
+ * Depending on the event type, some or all of the fields will have valid values.  Created: All fields will be filled in with the appropriate values. Updated: All fields will be filled in with the appropriate values. Deleted: PublisherName, ExtensionName, ExtensionId, Version will be supplied, null for version will mean all versions.
+ */
+export interface ExtensionChangeNotification {
+    eventType: ExtensionEventType;
+    extensionId: string;
+    extensionName: string;
+    flags: number;
+    hostId: string;
+    publisherName: string;
+    version: string;
+}
+/**
  * Represents a single collection for extension data documents
  */
 export interface ExtensionDataCollection {
@@ -5761,6 +5799,15 @@ export interface ExtensionEventCallbackResult {
      * Message indicating reason for abort.
      */
     message: string;
+}
+export enum ExtensionEventType {
+    ExtensionCreated = 1,
+    ExtensionUpdated = 2,
+    ExtensionDeleted = 3,
+    ExtensionShared = 4,
+    ExtensionUnshared = 5,
+    ExtensionDisabled = 6,
+    ExtensionEnabled = 7,
 }
 export enum ExtensionFlags {
     /**
@@ -6008,19 +6055,6 @@ export interface InstalledExtensionState {
     lastUpdated: Date;
 }
 /**
- * Represents a the Publisher of an extension in ExtensionManagement
- */
-export interface Publisher {
-    /**
-     * The display name for a publisher
-     */
-    displayName: string;
-    /**
-     * The unique name for a Publisher
-     */
-    publisherName: string;
-}
-/**
  * A request for an extension (to be installed or have a license assigned)
  */
 export interface RequestedExtension {
@@ -6033,9 +6067,13 @@ export interface RequestedExtension {
      */
     extensionRequests: ExtensionRequest[];
     /**
+     * DisplayName of the publisher that owns the extension being published.
+     */
+    publisherDisplayName: string;
+    /**
      * Represents the Publisher of the requested extension
      */
-    publisher: Publisher;
+    publisherName: string;
     /**
      * The total number of requests for an extension
      */
@@ -6117,6 +6155,12 @@ export var TypeInfo: {
     Extension: {
         fields: any;
     };
+    ExtensionChangeEvent: {
+        fields: any;
+    };
+    ExtensionChangeNotification: {
+        fields: any;
+    };
     ExtensionDataCollection: {
         fields: any;
     };
@@ -6134,6 +6178,17 @@ export var TypeInfo: {
     };
     ExtensionEventCallbackResult: {
         fields: any;
+    };
+    ExtensionEventType: {
+        enumValues: {
+            "extensionCreated": number;
+            "extensionUpdated": number;
+            "extensionDeleted": number;
+            "extensionShared": number;
+            "extensionUnshared": number;
+            "extensionDisabled": number;
+            "extensionEnabled": number;
+        };
     };
     ExtensionFlags: {
         enumValues: {
@@ -6200,9 +6255,6 @@ export var TypeInfo: {
         fields: any;
     };
     InstalledExtensionState: {
-        fields: any;
-    };
-    Publisher: {
         fields: any;
     };
     RequestedExtension: {
@@ -6303,6 +6355,9 @@ export function getBackgroundInstance<T>(contribution: IExtensionContribution | 
 declare module "VSS/Contributions/RestClient" {
 import Contracts = require("VSS/Contributions/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class ContributionsHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -6329,6 +6384,9 @@ export class ContributionsHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     getInstalledExtensionByName(publisherName: string, extensionName: string): IPromise<Contracts.InstalledExtension>;
 }
+/**
+ * @exemptedapi
+ */
 export class ContributionsHttpClient2_1 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -10154,6 +10212,16 @@ export class ExternalHub extends Controls.BaseControl {
 }
 declare module "VSS/Controls/KeyboardShortcuts" {
 import Dialogs = require("VSS/Controls/Dialogs");
+/**
+ * Constants for well known shortcut keys.
+ *
+ * Example combo would be ShortcutKeys.ALT + "+q";
+ */
+export module ShortcutKeys {
+    var ALT: string;
+    var CONTROL: string;
+    var SHIFT: string;
+}
 export interface IShortcutGroup {
     /**
      *  The name of the group
@@ -10170,13 +10238,39 @@ export interface IShortcut {
      */
     combos: string[];
     /**
-     * Description of this shortcut
-     */
+      * Shortcut combinations to display on the help dialog
+      */
+    combosToDisplay: string[];
+    /**
+    * Description of this shortcut
+    */
     description: string;
     /**
      * Action to invoke for this shortcut
      */
     action: Function;
+}
+export interface IShortcutOptions {
+    /**
+     * Description of the shortcut
+     */
+    description: string;
+    /**
+     * Action which gets called when shortcut is pressed
+     */
+    action: Function;
+    /**
+     * The Dom Element to bind the shortcut to
+     */
+    element?: Element;
+    /**
+     * Defaults to false. Pass in True if you would like the shortcut to be hidden from the help dialog
+     */
+    hideFromHelpDialog?: boolean;
+    /**
+     * Defaults to false. Use true in the rare case that you want the last key of the chord to propagate to the focused element
+     */
+    allowPropagation?: boolean;
 }
 /**
 * ShortcutManager handles registering multiple groups of keyboard shortcuts
@@ -10187,7 +10281,7 @@ export interface IShortcutManager {
     */
     getShortcutGroups(): IShortcutGroup[];
     /**
-     * Register a group of shortcuts
+     * Register a shortcut
      * @param group Name of a shortcut group.
      * @param combo Keyboard combination.
      * @param description Description of the shortcut
@@ -10209,9 +10303,30 @@ export interface IShortcutManager {
      */
     registerShortcuts(group: string, combos: string[], description: string, action: Function, allowPropagation?: boolean): IShortcutManager;
     /**
+     * Register a shortcut
+     * @param group Name of a shortcut group.
+     * @param combo Keyboard combination.
+     * @param options The options to configure this shortcut with
+     *
+     * @returns ShortcutManager
+     */
+    registerShortcut(group: string, combo: string, options: IShortcutOptions): IShortcutManager;
+    /**
+     * Register a group of shortcuts
+     * @param group Name of a shortcut group.
+     * @param combos Keyboard combinations that all map to same action.
+     * @param options The options to configure this shortcut with
+     *
+     * @returns ShortcutManager
+     */
+    registerShortcuts(group: string, combos: string[], options: IShortcutOptions): IShortcutManager;
+    /**
      * Removes a group of shortcuts
      * This is used when a group of shortcuts is no longer applicable and you want to de-register them. For example,
      * if you had a ajax popup that needed its own shortcuts but you want to clear those when it is closed.
+     *
+     * NOTE: This will remove all shortcuts for a given group regardless of where they were registered from.
+     *
      * @param group Name of a shortcut group.
      */
     removeShortcutGroup(group: string): any;
@@ -10221,20 +10336,27 @@ export interface IShortcutManager {
     showShortcutDialog(): void;
 }
 export class ShortcutManager implements IShortcutManager {
+    private static AREA;
+    private static FEATURE;
     private static _instance;
     static getInstance(): IShortcutManager;
+    private _registeredCombos;
     private _shortcutsGroups;
     getShortcutGroups(): IShortcutGroup[];
     registerShortcut(group: string, combo: string, description: string, action: Function, allowPropagation?: boolean): ShortcutManager;
+    registerShortcut(group: string, combo: string, options: IShortcutOptions): ShortcutManager;
     registerShortcuts(group: string, combos: string[], description: string, action: Function, allowPropagation?: boolean): ShortcutManager;
+    registerShortcuts(group: string, combos: string[], options: IShortcutOptions): ShortcutManager;
     removeShortcutGroup(group: string): void;
     showShortcutDialog(): void;
 }
 export class ShortcutDialog extends Dialogs.ModalDialog {
     initializeOptions(options?: any): void;
     initialize(): void;
+    private renderShortcutGroups();
     private renderShortcut(shortcut);
     private renderGroup(group);
+    private renderHelpLink();
 }
 }
 declare module "VSS/Controls/Menus" {
@@ -11690,8 +11812,44 @@ export interface RichEditorAttachmentResult {
 export interface RichEditorAttachmentHandler {
     (attachment: RichEditorAttachmentRequestData): JQueryPromise<RichEditorAttachmentOperationResult>;
 }
-export class RichEditor extends Controls.BaseControl {
+export type IRichEditorCommandHandler = (commandInfo: any, editor: RichEditor) => void;
+export interface IRichEditorCommand {
+    name: string;
+    command: string;
+    execute: IRichEditorCommandHandler;
+}
+export interface IRichEditorCommandGroup {
+    groupName: string;
+    commands: IRichEditorCommand[];
+}
+export interface IRichEditorOptions extends Controls.EnhancementOptions {
+    id?: string;
+    buttonGroups?: string[];
+    customCommandGroups?: IRichEditorCommandGroup[];
+    change?: Function;
+    enabled?: boolean;
+    waterMark?: string;
+    fireOnEveryChange?: boolean;
+    linkClickHandler?: Function;
+    noToolbar?: boolean;
+    blankPageUrl?: string;
+    pageHtml?: string;
+    internal: boolean;
+}
+/**
+ * @exemptedapi
+ */
+export class RichEditor extends Controls.Control<IRichEditorOptions> {
     static enhancementTypeName: string;
+    static BOLD_COMMAND: string;
+    static ITALIC_COMMAND: string;
+    static UNDERLINE_COMMAND: string;
+    static INSERT_UNORDERED_LIST_COMMAND: string;
+    static INSERT_ORDEREDLIST_COMMAND: string;
+    static INDENT_COMMAND: string;
+    static OUTDENT_COMMAND: string;
+    static CREATE_LINK_COMMAND: string;
+    static UNLINK_COMMAND: string;
     static INSERT_IMAGE_COMMAND: string;
     static RESTORE_COMMAND: string;
     static MAXIMIZE_COMMAND: string;
@@ -11704,7 +11862,6 @@ export class RichEditor extends Controls.BaseControl {
     private _editable;
     private _toolbar;
     private _urlToolTip;
-    private _editor;
     private _hasFocus;
     private _explicitFocus;
     private _keyDownInDocument;
@@ -11717,11 +11874,11 @@ export class RichEditor extends Controls.BaseControl {
     /**
      * Creates a new rich editor with the provided options
      */
-    constructor(options?: any);
+    constructor(options: IRichEditorOptions);
     /**
      * @param options
      */
-    initializeOptions(options?: any): void;
+    initializeOptions(options?: IRichEditorOptions): void;
     _createIn(container: any): void;
     /**
      * @param element
@@ -11741,21 +11898,26 @@ export class RichEditor extends Controls.BaseControl {
      */
     insertImage(url: string): void;
     focus(): void;
-    focusOnEditor(): void;
+    static getOffsetForLastElementSelection(lastElement: Element): number;
     selectText(collapseToEnd?: boolean): void;
     bindOnCopy(handler: any): void;
     getWindow(): Window;
+    /**
+     * Enables and shows the rich editor toolbar
+     */
+    enableToolbar(): void;
+    /**
+     * Disables and hides the rich editor toolbar.
+     */
+    disableToolbar(): void;
     private _resizeImageOnLoadComplete(url, loadCompleteCallback?);
     setInvalid(isInvalid: boolean): void;
     setUploadAttachmentHandler(handler: RichEditorAttachmentHandler): void;
     getTextAreaId(): any;
     /**
      * Checks whether the value of the control is changed or not and fires the CHANGE event if it has
-     *
-     * @param e
-     * @return
      */
-    checkModified(e?: JQueryEventObject): any;
+    checkModified(): void;
     private _pasteImage(url);
     private _getToolbar();
     private _createToolbar();
@@ -11765,14 +11927,12 @@ export class RichEditor extends Controls.BaseControl {
      * @param customGroup An object representing a toolbar button group.
      */
     private _createToolbarButtonGroup(customGroup);
-    /**
-     * @param opacity
-     */
     private _showPanel(panel, opacity?);
     /**
      * @param opacity
      */
     private _showToolbar(opacity?);
+    private _hideToolbar();
     private _getUrlToolTip();
     private _createUrlToolTip();
     private _showUrlToolTip(e?, doShow?);
@@ -11792,7 +11952,6 @@ export class RichEditor extends Controls.BaseControl {
     private _onDocumentReady();
     private _trySettingWaterMark(val);
     private _clearWaterMark();
-    private _textAreaFocus();
     /**
      * @param e
      * @return
@@ -11848,7 +12007,6 @@ export class RichEditor extends Controls.BaseControl {
     private _onInput(e?);
     /**
      * @param e
-     * @return
      */
     private _onToolbarButtonClick(e?, args?);
     private _getNodeUnderCaret(tagName);
@@ -12717,6 +12875,14 @@ export interface ITreeOptions {
     useEmptyFolderNodes?: boolean;
     defaultEmptyFolderNodeText?: string;
     styleFocusElement?: boolean;
+    /**
+     * Defines "droppable" options for drag and drop (see jQuery UI droppable options)
+     */
+    droppable?: any;
+    /**
+     * Defines "draggable" options for drag and drop (see jQuery UI draggable options)
+     */
+    draggable?: any;
 }
 /**
  * @publicapi
@@ -14374,6 +14540,30 @@ export interface Extension extends ExtensionManifest {
     version: string;
 }
 /**
+ * Depending on the event type, some or all of the fields will have valid values.  Created: All fields will be filled in with the appropriate values. Updated: All fields will be filled in with the appropriate values. Deleted: PublisherName, ExtensionName, ExtensionId, Version Shared/Unshared: The only type where the HostId field will be used will be supplied, null for version will mean all versions. Disabled: This will be event type when an extension is being disabled for everyone that has it installed. Enabled: This will be event type when a disabled extension is re-enabled.  All fields will be filled in with the appropriate values.
+ */
+export interface ExtensionChangeEvent {
+    eventType: ExtensionEventType;
+    extensionId: string;
+    extensionName: string;
+    flags: number;
+    hostId: string;
+    publisherName: string;
+    version: string;
+}
+/**
+ * Depending on the event type, some or all of the fields will have valid values.  Created: All fields will be filled in with the appropriate values. Updated: All fields will be filled in with the appropriate values. Deleted: PublisherName, ExtensionName, ExtensionId, Version will be supplied, null for version will mean all versions.
+ */
+export interface ExtensionChangeNotification {
+    eventType: ExtensionEventType;
+    extensionId: string;
+    extensionName: string;
+    flags: number;
+    hostId: string;
+    publisherName: string;
+    version: string;
+}
+/**
  * Represents a single collection for extension data documents
  */
 export interface ExtensionDataCollection {
@@ -14473,6 +14663,15 @@ export interface ExtensionEventCallbackResult {
      */
     message: string;
 }
+export enum ExtensionEventType {
+    ExtensionCreated = 1,
+    ExtensionUpdated = 2,
+    ExtensionDeleted = 3,
+    ExtensionShared = 4,
+    ExtensionUnshared = 5,
+    ExtensionDisabled = 6,
+    ExtensionEnabled = 7,
+}
 export enum ExtensionFlags {
     /**
      * A built-in extension is installed for all VSTS accounts by default
@@ -14484,7 +14683,13 @@ export enum ExtensionFlags {
     Trusted = 2,
 }
 export interface ExtensionIdentifier {
+    /**
+     * The ExtensionName component part of the fully qualified ExtensionIdentifier
+     */
     extensionName: string;
+    /**
+     * The PublisherName component part of the fully qualified ExtensionIdentifier
+     */
     publisherName: string;
 }
 /**
@@ -14726,19 +14931,6 @@ export interface InstalledExtensionState {
     lastUpdated: Date;
 }
 /**
- * Represents a the Publisher of an extension in ExtensionManagement
- */
-export interface Publisher {
-    /**
-     * The display name for a publisher
-     */
-    displayName: string;
-    /**
-     * The unique name for a Publisher
-     */
-    publisherName: string;
-}
-/**
  * A request for an extension (to be installed or have a license assigned)
  */
 export interface RequestedExtension {
@@ -14751,9 +14943,13 @@ export interface RequestedExtension {
      */
     extensionRequests: ExtensionRequest[];
     /**
+     * DisplayName of the publisher that owns the extension being published.
+     */
+    publisherDisplayName: string;
+    /**
      * Represents the Publisher of the requested extension
      */
-    publisher: Publisher;
+    publisherName: string;
     /**
      * The total number of requests for an extension
      */
@@ -14835,6 +15031,12 @@ export var TypeInfo: {
     Extension: {
         fields: any;
     };
+    ExtensionChangeEvent: {
+        fields: any;
+    };
+    ExtensionChangeNotification: {
+        fields: any;
+    };
     ExtensionDataCollection: {
         fields: any;
     };
@@ -14852,6 +15054,17 @@ export var TypeInfo: {
     };
     ExtensionEventCallbackResult: {
         fields: any;
+    };
+    ExtensionEventType: {
+        enumValues: {
+            "extensionCreated": number;
+            "extensionUpdated": number;
+            "extensionDeleted": number;
+            "extensionShared": number;
+            "extensionUnshared": number;
+            "extensionDisabled": number;
+            "extensionEnabled": number;
+        };
     };
     ExtensionFlags: {
         enumValues: {
@@ -14926,9 +15139,6 @@ export var TypeInfo: {
     InstalledExtensionState: {
         fields: any;
     };
-    Publisher: {
-        fields: any;
-    };
     RequestedExtension: {
         fields: any;
     };
@@ -14946,6 +15156,9 @@ export var TypeInfo: {
 declare module "VSS/ExtensionManagement/RestClient" {
 import Contracts = require("VSS/ExtensionManagement/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class ExtensionManagementHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -15252,6 +15465,9 @@ export class ExtensionManagementHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     getToken(): IPromise<string>;
 }
+/**
+ * @exemptedapi
+ */
 export class ExtensionManagementHttpClient2_1 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -15578,6 +15794,9 @@ export var TypeInfo: {
 declare module "VSS/FeatureAvailability/RestClient" {
 import Contracts = require("VSS/FeatureAvailability/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class FeatureAvailabilityHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -15620,6 +15839,9 @@ export class FeatureAvailabilityHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     updateFeatureFlag(state: Contracts.FeatureFlagPatch, name: string, userEmail?: string): IPromise<Contracts.FeatureFlag>;
 }
+/**
+ * @exemptedapi
+ */
 export class FeatureAvailabilityHttpClient2_1 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -15892,6 +16114,9 @@ declare module "VSS/FileContainer/RestClient" {
 import Contracts = require("VSS/FileContainer/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class FileContainerHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -15953,6 +16178,9 @@ export class FileContainerHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     browseItems(container: number, itemPath?: string): IPromise<Contracts.FileContainerItem[]>;
 }
+/**
+ * @exemptedapi
+ */
 export class FileContainerHttpClient2_1 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -16248,6 +16476,10 @@ export enum ExtensionQueryFilterType {
      * The InstallationTarget for an extension defines the target consumer for the extension. This may be something like VS, VSOnline, or VSCode
      */
     InstallationTarget = 8,
+    /**
+     * Query for featured extensions, no value is allowed when using the query type.
+     */
+    Featured = 9,
 }
 export enum ExtensionQueryFlags {
     /**
@@ -16637,6 +16869,7 @@ export var TypeInfo: {
             "contributionType": number;
             "name": number;
             "installationTarget": number;
+            "featured": number;
         };
     };
     ExtensionQueryFlags: {
@@ -16775,6 +17008,9 @@ export var TypeInfo: {
 declare module "VSS/Gallery/RestClient" {
 import Contracts = require("VSS/Gallery/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class GalleryHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -17043,6 +17279,9 @@ export class GalleryHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     getSigningKey(keyType: string): IPromise<string>;
 }
+/**
+ * @exemptedapi
+ */
 export class GalleryHttpClient2_1 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -17715,6 +17954,9 @@ export var TypeInfo: {
 declare module "VSS/Identities/Mru/RestClient" {
 import Contracts = require("VSS/Identities/Mru/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class IdentityMruHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -17744,6 +17986,9 @@ export class IdentityMruHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     updateMruIdentities(updateData: Contracts.MruIdentitiesUpdateData, identityId: string, containerId: string): IPromise<void>;
 }
+/**
+ * @exemptedapi
+ */
 export class IdentityMruHttpClient2_1 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -17783,6 +18028,97 @@ export class IdentityMruHttpClient extends IdentityMruHttpClient2_2 {
  */
 export function getClient(): IdentityMruHttpClient2_1;
 }
+declare module "VSS/Identities/Picker/Cache" {
+export interface IIdentityPickerCacheException {
+    message: string;
+    source?: string;
+    parameter?: string;
+    details?: any;
+}
+export enum CacheableTypes {
+    Unknown = 0,
+    UniqueIdentifier = 1,
+    Guid = 2,
+    Email = 3,
+}
+export interface ICacheConfiguration {
+    expirationIntervalS: number;
+}
+export interface ICache<V> {
+    /**
+    *   This method is optimistic
+    **/
+    set(key: string, value: V): void;
+    /**
+    *  This method can return null
+    **/
+    get(key: string): V;
+    clear(): void;
+    configure(config: ICacheConfiguration): void;
+}
+export interface IRequestCacheConfiguration {
+    delayIntervalMS: number;
+}
+export interface IRequestCache<T> {
+    /**
+    *  This method can return null
+    **/
+    getPromise(request: string): IPromise<T>;
+    /**
+    *   This method is optimistic
+    **/
+    setPromise(request: string, promise: IPromise<T>): void;
+    configure(config: IRequestCacheConfiguration): void;
+}
+export class RequestCache<T> implements IRequestCache<T> {
+    constructor();
+    /**
+    *  This method can return null
+    **/
+    getPromise(request: string): IPromise<T>;
+    /**
+    *   This method is optimistic
+    **/
+    setPromise(request: string, promise: IPromise<T>): void;
+    configure(config: IRequestCacheConfiguration): void;
+    private _setOrResetTimer();
+    private _cache;
+    private _timer;
+    private _config;
+    private static _defaultDelayIntervalMS;
+}
+export interface ITwoLayerCacheConfiguration<V> {
+    getUniqueIdentifier: (value: V) => string;
+}
+export interface ITwoLayerCache<V> {
+    addRedirector(cacheType: CacheableTypes, cache?: ICache<string>): void;
+    /**
+    *  This method can return null
+    **/
+    get(key: string, cacheTypeHint?: string): V;
+    /**
+    *   This method is optimistic
+    **/
+    set(key: string, value: V, cacheTypeHint?: string): void;
+    configure(config: ITwoLayerCacheConfiguration<V>): void;
+}
+export class TwoLayerCache<V> implements ITwoLayerCache<V> {
+    constructor(config: ITwoLayerCacheConfiguration<V>);
+    configure(config: ITwoLayerCacheConfiguration<V>): void;
+    addRedirector(cacheType: CacheableTypes): void;
+    /**
+    *  This method can return null
+    **/
+    get(key: string, cacheTypeHint?: string): V;
+    /**
+    *   This method is optimistic
+    **/
+    set(key: string, value: V, cacheTypeHint?: string): void;
+    private _config;
+    private _redirectors;
+    private _objectCache;
+}
+}
 declare module "VSS/Identities/Picker/Controls" {
 import Controls = require("VSS/Controls");
 import Dialogs = require("VSS/Controls/Dialogs");
@@ -17804,14 +18140,6 @@ export interface IControlAlignmentOptions {
     positioningElement?: JQuery | (() => JQuery);
 }
 export interface IIdentityPickerDropdownOptions extends Identities_Picker_Services.IIdentityServiceOptions, Identities_Picker_Services.IIdentityPickerExtensionOptions {
-    /**
-    *   type of identities - one or more of User or Group
-    **/
-    identityType?: Identities_Picker_Services.IEntityType;
-    /**
-    *   scope - one or more of AAD, IMS, Source
-    **/
-    operationScope?: Identities_Picker_Services.IOperationScope;
     /**
     *   restrict displayed identities in dropdown
     **/
@@ -17853,6 +18181,14 @@ export interface IIdentityPickerDropdownOptions extends Identities_Picker_Servic
     *   Specify the base element, and the relative alignment of the element and base
     **/
     alignment?: IControlAlignmentOptions;
+    /**
+    *   what action should execute when identity dropdown is hidden
+    **/
+    onHide?: (event?: JQueryEventObject) => void;
+    /**
+    *   Callback to execute when the id card blurs in the dropdown control
+    **/
+    onIdCardBlurCallback?: () => void;
 }
 export class IdentityPickerDropdownControl extends Controls.Control<IIdentityPickerDropdownOptions> {
     static UPDATE_THUMBNAILS_EVENT: string;
@@ -17868,6 +18204,8 @@ export class IdentityPickerDropdownControl extends Controls.Control<IIdentityPic
     private static CSS_AVATAR;
     private static CSS_DROPDOWN_BASE;
     private static EVENT_MOUSEDOWN;
+    private static AREA;
+    private static FEATURE;
     private _displayedEntities;
     private _mruEntities;
     private _isSearchActive;
@@ -17917,7 +18255,7 @@ export class IdentityPickerDropdownControl extends Controls.Control<IIdentityPic
     /**
     * Hide the dropdown
     **/
-    hide(): void;
+    hide(e?: JQueryEventObject, suppressHideEvent?: boolean): void;
     getSelectedIndex(): number;
     getSelectedItem(): Identities_Picker_RestClient.IEntity;
     handleKeyEvent(e: JQueryEventObject): boolean;
@@ -17934,7 +18272,7 @@ export class IdentityPickerDropdownControl extends Controls.Control<IIdentityPic
     private _disableDirectorySearch();
     private _resetSearchStatuses();
     private _getIdentitiesPostLoad(prefix);
-    private _getDirectoryEntities(prefix, deferred, quickSearch?);
+    private _getDirectoryEntities(prefix, entityDeferred, quickSearch?);
     private _getImagesForDisplayedEntities();
     private _showPostLoad();
     private _displayEntities(entitiesToSet, keepIndex?, render?);
@@ -17981,6 +18319,7 @@ export class IdentityPickerDropdownControl extends Controls.Control<IIdentityPic
     * Create the li that shall represent an user item
     **/
     private _createItem(index);
+    private _logSelectedEntity(selectedItem);
     private _render();
     private _renderEntities();
     private _constructSearchResultStatus();
@@ -17990,14 +18329,6 @@ export class IdentityPickerDropdownControl extends Controls.Control<IIdentityPic
     private _searchButtonClickDelegate();
 }
 export interface IIdentityPickerIdCardDialogOptions extends Identities_Picker_Services.IIdentityServiceOptions {
-    /**
-    *   type of identities - one or more of User or Group
-    **/
-    identityType?: Identities_Picker_Services.IEntityType;
-    /**
-    *   scope - one or more of AAD, IMS, Source
-    **/
-    operationScope?: Identities_Picker_Services.IOperationScope;
     /**
     *   an identity to initialize with (and to avoid a call to the identity picker service API)
     **/
@@ -18018,6 +18349,10 @@ export interface IIdentityPickerIdCardDialogOptions extends Identities_Picker_Se
     *  An optional container of the anchor to be considered. Passing an iframe allows for positioning over an anchor in an other frame.
     **/
     anchorContainer?: JQuery;
+    /**
+    *   Callback method to execute on blur.
+    **/
+    onblurCallback?: () => void;
 }
 export class IdCardDialog extends Dialogs.DialogO<IIdentityPickerIdCardDialogOptions> {
     static IDCARD_LOADED_EVENT: string;
@@ -18041,7 +18376,7 @@ export class IdCardDialog extends Dialogs.DialogO<IIdentityPickerIdCardDialogOpt
     private _getIdentitiesFailure(data);
     private _getIdentitiesSuccess(data);
     private _getThumbnailFailure(data);
-    private _getThumbnailSuccess(thumbnails);
+    private _getThumbnailSuccess(entityIdThumbnailMap);
     private _displayIdCard(identity);
     private _constructMemberTabContent();
     private _getDirectoryMemberEntities(identity);
@@ -18052,15 +18387,25 @@ export class IdCardDialog extends Dialogs.DialogO<IIdentityPickerIdCardDialogOpt
     private _renderMembersList();
     private _loadNextPage();
 }
+export interface ISearchControlCallbackOptions {
+    /**
+    *   action that should execute when an item in this dropdown is selected. This action, if supplied, shall be called after the dropdown's default onItemSelect action has executed
+    **/
+    onItemSelect?: (item: Identities_Picker_RestClient.IEntity) => any;
+    /**
+    *   action that should execute when the input field loses focus. This action, if supplied, shall be called after the control's default onInputBlur action has executed
+    **/
+    onInputBlur?: () => any;
+    /**
+    *   action that should execute when a key is pressed. This action, if supplied, shall be called before the dropdown's default onKeyPress action has executed to allow for overrides
+    **/
+    onKeyPress?: (keyCode: number) => any;
+    /**
+    *   a pre-render hook that takes in the list of identities that would otherwise have been displayed and rearranges or adds to them prior to returning the new list
+    **/
+    preDropdownRender?: (entityList: Identities_Picker_RestClient.IEntity[]) => Identities_Picker_RestClient.IEntity[];
+}
 export interface IIdentityPickerSearchOptions extends Identities_Picker_Services.IIdentityServiceOptions, Identities_Picker_Services.IIdentityPickerExtensionOptions {
-    /**
-    *   type of identities - one or more of User or Group
-    **/
-    identityType?: Identities_Picker_Services.IEntityType;
-    /**
-    *   scope - one or more of AAD, IMS, Source
-    **/
-    operationScope?: Identities_Picker_Services.IOperationScope;
     /**
     *   default identities to initialise the dropdown with - if you are constructing the IEntity objects, their identifiers (such as entityId, localId etc.) have to be valid;
     *   alternatively the input can be a semi-colon separated sequence of unique identifiers (such as sign-in addresses or aliases)
@@ -18078,22 +18423,6 @@ export interface IIdentityPickerSearchOptions extends Identities_Picker_Services
     *   whether the search and dropdown controls should handle multiple identities
     **/
     multiIdentitySearch?: boolean;
-    /**
-    *   action that should execute when an item in this dropdown is selected. This action, if supplied, shall be called after the dropdown's default onItemSelect action has executed
-    **/
-    onItemSelect?: (item: Identities_Picker_RestClient.IEntity) => any;
-    /**
-    *   action that should execute when the input field loses focus. This action, if supplied, shall be called after the control's default onInputBlur action has executed
-    **/
-    onInputBlur?: () => any;
-    /**
-    *   action that should execute when a key is pressed. This action, if supplied, shall be called before the dropdown's default onKeyPress action has executed to allow for overrides
-    **/
-    onKeyPress?: (keyCode: number) => any;
-    /**
-    *   a pre-render hook that takes in the list of identities that would otherwise have been displayed and rearranges or adds to them prior to returning the new list
-    **/
-    preDropdownRender?: (entityList: Identities_Picker_RestClient.IEntity[]) => Identities_Picker_RestClient.IEntity[];
     /**
     *   whether to display the contact card icon for each identity in the dropdown. Default false.
     **/
@@ -18136,9 +18465,13 @@ export interface IIdentityPickerSearchOptions extends Identities_Picker_Services
     **/
     watermark?: Identities_Picker_RestClient.IEntity;
     /**
-    *   Specify the base element, and the relative alignment of the element and base
+    *   the width of the dropdown control. Default is max(positioningElement width, 300px)
     **/
-    dropdownAlignment?: IControlAlignmentOptions;
+    dropdownWidth?: number;
+    /**
+    *   Callbacks supported by the search control
+    **/
+    callbacks?: ISearchControlCallbackOptions;
 }
 export class IdentityPickerSearchControl extends Controls.Control<IIdentityPickerSearchOptions> {
     static INVALID_INPUT_EVENT: string;
@@ -18229,14 +18562,6 @@ export enum IdentityPickerControlSize {
 }
 export interface IIdentityDisplayOptions extends Identities_Picker_Services.IIdentityServiceOptions, Identities_Picker_Services.IIdentityPickerExtensionOptions {
     /**
-    *   type of identity - one or more of User or Group
-    **/
-    identityType?: Identities_Picker_Services.IEntityType;
-    /**
-    *   scope - one or more of AAD, IMS, Source
-    **/
-    operationScope?: Identities_Picker_Services.IOperationScope;
-    /**
     *   the identity to be displayed - if you are constructing the IEntity object, its identifiers (such as entityId, localId etc.) have to be valid;
     *   alternatively the input can be a unique identifier (such as a sign-in address or alias)
     **/
@@ -18314,7 +18639,7 @@ export class EntityHelpers {
     *   This is the default way the controls internally fetch the key for disambiguating entities.
     *   Use-cases apart from calls by the controls here are not supported; provided as a example of merging logic.
     **/
-    static getMergingKeyFromEntity(entity: Identities_Picker_RestClient.IEntity): string;
+    private static _getMergingKeyFromEntity(entity);
     static getUniqueIdentifierForDisambiguation(entity: Identities_Picker_RestClient.IEntity): string;
     private static _mergeSimilarEntities(x, y, mergePreference?);
     private static _computeValue(key, x, y, mergePreference?);
@@ -18476,8 +18801,8 @@ export interface IdentitiesPatchMruResponseModel {
 }
 }
 declare module "VSS/Identities/Picker/Services" {
-import Identities_Picker_RestClient = require("VSS/Identities/Picker/RestClient");
 import Service = require("VSS/Service");
+import Identities_Picker_RestClient = require("VSS/Identities/Picker/RestClient");
 /**
 *   Maps to static Directory in the DirectoryDiscoveryService
 **/
@@ -18529,6 +18854,7 @@ export class ServiceHelpers {
     static ExtensionData_ConstraintListKey: string;
     static ExtensionData_NoServiceIdentities: string;
     static ExtensionData_MaterializedAadGroupsOnlyItem: string;
+    static GetIdentities_Prefix_Separator: string;
     /**
     *   Currently supports only AAD and Source (AAD for AAD-backed accounts, and IMS for MSA accounts/on-premise TFS)
     **/
@@ -18575,33 +18901,47 @@ export interface IIdentityServiceOptions {
     *   Details about the control's current environment that might help an IEntityOperationsExtension in modifying requests.
     **/
     extensionData?: IExtensionData;
+    /**
+    *   type of identities - one or more of User or Group
+    **/
+    identityType?: IEntityType;
+    /**
+    *   scope - one or more of AAD, IMS, Source
+    **/
+    operationScope?: IOperationScope;
 }
 export interface IIdentityService {
-    getIdentities(prefix: string, operationScope: IOperationScope, identityType: IEntityType, successCallback: (queryTokenResult: Identities_Picker_RestClient.QueryTokenResultModel) => void, errorCallback?: (errorData?: any) => void, options?: IIdentityServiceOptions): void;
-    getIdentityImages(identities: Identities_Picker_RestClient.IEntity[], operationScope: IOperationScope, identityType: IEntityType, successCallback: (images: IDictionaryStringTo<string>) => void, errorCallback?: (errorData?: any) => void, options?: IIdentityServiceOptions): void;
+    getIdentities(prefix: string, operationScope: IOperationScope, identityType: IEntityType, options?: IIdentityServiceOptions): IDictionaryStringTo<IPromise<Identities_Picker_RestClient.QueryTokenResultModel>>;
+    getIdentityImages(identities: Identities_Picker_RestClient.IEntity[], options?: IIdentityServiceOptions): IDictionaryStringTo<IPromise<IDictionaryStringTo<string>>>;
     getIdentityConnections(identity: Identities_Picker_RestClient.IEntity, operationScope: IOperationScope, identityType: IEntityType, connectionType: IConnectionType, options?: IIdentityServiceOptions): IPromise<Identities_Picker_RestClient.IdentitiesGetConnectionsResponseModel>;
 }
 /**
 *   This client service is meant to be used only by the framework identity picker controls and should not be used elsewhere.
 **/
 export class IdentityService extends Service.VssService implements IIdentityService {
+    constructor();
     /**
     *   Get all users with specific properties starting with the prefix.
-    *   @param  successCallback:    This is called independently for each valid semicolon separated queryToken that was parsed by the service and resolved to 0 or more identities.
-    *   @param  errorCallback:      This is called for each error received from either the controller or one of the federated services
     **/
-    getIdentities(prefix: string, operationScope: IOperationScope, identityType: IEntityType, successCallback: (queryTokenResult: Identities_Picker_RestClient.QueryTokenResultModel) => void, errorCallback?: (errorData?: any) => void, options?: IIdentityServiceOptions): void;
+    getIdentities(prefix: string, operationScope: IOperationScope, identityType: IEntityType, options?: IIdentityServiceOptions): IDictionaryStringTo<IPromise<Identities_Picker_RestClient.QueryTokenResultModel>>;
     /**
     *   Get images of identities asynchronously, if available. Currently only supports AAD and profile images.
     *   @param  successCallback:    This is called once all the images have been loaded for the identities supplied
     *   @param  errorCallback:      This is called for each error received from either the controller or one of the federated services
     **/
-    getIdentityImages(identities: Identities_Picker_RestClient.IEntity[], successCallback: (images: IDictionaryStringTo<string>) => void, errorCallback?: (errorData?: any) => void, options?: IIdentityServiceOptions): void;
+    getIdentityImages(identities: Identities_Picker_RestClient.IEntity[], options?: IIdentityServiceOptions): IDictionaryStringTo<IPromise<IDictionaryStringTo<string>>>;
     /**
     *   Get an identity's connections in the overlay of the AD graph on the VSTS Identity graph
     **/
     getIdentityConnections(identity: Identities_Picker_RestClient.IEntity, operationScope: IOperationScope, identityType: IEntityType, connectionType: IConnectionType, options?: IIdentityServiceOptions): IPromise<Identities_Picker_RestClient.IdentitiesGetConnectionsResponseModel>;
     private static getQueryTokensForIdentitesWithImages(identities);
+    private _cacheQueryTokenResult(queryTokenResult);
+    private static _removeQueryToken(queryToken, queryTokens);
+    private static getUniqueRequestString(queryToken, operationScope, identityType);
+    private static _ffClientPerformanceEnabled;
+    private static _ffClientPerformance;
+    private _qtrCache;
+    private _qtrRequestAggregator;
 }
 export interface IMruServiceOptions {
     /**
@@ -18633,6 +18973,9 @@ import Contracts = require("VSS/Identities/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_DelegatedAuthorization_Contracts = require("VSS/DelegatedAuthorization/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class IdentitiesHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -18913,6 +19256,7 @@ export class IdentitiesHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     createIdentity(frameworkIdentityInfo: Contracts.FrameworkIdentityInfo): IPromise<Contracts.Identity>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.IdentityBatchInfo} batchInfo
@@ -18920,6 +19264,7 @@ export class IdentitiesHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     readIdentityBatch(batchInfo: Contracts.IdentityBatchInfo): IPromise<Contracts.Identity[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} scopeId
@@ -18931,6 +19276,7 @@ export class IdentitiesHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getSelf(): IPromise<Contracts.IdentitySelf>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} containerId
@@ -18939,6 +19285,7 @@ export class IdentitiesHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     addMember(containerId: string, memberId: string): IPromise<boolean>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} containerId
@@ -18948,6 +19295,7 @@ export class IdentitiesHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     readMember(containerId: string, memberId: string, queryMembership?: Contracts.QueryMembership): IPromise<Contracts.IdentityDescriptor>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} containerId
@@ -18956,6 +19304,7 @@ export class IdentitiesHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     readMembers(containerId: string, queryMembership?: Contracts.QueryMembership): IPromise<Contracts.IdentityDescriptor[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} containerId
@@ -18964,6 +19313,7 @@ export class IdentitiesHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     removeMember(containerId: string, memberId: string): IPromise<boolean>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} memberId
@@ -18973,6 +19323,7 @@ export class IdentitiesHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     readMemberOf(memberId: string, containerId: string, queryMembership?: Contracts.QueryMembership): IPromise<Contracts.IdentityDescriptor>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} memberId
@@ -18981,6 +19332,7 @@ export class IdentitiesHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     readMembersOf(memberId: string, queryMembership?: Contracts.QueryMembership): IPromise<Contracts.IdentityDescriptor[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.CreateScopeInfo} info
@@ -18989,6 +19341,7 @@ export class IdentitiesHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     createScope(info: Contracts.CreateScopeInfo, scopeId: string): IPromise<Contracts.IdentityScope>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} scopeId
@@ -18996,6 +19349,7 @@ export class IdentitiesHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     deleteScope(scopeId: string): IPromise<void>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} scopeId
@@ -19003,6 +19357,7 @@ export class IdentitiesHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getScopeById(scopeId: string): IPromise<Contracts.IdentityScope>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} scopeName
@@ -19010,6 +19365,7 @@ export class IdentitiesHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getScopeByName(scopeName: string): IPromise<Contracts.IdentityScope>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.IdentityScope} renameScope
@@ -19018,12 +19374,14 @@ export class IdentitiesHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     renameScope(renameScope: Contracts.IdentityScope, scopeId: string): IPromise<void>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @return IPromise<VSS_DelegatedAuthorization_Contracts.AccessTokenResult>
      */
     getSignoutToken(): IPromise<VSS_DelegatedAuthorization_Contracts.AccessTokenResult>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} tenantId
@@ -19321,6 +19679,10 @@ export interface AccessMapping {
     accessPoint: string;
     displayName: string;
     moniker: string;
+    /**
+     * Part of the access mapping which applies context after the access point of the server.
+     */
+    virtualDirectory: string;
 }
 /**
  * Data transfer class that holds information needed to set up a connection with a VSS server.
@@ -19480,6 +19842,9 @@ declare module "VSS/Locations/RestClient" {
 import Contracts = require("VSS/Locations/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class LocationsHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -19522,6 +19887,9 @@ export class LocationsHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     updateServiceDefinitions(serviceDefinitions: VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ServiceDefinition[]>): IPromise<void>;
 }
+/**
+ * @exemptedapi
+ */
 export class LocationsHttpClient2_1 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -19574,7 +19942,7 @@ export class HistoryService implements Service.ILocalService {
     private _events;
     private _suppressNavigate;
     private _initialized;
-    _currentHashString: string;
+    private _currentHashString;
     constructor();
     /**
      * Creates a fragment url to be used in flight navigation.
@@ -19587,10 +19955,10 @@ export class HistoryService implements Service.ILocalService {
     getCurrentFragment(): string;
     deSerializeState(state: string): any;
     getCurrentState(): any;
-    checkCurrentState(): boolean;
+    private checkCurrentState();
     replaceHistoryPoint(action: string, data: any, windowTitle?: string, suppressNavigate?: boolean): void;
     addHistoryPoint(action: string, data?: any, windowTitle?: string, suppressNavigate?: boolean): void;
-    attachNavigate(action: IFunctionPPR<any, any, void>, handler?: IFunctionPPR<any, any, void>, checkCurrentState?: boolean): void;
+    attachNavigate(handler: IFunctionPPR<any, any, void>, checkCurrentState?: boolean): void;
     attachNavigate(action: string, handler: IFunctionPPR<any, any, void>, checkCurrentState?: boolean): void;
     detachNavigate(action: IFunctionPPR<any, any, void>): void;
     detachNavigate(action: string, handler?: IFunctionPPR<any, any, void>): void;
@@ -19678,6 +20046,9 @@ export var TypeInfo: {
 declare module "VSS/Operations/RestClient" {
 import Contracts = require("VSS/Operations/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class OperationsHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -19802,6 +20173,131 @@ export interface IScenarioDescriptor {
     log(): void;
 }
 export function getTimestamp(): number;
+}
+declare module "VSS/Profile/Metrics" {
+import Q = require("q");
+import Telemetry_RestClient = require("VSS/Telemetry/RestClient");
+import Telemetry_Services = require("VSS/Telemetry/Services");
+/**
+ * Service used to report telemetry via CI events and app insights, derived from VSS/Telemetry/Services
+ * @remark export for testing only, do not use it externally
+ */
+export class TelemetryAsyncHelper {
+    private static DelayMs;
+    private items;
+    private client;
+    private queue;
+    private pending;
+    constructor(client?: Telemetry_RestClient.CustomerIntelligenceHttpClient);
+    private queueEvent(eventData);
+    publish(eventData: Telemetry_Services.TelemetryEventData, publishImmediately?: boolean): Q.Promise<void>;
+    private publishEvents();
+}
+export interface MetricsEvent {
+    setValue<T>(key: string, value: T): any;
+    close(): Q.Promise<void>;
+    inner(feature: string): MetricsEvent;
+}
+/**
+ * Base metrics event
+ * @remarks Should be abstract when compiler supports
+ */
+export class BaseMetricsEvent<T extends MetricsEvent> implements MetricsEvent {
+    protected isClosed: boolean;
+    protected area: string;
+    protected feature: string;
+    protected properties: IDictionaryStringTo<any>;
+    protected publishOnClose: boolean;
+    private children;
+    /**
+     * Creates a MetricsEvent with specified area and feature
+     */
+    constructor(area: string, feature: string, publishOnClose: boolean);
+    /**
+     * Set value for a metric field
+     */
+    setValue<T>(key: string, value: T): any;
+    /**
+     * Publishes data to telemetry services
+     * To be overriden for specific implementations
+     * @remarks Should be abstract when compiler supports
+     */
+    protected closeThis(): Q.Promise<void>;
+    /**
+     * Marks a MetricsEvent project as closed, once it is closed, it will not be updated with any new values
+     * invokes closeThis for specific implementations.
+     */
+    close(): Q.Promise<void>;
+    /**
+     * Create inner metrics by prefixing the keys with innerFeature
+     * @remarks Should be abstract when compiler supports, must be overriden
+     */
+    protected newInnerMetrics(feature: string): T;
+    inner(feature: string): T;
+}
+/**
+ * Provides an easy-to-use tracking object for sending customer intelligence telemetries
+ */
+export class IntervalMetricsEvent extends BaseMetricsEvent<IntervalMetricsEvent> {
+    protected startTime: number;
+    protected elapsedTime: number;
+    /**
+     * Set startTime for this metrics event to Date.now()
+     * @return set startTime
+     */
+    begin(): number;
+    /**
+     * Set elapsedTime if the start timestamp has been set by Date.now() - startTime
+     * @return set elapsedTime
+     */
+    end(): number;
+    /**
+     * Publishes data to telemetry services
+     * To be overriden for specific implementations
+     */
+    protected closeThis(): Q.Promise<void>;
+    /**
+     * Create inner metrics by prefixing the keys with innerFeature
+     */
+    protected newInnerMetrics(innerFeature: string): IntervalMetricsEvent;
+}
+export class InstantMetricsEvent extends BaseMetricsEvent<MetricsEvent> {
+    /**
+     * Publishes data to telemetry services
+     * To be overriden for specific implementations
+     */
+    protected closeThis(): Q.Promise<void>;
+    /**
+     * Create inner metrics by prefixing the keys with innerFeature
+     */
+    newInnerMetrics(innerFeature: string): MetricsEvent;
+}
+/**
+ * Metrics event that does nothing
+ */
+export class NullMetricsEvent implements MetricsEvent {
+    setValue<T>(key: string, value: T): void;
+    close(): Q.Promise<void>;
+    inner(feature: string): MetricsEvent;
+}
+/**
+ * Convenient metrics event object that does nothing
+ */
+export var nullMetrics: NullMetricsEvent;
+/**
+ * Create auto metered async action with StartTime and ElapsedTime automatially set for a new metrics
+ * @param action
+ * @param metricsArea
+ * @param metricsFeature
+ */
+export function meterAsyncAction<T>(action: (metrics: IntervalMetricsEvent) => Q.Promise<T>, metricsArea: string, metricsFeature: string, metricsPublishOnClose: boolean): Q.Promise<T>;
+/**
+ * Create auto metered async action with StartTime and ElapsedTime automatially set for a new inner metrics
+ * @param action
+ * @param parentMetrics
+ * @param innerFeature
+ */
+export function meterAsyncActionInner<T>(action: (metrics: MetricsEvent) => Q.Promise<T>, parentMetrics: IntervalMetricsEvent, innerFeature: string): Q.Promise<T>;
 }
 declare module "VSS/SDK/Services/Dialogs" {
 import Contracts_Platform = require("VSS/Common/Contracts/Platform");
@@ -20553,6 +21049,9 @@ declare module "VSS/Security/RestClient" {
 import Contracts = require("VSS/Security/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class SecurityHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -20605,11 +21104,12 @@ export class SecurityHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      *
      * @param {string} securityNamespaceId
      * @param {number} permissions
-     * @param {string} token
+     * @param {string} tokens
      * @param {boolean} alwaysAllowAdministrators
-     * @return IPromise<boolean>
+     * @param {string} delimiter
+     * @return IPromise<boolean[]>
      */
-    hasPermission(securityNamespaceId: string, permissions?: number, token?: string, alwaysAllowAdministrators?: boolean): IPromise<boolean>;
+    hasPermissions(securityNamespaceId: string, permissions?: number, tokens?: string, alwaysAllowAdministrators?: boolean, delimiter?: string): IPromise<boolean[]>;
     /**
      * [Preview API]
      *
@@ -20840,7 +21340,7 @@ export class VssConnection {
      */
     getHttpClient<T extends WebApi_RestClient.VssHttpClient>(httpClientType: {
         new (url: string): T;
-    }, serviceInstanceId?: string): T;
+    }, serviceInstanceId?: string, authTokenManager?: IAuthTokenManager<any>): T;
     /**
     * Get the url for the given service
     *
@@ -21021,6 +21521,9 @@ export var TypeInfo: {
 declare module "VSS/Telemetry/RestClient" {
 import Contracts = require("VSS/Telemetry/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class CustomerIntelligenceHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -21031,6 +21534,9 @@ export class CustomerIntelligenceHttpClient2_2 extends VSS_WebApi.VssHttpClient 
      */
     publishEvents(events: Contracts.CustomerIntelligenceEvent[]): IPromise<void>;
 }
+/**
+ * @exemptedapi
+ */
 export class CustomerIntelligenceHttpClient2_1 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -21427,6 +21933,14 @@ export function parseJsonIsland($context: JQuery, selectionFilter?: string, remo
 export function convertValueToDisplayString(value: any, format?: string): string;
 export function domToXml(xmlNode: any): string;
 export function parseXml(xml: string): any;
+/**
+ * Compare two objects value are deep equal, order matters in array comparision.
+ *
+ * @param first The first object
+ * @param second The second object
+ * @return True if two objects are deepEqual, otherwise false.
+ */
+export function equals(first: any, second: any): boolean;
 export var documentSelection: any;
 }
 declare module "VSS/Utils/Date" {
@@ -22284,6 +22798,10 @@ export class UrlTranslatorService implements Service.ILocalService {
     beginTranslateUrl(url: string, options?: any, callback?: IFunctionPR<string, any>, errorCallback?: IErrorCallback): void;
 }
 export function getTranslatorService(): UrlTranslatorService;
+/**
+ * Extract query parameters as a dictionary
+ */
+export function getQueryParameters(url: string): IDictionaryStringTo<string>;
 }
 declare module "VSS/VSS" {
 export var uiCulture: string;

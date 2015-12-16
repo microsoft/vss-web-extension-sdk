@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v91.20151110.0924
+// Type definitions for Microsoft Visual Studio Services v92.20151216.1133
 // Project: http://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -247,6 +247,9 @@ export interface BuildBadge {
      * Self Url that generates SVG
      */
     imageUrl: string;
+}
+export interface BuildChangesCalculatedEvent extends BuildUpdatedEvent {
+    changes: Change[];
 }
 export interface BuildCompletedEvent extends BuildUpdatedEvent {
 }
@@ -1419,6 +1422,9 @@ export var TypeInfo: {
     BuildBadge: {
         fields: any;
     };
+    BuildChangesCalculatedEvent: {
+        fields: any;
+    };
     BuildCompletedEvent: {
         fields: any;
     };
@@ -1865,6 +1871,9 @@ declare module "TFS/Build/RestClient" {
 import Contracts = require("TFS/Build/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class BuildHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -1970,9 +1979,10 @@ export class BuildHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * @param {number} maxBuildsPerDefinition
      * @param {Contracts.QueryDeletedOption} deletedFilter
      * @param {Contracts.BuildQueryOrder} queryOrder
+     * @param {string} branchName
      * @return IPromise<Contracts.Build[]>
      */
-    getBuilds(project?: string, definitions?: number[], queues?: number[], buildNumber?: string, minFinishTime?: Date, maxFinishTime?: Date, requestedFor?: string, reasonFilter?: Contracts.BuildReason, statusFilter?: Contracts.BuildStatus, resultFilter?: Contracts.BuildResult, tagFilters?: string[], properties?: string[], type?: Contracts.DefinitionType, top?: number, continuationToken?: string, maxBuildsPerDefinition?: number, deletedFilter?: Contracts.QueryDeletedOption, queryOrder?: Contracts.BuildQueryOrder): IPromise<Contracts.Build[]>;
+    getBuilds(project?: string, definitions?: number[], queues?: number[], buildNumber?: string, minFinishTime?: Date, maxFinishTime?: Date, requestedFor?: string, reasonFilter?: Contracts.BuildReason, statusFilter?: Contracts.BuildStatus, resultFilter?: Contracts.BuildResult, tagFilters?: string[], properties?: string[], type?: Contracts.DefinitionType, top?: number, continuationToken?: string, maxBuildsPerDefinition?: number, deletedFilter?: Contracts.QueryDeletedOption, queryOrder?: Contracts.BuildQueryOrder, branchName?: string): IPromise<Contracts.Build[]>;
     /**
      * [Preview API] Queues a build
      *
@@ -1996,10 +2006,11 @@ export class BuildHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      *
      * @param {string} project - Project ID or project name
      * @param {number} buildId
+     * @param {string} continuationToken
      * @param {number} top - The maximum number of changes to return
      * @return IPromise<Contracts.Change[]>
      */
-    getBuildCommits(project: string, buildId: number, top?: number): IPromise<Contracts.Change[]>;
+    getBuildChanges(project: string, buildId: number, continuationToken?: string, top?: number): IPromise<Contracts.Change[]>;
     /**
      * [Preview API] Gets the changes associated between given builds
      *
@@ -2333,6 +2344,7 @@ export class BuildHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getBadge(project: string, definitionId: number, branchName?: string): IPromise<string>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -2343,6 +2355,7 @@ export class BuildHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getBuildBadge(project: string, repoType: string, repoId?: string, branchName?: string): IPromise<Contracts.BuildBadge>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -2390,9 +2403,10 @@ export class BuildHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      * @param {number} maxBuildsPerDefinition
      * @param {Contracts.QueryDeletedOption} deletedFilter
      * @param {Contracts.BuildQueryOrder} queryOrder
+     * @param {string} branchName
      * @return IPromise<Contracts.Build[]>
      */
-    getBuilds(project?: string, definitions?: number[], queues?: number[], buildNumber?: string, minFinishTime?: Date, maxFinishTime?: Date, requestedFor?: string, reasonFilter?: Contracts.BuildReason, statusFilter?: Contracts.BuildStatus, resultFilter?: Contracts.BuildResult, tagFilters?: string[], properties?: string[], type?: Contracts.DefinitionType, top?: number, continuationToken?: string, maxBuildsPerDefinition?: number, deletedFilter?: Contracts.QueryDeletedOption, queryOrder?: Contracts.BuildQueryOrder): IPromise<Contracts.Build[]>;
+    getBuilds(project?: string, definitions?: number[], queues?: number[], buildNumber?: string, minFinishTime?: Date, maxFinishTime?: Date, requestedFor?: string, reasonFilter?: Contracts.BuildReason, statusFilter?: Contracts.BuildStatus, resultFilter?: Contracts.BuildResult, tagFilters?: string[], properties?: string[], type?: Contracts.DefinitionType, top?: number, continuationToken?: string, maxBuildsPerDefinition?: number, deletedFilter?: Contracts.QueryDeletedOption, queryOrder?: Contracts.BuildQueryOrder, branchName?: string): IPromise<Contracts.Build[]>;
     /**
      * Queues a build
      *
@@ -2416,11 +2430,13 @@ export class BuildHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      *
      * @param {string} project - Project ID or project name
      * @param {number} buildId
+     * @param {string} continuationToken
      * @param {number} top - The maximum number of changes to return
      * @return IPromise<Contracts.Change[]>
      */
-    getBuildCommits(project: string, buildId: number, top?: number): IPromise<Contracts.Change[]>;
+    getBuildChanges(project: string, buildId: number, continuationToken?: string, top?: number): IPromise<Contracts.Change[]>;
     /**
+     * @exemptedapi
      * [Preview API] Gets the changes associated between given builds
      *
      * @param {string} project - Project ID or project name
@@ -2565,6 +2581,7 @@ export class BuildHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getQueues(name?: string): IPromise<Contracts.AgentPoolQueue[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @return IPromise<Contracts.BuildResourceUsage>
@@ -2689,6 +2706,7 @@ export class BuildHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getBuildWorkItemsRefsFromCommits(commitIds: string[], project: string, buildId: number, top?: number): IPromise<VSS_Common_Contracts.ResourceRef[]>;
     /**
+     * @exemptedapi
      * [Preview API] Gets all the work item ids inbetween fromBuildId to toBuildId
      *
      * @param {string} project - Project ID or project name
@@ -3144,6 +3162,9 @@ import Contracts = require("TFS/Core/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_Operations_Contracts = require("VSS/Operations/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class CoreHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -3295,20 +3316,53 @@ export class CoreHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     getProxies(proxyUrl?: string): IPromise<Contracts.Proxy[]>;
     /**
-     * [Preview API]
+     * [Preview API] Creates a team
+     *
+     * @param {Contracts.WebApiTeam} team - The team data used to create the team.
+     * @param {string} projectId - The name or id (GUID) of the team project in which to create the team.
+     * @return IPromise<Contracts.WebApiTeam>
+     */
+    createTeam(team: Contracts.WebApiTeam, projectId: string): IPromise<Contracts.WebApiTeam>;
+    /**
+     * [Preview API] Deletes a team
+     *
+     * @param {string} projectId - The name or id (GUID) of the team project containing the team to delete.
+     * @param {string} teamId - The name of id of the team to delete.
+     * @return IPromise<void>
+     */
+    deleteTeam(projectId: string, teamId: string): IPromise<void>;
+    /**
+     * [Preview API] Gets a team
      *
      * @param {string} projectId
      * @param {string} teamId
-     * @param {number} top
-     * @param {number} skip
      * @return IPromise<Contracts.WebApiTeam>
      */
-    getTeams(projectId: string, teamId?: string, top?: number, skip?: number): IPromise<Contracts.WebApiTeam>;
+    getTeam(projectId: string, teamId: string): IPromise<Contracts.WebApiTeam>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} projectId
+     * @param {number} top
+     * @param {number} skip
+     * @return IPromise<Contracts.WebApiTeam[]>
+     */
+    getTeams(projectId: string, top?: number, skip?: number): IPromise<Contracts.WebApiTeam[]>;
+    /**
+     * [Preview API] Updates a team's name and/or description
+     *
+     * @param {Contracts.WebApiTeam} teamData
+     * @param {string} projectId - The name or id (GUID) of the team project containing the team to update.
+     * @param {string} teamId - The name of id of the team to update.
+     * @return IPromise<Contracts.WebApiTeam>
+     */
+    updateTeam(teamData: Contracts.WebApiTeam, projectId: string, teamId: string): IPromise<Contracts.WebApiTeam>;
 }
 export class CoreHttpClient2_1 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.WebApiConnectedServiceDetails} connectedServiceCreationData
@@ -3317,6 +3371,7 @@ export class CoreHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     createConnectedService(connectedServiceCreationData: Contracts.WebApiConnectedServiceDetails, projectId: string): IPromise<Contracts.WebApiConnectedService>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} projectId
@@ -3325,6 +3380,7 @@ export class CoreHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getConnectedServiceDetails(projectId: string, name: string): IPromise<Contracts.WebApiConnectedServiceDetails>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} projectId
@@ -3333,6 +3389,7 @@ export class CoreHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getConnectedServices(projectId: string, kind?: Contracts.ConnectedServiceKind): IPromise<Contracts.WebApiConnectedService[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.IdentityData} mruData
@@ -3341,6 +3398,7 @@ export class CoreHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     createIdentityMru(mruData: Contracts.IdentityData, mruName: string): IPromise<void>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.IdentityData} mruData
@@ -3349,6 +3407,7 @@ export class CoreHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     deleteIdentityMru(mruData: Contracts.IdentityData, mruName: string): IPromise<void>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} mruName
@@ -3356,6 +3415,7 @@ export class CoreHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getIdentityMru(mruName: string): IPromise<VSS_Common_Contracts.IdentityRef[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.IdentityData} mruData
@@ -3398,6 +3458,7 @@ export class CoreHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getProjectCollections(top?: number, skip?: number): IPromise<Contracts.TeamProjectCollectionReference[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {number} minRevision
@@ -3445,6 +3506,7 @@ export class CoreHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     updateProject(projectUpdate: Contracts.TeamProject, projectId: string): IPromise<VSS_Operations_Contracts.OperationReference>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} proxyUrl
@@ -3452,13 +3514,45 @@ export class CoreHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getProxies(proxyUrl?: string): IPromise<Contracts.Proxy[]>;
     /**
-     * @param {string} projectId
-     * @param {string} teamId
-     * @param {number} top
-     * @param {number} skip
+     * Creates a team
+     *
+     * @param {Contracts.WebApiTeam} team - The team data used to create the team.
+     * @param {string} projectId - The name or id (GUID) of the team project in which to create the team.
      * @return IPromise<Contracts.WebApiTeam>
      */
-    getTeams(projectId: string, teamId?: string, top?: number, skip?: number): IPromise<Contracts.WebApiTeam>;
+    createTeam(team: Contracts.WebApiTeam, projectId: string): IPromise<Contracts.WebApiTeam>;
+    /**
+     * Deletes a team
+     *
+     * @param {string} projectId - The name or id (GUID) of the team project containing the team to delete.
+     * @param {string} teamId - The name of id of the team to delete.
+     * @return IPromise<void>
+     */
+    deleteTeam(projectId: string, teamId: string): IPromise<void>;
+    /**
+     * Gets a team
+     *
+     * @param {string} projectId
+     * @param {string} teamId
+     * @return IPromise<Contracts.WebApiTeam>
+     */
+    getTeam(projectId: string, teamId: string): IPromise<Contracts.WebApiTeam>;
+    /**
+     * @param {string} projectId
+     * @param {number} top
+     * @param {number} skip
+     * @return IPromise<Contracts.WebApiTeam[]>
+     */
+    getTeams(projectId: string, top?: number, skip?: number): IPromise<Contracts.WebApiTeam[]>;
+    /**
+     * Updates a team's name and/or description
+     *
+     * @param {Contracts.WebApiTeam} teamData
+     * @param {string} projectId - The name or id (GUID) of the team project containing the team to update.
+     * @param {string} teamId - The name of id of the team to update.
+     * @return IPromise<Contracts.WebApiTeam>
+     */
+    updateTeam(teamData: Contracts.WebApiTeam, projectId: string, teamId: string): IPromise<Contracts.WebApiTeam>;
 }
 export class CoreHttpClient extends CoreHttpClient2_2 {
     constructor(rootRequestPath: string);
@@ -3475,18 +3569,23 @@ import TFS_Core_Contracts = require("TFS/Core/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 export interface AggregatedResultsAnalysis {
     duration: any;
-    increaseInDuration: any;
-    increaseInFailures: number;
-    increaseInPassedTests: number;
-    increaseInTotalTests: number;
     previousBuild: BuildReference;
-    resultsByOutcome: AggregatedResultsByOutcome[];
+    resultsByOutcome: {
+        [key: number]: AggregatedResultsByOutcome;
+    };
+    resultsDifference: AggregatedResultsDifference;
     totalTests: number;
 }
 export interface AggregatedResultsByOutcome {
     count: number;
     duration: any;
     outcome: TestOutcome;
+}
+export interface AggregatedResultsDifference {
+    increaseInDuration: any;
+    increaseInFailures: number;
+    increaseInPassedTests: number;
+    increaseInTotalTests: number;
 }
 export interface AggregatedResultsWithDetails {
     groupByField: string;
@@ -4337,6 +4436,9 @@ export var TypeInfo: {
     AggregatedResultsByOutcome: {
         fields: any;
     };
+    AggregatedResultsDifference: {
+        fields: any;
+    };
     AggregatedResultsWithDetails: {
         fields: any;
     };
@@ -4632,6 +4734,9 @@ export var TypeInfo: {
 declare module "TFS/TestManagement/RestClient" {
 import Contracts = require("TFS/TestManagement/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class TestHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -4692,6 +4797,15 @@ export class TestHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<ArrayBuffer>
      */
     getTestRunAttachmentZip(project: string, runId: number, attachmentId: number): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} testCaseResultId
+     * @return IPromise<Contracts.WorkItemReference[]>
+     */
+    getBugsLinkedToTestResult(project: string, runId: number, testCaseResultId: number): IPromise<Contracts.WorkItemReference[]>;
     /**
      * [Preview API]
      *
@@ -4936,9 +5050,10 @@ export class TestHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * @param {number} runId
      * @param {number} testCaseResultId
      * @param {boolean} includeIterationDetails
+     * @param {boolean} includeAssociatedBugs
      * @return IPromise<Contracts.TestCaseResult>
      */
-    getTestCaseResultById(project: string, runId: number, testCaseResultId: number, includeIterationDetails: boolean): IPromise<Contracts.TestCaseResult>;
+    getTestCaseResultById(project: string, runId: number, testCaseResultId: number, includeIterationDetails: boolean, includeAssociatedBugs?: boolean): IPromise<Contracts.TestCaseResult>;
     /**
      * [Preview API]
      *
@@ -5242,6 +5357,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.TestAttachmentRequestModel} attachmentRequestModel
@@ -5252,6 +5368,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     createTestResultAttachment(attachmentRequestModel: Contracts.TestAttachmentRequestModel, project: string, runId: number, testCaseResultId: number): IPromise<Contracts.TestAttachmentReference>;
     /**
+     * @exemptedapi
      * [Preview API] Returns a test result attachment
      *
      * @param {string} project - Project ID or project name
@@ -5262,6 +5379,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getTestResultAttachmentContent(project: string, runId: number, testCaseResultId: number, attachmentId: number): IPromise<ArrayBuffer>;
     /**
+     * @exemptedapi
      * [Preview API] Returns a test result attachment
      *
      * @param {string} project - Project ID or project name
@@ -5272,6 +5390,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getTestResultAttachmentZip(project: string, runId: number, testCaseResultId: number, attachmentId: number): IPromise<ArrayBuffer>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.TestAttachmentRequestModel} attachmentRequestModel
@@ -5281,6 +5400,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     createTestRunAttachment(attachmentRequestModel: Contracts.TestAttachmentRequestModel, project: string, runId: number): IPromise<Contracts.TestAttachmentReference>;
     /**
+     * @exemptedapi
      * [Preview API] Returns a test run attachment
      *
      * @param {string} project - Project ID or project name
@@ -5290,6 +5410,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getTestRunAttachmentContent(project: string, runId: number, attachmentId: number): IPromise<ArrayBuffer>;
     /**
+     * @exemptedapi
      * [Preview API] Returns a test run attachment
      *
      * @param {string} project - Project ID or project name
@@ -5299,6 +5420,17 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getTestRunAttachmentZip(project: string, runId: number, attachmentId: number): IPromise<ArrayBuffer>;
     /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} testCaseResultId
+     * @return IPromise<Contracts.WorkItemReference[]>
+     */
+    getBugsLinkedToTestResult(project: string, runId: number, testCaseResultId: number): IPromise<Contracts.WorkItemReference[]>;
+    /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -5308,6 +5440,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getBuildCodeCoverage(project: string, buildId: number, flags: number): IPromise<Contracts.BuildCoverage[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -5317,6 +5450,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getCodeCoverageSummary(project: string, buildId: number, deltaBuildId?: number): IPromise<Contracts.CodeCoverageSummary>;
     /**
+     * @exemptedapi
      * [Preview API] http://(tfsserver):8080/tfs/DefaultCollection/_apis/test/CodeCoverage?buildId=10 Request: Json of code coverage summary
      *
      * @param {Contracts.CodeCoverageData} coverageData
@@ -5326,6 +5460,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     updateCodeCoverageSummary(coverageData: Contracts.CodeCoverageData, project: string, buildId: number): IPromise<void>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -5335,6 +5470,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getTestRunCodeCoverage(project: string, runId: number, flags: number): IPromise<Contracts.TestRunCoverage[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.CustomTestFieldDefinition[]} newFields
@@ -5343,6 +5479,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     addCustomFields(newFields: Contracts.CustomTestFieldDefinition[], project: string): IPromise<Contracts.CustomTestFieldDefinition[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -5351,6 +5488,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     queryCustomFields(project: string, scopeFilter: Contracts.CustomTestFieldScope): IPromise<Contracts.CustomTestFieldDefinition[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -5420,6 +5558,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     updateTestPoints(pointUpdateModel: Contracts.PointUpdateModel, project: string, planId: number, suiteId: number, pointIds: string): IPromise<Contracts.TestPoint[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -5430,6 +5569,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     queryTestResultRecentBugs(project: string, testRunId: number, testResultId: number, recentDays?: number): IPromise<Contracts.WorkItemReference[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -5441,6 +5581,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     queryReportForBuild(project: string, buildId: number, sourceWorkflow: string, includeFailureDetails: boolean, buildToCompare: Contracts.BuildReference): IPromise<Contracts.TestReport>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.ResultRetentionSettings} retentionSettings
@@ -5449,6 +5590,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     createResultRetentionSettings(retentionSettings: Contracts.ResultRetentionSettings, project: string): IPromise<Contracts.ResultRetentionSettings>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -5456,6 +5598,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     deleteResultRetentionSettings(project: string): IPromise<void>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -5463,6 +5606,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getResultRetentionSettings(project: string): IPromise<Contracts.ResultRetentionSettings>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.ResultRetentionSettings} retentionSettings
@@ -5471,6 +5615,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     updateResultRetentionSettings(retentionSettings: Contracts.ResultRetentionSettings, project: string): IPromise<Contracts.ResultRetentionSettings>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.TestResultCreateModel[]} resultCreateModels
@@ -5480,6 +5625,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     addTestResultsToTestRun(resultCreateModels: Contracts.TestResultCreateModel[], project: string, runId: number): IPromise<Contracts.TestCaseResult[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.TestCaseResultUpdateModel} resultUpdateModel
@@ -5490,16 +5636,19 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     bulkUpdateTestResults(resultUpdateModel: Contracts.TestCaseResultUpdateModel, project: string, runId: number, resultIds: number[]): IPromise<Contracts.TestCaseResult[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
      * @param {number} runId
      * @param {number} testCaseResultId
      * @param {boolean} includeIterationDetails
+     * @param {boolean} includeAssociatedBugs
      * @return IPromise<Contracts.TestCaseResult>
      */
-    getTestCaseResultById(project: string, runId: number, testCaseResultId: number, includeIterationDetails: boolean): IPromise<Contracts.TestCaseResult>;
+    getTestCaseResultById(project: string, runId: number, testCaseResultId: number, includeIterationDetails: boolean, includeAssociatedBugs?: boolean): IPromise<Contracts.TestCaseResult>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -5509,6 +5658,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getTestCaseResults(project: string, runId: number, includeIterationDetails: boolean): IPromise<Contracts.TestCaseResult[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -5519,6 +5669,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getTestResultById(project: string, runId: number, testCaseResultId: number, detailsToInclude?: Contracts.ResultDetails): IPromise<Contracts.TestCaseResult[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -5530,6 +5681,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getTestResults(project: string, runId: number, detailsToInclude?: Contracts.ResultDetails, skip?: number, top?: number): IPromise<Contracts.TestCaseResult[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.TestCaseResultUpdateModel[]} resultUpdateModels
@@ -5539,6 +5691,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     updateTestResults(resultUpdateModels: Contracts.TestCaseResultUpdateModel[], project: string, runId: number): IPromise<Contracts.TestCaseResult[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -5548,6 +5701,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getTestResultsByIds(project: string, ids: Contracts.TestCaseResultIdentifier[], fields?: string[]): IPromise<Contracts.TestCaseResult[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.QueryModel} query
@@ -5595,6 +5749,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getResultParameters(project: string, runId: number, testCaseResultId: number, iterationId: number, paramName?: string): IPromise<Contracts.TestResultParameterModel[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -5650,6 +5805,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     updateTestRun(runUpdateModel: Contracts.RunUpdateModel, project: string, runId: number): IPromise<Contracts.TestRun>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.QueryModel} query
@@ -5737,6 +5893,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getSuitesByTestCaseId(testCaseId: number): IPromise<Contracts.TestSuite[]>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.BuildReference} build
@@ -5747,6 +5904,7 @@ export class TestHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     queryFailureDetailsForBuild(build: Contracts.BuildReference, project: string, sourceWorkflow: string, buildToCompare: Contracts.BuildReference): IPromise<Contracts.TestFailuresAnalysis>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
@@ -6109,6 +6267,7 @@ export interface GitPullRequest {
 export interface GitPullRequestCompletionOptions {
     deleteSourceBranch: boolean;
     mergeCommitMessage: string;
+    squashMerge: boolean;
 }
 export interface GitPullRequestSearchCriteria {
     creatorId: string;
@@ -6857,6 +7016,7 @@ export enum VersionControlChangeType {
     All = 8191,
 }
 export interface VersionControlProjectInfo {
+    defaultSourceControlType: TFS_Core_Contracts.SourceControlTypes;
     project: TFS_Core_Contracts.TeamProjectReference;
     supportsGit: boolean;
     supportsTFVC: boolean;
@@ -7281,6 +7441,9 @@ declare module "TFS/VersionControl/GitRestClient" {
 import Contracts = require("TFS/VersionControl/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class GitHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -7954,6 +8117,7 @@ export class GitHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getItemsBatch(requestData: Contracts.GitItemRequestData, repositoryId: string, project?: string): IPromise<Contracts.GitItem[][]>;
     /**
+     * @exemptedapi
      * [Preview API] Retrieve pull request's commits
      *
      * @param {string} repositoryId
@@ -8057,6 +8221,7 @@ export class GitHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     updatePullRequest(gitPullRequestToUpdate: Contracts.GitPullRequest, repositoryId: string, pullRequestId: number, project?: string): IPromise<Contracts.GitPullRequest>;
     /**
+     * @exemptedapi
      * [Preview API] Query pull requests by project
      *
      * @param {string} project - Project ID or project name
@@ -8068,6 +8233,7 @@ export class GitHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getPullRequestsByProject(project: string, searchCriteria: Contracts.GitPullRequestSearchCriteria, maxCommentLength?: number, skip?: number, top?: number): IPromise<Contracts.GitPullRequest[]>;
     /**
+     * @exemptedapi
      * [Preview API] Retrieve a pull request work items
      *
      * @param {string} repositoryId
@@ -8170,6 +8336,7 @@ export class GitHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     updateRepository(newRepositoryInfo: Contracts.GitRepository, repositoryId: string, project?: string): IPromise<Contracts.GitRepository>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {Contracts.GitStatus} gitCommitStatusToCreate
@@ -8180,6 +8347,7 @@ export class GitHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     createCommitStatus(gitCommitStatusToCreate: Contracts.GitStatus, commitId: string, repositoryId: string, project?: string): IPromise<Contracts.GitStatus>;
     /**
+     * @exemptedapi
      * [Preview API]
      *
      * @param {string} commitId
@@ -8224,6 +8392,9 @@ export function getClient(): GitHttpClient2_1;
 declare module "TFS/VersionControl/TfvcRestClient" {
 import TFS_VersionControl_Contracts = require("TFS/VersionControl/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class TfvcHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -8939,6 +9110,23 @@ export interface WorkItemClassificationNode extends WorkItemTrackingResource {
     name: string;
     structureType: TreeNodeStructureType;
 }
+export interface WorkItemDelete extends WorkItemDeleteReference {
+    resource: WorkItem;
+}
+export interface WorkItemDeleteReference {
+    code: number;
+    deletedBy: string;
+    deletedDate: string;
+    id: number;
+    message: string;
+    name: string;
+    project: string;
+    type: string;
+    url: string;
+}
+export interface WorkItemDeleteUpdate {
+    isDeleted: boolean;
+}
 export enum WorkItemExpand {
     None = 0,
     Relations = 1,
@@ -9201,6 +9389,15 @@ export var TypeInfo: {
     WorkItemClassificationNode: {
         fields: any;
     };
+    WorkItemDelete: {
+        fields: any;
+    };
+    WorkItemDeleteReference: {
+        fields: any;
+    };
+    WorkItemDeleteUpdate: {
+        fields: any;
+    };
     WorkItemExpand: {
         enumValues: {
             "none": number;
@@ -9356,756 +9553,20 @@ export interface IWorkItemNotificationListener {
 }
 }
 declare module "TFS/WorkItemTracking/ProcessContracts" {
-import VSS_Identities_Contracts = require("VSS/Identities/Contracts");
-export interface AttachmentReference {
-    id: string;
-    url: string;
-}
-export enum ClauseType {
-    SourceClause = 0,
-    TargetClause = 1,
-    LinkClause = 2,
-}
-export interface ConstantSetReference {
-    direct: boolean;
-    excludeGroups: boolean;
-    handle: number;
-    id: number;
-    identityDescriptor: VSS_Identities_Contracts.IdentityDescriptor;
-    includeTop: boolean;
-    teamFoundationId: string;
-}
-export interface FieldDependentRule extends WorkItemTrackingResource {
-    dependentFields: WorkItemFieldReference[];
-}
-export enum FieldType {
-    String = 1,
-    Integer = 2,
-    DateTime = 3,
-    PlainText = 5,
-    Html = 7,
-    TreePath = 8,
-    History = 9,
-    Double = 10,
-    Guid = 11,
-    Boolean = 12,
-}
-export enum FieldUsage {
-    None = 0,
-    WorkItem = 1,
-    WorkItemLink = 2,
-    Tree = 4,
-    WorkItemTypeExtension = 8,
-}
-export interface IdentityReference {
-    id: string;
-    name: string;
-    url: string;
-}
-export interface JsonBatchHttpRequest {
-}
-export interface JsonBatchHttpResponse {
-}
-export interface JsonHttpRequest {
-    body: any;
-    headers: {
-        [key: string]: string;
-    };
-    method: string;
-    uri: string;
-}
-export interface JsonHttpResponse {
-    body: string;
-    code: number;
-    headers: {
-        [key: string]: string;
-    };
-}
-export interface Link {
-    attributes: {
-        [key: string]: any;
-    };
-    rel: string;
-    title: string;
-    url: string;
-}
-export enum LinkQueryMode {
-    WorkItems = 0,
-    LinksOneHopMustContain = 1,
-    LinksOneHopMayContain = 2,
-    LinksOneHopDoesNotContain = 3,
-    LinksRecursiveMustContain = 4,
-    LinksRecursiveMayContain = 5,
-    LinksRecursiveDoesNotContain = 6,
-}
-export enum LogicalOperation {
-    NONE = 0,
-    AND = 1,
-    OR = 2,
-}
-export interface MapCase extends MapValues {
-    value: string;
-}
-export interface MapValues {
-    default: string;
-    values: string[];
-}
-export interface ProcessField {
+export interface FieldModel {
     description: string;
     id: string;
     name: string;
     type: string;
     url: string;
 }
-export interface ProcessFieldRule {
-    rule: string;
-    value: string;
-}
-export interface ProcessWorkItemTypeField {
-    id: string;
-    rules: ProcessFieldRule[];
-    url: string;
-}
-export interface ProcessWorkItemTypeModel {
-    description: string;
-    id: string;
-    /**
-     * Parent WIT Id/Internal ReferenceName that it inherits from
-     */
-    inherits: string;
-    name: string;
-    url: string;
-}
-export interface ProvisioningResult {
-    provisioningImportEvents: string[];
-}
-export enum QueryExpand {
-    None = 0,
-    Wiql = 1,
-    Clauses = 2,
-    All = 3,
-}
-export interface QueryHierarchyItem extends WorkItemTrackingResource {
-    children: QueryHierarchyItem[];
-    clauses: WorkItemQueryClause;
-    columns: WorkItemFieldReference[];
-    filterOptions: LinkQueryMode;
-    hasChildren: boolean;
-    id: string;
-    isDeleted: boolean;
-    isFolder: boolean;
-    isInvalidSyntax: boolean;
-    isPublic: boolean;
-    linkClauses: WorkItemQueryClause;
-    name: string;
-    path: string;
-    queryType: QueryType;
-    sortColumns: WorkItemQuerySortColumn[];
-    sourceClauses: WorkItemQueryClause;
-    targetClauses: WorkItemQueryClause;
-    wiql: string;
-}
-export enum QueryResultType {
-    WorkItem = 1,
-    WorkItemLink = 2,
-}
-export enum QueryType {
-    Flat = 1,
-    Tree = 2,
-    OneHop = 3,
-}
-export interface ReportingWorkItemLink {
-    changedDate: Date;
-    isActive: boolean;
-    rel: string;
-    sourceId: number;
-    targetId: number;
-}
-export interface ReportingWorkItemLinksBatch extends StreamedBatch<ReportingWorkItemLink> {
-}
-export interface ReportingWorkItemRevisionsBatch extends StreamedBatch<WorkItem> {
-}
-export interface ReportingWorkItemRevisionsFilter {
-    fields: string[];
-    includeIdentityRef: boolean;
-    types: string[];
-}
-export enum RuleEnginePhase {
-    None = 0,
-    CopyRules = 1,
-    DefaultRules = 2,
-    OtherRules = 4,
-}
-export enum RuleValueFrom {
-    Value = 1,
-    CurrentValue = 2,
-    OriginalValue = 4,
-    OtherFieldCurrentValue = 8,
-    OtherFieldOriginalValue = 16,
-    CurrentUser = 32,
-    Clock = 64,
-}
-export enum ServerDefaultType {
-    ServerDateTime = 1,
-    CallerIdentity = 2,
-    RandomGuid = 3,
-}
-export interface StreamedBatch<T> {
-    isLastBatch: boolean;
-    nextLink: string;
-    values: T[];
-}
-export enum TemplateType {
-    WorkItemType = 0,
-    GlobalWorkflow = 1,
-}
-export enum TreeNodeStructureType {
-    Area = 1,
-    Iteration = 2,
-}
-export enum TreeStructureGroup {
-    Areas = 1,
-    Iterations = 2,
-}
-export interface WorkItem extends WorkItemTrackingResource {
-    fields: {
-        [key: string]: any;
-    };
-    id: number;
-    relations: WorkItemRelation[];
-    rev: number;
-}
-export interface WorkItemClassificationNode extends WorkItemTrackingResource {
-    attributes: {
-        [key: string]: any;
-    };
-    children: WorkItemClassificationNode[];
-    hasChildren: boolean;
-    id: number;
-    name: string;
-    structureType: TreeNodeStructureType;
-}
-export enum WorkItemExpand {
-    None = 0,
-    Relations = 1,
-    Fields = 2,
-    Links = 3,
-    All = 4,
-}
-export interface WorkItemField extends WorkItemTrackingResource {
-    name: string;
-    readOnly: boolean;
-    referenceName: string;
-    supportedOperations: WorkItemFieldOperation[];
-    type: FieldType;
-}
-export interface WorkItemFieldOperation {
-    name: string;
-    referenceName: string;
-}
-export interface WorkItemFieldReference {
-    name: string;
-    referenceName: string;
-    url: string;
-}
-export interface WorkItemFieldUpdate {
-    newValue: any;
-    oldValue: any;
-}
-export interface WorkItemHistory extends WorkItemTrackingResource {
-    rev: number;
-    revisedBy: IdentityReference;
-    revisedDate: Date;
-    value: string;
-}
-export interface WorkItemLink {
-    rel: string;
-    source: WorkItemReference;
-    target: WorkItemReference;
-}
-export interface WorkItemQueryClause {
-    clauses: WorkItemQueryClause[];
-    field: WorkItemFieldReference;
-    fieldValue: WorkItemFieldReference;
-    isFieldValue: boolean;
-    logicalOperator: LogicalOperation;
-    operator: WorkItemFieldOperation;
-    value: string;
-}
-export interface WorkItemQueryResult {
-    asOf: Date;
-    columns: WorkItemFieldReference[];
-    queryResultType: QueryResultType;
-    queryType: QueryType;
-    sortColumns: WorkItemQuerySortColumn[];
-    workItemRelations: WorkItemLink[];
-    workItems: WorkItemReference[];
-}
-export interface WorkItemQuerySortColumn {
-    descending: boolean;
-    field: WorkItemFieldReference;
-}
-export interface WorkItemReference {
-    id: number;
-    url: string;
-}
-export interface WorkItemRelation extends Link {
-}
-export interface WorkItemRelationType extends WorkItemTrackingReference {
-    attributes: {
-        [key: string]: any;
-    };
-}
-export enum WorkItemRelationTypeUsage {
-    WorkItemLink = 0,
-    ResourceLink = 1,
-}
-export interface WorkItemRelationUpdates {
-    added: WorkItemRelation[];
-    removed: WorkItemRelation[];
-    updated: WorkItemRelation[];
-}
-export interface WorkItemRevisionReference extends WorkItemReference {
-    rev: number;
-}
-export interface WorkItemRule {
-    cases: MapCase[];
-    checkOriginalValue: boolean;
-    else: MapValues;
-    field: string;
-    fields: string[];
-    for: string;
-    from: ServerDefaultType;
-    inverse: boolean;
-    name: WorkItemRuleName;
-    not: string;
-    phase: RuleEnginePhase;
-    ruleWeight: number;
-    sets: ConstantSetReference[];
-    subRules: WorkItemRule[];
-    value: string;
-    valueFrom: RuleValueFrom;
-    values: string[];
-}
-export enum WorkItemRuleName {
-    Block = 0,
-    Required = 1,
-    ReadOnly = 2,
-    Empty = 3,
-    Frozen = 4,
-    CannotLoseValue = 5,
-    OtherField = 6,
-    ValidUser = 7,
-    AllowExistingValue = 8,
-    Match = 9,
-    AllowedValues = 10,
-    SuggestedValues = 11,
-    ProhibitedValues = 12,
-    Default = 13,
-    Copy = 14,
-    ServerDefault = 15,
-    Map = 16,
-    When = 17,
-    WhenWas = 18,
-    WhenChanged = 19,
-    WhenBecameNonEmpty = 20,
-    WhenRemainedNonEmpty = 21,
-    Computed = 22,
-    Trigger = 23,
-    Collection = 24,
-    Project = 25,
-    WorkItemType = 26,
-}
-export interface WorkItemStateTransition {
-    actions: string[];
-    to: string;
-}
-export interface WorkItemTrackingReference extends WorkItemTrackingResource {
-    name: string;
-    referenceName: string;
-}
-export interface WorkItemTrackingResource extends WorkItemTrackingResourceReference {
-    _links: any;
-}
-export interface WorkItemTrackingResourceReference {
-    url: string;
-}
-export interface WorkItemType extends WorkItemTrackingResource {
-    description: string;
-    fieldInstances: WorkItemTypeFieldInstance[];
-    name: string;
-    transitions: {
-        [key: string]: WorkItemStateTransition[];
-    };
-    xmlForm: string;
-}
-export interface WorkItemTypeCategory extends WorkItemTrackingResource {
-    defaultWorkItemType: WorkItemTypeReference;
-    name: string;
-    referenceName: string;
-    workItemTypes: WorkItemTypeReference[];
-}
-export interface WorkItemTypeFieldInstance extends WorkItemFieldReference {
-    helpText: string;
-    rules: WorkItemRule[];
-}
-export interface WorkItemTypeReference extends WorkItemTrackingResourceReference {
-    name: string;
-}
-export interface WorkItemTypeTemplate {
-    template: string;
-}
-export interface WorkItemUpdate extends WorkItemTrackingResource {
-    fields: {
-        [key: string]: WorkItemFieldUpdate;
-    };
-    id: number;
-    relations: WorkItemRelationUpdates;
-    rev: number;
-    revisedBy: IdentityReference;
-    revisedDate: Date;
-    workItemId: number;
-}
-export enum WorkItemUpdateType {
-    Create = 0,
-    Update = 1,
-}
 export var TypeInfo: {
-    AttachmentReference: {
+    FieldModel: {
         fields: any;
-    };
-    ClauseType: {
-        enumValues: {
-            "sourceClause": number;
-            "targetClause": number;
-            "linkClause": number;
-        };
-    };
-    ConstantSetReference: {
-        fields: any;
-    };
-    FieldDependentRule: {
-        fields: any;
-    };
-    FieldType: {
-        enumValues: {
-            "string": number;
-            "integer": number;
-            "dateTime": number;
-            "plainText": number;
-            "html": number;
-            "treePath": number;
-            "history": number;
-            "double": number;
-            "guid": number;
-            "boolean": number;
-        };
-    };
-    FieldUsage: {
-        enumValues: {
-            "none": number;
-            "workItem": number;
-            "workItemLink": number;
-            "tree": number;
-            "workItemTypeExtension": number;
-        };
-    };
-    IdentityReference: {
-        fields: any;
-    };
-    JsonBatchHttpRequest: {
-        fields: any;
-    };
-    JsonBatchHttpResponse: {
-        fields: any;
-    };
-    JsonHttpRequest: {
-        fields: any;
-    };
-    JsonHttpResponse: {
-        fields: any;
-    };
-    Link: {
-        fields: any;
-    };
-    LinkQueryMode: {
-        enumValues: {
-            "workItems": number;
-            "linksOneHopMustContain": number;
-            "linksOneHopMayContain": number;
-            "linksOneHopDoesNotContain": number;
-            "linksRecursiveMustContain": number;
-            "linksRecursiveMayContain": number;
-            "linksRecursiveDoesNotContain": number;
-        };
-    };
-    LogicalOperation: {
-        enumValues: {
-            "nONE": number;
-            "aND": number;
-            "oR": number;
-        };
-    };
-    MapCase: {
-        fields: any;
-    };
-    MapValues: {
-        fields: any;
-    };
-    ProcessField: {
-        fields: any;
-    };
-    ProcessFieldRule: {
-        fields: any;
-    };
-    ProcessWorkItemTypeField: {
-        fields: any;
-    };
-    ProcessWorkItemTypeModel: {
-        fields: any;
-    };
-    ProvisioningResult: {
-        fields: any;
-    };
-    QueryExpand: {
-        enumValues: {
-            "none": number;
-            "wiql": number;
-            "clauses": number;
-            "all": number;
-        };
-    };
-    QueryHierarchyItem: {
-        fields: any;
-    };
-    QueryResultType: {
-        enumValues: {
-            "workItem": number;
-            "workItemLink": number;
-        };
-    };
-    QueryType: {
-        enumValues: {
-            "flat": number;
-            "tree": number;
-            "oneHop": number;
-        };
-    };
-    ReportingWorkItemLink: {
-        fields: any;
-    };
-    ReportingWorkItemLinksBatch: {
-        fields: any;
-    };
-    ReportingWorkItemRevisionsBatch: {
-        fields: any;
-    };
-    ReportingWorkItemRevisionsFilter: {
-        fields: any;
-    };
-    RuleEnginePhase: {
-        enumValues: {
-            "none": number;
-            "copyRules": number;
-            "defaultRules": number;
-            "otherRules": number;
-        };
-    };
-    RuleValueFrom: {
-        enumValues: {
-            "value": number;
-            "currentValue": number;
-            "originalValue": number;
-            "otherFieldCurrentValue": number;
-            "otherFieldOriginalValue": number;
-            "currentUser": number;
-            "clock": number;
-        };
-    };
-    ServerDefaultType: {
-        enumValues: {
-            "serverDateTime": number;
-            "callerIdentity": number;
-            "randomGuid": number;
-        };
-    };
-    StreamedBatch: {
-        fields: any;
-    };
-    TemplateType: {
-        enumValues: {
-            "workItemType": number;
-            "globalWorkflow": number;
-        };
-    };
-    TreeNodeStructureType: {
-        enumValues: {
-            "area": number;
-            "iteration": number;
-        };
-    };
-    TreeStructureGroup: {
-        enumValues: {
-            "areas": number;
-            "iterations": number;
-        };
-    };
-    WorkItem: {
-        fields: any;
-    };
-    WorkItemClassificationNode: {
-        fields: any;
-    };
-    WorkItemExpand: {
-        enumValues: {
-            "none": number;
-            "relations": number;
-            "fields": number;
-            "links": number;
-            "all": number;
-        };
-    };
-    WorkItemField: {
-        fields: any;
-    };
-    WorkItemFieldOperation: {
-        fields: any;
-    };
-    WorkItemFieldReference: {
-        fields: any;
-    };
-    WorkItemFieldUpdate: {
-        fields: any;
-    };
-    WorkItemHistory: {
-        fields: any;
-    };
-    WorkItemLink: {
-        fields: any;
-    };
-    WorkItemQueryClause: {
-        fields: any;
-    };
-    WorkItemQueryResult: {
-        fields: any;
-    };
-    WorkItemQuerySortColumn: {
-        fields: any;
-    };
-    WorkItemReference: {
-        fields: any;
-    };
-    WorkItemRelation: {
-        fields: any;
-    };
-    WorkItemRelationType: {
-        fields: any;
-    };
-    WorkItemRelationTypeUsage: {
-        enumValues: {
-            "workItemLink": number;
-            "resourceLink": number;
-        };
-    };
-    WorkItemRelationUpdates: {
-        fields: any;
-    };
-    WorkItemRevisionReference: {
-        fields: any;
-    };
-    WorkItemRule: {
-        fields: any;
-    };
-    WorkItemRuleName: {
-        enumValues: {
-            "block": number;
-            "required": number;
-            "readOnly": number;
-            "empty": number;
-            "frozen": number;
-            "cannotLoseValue": number;
-            "otherField": number;
-            "validUser": number;
-            "allowExistingValue": number;
-            "match": number;
-            "allowedValues": number;
-            "suggestedValues": number;
-            "prohibitedValues": number;
-            "default": number;
-            "copy": number;
-            "serverDefault": number;
-            "map": number;
-            "when": number;
-            "whenWas": number;
-            "whenChanged": number;
-            "whenBecameNonEmpty": number;
-            "whenRemainedNonEmpty": number;
-            "computed": number;
-            "trigger": number;
-            "collection": number;
-            "project": number;
-            "workItemType": number;
-        };
-    };
-    WorkItemStateTransition: {
-        fields: any;
-    };
-    WorkItemTrackingReference: {
-        fields: any;
-    };
-    WorkItemTrackingResource: {
-        fields: any;
-    };
-    WorkItemTrackingResourceReference: {
-        fields: any;
-    };
-    WorkItemType: {
-        fields: any;
-    };
-    WorkItemTypeCategory: {
-        fields: any;
-    };
-    WorkItemTypeFieldInstance: {
-        fields: any;
-    };
-    WorkItemTypeReference: {
-        fields: any;
-    };
-    WorkItemTypeTemplate: {
-        fields: any;
-    };
-    WorkItemUpdate: {
-        fields: any;
-    };
-    WorkItemUpdateType: {
-        enumValues: {
-            "create": number;
-            "update": number;
-        };
     };
 };
 }
 declare module "TFS/WorkItemTracking/ProcessDefinitionsContracts" {
-import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
-import VSS_Identities_Contracts = require("VSS/Identities/Contracts");
-export interface AttachmentReference {
-    id: string;
-    url: string;
-}
-export enum ClauseType {
-    SourceClause = 0,
-    TargetClause = 1,
-    LinkClause = 2,
-}
-export interface ConstantSetReference {
-    direct: boolean;
-    excludeGroups: boolean;
-    handle: number;
-    id: number;
-    identityDescriptor: VSS_Identities_Contracts.IdentityDescriptor;
-    includeTop: boolean;
-    teamFoundationId: string;
-}
 /**
  * Represent a control in the form.
  */
@@ -10143,15 +9604,6 @@ export interface Control {
      */
     watermark: string;
 }
-export interface FieldData {
-    label: string;
-    order: number;
-    readOnly: boolean;
-    visible: boolean;
-}
-export interface FieldDependentRule extends WorkItemTrackingResource {
-    dependentFields: WorkItemFieldReference[];
-}
 export interface FieldModel {
     description: string;
     id: string;
@@ -10163,28 +9615,9 @@ export interface FieldRuleModel {
     rule: string;
     value: string;
 }
-export enum FieldType {
-    String = 1,
-    Integer = 2,
-    DateTime = 3,
-    PlainText = 5,
-    Html = 7,
-    TreePath = 8,
-    History = 9,
-    Double = 10,
-    Guid = 11,
-    Boolean = 12,
-}
 export interface FieldUpdate {
     description: string;
     id: string;
-}
-export enum FieldUsage {
-    None = 0,
-    WorkItem = 1,
-    WorkItemLink = 2,
-    Tree = 4,
-    WorkItemTypeExtension = 8,
 }
 /**
  * Represent a group in the form that holds controls in it.
@@ -10211,346 +9644,6 @@ export interface Group {
      */
     visible: boolean;
 }
-export interface IdentityReference {
-    id: string;
-    name: string;
-    url: string;
-}
-export interface JsonBatchHttpRequest {
-}
-export interface JsonBatchHttpResponse {
-}
-export interface JsonHttpRequest {
-    body: any;
-    headers: {
-        [key: string]: string;
-    };
-    method: string;
-    uri: string;
-}
-export interface JsonHttpResponse {
-    body: string;
-    code: number;
-    headers: {
-        [key: string]: string;
-    };
-}
-export interface Link {
-    attributes: {
-        [key: string]: any;
-    };
-    rel: string;
-    title: string;
-    url: string;
-}
-export enum LinkQueryMode {
-    WorkItems = 0,
-    LinksOneHopMustContain = 1,
-    LinksOneHopMayContain = 2,
-    LinksOneHopDoesNotContain = 3,
-    LinksRecursiveMustContain = 4,
-    LinksRecursiveMayContain = 5,
-    LinksRecursiveDoesNotContain = 6,
-}
-export enum LogicalOperation {
-    NONE = 0,
-    AND = 1,
-    OR = 2,
-}
-export interface MapCase extends MapValues {
-    value: string;
-}
-export interface MapValues {
-    default: string;
-    values: string[];
-}
-export interface ProvisioningResult {
-    provisioningImportEvents: string[];
-}
-export enum QueryExpand {
-    None = 0,
-    Wiql = 1,
-    Minimal = 2,
-    Clauses = 3,
-    All = 4,
-}
-export interface QueryHierarchyItem extends WorkItemTrackingResource {
-    children: QueryHierarchyItem[];
-    clauses: WorkItemQueryClause;
-    columns: WorkItemFieldReference[];
-    createdBy: VSS_Common_Contracts.IdentityRef;
-    createdDate: Date;
-    filterOptions: LinkQueryMode;
-    hasChildren: boolean;
-    id: string;
-    isDeleted: boolean;
-    isFolder: boolean;
-    isInvalidSyntax: boolean;
-    isPublic: boolean;
-    lastModifiedBy: VSS_Common_Contracts.IdentityRef;
-    lastModifiedDate: Date;
-    linkClauses: WorkItemQueryClause;
-    name: string;
-    path: string;
-    queryType: QueryType;
-    sortColumns: WorkItemQuerySortColumn[];
-    sourceClauses: WorkItemQueryClause;
-    targetClauses: WorkItemQueryClause;
-    wiql: string;
-}
-export enum QueryResultType {
-    WorkItem = 1,
-    WorkItemLink = 2,
-}
-export enum QueryType {
-    Flat = 1,
-    Tree = 2,
-    OneHop = 3,
-}
-export interface ReportingWorkItemLink {
-    changedDate: Date;
-    isActive: boolean;
-    rel: string;
-    sourceId: number;
-    targetId: number;
-}
-export interface ReportingWorkItemLinksBatch extends StreamedBatch<ReportingWorkItemLink> {
-}
-export interface ReportingWorkItemRevisionsBatch extends StreamedBatch<WorkItem> {
-}
-export interface ReportingWorkItemRevisionsFilter {
-    /**
-     * A list of fields to return in work item revisions. Omit this parameter to get all reportable fields.
-     */
-    fields: string[];
-    /**
-     * Return an identity reference instead of a string value for identity fields.
-     */
-    includeIdentityRef: boolean;
-    /**
-     * A list of types to filter the results to specific work item types. Omit this parameter to get work item revisions of all work item types.
-     */
-    types: string[];
-}
-export enum RuleEnginePhase {
-    None = 0,
-    CopyRules = 1,
-    DefaultRules = 2,
-    OtherRules = 4,
-}
-export enum RuleValueFrom {
-    Value = 1,
-    CurrentValue = 2,
-    OriginalValue = 4,
-    OtherFieldCurrentValue = 8,
-    OtherFieldOriginalValue = 16,
-    CurrentUser = 32,
-    Clock = 64,
-}
-export enum ServerDefaultType {
-    ServerDateTime = 1,
-    CallerIdentity = 2,
-    RandomGuid = 3,
-}
-export interface StreamedBatch<T> {
-    isLastBatch: boolean;
-    nextLink: string;
-    values: T[];
-}
-export enum TemplateType {
-    WorkItemType = 0,
-    GlobalWorkflow = 1,
-}
-export enum TreeNodeStructureType {
-    Area = 1,
-    Iteration = 2,
-}
-export enum TreeStructureGroup {
-    Areas = 1,
-    Iterations = 2,
-}
-export interface WorkItem extends WorkItemTrackingResource {
-    fields: {
-        [key: string]: any;
-    };
-    id: number;
-    relations: WorkItemRelation[];
-    rev: number;
-}
-export interface WorkItemClassificationNode extends WorkItemTrackingResource {
-    attributes: {
-        [key: string]: any;
-    };
-    children: WorkItemClassificationNode[];
-    hasChildren: boolean;
-    id: number;
-    name: string;
-    structureType: TreeNodeStructureType;
-}
-export enum WorkItemExpand {
-    None = 0,
-    Relations = 1,
-    Fields = 2,
-    Links = 3,
-    All = 4,
-}
-export interface WorkItemField extends WorkItemTrackingResource {
-    name: string;
-    readOnly: boolean;
-    referenceName: string;
-    supportedOperations: WorkItemFieldOperation[];
-    type: FieldType;
-}
-export interface WorkItemFieldOperation {
-    name: string;
-    referenceName: string;
-}
-export interface WorkItemFieldReference {
-    name: string;
-    referenceName: string;
-    url: string;
-}
-export interface WorkItemFieldUpdate {
-    newValue: any;
-    oldValue: any;
-}
-export interface WorkItemHistory extends WorkItemTrackingResource {
-    rev: number;
-    revisedBy: IdentityReference;
-    revisedDate: Date;
-    value: string;
-}
-export interface WorkItemLink {
-    rel: string;
-    source: WorkItemReference;
-    target: WorkItemReference;
-}
-export interface WorkItemQueryClause {
-    clauses: WorkItemQueryClause[];
-    field: WorkItemFieldReference;
-    fieldValue: WorkItemFieldReference;
-    isFieldValue: boolean;
-    logicalOperator: LogicalOperation;
-    operator: WorkItemFieldOperation;
-    value: string;
-}
-export interface WorkItemQueryResult {
-    asOf: Date;
-    columns: WorkItemFieldReference[];
-    queryResultType: QueryResultType;
-    queryType: QueryType;
-    sortColumns: WorkItemQuerySortColumn[];
-    workItemRelations: WorkItemLink[];
-    workItems: WorkItemReference[];
-}
-export interface WorkItemQuerySortColumn {
-    descending: boolean;
-    field: WorkItemFieldReference;
-}
-export interface WorkItemReference {
-    id: number;
-    url: string;
-}
-export interface WorkItemRelation extends Link {
-}
-export interface WorkItemRelationType extends WorkItemTrackingReference {
-    attributes: {
-        [key: string]: any;
-    };
-}
-export enum WorkItemRelationTypeUsage {
-    WorkItemLink = 0,
-    ResourceLink = 1,
-}
-export interface WorkItemRelationUpdates {
-    added: WorkItemRelation[];
-    removed: WorkItemRelation[];
-    updated: WorkItemRelation[];
-}
-export interface WorkItemRevisionReference extends WorkItemReference {
-    rev: number;
-}
-export interface WorkItemRule {
-    cases: MapCase[];
-    checkOriginalValue: boolean;
-    else: MapValues;
-    field: string;
-    fields: string[];
-    for: string;
-    from: ServerDefaultType;
-    inverse: boolean;
-    name: WorkItemRuleName;
-    not: string;
-    phase: RuleEnginePhase;
-    ruleWeight: number;
-    sets: ConstantSetReference[];
-    subRules: WorkItemRule[];
-    value: string;
-    valueFrom: RuleValueFrom;
-    values: string[];
-}
-export enum WorkItemRuleName {
-    Block = 0,
-    Required = 1,
-    ReadOnly = 2,
-    Empty = 3,
-    Frozen = 4,
-    CannotLoseValue = 5,
-    OtherField = 6,
-    ValidUser = 7,
-    AllowExistingValue = 8,
-    Match = 9,
-    AllowedValues = 10,
-    SuggestedValues = 11,
-    ProhibitedValues = 12,
-    Default = 13,
-    Copy = 14,
-    ServerDefault = 15,
-    Map = 16,
-    When = 17,
-    WhenWas = 18,
-    WhenChanged = 19,
-    WhenBecameNonEmpty = 20,
-    WhenRemainedNonEmpty = 21,
-    Computed = 22,
-    Trigger = 23,
-    Collection = 24,
-    Project = 25,
-    WorkItemType = 26,
-}
-export interface WorkItemStateTransition {
-    actions: string[];
-    to: string;
-}
-export interface WorkItemTrackingReference extends WorkItemTrackingResource {
-    name: string;
-    referenceName: string;
-}
-export interface WorkItemTrackingResource extends WorkItemTrackingResourceReference {
-    _links: any;
-}
-export interface WorkItemTrackingResourceReference {
-    url: string;
-}
-export interface WorkItemType extends WorkItemTrackingResource {
-    description: string;
-    fieldInstances: WorkItemTypeFieldInstance[];
-    name: string;
-    transitions: {
-        [key: string]: WorkItemStateTransition[];
-    };
-    xmlForm: string;
-}
-export interface WorkItemTypeCategory extends WorkItemTrackingResource {
-    defaultWorkItemType: WorkItemTypeReference;
-    name: string;
-    referenceName: string;
-    workItemTypes: WorkItemTypeReference[];
-}
-export interface WorkItemTypeFieldInstance extends WorkItemFieldReference {
-    helpText: string;
-    rules: WorkItemRule[];
-}
 export interface WorkItemTypeFieldModel {
     id: string;
     rules: FieldRuleModel[];
@@ -10566,48 +9659,8 @@ export interface WorkItemTypeModel {
     name: string;
     url: string;
 }
-export interface WorkItemTypeReference extends WorkItemTrackingResourceReference {
-    name: string;
-}
-export interface WorkItemTypeTemplate {
-    template: string;
-}
-export interface WorkItemUpdate extends WorkItemTrackingResource {
-    fields: {
-        [key: string]: WorkItemFieldUpdate;
-    };
-    id: number;
-    relations: WorkItemRelationUpdates;
-    rev: number;
-    revisedBy: IdentityReference;
-    revisedDate: Date;
-    workItemId: number;
-}
-export enum WorkItemUpdateType {
-    Create = 0,
-    Update = 1,
-}
 export var TypeInfo: {
-    AttachmentReference: {
-        fields: any;
-    };
-    ClauseType: {
-        enumValues: {
-            "sourceClause": number;
-            "targetClause": number;
-            "linkClause": number;
-        };
-    };
-    ConstantSetReference: {
-        fields: any;
-    };
     Control: {
-        fields: any;
-    };
-    FieldData: {
-        fields: any;
-    };
-    FieldDependentRule: {
         fields: any;
     };
     FieldModel: {
@@ -10616,280 +9669,10 @@ export var TypeInfo: {
     FieldRuleModel: {
         fields: any;
     };
-    FieldType: {
-        enumValues: {
-            "string": number;
-            "integer": number;
-            "dateTime": number;
-            "plainText": number;
-            "html": number;
-            "treePath": number;
-            "history": number;
-            "double": number;
-            "guid": number;
-            "boolean": number;
-        };
-    };
     FieldUpdate: {
         fields: any;
     };
-    FieldUsage: {
-        enumValues: {
-            "none": number;
-            "workItem": number;
-            "workItemLink": number;
-            "tree": number;
-            "workItemTypeExtension": number;
-        };
-    };
     Group: {
-        fields: any;
-    };
-    IdentityReference: {
-        fields: any;
-    };
-    JsonBatchHttpRequest: {
-        fields: any;
-    };
-    JsonBatchHttpResponse: {
-        fields: any;
-    };
-    JsonHttpRequest: {
-        fields: any;
-    };
-    JsonHttpResponse: {
-        fields: any;
-    };
-    Link: {
-        fields: any;
-    };
-    LinkQueryMode: {
-        enumValues: {
-            "workItems": number;
-            "linksOneHopMustContain": number;
-            "linksOneHopMayContain": number;
-            "linksOneHopDoesNotContain": number;
-            "linksRecursiveMustContain": number;
-            "linksRecursiveMayContain": number;
-            "linksRecursiveDoesNotContain": number;
-        };
-    };
-    LogicalOperation: {
-        enumValues: {
-            "nONE": number;
-            "aND": number;
-            "oR": number;
-        };
-    };
-    MapCase: {
-        fields: any;
-    };
-    MapValues: {
-        fields: any;
-    };
-    ProvisioningResult: {
-        fields: any;
-    };
-    QueryExpand: {
-        enumValues: {
-            "none": number;
-            "wiql": number;
-            "minimal": number;
-            "clauses": number;
-            "all": number;
-        };
-    };
-    QueryHierarchyItem: {
-        fields: any;
-    };
-    QueryResultType: {
-        enumValues: {
-            "workItem": number;
-            "workItemLink": number;
-        };
-    };
-    QueryType: {
-        enumValues: {
-            "flat": number;
-            "tree": number;
-            "oneHop": number;
-        };
-    };
-    ReportingWorkItemLink: {
-        fields: any;
-    };
-    ReportingWorkItemLinksBatch: {
-        fields: any;
-    };
-    ReportingWorkItemRevisionsBatch: {
-        fields: any;
-    };
-    ReportingWorkItemRevisionsFilter: {
-        fields: any;
-    };
-    RuleEnginePhase: {
-        enumValues: {
-            "none": number;
-            "copyRules": number;
-            "defaultRules": number;
-            "otherRules": number;
-        };
-    };
-    RuleValueFrom: {
-        enumValues: {
-            "value": number;
-            "currentValue": number;
-            "originalValue": number;
-            "otherFieldCurrentValue": number;
-            "otherFieldOriginalValue": number;
-            "currentUser": number;
-            "clock": number;
-        };
-    };
-    ServerDefaultType: {
-        enumValues: {
-            "serverDateTime": number;
-            "callerIdentity": number;
-            "randomGuid": number;
-        };
-    };
-    StreamedBatch: {
-        fields: any;
-    };
-    TemplateType: {
-        enumValues: {
-            "workItemType": number;
-            "globalWorkflow": number;
-        };
-    };
-    TreeNodeStructureType: {
-        enumValues: {
-            "area": number;
-            "iteration": number;
-        };
-    };
-    TreeStructureGroup: {
-        enumValues: {
-            "areas": number;
-            "iterations": number;
-        };
-    };
-    WorkItem: {
-        fields: any;
-    };
-    WorkItemClassificationNode: {
-        fields: any;
-    };
-    WorkItemExpand: {
-        enumValues: {
-            "none": number;
-            "relations": number;
-            "fields": number;
-            "links": number;
-            "all": number;
-        };
-    };
-    WorkItemField: {
-        fields: any;
-    };
-    WorkItemFieldOperation: {
-        fields: any;
-    };
-    WorkItemFieldReference: {
-        fields: any;
-    };
-    WorkItemFieldUpdate: {
-        fields: any;
-    };
-    WorkItemHistory: {
-        fields: any;
-    };
-    WorkItemLink: {
-        fields: any;
-    };
-    WorkItemQueryClause: {
-        fields: any;
-    };
-    WorkItemQueryResult: {
-        fields: any;
-    };
-    WorkItemQuerySortColumn: {
-        fields: any;
-    };
-    WorkItemReference: {
-        fields: any;
-    };
-    WorkItemRelation: {
-        fields: any;
-    };
-    WorkItemRelationType: {
-        fields: any;
-    };
-    WorkItemRelationTypeUsage: {
-        enumValues: {
-            "workItemLink": number;
-            "resourceLink": number;
-        };
-    };
-    WorkItemRelationUpdates: {
-        fields: any;
-    };
-    WorkItemRevisionReference: {
-        fields: any;
-    };
-    WorkItemRule: {
-        fields: any;
-    };
-    WorkItemRuleName: {
-        enumValues: {
-            "block": number;
-            "required": number;
-            "readOnly": number;
-            "empty": number;
-            "frozen": number;
-            "cannotLoseValue": number;
-            "otherField": number;
-            "validUser": number;
-            "allowExistingValue": number;
-            "match": number;
-            "allowedValues": number;
-            "suggestedValues": number;
-            "prohibitedValues": number;
-            "default": number;
-            "copy": number;
-            "serverDefault": number;
-            "map": number;
-            "when": number;
-            "whenWas": number;
-            "whenChanged": number;
-            "whenBecameNonEmpty": number;
-            "whenRemainedNonEmpty": number;
-            "computed": number;
-            "trigger": number;
-            "collection": number;
-            "project": number;
-            "workItemType": number;
-        };
-    };
-    WorkItemStateTransition: {
-        fields: any;
-    };
-    WorkItemTrackingReference: {
-        fields: any;
-    };
-    WorkItemTrackingResource: {
-        fields: any;
-    };
-    WorkItemTrackingResourceReference: {
-        fields: any;
-    };
-    WorkItemType: {
-        fields: any;
-    };
-    WorkItemTypeCategory: {
-        fields: any;
-    };
-    WorkItemTypeFieldInstance: {
         fields: any;
     };
     WorkItemTypeFieldModel: {
@@ -10898,26 +9681,14 @@ export var TypeInfo: {
     WorkItemTypeModel: {
         fields: any;
     };
-    WorkItemTypeReference: {
-        fields: any;
-    };
-    WorkItemTypeTemplate: {
-        fields: any;
-    };
-    WorkItemUpdate: {
-        fields: any;
-    };
-    WorkItemUpdateType: {
-        enumValues: {
-            "create": number;
-            "update": number;
-        };
-    };
 };
 }
 declare module "TFS/WorkItemTracking/ProcessDefinitionsRestClient" {
 import ProcessDefinitionsContracts = require("TFS/WorkItemTracking/ProcessDefinitionsContracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class WorkItemTrackingHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -11033,6 +9804,9 @@ export class WorkItemTrackingHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     removeWorkItemTypeField(processId: string, witRefName: string, field: string): IPromise<void>;
 }
+/**
+ * @exemptedapi
+ */
 export class WorkItemTrackingHttpClient2_1 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -11161,6 +9935,25 @@ export function getClient(): WorkItemTrackingHttpClient2_1;
 declare module "TFS/WorkItemTracking/ProcessRestClient" {
 import ProcessContracts = require("TFS/WorkItemTracking/ProcessContracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
+export class WorkItemTrackingHttpClient2_2 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    constructor(rootRequestPath: string);
+    /**
+     * [Preview API]
+     *
+     * @param {string} processId
+     * @param {string} witRefName
+     * @param {boolean} available
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getFields(processId: string, witRefName: string, available?: boolean): IPromise<ProcessContracts.FieldModel[]>;
+}
+/**
+ * @exemptedapi
+ */
 export class WorkItemTrackingHttpClient2_1 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -11168,19 +9961,19 @@ export class WorkItemTrackingHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      * [Preview API]
      *
      * @param {string} processId
-     * @param {string} witName
+     * @param {string} witRefName
      * @param {boolean} available
-     * @return IPromise<ProcessContracts.ProcessField[]>
+     * @return IPromise<ProcessContracts.FieldModel[]>
      */
-    getFields(processId: string, witName: string, available?: boolean): IPromise<ProcessContracts.ProcessField[]>;
+    getFields(processId: string, witRefName: string, available?: boolean): IPromise<ProcessContracts.FieldModel[]>;
 }
-export class WorkItemTrackingHttpClient extends WorkItemTrackingHttpClient2_1 {
+export class WorkItemTrackingHttpClient extends WorkItemTrackingHttpClient2_2 {
     constructor(rootRequestPath: string);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return WorkItemTrackingHttpClient3
+ * @return WorkItemTrackingHttpClient2_1
  */
 export function getClient(): WorkItemTrackingHttpClient2_1;
 }
@@ -11188,6 +9981,9 @@ declare module "TFS/WorkItemTracking/RestClient" {
 import Contracts = require("TFS/WorkItemTracking/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class WorkItemTrackingHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -11343,6 +10139,56 @@ export class WorkItemTrackingHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     updateQuery(queryUpdate: Contracts.QueryHierarchyItem, project: string, query: string, undeleteDescendants?: boolean): IPromise<Contracts.QueryHierarchyItem>;
     /**
+     * [Preview API]
+     *
+     * @param {number} id
+     * @param {string} project - Project ID or project name
+     * @return IPromise<void>
+     */
+    destroyWorkItem(id: number, project?: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {number[]} ids
+     * @param {string} project - Project ID or project name
+     * @return IPromise<void>
+     */
+    destroyWorkItems(ids: number[], project?: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {number} id
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemDelete>
+     */
+    getDeletedWorkItem(id: number, project?: string): IPromise<Contracts.WorkItemDelete>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number[]} ids
+     * @return IPromise<Contracts.WorkItemDeleteReference[]>
+     */
+    getDeletedWorkItems(project?: string, ids?: number[]): IPromise<Contracts.WorkItemDeleteReference[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.WorkItemDeleteUpdate} payload
+     * @param {number} id
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemDelete>
+     */
+    restoreWorkItem(payload: Contracts.WorkItemDeleteUpdate, id: number, project?: string): IPromise<Contracts.WorkItemDelete>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.WorkItemDeleteUpdate} payload
+     * @param {number[]} ids
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemDeleteReference[]>
+     */
+    restoreWorkItems(payload: Contracts.WorkItemDeleteUpdate, ids: number[], project?: string): IPromise<Contracts.WorkItemDeleteReference[]>;
+    /**
      * [Preview API] Returns a fully hydrated work item for the requested revision
      *
      * @param {number} id
@@ -11435,9 +10281,10 @@ export class WorkItemTrackingHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * @param {number} watermark - Specifies the watermark to start the batch from. Omit this parameter to get the first batch of revisions.
      * @param {Date} startDateTime - Date/time to use as a starting point for revisions, all revisions will occur after this date/time. Cannot be used in conjunction with 'watermark' parameter.
      * @param {boolean} includeIdentityRef - Return an identity reference instead of a string value for identity fields.
+     * @param {boolean} includeDeleted - Specify if the deleted item should be returned.
      * @return IPromise<Contracts.ReportingWorkItemRevisionsBatch>
      */
-    readReportingRevisionsGet(project?: string, fields?: string[], types?: string[], watermark?: number, startDateTime?: Date, includeIdentityRef?: boolean): IPromise<Contracts.ReportingWorkItemRevisionsBatch>;
+    readReportingRevisionsGet(project?: string, fields?: string[], types?: string[], watermark?: number, startDateTime?: Date, includeIdentityRef?: boolean, includeDeleted?: boolean): IPromise<Contracts.ReportingWorkItemRevisionsBatch>;
     /**
      * [Preview API] Get a batch of work item revisions
      *
@@ -11451,13 +10298,19 @@ export class WorkItemTrackingHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
-     * @param {VSS_Common_Contracts.JsonPatchDocument} document
-     * @param {string} type
-     * @param {boolean} validateOnly
-     * @param {boolean} bypassRules
-     * @return IPromise<Contracts.WorkItem>
+     * @param {number} id
+     * @param {boolean} destroy
+     * @return IPromise<Contracts.WorkItemDelete>
      */
-    createWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, type: string, validateOnly?: boolean, bypassRules?: boolean): IPromise<Contracts.WorkItem>;
+    deleteWorkItem(id: number, destroy?: boolean): IPromise<Contracts.WorkItemDelete>;
+    /**
+     * [Preview API]
+     *
+     * @param {number[]} ids
+     * @param {boolean} destroy
+     * @return IPromise<Contracts.WorkItemDeleteReference[]>
+     */
+    deleteWorkItems(ids: number[], destroy?: boolean): IPromise<Contracts.WorkItemDeleteReference[]>;
     /**
      * [Preview API] Returns a single work item
      *
@@ -11488,6 +10341,17 @@ export class WorkItemTrackingHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.WorkItem>
      */
     updateWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, id: number, validateOnly?: boolean, bypassRules?: boolean): IPromise<Contracts.WorkItem>;
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_Common_Contracts.JsonPatchDocument} document
+     * @param {string} project - Project ID or project name
+     * @param {string} type
+     * @param {boolean} validateOnly
+     * @param {boolean} bypassRules
+     * @return IPromise<Contracts.WorkItem>
+     */
+    createWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, project: string, type: string, validateOnly?: boolean, bypassRules?: boolean): IPromise<Contracts.WorkItem>;
     /**
      * [Preview API] Returns a single work item from a template
      *
@@ -11693,6 +10557,62 @@ export class WorkItemTrackingHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     updateQuery(queryUpdate: Contracts.QueryHierarchyItem, project: string, query: string, undeleteDescendants?: boolean): IPromise<Contracts.QueryHierarchyItem>;
     /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {number} id
+     * @param {string} project - Project ID or project name
+     * @return IPromise<void>
+     */
+    destroyWorkItem(id: number, project?: string): IPromise<void>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {number[]} ids
+     * @param {string} project - Project ID or project name
+     * @return IPromise<void>
+     */
+    destroyWorkItems(ids: number[], project?: string): IPromise<void>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {number} id
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemDelete>
+     */
+    getDeletedWorkItem(id: number, project?: string): IPromise<Contracts.WorkItemDelete>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number[]} ids
+     * @return IPromise<Contracts.WorkItemDeleteReference[]>
+     */
+    getDeletedWorkItems(project?: string, ids?: number[]): IPromise<Contracts.WorkItemDeleteReference[]>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.WorkItemDeleteUpdate} payload
+     * @param {number} id
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemDelete>
+     */
+    restoreWorkItem(payload: Contracts.WorkItemDeleteUpdate, id: number, project?: string): IPromise<Contracts.WorkItemDelete>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.WorkItemDeleteUpdate} payload
+     * @param {number[]} ids
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemDeleteReference[]>
+     */
+    restoreWorkItems(payload: Contracts.WorkItemDeleteUpdate, ids: number[], project?: string): IPromise<Contracts.WorkItemDeleteReference[]>;
+    /**
      * Returns a fully hydrated work item for the requested revision
      *
      * @param {number} id
@@ -11783,9 +10703,10 @@ export class WorkItemTrackingHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      * @param {number} watermark - Specifies the watermark to start the batch from. Omit this parameter to get the first batch of revisions.
      * @param {Date} startDateTime - Date/time to use as a starting point for revisions, all revisions will occur after this date/time. Cannot be used in conjunction with 'watermark' parameter.
      * @param {boolean} includeIdentityRef - Return an identity reference instead of a string value for identity fields.
+     * @param {boolean} includeDeleted - Specify if the deleted item should be returned.
      * @return IPromise<Contracts.ReportingWorkItemRevisionsBatch>
      */
-    readReportingRevisionsGet(project?: string, fields?: string[], types?: string[], watermark?: number, startDateTime?: Date, includeIdentityRef?: boolean): IPromise<Contracts.ReportingWorkItemRevisionsBatch>;
+    readReportingRevisionsGet(project?: string, fields?: string[], types?: string[], watermark?: number, startDateTime?: Date, includeIdentityRef?: boolean, includeDeleted?: boolean): IPromise<Contracts.ReportingWorkItemRevisionsBatch>;
     /**
      * Get a batch of work item revisions
      *
@@ -11797,13 +10718,17 @@ export class WorkItemTrackingHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     readReportingRevisionsPost(filter: Contracts.ReportingWorkItemRevisionsFilter, project?: string, watermark?: number, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemRevisionsBatch>;
     /**
-     * @param {VSS_Common_Contracts.JsonPatchDocument} document
-     * @param {string} type
-     * @param {boolean} validateOnly
-     * @param {boolean} bypassRules
-     * @return IPromise<Contracts.WorkItem>
+     * @param {number} id
+     * @param {boolean} destroy
+     * @return IPromise<Contracts.WorkItemDelete>
      */
-    createWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, type: string, validateOnly?: boolean, bypassRules?: boolean): IPromise<Contracts.WorkItem>;
+    deleteWorkItem(id: number, destroy?: boolean): IPromise<Contracts.WorkItemDelete>;
+    /**
+     * @param {number[]} ids
+     * @param {boolean} destroy
+     * @return IPromise<Contracts.WorkItemDeleteReference[]>
+     */
+    deleteWorkItems(ids: number[], destroy?: boolean): IPromise<Contracts.WorkItemDeleteReference[]>;
     /**
      * Returns a single work item
      *
@@ -11832,6 +10757,15 @@ export class WorkItemTrackingHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.WorkItem>
      */
     updateWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, id: number, validateOnly?: boolean, bypassRules?: boolean): IPromise<Contracts.WorkItem>;
+    /**
+     * @param {VSS_Common_Contracts.JsonPatchDocument} document
+     * @param {string} project - Project ID or project name
+     * @param {string} type
+     * @param {boolean} validateOnly
+     * @param {boolean} bypassRules
+     * @return IPromise<Contracts.WorkItem>
+     */
+    createWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, project: string, type: string, validateOnly?: boolean, bypassRules?: boolean): IPromise<Contracts.WorkItem>;
     /**
      * Returns a single work item from a template
      *
@@ -12461,6 +11395,9 @@ declare module "TFS/Work/RestClient" {
 import Contracts = require("TFS/Work/Contracts");
 import TFS_Core_Contracts = require("TFS/Core/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
 export class WorkHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -12785,6 +11722,7 @@ export class WorkHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     updateCapacity(patch: Contracts.CapacityPatch, teamContext: TFS_Core_Contracts.TeamContext, iterationId: string, teamMemberId: string): IPromise<Contracts.TeamMemberCapacity>;
     /**
+     * @exemptedapi
      * [Preview API] Get board card Rule settings for the board id or board by name
      *
      * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
@@ -12793,6 +11731,7 @@ export class WorkHttpClient2_1 extends VSS_WebApi.VssHttpClient {
      */
     getBoardCardRuleSettings(teamContext: TFS_Core_Contracts.TeamContext, board: string): IPromise<Contracts.BoardCardRuleSettings>;
     /**
+     * @exemptedapi
      * [Preview API] Update board card Rule settings for the board id or board by name
      *
      * @param {Contracts.BoardCardRuleSettings} boardCardRuleSettings
