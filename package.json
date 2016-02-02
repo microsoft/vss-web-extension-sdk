@@ -1,13 +1,13 @@
 {
   "name": "vss-sdk",
-  "version": "0.92.0",
+  "version": "1.94.0",
   "description": "Visual Studio Services Client SDK. JavaScript library for Visual Studio Online extensions.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Microsoft/vss-sdk.git"
+    "url": "https://github.com/Microsoft/vss-web-extension-sdk.git"
   },
   "keywords": [
     "extensions",
@@ -22,7 +22,7 @@
   "author": "serkan-inci",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Microsoft/vss-sdk/issues"
+    "url": "https://github.com/Microsoft/vss-web-extension-sdk/issues"
   },
   "homepage": "https://www.visualstudio.com/integrate/extensions/overview"
 }
