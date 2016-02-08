@@ -19,7 +19,7 @@
       "typings/vss.d.ts"
     ]
   },
-  "author": "vsoalmopen",
+  "author": "vsalmopen",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Microsoft/vss-web-extension-sdk/issues"

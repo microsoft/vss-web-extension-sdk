@@ -2,7 +2,7 @@
   "name": "vss-web-extension-sdk",
   "description": "Visual Studio Services Client SDK. JavaScript library for Visual Studio Online extensions.",
   "authors": [
-    "vsoalmopen"
+    "vsalmopen"
   ],
   "license": "ISC",
   "keywords": [
