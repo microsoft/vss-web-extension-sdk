@@ -1,15 +1,15 @@
 {
-  "name": "vss-sdk",
+  "name": "vss-web-extension-sdk",
   "description": "Visual Studio Services Client SDK. JavaScript library for Visual Studio Online extensions.",
   "authors": [
-    "serkan-inci"
+    "vsoalmopen"
   ],
   "license": "ISC",
   "keywords": [
     "extensions",
     "visual studio online"
   ],
-  "homepage": "https://github.com/Microsoft/vss-sdk",
+  "homepage": "https://github.com/Microsoft/vss-web-extension-sdk",
   "moduleType": [
     "amd"
   ],
