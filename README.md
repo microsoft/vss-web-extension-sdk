@@ -6,8 +6,8 @@ This repo contains core client SDK file and TypeScript declare files needed for 
 
 ## Getting started
  * Add this line: `<script src="sdk/scripts/VSS.SDK.js"></script>`
- * Using `npm install vss-sdk`
- * Using `bower install vss-sdk`
+ * Using `npm install vss-web-extension-sdk`
+ * Using `bower install vss-web-extension-sdk`
 
 ## Usage
 Next step is initializing the extension using two options below: 
@@ -60,7 +60,7 @@ Although TypeScript declare files do not exist at [DefinitelyTyped](https://gith
 1. First, make sure that the dependencies are loaded using below command:
  * `tsd install jquery knockout q --save`
  
-2. Next, run below command to get vss-sdk types added to tsd.d.ts:
+2. Next, run below command to get vss-web-extension-sdk types added to tsd.d.ts:
  * `tsd link`
 
 3. Finally, add only reference to typings/tsd.d.ts in your TypeScript files. 
