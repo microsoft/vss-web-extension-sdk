@@ -18,6 +18,7 @@
   ],
   "typescript": {
     "definitions": [
+        "typings/rmo.d.ts",
         "typings/tfs.d.ts",
         "typings/vss.d.ts"
     ]   
