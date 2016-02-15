@@ -51,8 +51,14 @@ Next step is initializing the extension using two options below:
 Full API reference of VSS.SDK.js can be found at [Core Client SDK](https://www.visualstudio.com/en-us/integrate/extensions/reference/client/core-sdk) page.
 
 ## Types
- * Types of VSS.SDK.js are available in typings/vss.d.ts. 
- * REST Client types are available in typings/tfs.d.ts
+ * Types of VSS.SDK.js, controls and client services are available in typings/vss.d.ts. 
+ * REST Client types for VSTS are available in typings/tfs.d.ts
+ * REST Client and extensibility types for Release Management are available in typings/rmo.d.ts
+ 
+### Dependencies
+Dependency graph for the types.
+
+![Dependency Graph](img/dependencies.png)
  
 ### Using tsd
 Although TypeScript declare files do not exist at [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) repo, they can still be used through [tsd](https://www.npmjs.com/package/tsd).
