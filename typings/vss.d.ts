@@ -1,10 +1,11 @@
-// Type definitions for Microsoft Visual Studio Services v95.20160208.1028
+// Type definitions for Microsoft Visual Studio Services v96.20160314.1321
 // Project: http://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
 /// <reference path='../../../typings/knockout/knockout.d.ts' />
 /// <reference path='../../../typings/jquery/jquery.d.ts' />
 /// <reference path='../../../typings/q/q.d.ts' />
+/// <reference path='../../../typings/requirejs/require.d.ts' />
 //----------------------------------------------------------
 // Common interfaces specific to WebPlatform area
 //----------------------------------------------------------
@@ -167,9 +168,14 @@ interface Window {
     vsSdkOnLoad:() => void;
 }
 
+interface ServerError {
+    typeKey?: string;
+}
+
 interface TfsError extends Error {
     status?: string;
     stack?: string;
+    serverError?: ServerError;
 }
 
 //These variables defined by server.
@@ -823,6 +829,11 @@ interface IContributedMenuItem {
     disabled?: boolean;
 
     /**
+     * If true, the menu item will not be displayed.
+     */
+    hidden?: boolean;
+
+    /**
     * Url to an icon image or css class for the image cell
     */
     icon?: string;
@@ -1014,6 +1025,10 @@ interface ConfigurationContextPaths {
     */
     rootPath: string;
     /**
+    * Static content version stamp
+    */
+    staticContentVersion: string;
+    /**
     * Relative path to unversioned 3rd party static content
     */
     staticRoot3rdParty: string;
@@ -1048,6 +1063,10 @@ interface ContextIdentifier {
 * Page context configuration that can be contributed by remote services (different VSTS services delivering content to the page)
 */
 interface ContributedServiceContext {
+    /**
+    * Dynamic bundles to include from this service
+    */
+    bundles: DynamicBundlesCollection;
     /**
     * Specifies the prefixes for CSS modules that should map to the current service. e.g. "VSS/LoaderPlugins/Css!EMS:ExtensionManagement" would map to ExtensionManagement.css under the themed content path of this service if "EMS" is in the CSSModulePrefixes list.
     */
@@ -1347,11 +1366,38 @@ interface DiagnosticsContext {
     */
     activityId: string;
     allowStatsCollection: boolean;
+    /**
+    * Whether or not to enable static content bundling. This is on in non-debug-mode by default but the value can be overridden with a cookie.
+    */
+    bundlingEnabled: boolean;
     debugMode: boolean;
+    isDevFabric: boolean;
     sessionId: string;
     tracePointCollectionEnabled: boolean;
     tracePointProfileEnd: string;
     tracePointProfileStart: string;
+    /**
+    * Denotes the version of the web platform consumed by this service. Of the form M###.
+    */
+    webPlatformVersion: string;
+}
+
+interface DynamicBundlesCollection {
+    scripts: DynamicScriptBundle[];
+    scriptsExcludedByPath: string[];
+    styles: DynamicCSSBundle[];
+}
+
+interface DynamicCSSBundle {
+    contentLength: number;
+    cssFiles: string[];
+    fallbackThemeUri: string;
+    uri: string;
+}
+
+interface DynamicScriptBundle {
+    contentLength: number;
+    uri: string;
 }
 
 interface ExtendedHostContext {
@@ -2173,6 +2219,14 @@ interface WebContext {
 */
 interface WebPageDataProviderPageSource {
     /**
+    * List of paths contributed by the host which are available to 3rd party extension developers through VSS.SDK
+    */
+    contributionPaths: string[];
+    /**
+    * Diagnostics context (debug mode, activity id, etc.) of the source page
+    */
+    diagnostics: DiagnosticsContext;
+    /**
     * The navigation context for the host page that is loading the data provider
     */
     navigation: NavigationContext;
@@ -2180,6 +2234,14 @@ interface WebPageDataProviderPageSource {
     * The project context for the host page that is loading the data provider
     */
     project: ContextIdentifier;
+    /**
+    * Currently selected hubgroup id
+    */
+    selectedHubGroupId: string;
+    /**
+    * Currently selected hub id
+    */
+    selectedHubId: string;
     /**
     * The team context for the host page that is loading the data provider
     */
@@ -2289,6 +2351,7 @@ declare module XDM {
         */
         onMessage(data: any, origin: string): boolean;
         owns(source: Window, origin: string, data: any): boolean;
+        error(data: any, errorObj: any): void;
         private _error(messageObj, errorObj, handshakeToken);
         private _success(messageObj, result, handshakeToken);
         private _sendRpcMessage(message);
@@ -2352,7 +2415,7 @@ declare module VSS {
      *
      * Usage:
      *
-     * VSS.require(["VSS/Controls", "VSS/Controls/Grids", function(Controls, Grids) {
+     * VSS.require(["VSS/Controls", "VSS/Controls/Grids"], function(Controls, Grids) {
      *    ...
      * });
      *
@@ -2733,6 +2796,77 @@ export var TypeInfo: {
 declare module "VSS/Accounts/RestClient" {
 import Contracts = require("VSS/Accounts/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
+export class AccountsHttpClient3 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    constructor(rootRequestPath: string);
+    /**
+     * [Preview API]
+     *
+     * @param {string} accountId
+     * @return IPromise<string>
+     */
+    deleteAccount(accountId: string): IPromise<string>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.AccountCreateInfoInternal} info
+     * @param {boolean} usePrecreated
+     * @return IPromise<Contracts.Account>
+     */
+    createAccount(info: Contracts.AccountCreateInfoInternal, usePrecreated?: boolean): IPromise<Contracts.Account>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} accountId
+     * @param {string} properties
+     * @return IPromise<Contracts.Account>
+     */
+    getAccount(accountId: string, properties?: string): IPromise<Contracts.Account>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} creatorId
+     * @param {string} ownerId
+     * @param {string} memberId
+     * @param {boolean} includeOwner
+     * @param {string} properties
+     * @param {boolean} includeDisabledAccounts
+     * @return IPromise<Contracts.Account[]>
+     */
+    getAccounts(creatorId?: string, ownerId?: string, memberId?: string, includeOwner?: boolean, properties?: string, includeDisabledAccounts?: boolean): IPromise<Contracts.Account[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Account} account
+     * @param {string} accountId
+     * @return IPromise<void>
+     */
+    updateAccount(account: Contracts.Account, accountId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} accountName
+     * @return IPromise<Contracts.AccountNameAvailability>
+     */
+    isValidAccountName(accountName: string): IPromise<Contracts.AccountNameAvailability>;
+    /**
+     * [Preview API]
+     *
+     * @return IPromise<Contracts.AccountRegion[]>
+     */
+    getRegions(): IPromise<Contracts.AccountRegion[]>;
+    /**
+     * [Preview API]
+     *
+     * @return IPromise<{ [key: string] : string; }>
+     */
+    getAccountSettings(): IPromise<{
+        [key: string]: string;
+    }>;
+}
 export class AccountsHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -2794,7 +2928,7 @@ export class AccountsHttpClient2_2 extends VSS_WebApi.VssHttpClient {
         [key: string]: string;
     }>;
 }
-export class AccountsHttpClient extends AccountsHttpClient2_2 {
+export class AccountsHttpClient extends AccountsHttpClient3 {
     constructor(rootRequestPath: string);
 }
 /**
@@ -3121,6 +3255,19 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
 /**
  * @exemptedapi
  */
+export class AuthenticationHttpClient3 extends VSS_WebApi.VssHttpClient {
+    constructor(rootRequestPath: string);
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.WebSessionToken} sessionToken
+     * @return IPromise<Contracts.WebSessionToken>
+     */
+    createSessionToken(sessionToken: Contracts.WebSessionToken): IPromise<Contracts.WebSessionToken>;
+}
+/**
+ * @exemptedapi
+ */
 export class AuthenticationHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -3131,7 +3278,7 @@ export class AuthenticationHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     createSessionToken(sessionToken: Contracts.WebSessionToken): IPromise<Contracts.WebSessionToken>;
 }
-export class AuthenticationHttpClient extends AuthenticationHttpClient2_2 {
+export class AuthenticationHttpClient extends AuthenticationHttpClient3 {
     constructor(rootRequestPath: string);
 }
 }
@@ -3255,6 +3402,38 @@ export function getAppToken(appId: string, name?: string, force?: boolean): IPro
 * @param namedToken Id Optional value to use when getting a named web session token.
 */
 export function getAuthTokenManager(namedTokenId?: string): IAuthTokenManager<any>;
+}
+declare module "VSS/Bundling" {
+/**
+ * Gets the content length (in bytes) of all Javascript bundles included on the page
+ */
+export function getBundledScriptContentSize(): number;
+/**
+ * Gets the content length (in bytes) of all CSS bundles included on the page
+ */
+export function getBundledCssContentSize(): number;
+/**
+ * Get the size (in bytes) of a bundle given its url
+ *
+ * @param bundleUrl Url of the script or CSS bundle
+ */
+export function getBundleSize(bundleUrl: string): number;
+/**
+ * Inject all the CSS and Scripts specified in the bundle collection into the page
+ *
+ * @param bundles Collection of CSS and script bundles
+ * @param rootBundleUrl Optional root url to prefix to all bundle paths.
+ */
+export function injectBundles(bundles: DynamicBundlesCollection, rootBundleUrl?: string): IPromise<any>;
+/**
+* Issue a require statement for the specified modules and invoke the given callback method once available.
+* This is a wrapper around the requireJS 'require' statement which ensures that the missing modules are
+* pulled in via the minimum number of resource requests.
+*
+* @param moduleNames An array of AMD modules to asynchronously require
+* @param callback Method to invoke once the modules have been resolved.
+*/
+export function requireModules(moduleNames: string[], callback: Function): void;
 }
 declare module "VSS/Commerce/Contracts" {
 export enum AccountProviderNamespace {
@@ -3673,6 +3852,7 @@ export enum PurchaseErrorReason {
     MonetaryLimitSet = 1,
     InvalidOfferCode = 2,
     NotAdminOrCoAdmin = 3,
+    InvalidRegionPurchase = 4,
 }
 export enum ResourceBillingMode {
     Committment = 0,
@@ -3905,6 +4085,7 @@ export var TypeInfo: {
             "monetaryLimitSet": number;
             "invalidOfferCode": number;
             "notAdminOrCoAdmin": number;
+            "invalidRegionPurchase": number;
         };
     };
     ResourceBillingMode: {
@@ -3981,6 +4162,206 @@ export var TypeInfo: {
 declare module "VSS/Commerce/RestClient" {
 import Contracts = require("VSS/Commerce/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
+export class CommerceHttpClient3 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    constructor(rootRequestPath: string);
+    /**
+     * [Preview API] Returns resource information like status, committed quantity, included quantity, reset date, etc.
+     *
+     * @param {boolean} nextBillingPeriod - True to return next billing cycle committed quantity
+     * @return IPromise<Contracts.ISubscriptionResource[]>
+     */
+    getResourceStatus(nextBillingPeriod?: boolean): IPromise<Contracts.ISubscriptionResource[]>;
+    /**
+     * [Preview API] Returns resource information like status, committed quantity, included quantity, reset date, etc.
+     *
+     * @param {Contracts.ResourceName} resourceName - Name of the resource
+     * @param {boolean} nextBillingPeriod - True to return next billing cycle committed quantity
+     * @return IPromise<Contracts.ISubscriptionResource>
+     */
+    getResourceStatusByResourceName(resourceName: Contracts.ResourceName, nextBillingPeriod?: boolean): IPromise<Contracts.ISubscriptionResource>;
+    /**
+     * [Preview API] Sets the maximum and included quantities for a resource
+     *
+     * @param {Contracts.SubscriptionResource} meter
+     * @return IPromise<void>
+     */
+    updateMeter(meter: Contracts.SubscriptionResource): IPromise<void>;
+    /**
+     * [Preview API] Returns resource information like status, committed quantity, included quantity, reset date, etc.
+     *
+     * @param {string} resourceName
+     * @param {string} resourceNameResolveMethod
+     * @return IPromise<Contracts.OfferMeter>
+     */
+    getOfferMeter(resourceName: string, resourceNameResolveMethod: string): IPromise<Contracts.OfferMeter>;
+    /**
+     * [Preview API] Returns resource information like status, committed quantity, included quantity, reset date, etc.
+     *
+     * @param {string} resourceName
+     * @param {string} resourceNameResolveMethod
+     * @param {string} subscriptionId
+     * @param {boolean} includeMeterPricing
+     * @param {string} offerCode
+     * @param {string} tenantId
+     * @param {string} objectId
+     * @return IPromise<Contracts.PurchasableOfferMeter>
+     */
+    getPurchasableOfferMeter(resourceName: string, resourceNameResolveMethod: string, subscriptionId: string, includeMeterPricing: boolean, offerCode?: string, tenantId?: string, objectId?: string): IPromise<Contracts.PurchasableOfferMeter>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.OfferSubscription} offerSubscription
+     * @param {string} offerCode
+     * @param {string} tenantId
+     * @param {string} objectId
+     * @return IPromise<void>
+     */
+    createOfferSubscription(offerSubscription: Contracts.OfferSubscription, offerCode?: string, tenantId?: string, objectId?: string): IPromise<void>;
+    /**
+     * [Preview API] Get all offer subscriptions for user for valid azure subscriptions. This may be span across multiple accounts
+     *
+     * @param {boolean} validateAzuresubscription
+     * @param {boolean} nextBillingPeriod - True to return next billing cycle committed quantity
+     * @return IPromise<Contracts.IOfferSubscription[]>
+     */
+    getAllOfferSubscriptionsForUser(validateAzuresubscription: boolean, nextBillingPeriod: boolean): IPromise<Contracts.IOfferSubscription[]>;
+    /**
+     * [Preview API] Returns resource information like status, committed quantity, included quantity, reset date, etc.
+     *
+     * @param {string} galleryId - Name of the resource
+     * @param {boolean} nextBillingPeriod - True to return next billing cycle committed quantity
+     * @return IPromise<Contracts.IOfferSubscription>
+     */
+    getOfferSubscription(galleryId: string, nextBillingPeriod?: boolean): IPromise<Contracts.IOfferSubscription>;
+    /**
+     * [Preview API] Returns resource information like status, committed quantity, included quantity, reset date, etc.
+     *
+     * @param {boolean} nextBillingPeriod - True to return next billing cycle committed quantity
+     * @return IPromise<Contracts.IOfferSubscription[]>
+     */
+    getOfferSubscriptions(nextBillingPeriod?: boolean): IPromise<Contracts.IOfferSubscription[]>;
+    /**
+     * [Preview API] Get all offer subscriptions for user for valid azure subscriptions. This may be span across multiple accounts
+     *
+     * @param {string} galleryItemId
+     * @param {string} azureSubscriptionId
+     * @param {boolean} nextBillingPeriod - True to return next billing cycle committed quantity
+     * @return IPromise<Contracts.IOfferSubscription[]>
+     */
+    getOfferSubscriptionsForGalleryItem(galleryItemId: string, azureSubscriptionId: string, nextBillingPeriod?: boolean): IPromise<Contracts.IOfferSubscription[]>;
+    /**
+     * [Preview API] Sets the maximum and included quantities for a resource
+     *
+     * @param {Contracts.OfferSubscription} offerSubscription
+     * @return IPromise<void>
+     */
+    updateOfferSubscription(offerSubscription: Contracts.OfferSubscription): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @return IPromise<Contracts.AzureRegion[]>
+     */
+    getAccountRegions(): IPromise<Contracts.AzureRegion[]>;
+    /**
+     * [Preview API] Gets the accounts by subscription.
+     *
+     * @param {string} subscriptionId - The subscription identifier.
+     * @param {Contracts.AccountProviderNamespace} providerNamespaceId - The provider namespace identifier.
+     * @return IPromise<Contracts.ISubscriptionAccount[]>
+     */
+    getAccounts(subscriptionId: string, providerNamespaceId: Contracts.AccountProviderNamespace): IPromise<Contracts.ISubscriptionAccount[]>;
+    /**
+     * [Preview API] Gets the accounts owned by identity.
+     *
+     * @param {Contracts.AccountProviderNamespace} providerNamespaceId - The provider namespace identifier.
+     * @param {string} memberId - The owner identifier.
+     * @param {boolean} queryOnlyOwnerAccounts - if set to true [query only owner accounts].
+     * @param {boolean} inlcudeDisabledAccounts - if set to true [inlcude disabled accounts].
+     * @param {boolean} includeMSAAccounts
+     * @param {string[]} serviceOwners
+     * @return IPromise<Contracts.ISubscriptionAccount[]>
+     */
+    getAccountsByIdentity(providerNamespaceId: Contracts.AccountProviderNamespace, memberId: string, queryOnlyOwnerAccounts: boolean, inlcudeDisabledAccounts: boolean, includeMSAAccounts: boolean, serviceOwners: string[]): IPromise<Contracts.ISubscriptionAccount[]>;
+    /**
+     * [Preview API] Get accounts and associated subscriptions by identity and offer id
+     *
+     * @param {Contracts.AccountProviderNamespace} providerNamespaceId - account provider namespace id
+     * @param {string} memberId - owner identifier
+     * @param {boolean} queryOnlyOwnerAccounts - if set to true [query only owner accounts].
+     * @param {boolean} inlcudeDisabledAccounts - if set to true [inlcude disabled accounts].
+     * @param {boolean} includeMSAAccounts - if set to true [inlcude MSA accounts].
+     * @param {string[]} serviceOwners
+     * @param {string} galleryId - gallery id of resource
+     * @param {boolean} addUnlinkedSubscription - if set to true [inlcude azure subscriptions own by user].
+     * @param {boolean} queryAccountsByUpn
+     * @return IPromise<Contracts.ISubscriptionAccount[]>
+     */
+    getAccountsByIdentityForOfferId(providerNamespaceId: Contracts.AccountProviderNamespace, memberId: string, queryOnlyOwnerAccounts: boolean, inlcudeDisabledAccounts: boolean, includeMSAAccounts: boolean, serviceOwners: string[], galleryId: string, addUnlinkedSubscription?: boolean, queryAccountsByUpn?: boolean): IPromise<Contracts.ISubscriptionAccount[]>;
+    /**
+     * [Preview API] Get list of azure subscription where user is admin- co-admin under tenant or valid azure subscriptions for purchase (passing accountId to get this information for AAD calls)
+     *
+     * @param {string} subscriptionId
+     * @param {string} galleryItemId
+     * @param {string} accountId
+     * @return IPromise<Contracts.ISubscriptionAccount>
+     */
+    getAzureSubscriptionForPurchase(subscriptionId: string, galleryItemId: string, accountId?: string): IPromise<Contracts.ISubscriptionAccount>;
+    /**
+     * [Preview API] Get list of azure subscription where user is admin- co-admin under tenant or valid azure subscriptions for purchase
+     *
+     * @param {string} subscriptionId
+     * @return IPromise<Contracts.ISubscriptionAccount[]>
+     */
+    getAzureSubscriptionForUser(subscriptionId?: string): IPromise<Contracts.ISubscriptionAccount[]>;
+    /**
+     * [Preview API] Retrieves the subscription id associated to an account or null if no subscription is associated.
+     *
+     * @param {Contracts.AccountProviderNamespace} providerNamespaceId
+     * @param {string} accountId
+     * @return IPromise<Contracts.ISubscriptionAccount>
+     */
+    getSubscriptionAccount(providerNamespaceId: Contracts.AccountProviderNamespace, accountId: string): IPromise<Contracts.ISubscriptionAccount>;
+    /**
+     * [Preview API] Links the account to a subscription.
+     *
+     * @param {string} subscriptionId - The subscription identifier.
+     * @param {Contracts.AccountProviderNamespace} providerNamespaceId - The provider namespace identifier.
+     * @param {string} accountId - The account identifier.
+     * @param {string} ownerId - The account owner identifier.
+     * @return IPromise<void>
+     */
+    linkAccount(subscriptionId: string, providerNamespaceId: Contracts.AccountProviderNamespace, accountId: string, ownerId: string): IPromise<void>;
+    /**
+     * [Preview API] Unlinks an account from the subsription.
+     *
+     * @param {string} subscriptionId - The subscription identifier.
+     * @param {Contracts.AccountProviderNamespace} providerNamespaceId - The provider namespace identifier.
+     * @param {string} accountId - The account identifier.
+     * @param {string} ownerId - The account owner identifier.
+     * @return IPromise<void>
+     */
+    unlinkAccount(subscriptionId: string, providerNamespaceId: Contracts.AccountProviderNamespace, accountId: string, ownerId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns the aggregate resource usage over the specified time range WARNING: The return value of this method is significantly different than the post method on this controller. This is an aggregation of usage events over time rather than individual usage event(s).
+     *
+     * @param {Date} startTime - Start of the the time range to retrieve, inclusive
+     * @param {Date} endTime - End of the time range to retrieve, exclusive
+     * @param {any} timeSpan - Interval of the time to retrieve, should be in a multiple of hour or day
+     * @return IPromise<Contracts.IUsageEventAggregate[]>
+     */
+    getUsage(startTime: Date, endTime: Date, timeSpan: any): IPromise<Contracts.IUsageEventAggregate[]>;
+    /**
+     * [Preview API] Saves usage entry of a resource.
+     *
+     * @param {Contracts.UsageEvent} usageEvent - Detailed usage event
+     * @return IPromise<void>
+     */
+    reportUsage(usageEvent: Contracts.UsageEvent): IPromise<void>;
+}
 /**
  * @exemptedapi
  */
@@ -4121,13 +4502,14 @@ export class CommerceHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     getAccountsByIdentityForOfferId(providerNamespaceId: Contracts.AccountProviderNamespace, memberId: string, queryOnlyOwnerAccounts: boolean, inlcudeDisabledAccounts: boolean, includeMSAAccounts: boolean, serviceOwners: string[], galleryId: string, addUnlinkedSubscription?: boolean, queryAccountsByUpn?: boolean): IPromise<Contracts.ISubscriptionAccount[]>;
     /**
-     * [Preview API] Get list of azure subscription where user is admin- co-admin under tenant or valid azure subscriptions for purchase
+     * [Preview API] Get list of azure subscription where user is admin- co-admin under tenant or valid azure subscriptions for purchase (passing accountId to get this information for AAD calls)
      *
      * @param {string} subscriptionId
      * @param {string} galleryItemId
+     * @param {string} accountId
      * @return IPromise<Contracts.ISubscriptionAccount>
      */
-    getAzureSubscriptionForPurchase(subscriptionId: string, galleryItemId: string): IPromise<Contracts.ISubscriptionAccount>;
+    getAzureSubscriptionForPurchase(subscriptionId: string, galleryItemId: string, accountId: string): IPromise<Contracts.ISubscriptionAccount>;
     /**
      * [Preview API] Get list of azure subscription where user is admin- co-admin under tenant or valid azure subscriptions for purchase
      *
@@ -4180,7 +4562,7 @@ export class CommerceHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     reportUsage(usageEvent: Contracts.UsageEvent): IPromise<void>;
 }
-export class CommerceHttpClient extends CommerceHttpClient2_2 {
+export class CommerceHttpClient extends CommerceHttpClient3 {
     constructor(rootRequestPath: string);
 }
 /**
@@ -4237,6 +4619,7 @@ export module WebPlatformFeatureFlags {
     var VisualStudioServicesContributionUnSecureBrowsers: string;
     var VisualStudioServicesContributionFramework: string;
     var ClientSideErrorLogging: string;
+    var UseCDN: string;
 }
 }
 declare module "VSS/Common/Contracts/FormInput" {
@@ -4647,6 +5030,10 @@ export interface ConfigurationContextPaths {
     */
     rootPath: string;
     /**
+    * Static content version stamp
+    */
+    staticContentVersion: string;
+    /**
     * Relative path to unversioned 3rd party static content
     */
     staticRoot3rdParty: string;
@@ -4678,6 +5065,10 @@ export interface ContextIdentifier {
 * Page context configuration that can be contributed by remote services (different VSTS services delivering content to the page)
 */
 export interface ContributedServiceContext {
+    /**
+    * Dynamic bundles to include from this service
+    */
+    bundles: DynamicBundlesCollection;
     /**
     * Specifies the prefixes for CSS modules that should map to the current service. e.g. "VSS/LoaderPlugins/Css!EMS:ExtensionManagement" would map to ExtensionManagement.css under the themed content path of this service if "EMS" is in the CSSModulePrefixes list.
     */
@@ -4760,11 +5151,35 @@ export interface DiagnosticsContext {
     */
     activityId: string;
     allowStatsCollection: boolean;
+    /**
+    * Whether or not to enable static content bundling. This is on in non-debug-mode by default but the value can be overridden with a cookie.
+    */
+    bundlingEnabled: boolean;
     debugMode: boolean;
+    isDevFabric: boolean;
     sessionId: string;
     tracePointCollectionEnabled: boolean;
     tracePointProfileEnd: string;
     tracePointProfileStart: string;
+    /**
+    * Denotes the version of the web platform consumed by this service. Of the form M###.
+    */
+    webPlatformVersion: string;
+}
+export interface DynamicBundlesCollection {
+    scripts: DynamicScriptBundle[];
+    scriptsExcludedByPath: string[];
+    styles: DynamicCSSBundle[];
+}
+export interface DynamicCSSBundle {
+    contentLength: number;
+    cssFiles: string[];
+    fallbackThemeUri: string;
+    uri: string;
+}
+export interface DynamicScriptBundle {
+    contentLength: number;
+    uri: string;
 }
 export interface ExtendedHostContext {
     authority: string;
@@ -5151,6 +5566,14 @@ export interface WebContext {
 */
 export interface WebPageDataProviderPageSource {
     /**
+    * List of paths contributed by the host which are available to 3rd party extension developers through VSS.SDK
+    */
+    contributionPaths: string[];
+    /**
+    * Diagnostics context (debug mode, activity id, etc.) of the source page
+    */
+    diagnostics: DiagnosticsContext;
+    /**
     * The navigation context for the host page that is loading the data provider
     */
     navigation: NavigationContext;
@@ -5158,6 +5581,14 @@ export interface WebPageDataProviderPageSource {
     * The project context for the host page that is loading the data provider
     */
     project: ContextIdentifier;
+    /**
+    * Currently selected hubgroup id
+    */
+    selectedHubGroupId: string;
+    /**
+    * Currently selected hub id
+    */
+    selectedHubId: string;
     /**
     * The team context for the host page that is loading the data provider
     */
@@ -5219,6 +5650,15 @@ export var TypeInfo: {
         fields: any;
     };
     DiagnosticsContext: {
+        fields: any;
+    };
+    DynamicBundlesCollection: {
+        fields: any;
+    };
+    DynamicCSSBundle: {
+        fields: any;
+    };
+    DynamicScriptBundle: {
         fields: any;
     };
     ExtendedHostContext: {
@@ -5564,16 +6004,17 @@ export function addCssModulePrefixMapping(modulePrefix: string, url: string): vo
 *
 * @param modulePrefix CSS module prefix
 * @param cssModulePath CSS module name
+* @param theme The CSS theme (e.g. Default or HighContrast to use, defaults to the current theme if omitted)
 * @returns The url to the themed css file
 */
-export function getCssModuleUrl(modulePrefix: string, cssModulePath: string): string;
+export function getCssModuleUrl(modulePrefix: string, cssModulePath: string, theme?: string): string;
 export function isHighContrastMode(): boolean;
 /**
 * Process the contributed configuration from a particular service
 *
 * @param context The contributed service context to evaluate
 */
-export function processContributedServiceContext(context: Contracts_Platform.ContributedServiceContext): void;
+export function processContributedServiceContext(context: Contracts_Platform.ContributedServiceContext): IPromise<any>;
 }
 declare module "VSS/Contributions/Contracts" {
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
@@ -6291,6 +6732,24 @@ export interface IExtensionHost {
     getLoadPromise(): IPromise<any>;
 }
 /**
+* Options for the host control to toggle progress indication or error/warning handling.
+*/
+export interface IContributionHostBehavior {
+    /**
+    * Show the loading indicator for the extension. Defaults to true if unspecified.
+    */
+    showLoadingIndicator?: boolean;
+    /**
+    * Show the error indicator for the extension. Defaults to true if unspecified.
+    */
+    showErrorIndicator?: boolean;
+    /**
+    * Time to wait in milliseconds (ms) before the slow warning indicator for the extension is displayed.
+    * If unspecified, The default timeout period is used.
+    */
+    slowWarningDurationMs?: number;
+}
+/**
 * Instantiate a contributed control through an internal or external contribution host.
 *
 * @param $container The jQuery element to place the control in
@@ -6298,9 +6757,10 @@ export interface IExtensionHost {
 * @param initialConfig Initial configuration/options to pass to the control
 * @param webContext The web context to use when fetching contributions and resolving uris
 * @param instanceId Id of the registered object in the contribution's host
+* @param contributionHostBehavior options for the host control to toggle behavior on progress indication and error/warning handling.
 * @return Proxied instance of the control
 */
-export function createContributedControl<T>($container: JQuery, contribution: IExtensionContribution | string, initialConfig?: any, webContext?: Contracts_Platform.WebContext, instanceId?: string): IPromise<T>;
+export function createContributedControl<T>($container: JQuery, contribution: IExtensionContribution | string, initialConfig?: any, webContext?: Contracts_Platform.WebContext, instanceId?: string, contributionHostBehavior?: IContributionHostBehavior): IPromise<T>;
 /**
 * Instantiate a contributed control through an internal or external contribution host.
 *
@@ -6312,9 +6772,10 @@ export function createContributedControl<T>($container: JQuery, contribution: IE
 * @param uriReplacementProperties Replacement object to use when resolving the content uri
 * @param uriPropertyName Name of the uri property to lookup in the contribution's properties
 * @param iframeFirstPartyContent: Set to true if the content should be iframed, even if it is first-party content.
+* @param contributionHostBehavior options for the host control to toggle behavior on progress indication and error/warning handling.
 * @return IExtensionHost
 */
-export function createExtensionHost($container: JQuery, contribution: IExtensionContribution | string, initialConfig?: any, webContext?: Contracts_Platform.WebContext, postContent?: any, uriReplacementProperties?: any, uriPropertyName?: string, iframeFirstPartyContent?: boolean): IPromise<IExtensionHost>;
+export function createExtensionHost($container: JQuery, contribution: IExtensionContribution | string, initialConfig?: any, webContext?: Contracts_Platform.WebContext, postContent?: any, uriReplacementProperties?: any, uriPropertyName?: string, iframeFirstPartyContent?: boolean, contributionHostBehavior?: IContributionHostBehavior): IPromise<IExtensionHost>;
 /**
 * Instantiate a contributed control through an internal or external contribution host.
 *
@@ -6324,9 +6785,10 @@ export function createExtensionHost($container: JQuery, contribution: IExtension
 * @param initialConfig Initial configuration/options to pass to the control
 * @param postContent: Optional data to post to the contribution url (if not specified, a GET is performed)
 * @param iframeFirstPartyContent: Set to true if the content should be iframed, even if it is first-party content.
+* @param contributionHostBehavior options for the host control to toggle behavior on progress indication and error/warning handling.
 * @return IExtensionHost
 */
-export function createExtensionHostForContribution($container: JQuery, uri: string, contribution: IExtensionContribution, initialConfig?: any, postContent?: any, iframeFirstPartyContent?: boolean): IExtensionHost;
+export function createExtensionHostForContribution($container: JQuery, uri: string, contribution: IExtensionContribution, initialConfig?: any, postContent?: any, iframeFirstPartyContent?: boolean, contributionHostBehavior?: IContributionHostBehavior): IExtensionHost;
 /**
 * Instantiate a contributed background host (no UI) through an internal or external contribution host.
 *
@@ -6358,6 +6820,35 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
 /**
  * @exemptedapi
  */
+export class ContributionsHttpClient3 extends VSS_WebApi.VssHttpClient {
+    constructor(rootRequestPath: string);
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DataProviderQuery} query
+     * @return IPromise<Contracts.DataProviderResult>
+     */
+    queryDataProviders(query: Contracts.DataProviderQuery): IPromise<Contracts.DataProviderResult>;
+    /**
+     * [Preview API]
+     *
+     * @param {string[]} contributionIds
+     * @param {boolean} includeDisabledApps
+     * @return IPromise<Contracts.InstalledExtension[]>
+     */
+    getInstalledExtensions(contributionIds?: string[], includeDisabledApps?: boolean): IPromise<Contracts.InstalledExtension[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @return IPromise<Contracts.InstalledExtension>
+     */
+    getInstalledExtensionByName(publisherName: string, extensionName: string): IPromise<Contracts.InstalledExtension>;
+}
+/**
+ * @exemptedapi
+ */
 export class ContributionsHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -6384,7 +6875,7 @@ export class ContributionsHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     getInstalledExtensionByName(publisherName: string, extensionName: string): IPromise<Contracts.InstalledExtension>;
 }
-export class ContributionsHttpClient extends ContributionsHttpClient2_2 {
+export class ContributionsHttpClient extends ContributionsHttpClient3 {
     constructor(rootRequestPath: string);
 }
 /**
@@ -6541,12 +7032,13 @@ export interface WebPageDataResolutionPlugin {
 */
 export class WebPageDataService extends Service.VssService {
     private static _resolveDataPlugins;
+    private _initializationPromise;
     private _localData;
     private _resolvedProviders;
     private _contributionPromises;
-    private _getLocalData();
     private _ensureInitialized();
     private _handleDataProviderResult(result);
+    private _mergeDataValueResult(key, originalResult, pluginResult, existingValue, allowPromise);
     /**
     * Add a plugin handler that gets called when data with the given key has been sent from the server
     *
@@ -10269,11 +10761,6 @@ export class HubNavigationView extends Controls.BaseControl {
     private _setHubGroupUris(hub?);
     private _decorate();
     updateHubGroupLink(groupId: string, newUrl: string, clickHandler?: (eventObject: JQueryEventObject) => any): void;
-    private _drawHubGroups();
-    private _drawHubs();
-    private _findHubGroup(id);
-    private _doesHubGroupExist(id);
-    private _doesHubExist(id);
 }
 export class ExternalHub extends Controls.BaseControl {
     private static PROGRESS_LOAD_DELAY;
@@ -10835,6 +11322,7 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
     private _clearTimeouts();
     private _attachAncestorScroll(element);
     private _detachAncestorScroll(element);
+    protected _dispose(): void;
     _onParentScroll(e?: any): void;
     private _onMouseDown(e?);
     private _blockBlurUntilTimeout();
@@ -13076,7 +13564,7 @@ export enum TabControlSavingMode {
      */
     NONE = 0,
     /**
-     * Saving is on tab level, a "Apply Change" button will show when state is dirty
+     * Saving is on tab level
      */
     APPLY_ON_TAB = 1,
     /**
@@ -13107,6 +13595,10 @@ export interface ITabControlOption {
      * When it is not defined, the control will try to get the tab groups from tab registration.
      */
     groups?: ITabGroup[];
+    /**
+     * The saving mode for the control.
+     */
+    savingMode: TabControlSavingMode;
     /**
      * The generic saving error message. Displayed when TabControlSavingMode is set to SAVE_ON_CONTROL.
      */
@@ -13525,8 +14017,9 @@ export class TreeNode {
      * @param text
      * @param config
      * @param children
+     * @param id
      */
-    constructor(text: string, config?: any, children?: TreeNode[]);
+    constructor(text: string, config?: any, children?: TreeNode[], id?: string);
     hasChildren(): boolean;
     clear(): void;
     remove(): void;
@@ -13759,6 +14252,53 @@ export class ComboTreeBehavior extends Combos.ComboListBehavior {
     _createDataSource(): Controls.BaseDataSource;
 }
 export var ComboTreeBehaviorName: string;
+export class MultiSelectTreeComboDropPopup extends Combos.ComboListDropPopup {
+    /**
+     * @param options
+     */
+    private _checkStates;
+    constructor(options?: any);
+    initializeOptions(options?: any): void;
+    initialize(): void;
+    expandNode(): boolean;
+    collapseNode(): boolean;
+    getCheckedItems(): string[];
+    getValue(): string;
+    _createItem(itemIndex: any): any;
+    _onItemClick(e?: any, itemIndex?: any, $target?: any, $li?: any): boolean;
+    private _fireDropPopupChange(dataSource, itemIndex?, $li?);
+    _getSelectedNode(): any;
+    toggleCheckbox(selectedIndex: any): void;
+}
+export class MultiSelectTreeComboBehavior extends Combos.ComboListBehavior {
+    constructor(combo: any, options?: any);
+    canType(): boolean;
+    getDropOptions(): any;
+    /**
+     * @param e
+     * @return
+     */
+    leftKey(e?: JQueryEventObject): any;
+    /**
+     * @param e
+     * @return
+     */
+    rightKey(e?: JQueryEventObject): any;
+    /**
+     * @param e
+     * @return
+     */
+    keyUp(e?: JQueryEventObject): any;
+    /**
+     * @param e
+     * @return
+     */
+    keyDown(e?: JQueryEventObject): any;
+    _createDataSource(): Controls.BaseDataSource;
+    private _onChange();
+    setSource(source: any[] | Function): void;
+}
+export var ComboTreeMultivalueBehaviorName: string;
 export class SearchComboTreeBehavior extends Combos.ComboListBehavior {
     private hitText;
     private selectedHitIndex;
@@ -15760,74 +16300,9 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient2_2 extends VSS_WebApi.VssHttpClient {
+export class ExtensionManagementHttpClient3 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
-    /**
-     * [Preview API]
-     *
-     * @param {any} doc
-     * @param {string} extensionId
-     * @param {string} scopeType
-     * @param {string} scopeValue
-     * @param {string} collectionName
-     * @return IPromise<any>
-     */
-    createDocument(doc: any, extensionId: string, scopeType: string, scopeValue: string, collectionName: string): IPromise<any>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} extensionId
-     * @param {string} scopeType
-     * @param {string} scopeValue
-     * @param {string} collectionName
-     * @param {string} documentId
-     * @return IPromise<void>
-     */
-    deleteDocument(extensionId: string, scopeType: string, scopeValue: string, collectionName: string, documentId: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} extensionId
-     * @param {string} scopeType
-     * @param {string} scopeValue
-     * @param {string} collectionName
-     * @param {string} documentId
-     * @return IPromise<any>
-     */
-    getDocument(extensionId: string, scopeType: string, scopeValue: string, collectionName: string, documentId: string): IPromise<any>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} extensionId
-     * @param {string} scopeType
-     * @param {string} scopeValue
-     * @param {string} collectionName
-     * @return IPromise<any[]>
-     */
-    getDocuments(extensionId: string, scopeType: string, scopeValue: string, collectionName: string): IPromise<any[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {any} doc
-     * @param {string} extensionId
-     * @param {string} scopeType
-     * @param {string} scopeValue
-     * @param {string} collectionName
-     * @return IPromise<any>
-     */
-    setDocument(doc: any, extensionId: string, scopeType: string, scopeValue: string, collectionName: string): IPromise<any>;
-    /**
-     * [Preview API]
-     *
-     * @param {any} doc
-     * @param {string} extensionId
-     * @param {string} scopeType
-     * @param {string} scopeValue
-     * @param {string} collectionName
-     * @return IPromise<any>
-     */
-    updateDocument(doc: any, extensionId: string, scopeType: string, scopeValue: string, collectionName: string): IPromise<any>;
     /**
      * [Preview API]
      *
@@ -16061,7 +16536,246 @@ export class ExtensionManagementHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     getToken(): IPromise<string>;
 }
-export class ExtensionManagementHttpClient extends ExtensionManagementHttpClient2_2 {
+/**
+ * @exemptedapi
+ */
+export class ExtensionManagementHttpClient2_2 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    constructor(rootRequestPath: string);
+    /**
+     * [Preview API]
+     *
+     * @param {any} doc
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} scopeType
+     * @param {string} scopeValue
+     * @param {string} collectionName
+     * @return IPromise<any>
+     */
+    createDocumentByName(doc: any, publisherName: string, extensionName: string, scopeType: string, scopeValue: string, collectionName: string): IPromise<any>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} scopeType
+     * @param {string} scopeValue
+     * @param {string} collectionName
+     * @param {string} documentId
+     * @return IPromise<void>
+     */
+    deleteDocumentByName(publisherName: string, extensionName: string, scopeType: string, scopeValue: string, collectionName: string, documentId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} scopeType
+     * @param {string} scopeValue
+     * @param {string} collectionName
+     * @param {string} documentId
+     * @return IPromise<any>
+     */
+    getDocumentByName(publisherName: string, extensionName: string, scopeType: string, scopeValue: string, collectionName: string, documentId: string): IPromise<any>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} scopeType
+     * @param {string} scopeValue
+     * @param {string} collectionName
+     * @return IPromise<any[]>
+     */
+    getDocumentsByName(publisherName: string, extensionName: string, scopeType: string, scopeValue: string, collectionName: string): IPromise<any[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {any} doc
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} scopeType
+     * @param {string} scopeValue
+     * @param {string} collectionName
+     * @return IPromise<any>
+     */
+    setDocumentByName(doc: any, publisherName: string, extensionName: string, scopeType: string, scopeValue: string, collectionName: string): IPromise<any>;
+    /**
+     * [Preview API]
+     *
+     * @param {any} doc
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} scopeType
+     * @param {string} scopeValue
+     * @param {string} collectionName
+     * @return IPromise<any>
+     */
+    updateDocumentByName(doc: any, publisherName: string, extensionName: string, scopeType: string, scopeValue: string, collectionName: string): IPromise<any>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionDataCollectionQuery} collectionQuery
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @return IPromise<Contracts.ExtensionDataCollection[]>
+     */
+    queryCollectionsByName(collectionQuery: Contracts.ExtensionDataCollectionQuery, publisherName: string, extensionName: string): IPromise<Contracts.ExtensionDataCollection[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} extensionId
+     * @param {string} version
+     * @return IPromise<Contracts.Scope[]>
+     */
+    getScopes(extensionId: string, version?: string): IPromise<Contracts.Scope[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} version
+     * @return IPromise<Contracts.Scope[]>
+     */
+    getScopesByName(publisherName: string, extensionName: string, version?: string): IPromise<Contracts.Scope[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {boolean} includeDisabled
+     * @param {boolean} includeErrors
+     * @return IPromise<Contracts.ExtensionState[]>
+     */
+    getStates(includeDisabled?: boolean, includeErrors?: boolean): IPromise<Contracts.ExtensionState[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.InstalledExtensionQuery} query
+     * @return IPromise<Contracts.InstalledExtension[]>
+     */
+    queryExtensions(query: Contracts.InstalledExtensionQuery): IPromise<Contracts.InstalledExtension[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} extensionId
+     * @return IPromise<Contracts.InstalledExtension>
+     */
+    getInstalledExtension(extensionId: string): IPromise<Contracts.InstalledExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {boolean} includeDisabledExtensions
+     * @param {boolean} includeErrors
+     * @return IPromise<Contracts.InstalledExtension[]>
+     */
+    getInstalledExtensions(includeDisabledExtensions?: boolean, includeErrors?: boolean): IPromise<Contracts.InstalledExtension[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.InstalledExtension} extension
+     * @return IPromise<Contracts.InstalledExtension>
+     */
+    installExtension(extension: Contracts.InstalledExtension): IPromise<Contracts.InstalledExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} extensionId
+     * @return IPromise<void>
+     */
+    uninstallExtension(extensionId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.InstalledExtension} extension
+     * @param {string} extensionId
+     * @return IPromise<Contracts.InstalledExtension>
+     */
+    updateInstalledExtension(extension: Contracts.InstalledExtension, extensionId?: string): IPromise<Contracts.InstalledExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @return IPromise<Contracts.InstalledExtension>
+     */
+    getInstalledExtensionByName(publisherName: string, extensionName: string): IPromise<Contracts.InstalledExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} version
+     * @return IPromise<Contracts.InstalledExtension>
+     */
+    installExtensionByName(publisherName: string, extensionName: string, version?: string): IPromise<Contracts.InstalledExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} reason
+     * @return IPromise<void>
+     */
+    uninstallExtensionByName(publisherName: string, extensionName: string, reason?: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} userId
+     * @return IPromise<VSS_Gallery_Contracts.UserExtensionPolicy>
+     */
+    getPolicies(userId: string): IPromise<VSS_Gallery_Contracts.UserExtensionPolicy>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} rejectMessage
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} requesterId
+     * @param {Contracts.ExtensionRequestState} state
+     * @return IPromise<number>
+     */
+    resolveRequest(rejectMessage: string, publisherName: string, extensionName: string, requesterId: string, state: Contracts.ExtensionRequestState): IPromise<number>;
+    /**
+     * [Preview API]
+     *
+     * @return IPromise<Contracts.RequestedExtension[]>
+     */
+    getRequests(): IPromise<Contracts.RequestedExtension[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} rejectMessage
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {Contracts.ExtensionRequestState} state
+     * @return IPromise<number>
+     */
+    resolveAllRequests(rejectMessage: string, publisherName: string, extensionName: string, state: Contracts.ExtensionRequestState): IPromise<number>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @return IPromise<void>
+     */
+    deleteRequest(publisherName: string, extensionName: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} requestMessage
+     * @return IPromise<Contracts.RequestedExtension>
+     */
+    requestExtension(publisherName: string, extensionName: string, requestMessage: string): IPromise<Contracts.RequestedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @return IPromise<string>
+     */
+    getToken(): IPromise<string>;
+}
+export class ExtensionManagementHttpClient extends ExtensionManagementHttpClient3 {
     constructor(rootRequestPath: string);
 }
 /**
@@ -16097,6 +16811,51 @@ export var TypeInfo: {
 declare module "VSS/FeatureAvailability/RestClient" {
 import Contracts = require("VSS/FeatureAvailability/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
+export class FeatureAvailabilityHttpClient3 extends VSS_WebApi.VssHttpClient {
+    constructor(rootRequestPath: string);
+    /**
+     * [Preview API] Retrieve a listing of all feature flags and their current states for a user
+     *
+     * @param {string} userEmail - The email of the user to check
+     * @return IPromise<Contracts.FeatureFlag[]>
+     */
+    getAllFeatureFlags(userEmail?: string): IPromise<Contracts.FeatureFlag[]>;
+    /**
+     * [Preview API] Retrieve information on a single feature flag and its current states
+     *
+     * @param {string} name - The name of the feature to retrieve
+     * @return IPromise<Contracts.FeatureFlag>
+     */
+    getFeatureFlagByName(name: string): IPromise<Contracts.FeatureFlag>;
+    /**
+     * [Preview API] Retrieve information on a single feature flag and its current states for a user
+     *
+     * @param {string} name - The name of the feature to retrieve
+     * @param {string} userEmail - The email of the user to check
+     * @return IPromise<Contracts.FeatureFlag>
+     */
+    getFeatureFlagByNameAndUserEmail(name: string, userEmail: string): IPromise<Contracts.FeatureFlag>;
+    /**
+     * [Preview API] Retrieve information on a single feature flag and its current states for a user
+     *
+     * @param {string} name - The name of the feature to retrieve
+     * @param {string} userId - The id of the user to check
+     * @return IPromise<Contracts.FeatureFlag>
+     */
+    getFeatureFlagByNameAndUserId(name: string, userId: string): IPromise<Contracts.FeatureFlag>;
+    /**
+     * [Preview API] Change the state of an individual feature flag for a name
+     *
+     * @param {Contracts.FeatureFlagPatch} state - State that should be set
+     * @param {string} name - The name of the feature to change
+     * @param {string} userEmail
+     * @return IPromise<Contracts.FeatureFlag>
+     */
+    updateFeatureFlag(state: Contracts.FeatureFlagPatch, name: string, userEmail?: string): IPromise<Contracts.FeatureFlag>;
+}
 /**
  * @exemptedapi
  */
@@ -16142,7 +16901,7 @@ export class FeatureAvailabilityHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     updateFeatureFlag(state: Contracts.FeatureFlagPatch, name: string, userEmail?: string): IPromise<Contracts.FeatureFlag>;
 }
-export class FeatureAvailabilityHttpClient extends FeatureAvailabilityHttpClient2_2 {
+export class FeatureAvailabilityHttpClient extends FeatureAvailabilityHttpClient3 {
     constructor(rootRequestPath: string);
 }
 /**
@@ -16381,6 +17140,70 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
 /**
  * @exemptedapi
  */
+export class FileContainerHttpClient3 extends VSS_WebApi.VssHttpClient {
+    constructor(rootRequestPath: string);
+    /**
+     * [Preview API] Creates the specified item in the container referenced container.
+     *
+     * @param {string} content - Content to upload
+     * @param {number} containerId
+     * @param {string} itemPath
+     * @param {string} scope - A guid representing the scope of the container. This is often the project id.
+     * @return IPromise<Contracts.FileContainerItem>
+     */
+    createItem(content: string, containerId: number, itemPath: string, scope?: string): IPromise<Contracts.FileContainerItem>;
+    /**
+     * [Preview API] Creates the specified items in in the referenced container.
+     *
+     * @param {VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.FileContainerItem[]>} items
+     * @param {number} containerId
+     * @param {string} scope - A guid representing the scope of the container. This is often the project id.
+     * @return IPromise<Contracts.FileContainerItem[]>
+     */
+    createItems(items: VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.FileContainerItem[]>, containerId: number, scope?: string): IPromise<Contracts.FileContainerItem[]>;
+    /**
+     * [Preview API] Deletes the specified items in a container.
+     *
+     * @param {number} containerId - Container Id.
+     * @param {string} itemPath - Path to delete.
+     * @param {string} scope - A guid representing the scope of the container. This is often the project id.
+     * @return IPromise<void>
+     */
+    deleteItem(containerId: number, itemPath: string, scope?: string): IPromise<void>;
+    /**
+     * [Preview API] Gets containers filtered by a comma separated list of artifact uris within the same scope, if not specified returns all containers
+     *
+     * @param {string} scope - A guid representing the scope of the container. This is often the project id.
+     * @param {string} artifactUris
+     * @return IPromise<Contracts.FileContainer[]>
+     */
+    getContainers(scope?: string, artifactUris?: string): IPromise<Contracts.FileContainer[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {number} containerId
+     * @param {string} scope
+     * @param {string} itemPath
+     * @param {boolean} metadata
+     * @param {string} format
+     * @param {string} downloadFileName
+     * @param {boolean} includeDownloadTickets
+     * @param {boolean} isShallow
+     * @return IPromise<Contracts.FileContainerItem[]>
+     */
+    getItems(containerId: number, scope?: string, itemPath?: string, metadata?: boolean, format?: string, downloadFileName?: string, includeDownloadTickets?: boolean, isShallow?: boolean): IPromise<Contracts.FileContainerItem[]>;
+    /**
+     * [Preview API] Allow browsing of file ,the contentDisposition is inline and Content-Type is determined by FileExtension
+     *
+     * @param {number} container
+     * @param {string} itemPath - The path to the item of interest
+     * @return IPromise<Contracts.FileContainerItem[]>
+     */
+    browseItems(container: number, itemPath?: string): IPromise<Contracts.FileContainerItem[]>;
+}
+/**
+ * @exemptedapi
+ */
 export class FileContainerHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -16442,7 +17265,7 @@ export class FileContainerHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     browseItems(container: number, itemPath?: string): IPromise<Contracts.FileContainerItem[]>;
 }
-export class FileContainerHttpClient extends FileContainerHttpClient2_2 {
+export class FileContainerHttpClient extends FileContainerHttpClient3 {
     constructor(rootRequestPath: string);
 }
 /**
@@ -16567,6 +17390,11 @@ export interface AcquisitionOptions {
      */
     target: string;
 }
+export enum ConcernCategory {
+    General = 1,
+    Abusive = 2,
+    Spam = 4,
+}
 /**
  * Contract for handling the extension acquisition process
  */
@@ -16624,15 +17452,21 @@ export interface ExtensionFilterResult {
      */
     pagingToken: string;
     /**
-     * This is the additional optional metadata for the given result
+     * This is the additional optional metadata for the given result. E.g. Total count of results which is useful in case of paged results
      */
     resultMetadata: ExtensionFilterResultMetadata[];
 }
 /**
- * ExtensionFilterResultMetadata is one set of metadata for the result
+ * ExtensionFilterResultMetadata is one set of metadata for the result e.g. Total count. There can be multiple metadata items for one metadata.
  */
 export interface ExtensionFilterResultMetadata {
+    /**
+     * The metadata items for the category
+     */
     metadataItems: MetadataItem[];
+    /**
+     * Defines the category of metadata items
+     */
     metadataType: string;
 }
 /**
@@ -16758,6 +17592,14 @@ export enum ExtensionQueryFilterType {
      * The SearchText provided by the user to search for extensions
      */
     SearchText = 10,
+    /**
+     * Query for extensions that are featured in their own category, The filterValue for this is name of category of extensions.
+     */
+    FeaturedInCategory = 11,
+    /**
+     * When retrieving extensions from a query, exclude the extensions which are having the given flags. The value specified for this filter should be a string representing the integer values of the flags to be excluded. In case of mulitple flags to be specified, a logical OR of the interger values should be given as value for this filter This should be at most one filter of this type. This filter is only supported when search text is specified
+     */
+    ExcludeWithFlags = 12,
 }
 export enum ExtensionQueryFlags {
     /**
@@ -16870,10 +17712,16 @@ export interface InstallationTarget {
     target: string;
 }
 /**
- * MetadataItem is one value of metadata
+ * MetadataItem is one value of metadata under a given category of metadata
  */
 export interface MetadataItem {
+    /**
+     * The count of the metadata item
+     */
     count: number;
+    /**
+     * The name of the metadata item
+     */
     name: string;
 }
 export enum PagingDirection {
@@ -16895,6 +17743,7 @@ export interface PublishedExtension {
     installationTargets: InstallationTarget[];
     lastUpdated: Date;
     longDescription: string;
+    publishedDate: Date;
     publisher: PublisherFacts;
     sharedWith: ExtensionShare[];
     shortDescription: string;
@@ -16955,6 +17804,7 @@ export interface Publisher {
  */
 export interface PublisherFacts {
     displayName: string;
+    flags: PublisherFlags;
     publisherId: string;
     publisherName: string;
 }
@@ -17098,6 +17948,10 @@ export interface QueryFilter {
      */
     direction: PagingDirection;
     /**
+     * The page number requested by the user. If not provided 1 is assumed by default.
+     */
+    pageNumber: number;
+    /**
      * The page size defines the number of results the caller wants for this filter. The count can't exceed the overall query size limits.
      */
     pageSize: number;
@@ -17105,10 +17959,144 @@ export interface QueryFilter {
      * The paging token is a distinct type of filter and the other filter fields are ignored. The paging token represents the continuation of a previously executed query. The information about where in the result and what fields are being filtered are embeded in the token.
      */
     pagingToken: string;
+    /**
+     * Defines the type of sorting to be applied on the results. The page slice is cut of the sorted results only.
+     */
+    sortBy: number;
+    /**
+     * Defines the order of sorting, 1 for Ascending, 2 for Descending, else default ordering based on the SortBy value
+     */
+    sortOrder: number;
+}
+export interface Review {
+    /**
+     * Unique identifier of a review item
+     */
+    id: number;
+    /**
+     * Flag for soft deletion
+     */
+    isDeleted: boolean;
+    /**
+     * Version of the product for which review was submitted
+     */
+    productVersion: string;
+    /**
+     * Rating procided by the user
+     */
+    rating: number;
+    /**
+     * Text description of the review
+     */
+    text: string;
+    /**
+     * Title of the review
+     */
+    title: string;
+    /**
+     * Time when the review was edited/updated
+     */
+    updatedDate: Date;
+    /**
+     * Name of the user
+     */
+    userDisplayName: string;
+    /**
+     * Id of the user who submitted the review
+     */
+    userId: string;
+}
+export enum ReviewFilterOptions {
+    /**
+     * No filtering, all reviews are returned (default option)
+     */
+    None = 0,
+    /**
+     * Filter out review items with empty review text
+     */
+    FilterEmptyReviews = 1,
+    /**
+     * Filter out review items with empty usernames
+     */
+    FilterEmptyUserNames = 2,
+}
+export interface ReviewPatch {
+    /**
+     * Denotes the patch operation type
+     */
+    operation: ReviewPatchOperation;
+    /**
+     * Use when patch operation is FlagReview
+     */
+    reportedConcern: UserReportedConcern;
+    /**
+     * Use when patch operation is EditReview
+     */
+    reviewItem: Review;
+}
+export enum ReviewPatchOperation {
+    /**
+     * Flag a review
+     */
+    FlagReview = 1,
+    /**
+     * Update an existing review
+     */
+    UpdateReview = 2,
+}
+export interface ReviewsResult {
+    /**
+     * Flag indicating if there are more reviews to be shown (for paging)
+     */
+    hasMoreReviews: boolean;
+    /**
+     * List of reviews
+     */
+    reviews: Review[];
+    /**
+     * Count of total review items
+     */
+    totalReviewCount: number;
 }
 export enum SigningKeyPermissions {
     Read = 1,
     Write = 2,
+}
+export enum SortByType {
+    /**
+     * The results will be sorted by relevance in case search query is given, if no search query resutls will be provided as is
+     */
+    Relevance = 0,
+    /**
+     * The results will be sorted as per Last Updated date of the extensions with recently updated at the top
+     */
+    LastUpdatedDate = 1,
+    /**
+     * Results will be sorted Alphabetically as per the title of the extension
+     */
+    Title = 2,
+    /**
+     * Results will be sorted Alphabetically as per Publisher title
+     */
+    Publisher = 3,
+    /**
+     * Results will be sorted by Install Count
+     */
+    InstallCount = 4,
+}
+export enum SortOrderType {
+    /**
+     * Results will be sorted in the default order as per the sorting type defined. The default varies for each type, e.g. for Relevance, default is Descnding, for Title default is Ascending etc.
+     */
+    Default = 0,
+    /**
+     * The results will be sorted in Ascending order
+     */
+    Ascending = 1,
+    /**
+     * The results will be sorted in Descending order
+     */
+    Descending = 2,
 }
 /**
  * Represents the extension policy applied to a given user
@@ -17124,6 +18112,28 @@ export interface UserExtensionPolicy {
     permissions: ExtensionPolicy;
     /**
      * User id that this policy refers to
+     */
+    userId: string;
+}
+export interface UserReportedConcern {
+    /**
+     * Category of the concern
+     */
+    category: ConcernCategory;
+    /**
+     * User comment associated with the report
+     */
+    concernText: string;
+    /**
+     * Id of the review which was reported
+     */
+    reviewId: number;
+    /**
+     * Date the report was submitted
+     */
+    submittedDate: Date;
+    /**
+     * Id of the user who reported a review
      */
     userId: string;
 }
@@ -17157,6 +18167,13 @@ export var TypeInfo: {
     };
     AcquisitionOptions: {
         fields: any;
+    };
+    ConcernCategory: {
+        enumValues: {
+            "general": number;
+            "abusive": number;
+            "spam": number;
+        };
     };
     ExtensionAcquisitionRequest: {
         fields: any;
@@ -17205,6 +18222,8 @@ export var TypeInfo: {
             "installationTarget": number;
             "featured": number;
             "searchText": number;
+            "featuredInCategory": number;
+            "excludeWithFlags": number;
         };
     };
     ExtensionQueryFlags: {
@@ -17336,13 +18355,54 @@ export var TypeInfo: {
     QueryFilter: {
         fields: any;
     };
+    Review: {
+        fields: any;
+    };
+    ReviewFilterOptions: {
+        enumValues: {
+            "none": number;
+            "filterEmptyReviews": number;
+            "filterEmptyUserNames": number;
+        };
+    };
+    ReviewPatch: {
+        fields: any;
+    };
+    ReviewPatchOperation: {
+        enumValues: {
+            "flagReview": number;
+            "updateReview": number;
+        };
+    };
+    ReviewsResult: {
+        fields: any;
+    };
     SigningKeyPermissions: {
         enumValues: {
             "read": number;
             "write": number;
         };
     };
+    SortByType: {
+        enumValues: {
+            "relevance": number;
+            "lastUpdatedDate": number;
+            "title": number;
+            "publisher": number;
+            "installCount": number;
+        };
+    };
+    SortOrderType: {
+        enumValues: {
+            "default": number;
+            "ascending": number;
+            "descending": number;
+        };
+    };
     UserExtensionPolicy: {
+        fields: any;
+    };
+    UserReportedConcern: {
         fields: any;
     };
 };
@@ -17350,6 +18410,279 @@ export var TypeInfo: {
 declare module "VSS/Gallery/RestClient" {
 import Contracts = require("VSS/Gallery/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
+export class GalleryHttpClient3 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    constructor(rootRequestPath: string);
+    /**
+     * [Preview API]
+     *
+     * @param {string} extensionId
+     * @param {string} accountName
+     * @return IPromise<void>
+     */
+    shareExtensionById(extensionId: string, accountName: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} extensionId
+     * @param {string} accountName
+     * @return IPromise<void>
+     */
+    unshareExtensionById(extensionId: string, accountName: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} accountName
+     * @return IPromise<void>
+     */
+    shareExtension(publisherName: string, extensionName: string, accountName: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} accountName
+     * @return IPromise<void>
+     */
+    unshareExtension(publisherName: string, extensionName: string, accountName: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} itemId
+     * @param {string} installationTarget
+     * @return IPromise<Contracts.AcquisitionOptions>
+     */
+    getAcquisitionOptions(itemId: string, installationTarget: string): IPromise<Contracts.AcquisitionOptions>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionAcquisitionRequest} acquisitionRequest
+     * @return IPromise<Contracts.ExtensionAcquisitionRequest>
+     */
+    requestAcquisition(acquisitionRequest: Contracts.ExtensionAcquisitionRequest): IPromise<Contracts.ExtensionAcquisitionRequest>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} version
+     * @param {string} assetType
+     * @param {string} accountToken
+     * @param {boolean} acceptDefault
+     * @return IPromise<ArrayBuffer>
+     */
+    getAssetByName(publisherName: string, extensionName: string, version: string, assetType: string, accountToken?: string, acceptDefault?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} extensionId
+     * @param {string} version
+     * @param {string} assetType
+     * @param {string} accountToken
+     * @param {boolean} acceptDefault
+     * @return IPromise<ArrayBuffer>
+     */
+    getAsset(extensionId: string, version: string, assetType: string, accountToken?: string, acceptDefault?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} languages
+     * @return IPromise<string[]>
+     */
+    getCategories(languages?: string): IPromise<string[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} version
+     * @return IPromise<ArrayBuffer>
+     */
+    getCertificate(publisherName: string, extensionName: string, version?: string): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionQuery} extensionQuery
+     * @param {string} accountToken
+     * @return IPromise<Contracts.ExtensionQueryResult>
+     */
+    queryExtensions(extensionQuery: Contracts.ExtensionQuery, accountToken?: string): IPromise<Contracts.ExtensionQueryResult>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    createExtension(extensionPackage: Contracts.ExtensionPackage): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} extensionId
+     * @param {string} version
+     * @return IPromise<void>
+     */
+    deleteExtensionById(extensionId: string, version?: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} extensionId
+     * @param {string} version
+     * @param {Contracts.ExtensionQueryFlags} flags
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    getExtensionById(extensionId: string, version?: string, flags?: Contracts.ExtensionQueryFlags): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} extensionId
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    updateExtensionById(extensionPackage: Contracts.ExtensionPackage, extensionId: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} publisherName
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    createExtensionWithPublisher(extensionPackage: Contracts.ExtensionPackage, publisherName: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} version
+     * @return IPromise<void>
+     */
+    deleteExtension(publisherName: string, extensionName: string, version?: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} version
+     * @param {Contracts.ExtensionQueryFlags} flags
+     * @param {string} accountToken
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    getExtension(publisherName: string, extensionName: string, version?: string, flags?: Contracts.ExtensionQueryFlags, accountToken?: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} version
+     * @param {string} accountToken
+     * @param {boolean} acceptDefault
+     * @return IPromise<ArrayBuffer>
+     */
+    getPackage(publisherName: string, extensionName: string, version: string, accountToken?: string, acceptDefault?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} version
+     * @param {string} assetType
+     * @param {string} assetToken
+     * @param {string} accountToken
+     * @param {boolean} acceptDefault
+     * @return IPromise<ArrayBuffer>
+     */
+    getAssetWithToken(publisherName: string, extensionName: string, version: string, assetType: string, assetToken?: string, accountToken?: string, acceptDefault?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.PublisherQuery} publisherQuery
+     * @return IPromise<Contracts.PublisherQueryResult>
+     */
+    queryPublishers(publisherQuery: Contracts.PublisherQuery): IPromise<Contracts.PublisherQueryResult>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Publisher} publisher
+     * @return IPromise<Contracts.Publisher>
+     */
+    createPublisher(publisher: Contracts.Publisher): IPromise<Contracts.Publisher>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @return IPromise<void>
+     */
+    deletePublisher(publisherName: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {number} flags
+     * @return IPromise<Contracts.Publisher>
+     */
+    getPublisher(publisherName: string, flags?: number): IPromise<Contracts.Publisher>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Publisher} publisher
+     * @param {string} publisherName
+     * @return IPromise<Contracts.Publisher>
+     */
+    updatePublisher(publisher: Contracts.Publisher, publisherName: string): IPromise<Contracts.Publisher>;
+    /**
+     * [Preview API] Creates a new review item
+     *
+     * @param {Contracts.Review} review - Contains details about the review item to be created like rating, reviewText, productId
+     * @param {string} extensionId
+     * @return IPromise<Contracts.Review>
+     */
+    createReview(review: Contracts.Review, extensionId: string): IPromise<Contracts.Review>;
+    /**
+     * [Preview API] Returns all reviews associated with a product
+     *
+     * @param {string} extensionId - Guid of the extension whose reviews need to be retrieved
+     * @param {Contracts.ReviewFilterOptions} reviewFilterOptions
+     * @return IPromise<Contracts.ReviewsResult>
+     */
+    getReviews(extensionId: string, reviewFilterOptions?: Contracts.ReviewFilterOptions): IPromise<Contracts.ReviewsResult>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ReviewPatch} reviewPatch
+     * @param {string} extensionId
+     * @param {number} resourceId
+     * @return IPromise<number>
+     */
+    updateReview(reviewPatch: Contracts.ReviewPatch, extensionId: string, resourceId: number): IPromise<number>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} keyType
+     * @param {number} expireCurrentSeconds
+     * @return IPromise<void>
+     */
+    generateKey(keyType: string, expireCurrentSeconds?: number): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} keyType
+     * @return IPromise<string>
+     */
+    getSigningKey(keyType: string): IPromise<string>;
+}
 /**
  * @exemptedapi
  */
@@ -17527,6 +18860,17 @@ export class GalleryHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * @param {string} publisherName
      * @param {string} extensionName
      * @param {string} version
+     * @param {string} accountToken
+     * @param {boolean} acceptDefault
+     * @return IPromise<ArrayBuffer>
+     */
+    getPackage(publisherName: string, extensionName: string, version: string, accountToken?: string, acceptDefault?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} version
      * @param {string} assetType
      * @param {string} assetToken
      * @param {string} accountToken
@@ -17587,7 +18931,7 @@ export class GalleryHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     getSigningKey(keyType: string): IPromise<string>;
 }
-export class GalleryHttpClient extends GalleryHttpClient2_2 {
+export class GalleryHttpClient extends GalleryHttpClient3 {
     constructor(rootRequestPath: string);
 }
 /**
@@ -17979,6 +19323,38 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
 /**
  * @exemptedapi
  */
+export class IdentityMruHttpClient3 extends VSS_WebApi.VssHttpClient {
+    constructor(rootRequestPath: string);
+    /**
+     * [Preview API]
+     *
+     * @param {string} identityId
+     * @param {string} containerId
+     * @return IPromise<string[]>
+     */
+    getMruIdentities(identityId: string, containerId: string): IPromise<string[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string[]} identityIds
+     * @param {string} identityId
+     * @param {string} containerId
+     * @return IPromise<void>
+     */
+    setMruIdentities(identityIds: string[], identityId: string, containerId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.MruIdentitiesUpdateData} updateData
+     * @param {string} identityId
+     * @param {string} containerId
+     * @return IPromise<void>
+     */
+    updateMruIdentities(updateData: Contracts.MruIdentitiesUpdateData, identityId: string, containerId: string): IPromise<void>;
+}
+/**
+ * @exemptedapi
+ */
 export class IdentityMruHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -18008,7 +19384,7 @@ export class IdentityMruHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     updateMruIdentities(updateData: Contracts.MruIdentitiesUpdateData, identityId: string, containerId: string): IPromise<void>;
 }
-export class IdentityMruHttpClient extends IdentityMruHttpClient2_2 {
+export class IdentityMruHttpClient extends IdentityMruHttpClient3 {
     constructor(rootRequestPath: string);
 }
 /**
@@ -18590,6 +19966,10 @@ export class IdentityPickerSearchControl extends Controls.Control<IIdentityPicke
     **/
     focusOnSearchInput(): void;
     dispose(): void;
+    /**
+    *   Use this function to set focus on resolved input, please make sure the input element is already in DOM, otherwise set focus won`t work.
+    **/
+    private _focusOnResolvedInput(resolvedInput);
     private _hideMruTriangle();
     private _showMruTriangle();
     /**
@@ -18727,6 +20107,7 @@ export class EntityHelpers {
     *   Use-cases apart from calls by the controls here are not supported; provided as a example of merging logic.
     **/
     static mergeEntities(list1: Identities_Picker_RestClient.IEntity[], list2: Identities_Picker_RestClient.IEntity[], mergePreference?: string): Identities_Picker_RestClient.IEntity[];
+    static isDirectoryEntityType(entity: Identities_Picker_RestClient.IEntity): boolean;
     /**
     *   This is the default way the controls internally fetch the key for disambiguating entities.
     *   Use-cases apart from calls by the controls here are not supported; provided as a example of merging logic.
@@ -18917,6 +20298,10 @@ export interface IOperationScope {
     *   Search Active Directory
     **/
     AD?: boolean;
+    /**
+    *   Search Windows Machine Directory
+    **/
+    WMD?: boolean;
 }
 /**
 *   Suggest that the query need not be treated as a prefix
@@ -18960,7 +20345,7 @@ export class ServiceHelpers {
     static ExtensionData_MaterializedAadGroupsOnlyItem: string;
     static GetIdentities_Prefix_Separator: string;
     /**
-    *   Currently supports only AAD and Source (AAD for AAD-backed accounts, and IMS for MSA accounts/on-premise TFS)
+    *   Currently supports only AAD, Source, AD and WMD (AAD for AAD-backed accounts, IMS for MSA accounts/on-premise TFS and AD and WMD for on-premise TFS)
     **/
     static getOperationScopeList(operationScope: IOperationScope): string[];
     static getQueryTypeHint(queryTypeHint: IQueryTypeHint): string;
@@ -19044,7 +20429,7 @@ export class IdentityService extends Service.VssService implements IIdentityServ
     *   Get an identity's connections in the overlay of the AD graph on the VSTS Identity graph
     **/
     getIdentityConnections(identity: Identities_Picker_RestClient.IEntity, operationScope: IOperationScope, identityType: IEntityType, connectionType: IConnectionType, options?: IIdentityServiceOptions): IPromise<Identities_Picker_RestClient.IdentitiesGetConnectionsResponseModel>;
-    private static getQueryTokensForIdentitesWithImages(identities);
+    private static _getEntityIdsAsQueryTokens(identities);
     private _cacheQueryTokenResult(queryTokenResult);
     private static _removeQueryToken(queryToken, queryTokens);
     private static getUniqueRequestString(queryToken, operationScope, identityType);
@@ -19084,6 +20469,219 @@ import Contracts = require("VSS/Identities/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_DelegatedAuthorization_Contracts = require("VSS/DelegatedAuthorization/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
+export class IdentitiesHttpClient3 extends VSS_WebApi.VssHttpClient {
+    constructor(rootRequestPath: string);
+    /**
+     * [Preview API]
+     *
+     * @param {any} container
+     * @return IPromise<Contracts.Identity[]>
+     */
+    createGroups(container: any): IPromise<Contracts.Identity[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} groupId
+     * @return IPromise<void>
+     */
+    deleteGroup(groupId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} scopeIds
+     * @param {boolean} recurse
+     * @param {boolean} deleted
+     * @param {string} properties
+     * @return IPromise<Contracts.Identity[]>
+     */
+    listGroups(scopeIds?: string, recurse?: boolean, deleted?: boolean, properties?: string): IPromise<Contracts.Identity[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {number} identitySequenceId
+     * @param {number} groupSequenceId
+     * @param {string} scopeId
+     * @return IPromise<Contracts.ChangedIdentities>
+     */
+    getIdentityChanges(identitySequenceId: number, groupSequenceId: number, scopeId?: string): IPromise<Contracts.ChangedIdentities>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} descriptors
+     * @param {string} identityIds
+     * @param {string} searchFilter
+     * @param {string} filterValue
+     * @param {Contracts.QueryMembership} queryMembership
+     * @param {string} properties
+     * @param {boolean} includeRestrictedVisibility
+     * @param {Contracts.ReadIdentitiesOptions} options
+     * @return IPromise<Contracts.Identity[]>
+     */
+    readIdentities(descriptors?: string, identityIds?: string, searchFilter?: string, filterValue?: string, queryMembership?: Contracts.QueryMembership, properties?: string, includeRestrictedVisibility?: boolean, options?: Contracts.ReadIdentitiesOptions): IPromise<Contracts.Identity[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} scopeId
+     * @param {Contracts.QueryMembership} queryMembership
+     * @param {string} properties
+     * @return IPromise<Contracts.Identity[]>
+     */
+    readIdentitiesByScope(scopeId: string, queryMembership?: Contracts.QueryMembership, properties?: string): IPromise<Contracts.Identity[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} identityId
+     * @param {Contracts.QueryMembership} queryMembership
+     * @param {string} properties
+     * @return IPromise<Contracts.Identity>
+     */
+    readIdentity(identityId: string, queryMembership?: Contracts.QueryMembership, properties?: string): IPromise<Contracts.Identity>;
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.Identity[]>} identities
+     * @return IPromise<Contracts.IdentityUpdateData[]>
+     */
+    updateIdentities(identities: VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.Identity[]>): IPromise<Contracts.IdentityUpdateData[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Identity} identity
+     * @param {string} identityId
+     * @return IPromise<void>
+     */
+    updateIdentity(identity: Contracts.Identity, identityId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.FrameworkIdentityInfo} frameworkIdentityInfo
+     * @return IPromise<Contracts.Identity>
+     */
+    createIdentity(frameworkIdentityInfo: Contracts.FrameworkIdentityInfo): IPromise<Contracts.Identity>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.IdentityBatchInfo} batchInfo
+     * @return IPromise<Contracts.Identity[]>
+     */
+    readIdentityBatch(batchInfo: Contracts.IdentityBatchInfo): IPromise<Contracts.Identity[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} scopeId
+     * @return IPromise<Contracts.IdentitySnapshot>
+     */
+    getIdentitySnapshot(scopeId: string): IPromise<Contracts.IdentitySnapshot>;
+    /**
+     * [Preview API]
+     *
+     * @return IPromise<Contracts.IdentitySelf>
+     */
+    getSelf(): IPromise<Contracts.IdentitySelf>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} containerId
+     * @param {string} memberId
+     * @return IPromise<boolean>
+     */
+    addMember(containerId: string, memberId: string): IPromise<boolean>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} containerId
+     * @param {string} memberId
+     * @param {Contracts.QueryMembership} queryMembership
+     * @return IPromise<Contracts.IdentityDescriptor>
+     */
+    readMember(containerId: string, memberId: string, queryMembership?: Contracts.QueryMembership): IPromise<Contracts.IdentityDescriptor>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} containerId
+     * @param {Contracts.QueryMembership} queryMembership
+     * @return IPromise<Contracts.IdentityDescriptor[]>
+     */
+    readMembers(containerId: string, queryMembership?: Contracts.QueryMembership): IPromise<Contracts.IdentityDescriptor[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} containerId
+     * @param {string} memberId
+     * @return IPromise<boolean>
+     */
+    removeMember(containerId: string, memberId: string): IPromise<boolean>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} memberId
+     * @param {string} containerId
+     * @param {Contracts.QueryMembership} queryMembership
+     * @return IPromise<Contracts.IdentityDescriptor>
+     */
+    readMemberOf(memberId: string, containerId: string, queryMembership?: Contracts.QueryMembership): IPromise<Contracts.IdentityDescriptor>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} memberId
+     * @param {Contracts.QueryMembership} queryMembership
+     * @return IPromise<Contracts.IdentityDescriptor[]>
+     */
+    readMembersOf(memberId: string, queryMembership?: Contracts.QueryMembership): IPromise<Contracts.IdentityDescriptor[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.CreateScopeInfo} info
+     * @param {string} scopeId
+     * @return IPromise<Contracts.IdentityScope>
+     */
+    createScope(info: Contracts.CreateScopeInfo, scopeId: string): IPromise<Contracts.IdentityScope>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} scopeId
+     * @return IPromise<void>
+     */
+    deleteScope(scopeId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} scopeId
+     * @return IPromise<Contracts.IdentityScope>
+     */
+    getScopeById(scopeId: string): IPromise<Contracts.IdentityScope>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} scopeName
+     * @return IPromise<Contracts.IdentityScope>
+     */
+    getScopeByName(scopeName: string): IPromise<Contracts.IdentityScope>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.IdentityScope} renameScope
+     * @param {string} scopeId
+     * @return IPromise<void>
+     */
+    renameScope(renameScope: Contracts.IdentityScope, scopeId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @return IPromise<VSS_DelegatedAuthorization_Contracts.AccessTokenResult>
+     */
+    getSignoutToken(): IPromise<VSS_DelegatedAuthorization_Contracts.AccessTokenResult>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} tenantId
+     * @return IPromise<Contracts.TenantInfo>
+     */
+    getTenant(tenantId: string): IPromise<Contracts.TenantInfo>;
+}
 export class IdentitiesHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -19287,7 +20885,7 @@ export class IdentitiesHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     getTenant(tenantId: string): IPromise<Contracts.TenantInfo>;
 }
-export class IdentitiesHttpClient extends IdentitiesHttpClient2_2 {
+export class IdentitiesHttpClient extends IdentitiesHttpClient3 {
     constructor(rootRequestPath: string);
 }
 /**
@@ -19599,6 +21197,10 @@ export interface ConnectionData {
      */
     instanceId: string;
     /**
+     * The last user access for this instance.  Null if not requested specifically.
+     */
+    lastUserAccess: Date;
+    /**
      * Data that the location service holds.
      */
     locationServiceData: LocationServiceData;
@@ -19743,6 +21345,51 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
 /**
  * @exemptedapi
  */
+export class LocationsHttpClient3 extends VSS_WebApi.VssHttpClient {
+    constructor(rootRequestPath: string);
+    /**
+     * [Preview API] This was copied and adapted from TeamFoundationConnectionService.Connect()
+     *
+     * @param {VSS_Common_Contracts.ConnectOptions} connectOptions
+     * @param {number} lastChangeId - Obsolete 32-bit LastChangeId
+     * @param {number} lastChangeId64 - Non-truncated 64-bit LastChangeId
+     * @return IPromise<Contracts.ConnectionData>
+     */
+    getConnectionData(connectOptions?: VSS_Common_Contracts.ConnectOptions, lastChangeId?: number, lastChangeId64?: number): IPromise<Contracts.ConnectionData>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} serviceType
+     * @param {string} identifier
+     * @return IPromise<void>
+     */
+    deleteServiceDefinition(serviceType: string, identifier: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} serviceType
+     * @param {string} identifier
+     * @return IPromise<Contracts.ServiceDefinition>
+     */
+    getServiceDefinition(serviceType: string, identifier: string): IPromise<Contracts.ServiceDefinition>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} serviceType
+     * @return IPromise<Contracts.ServiceDefinition[]>
+     */
+    getServiceDefinitions(serviceType?: string): IPromise<Contracts.ServiceDefinition[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ServiceDefinition[]>} serviceDefinitions
+     * @return IPromise<void>
+     */
+    updateServiceDefinitions(serviceDefinitions: VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ServiceDefinition[]>): IPromise<void>;
+}
+/**
+ * @exemptedapi
+ */
 export class LocationsHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -19785,7 +21432,7 @@ export class LocationsHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     updateServiceDefinitions(serviceDefinitions: VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ServiceDefinition[]>): IPromise<void>;
 }
-export class LocationsHttpClient extends LocationsHttpClient2_2 {
+export class LocationsHttpClient extends LocationsHttpClient3 {
     constructor(rootRequestPath: string);
 }
 }
@@ -19988,6 +21635,19 @@ export var TypeInfo: {
 declare module "VSS/Operations/RestClient" {
 import Contracts = require("VSS/Operations/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
+export class OperationsHttpClient3 extends VSS_WebApi.VssHttpClient {
+    constructor(rootRequestPath: string);
+    /**
+     * [Preview API] Gets an operation from the the Id.
+     *
+     * @param {string} operationId - The id for the operation.
+     * @return IPromise<Contracts.Operation>
+     */
+    getOperation(operationId: string): IPromise<Contracts.Operation>;
+}
 export class OperationsHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -19998,7 +21658,7 @@ export class OperationsHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     getOperation(operationId: string): IPromise<Contracts.Operation>;
 }
-export class OperationsHttpClient extends OperationsHttpClient2_2 {
+export class OperationsHttpClient extends OperationsHttpClient3 {
     constructor(rootRequestPath: string);
 }
 /**
@@ -21214,6 +22874,65 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
 /**
  * @exemptedapi
  */
+export class SecurityRolesHttpClient3 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    constructor(rootRequestPath: string);
+    /**
+     * [Preview API]
+     *
+     * @param {string} scopeId
+     * @param {string} resourceId
+     * @return IPromise<Contracts.RoleAssignment[]>
+     */
+    getRoleAssignments(scopeId: string, resourceId: string): IPromise<Contracts.RoleAssignment[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} scopeId
+     * @param {string} resourceId
+     * @param {string} identityId
+     * @return IPromise<void>
+     */
+    removeRoleAssignment(scopeId: string, resourceId: string, identityId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string[]} identityIds
+     * @param {string} scopeId
+     * @param {string} resourceId
+     * @return IPromise<void>
+     */
+    removeRoleAssignments(identityIds: string[], scopeId: string, resourceId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.UserRoleAssignmentRef} roleAssignment
+     * @param {string} scopeId
+     * @param {string} resourceId
+     * @param {string} identityId
+     * @return IPromise<Contracts.RoleAssignment>
+     */
+    setRoleAssignment(roleAssignment: Contracts.UserRoleAssignmentRef, scopeId: string, resourceId: string, identityId: string): IPromise<Contracts.RoleAssignment>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.UserRoleAssignmentRef[]} roleAssignments
+     * @param {string} scopeId
+     * @param {string} resourceId
+     * @return IPromise<Contracts.RoleAssignment[]>
+     */
+    setRoleAssignments(roleAssignments: Contracts.UserRoleAssignmentRef[], scopeId: string, resourceId: string): IPromise<Contracts.RoleAssignment[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} scopeId
+     * @return IPromise<Contracts.SecurityRole[]>
+     */
+    getRoleDefinitions(scopeId: string): IPromise<Contracts.SecurityRole[]>;
+}
+/**
+ * @exemptedapi
+ */
 export class SecurityRolesHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     constructor(rootRequestPath: string);
@@ -21270,7 +22989,7 @@ export class SecurityRolesHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     getRoleDefinitions(scopeId: string): IPromise<Contracts.SecurityRole[]>;
 }
-export class SecurityRolesHttpClient extends SecurityRolesHttpClient2_2 {
+export class SecurityRolesHttpClient extends SecurityRolesHttpClient3 {
     constructor(rootRequestPath: string);
 }
 /**
@@ -21581,6 +23300,94 @@ declare module "VSS/Security/RestClient" {
 import Contracts = require("VSS/Security/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
+export class SecurityHttpClient3 extends VSS_WebApi.VssHttpClient {
+    constructor(rootRequestPath: string);
+    /**
+     * [Preview API]
+     *
+     * @param {string} securityNamespaceId
+     * @param {string} token
+     * @param {string} descriptors
+     * @return IPromise<boolean>
+     */
+    removeAccessControlEntries(securityNamespaceId: string, token?: string, descriptors?: string): IPromise<boolean>;
+    /**
+     * [Preview API]
+     *
+     * @param {any} container
+     * @param {string} securityNamespaceId
+     * @return IPromise<Contracts.AccessControlEntry[]>
+     */
+    setAccessControlEntries(container: any, securityNamespaceId: string): IPromise<Contracts.AccessControlEntry[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} securityNamespaceId
+     * @param {string} token
+     * @param {string} descriptors
+     * @param {boolean} includeExtendedInfo
+     * @param {boolean} recurse
+     * @return IPromise<Contracts.AccessControlList[]>
+     */
+    queryAccessControlLists(securityNamespaceId: string, token?: string, descriptors?: string, includeExtendedInfo?: boolean, recurse?: boolean): IPromise<Contracts.AccessControlList[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} securityNamespaceId
+     * @param {string} tokens
+     * @param {boolean} recurse
+     * @return IPromise<boolean>
+     */
+    removeAccessControlLists(securityNamespaceId: string, tokens?: string, recurse?: boolean): IPromise<boolean>;
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.AccessControlListsCollection>} accessControlLists
+     * @param {string} securityNamespaceId
+     * @return IPromise<void>
+     */
+    setAccessControlLists(accessControlLists: VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.AccessControlListsCollection>, securityNamespaceId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} securityNamespaceId
+     * @param {number} permissions
+     * @param {string} tokens
+     * @param {boolean} alwaysAllowAdministrators
+     * @param {string} delimiter
+     * @return IPromise<boolean[]>
+     */
+    hasPermissions(securityNamespaceId: string, permissions?: number, tokens?: string, alwaysAllowAdministrators?: boolean, delimiter?: string): IPromise<boolean[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} securityNamespaceId
+     * @param {number} permissions
+     * @param {string} token
+     * @param {string} descriptor
+     * @return IPromise<Contracts.AccessControlEntry>
+     */
+    removePermission(securityNamespaceId: string, permissions?: number, token?: string, descriptor?: string): IPromise<Contracts.AccessControlEntry>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} securityNamespaceId
+     * @param {boolean} localOnly
+     * @return IPromise<Contracts.SecurityNamespaceDescription[]>
+     */
+    querySecurityNamespaces(securityNamespaceId: string, localOnly?: boolean): IPromise<Contracts.SecurityNamespaceDescription[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {any} container
+     * @param {string} securityNamespaceId
+     * @return IPromise<void>
+     */
+    setInheritFlag(container: any, securityNamespaceId: string): IPromise<void>;
+}
 export class SecurityHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -21648,7 +23455,7 @@ export class SecurityHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     setInheritFlag(container: any, securityNamespaceId: string): IPromise<void>;
 }
-export class SecurityHttpClient extends SecurityHttpClient2_2 {
+export class SecurityHttpClient extends SecurityHttpClient3 {
     constructor(rootRequestPath: string);
 }
 /**
@@ -21969,6 +23776,19 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
 /**
  * @exemptedapi
  */
+export class CustomerIntelligenceHttpClient3 extends VSS_WebApi.VssHttpClient {
+    constructor(rootRequestPath: string);
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.CustomerIntelligenceEvent[]} events
+     * @return IPromise<void>
+     */
+    publishEvents(events: Contracts.CustomerIntelligenceEvent[]): IPromise<void>;
+}
+/**
+ * @exemptedapi
+ */
 export class CustomerIntelligenceHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string);
     /**
@@ -21979,7 +23799,7 @@ export class CustomerIntelligenceHttpClient2_2 extends VSS_WebApi.VssHttpClient 
      */
     publishEvents(events: Contracts.CustomerIntelligenceEvent[]): IPromise<void>;
 }
-export class CustomerIntelligenceHttpClient extends CustomerIntelligenceHttpClient2_2 {
+export class CustomerIntelligenceHttpClient extends CustomerIntelligenceHttpClient3 {
     constructor(rootRequestPath: string);
 }
 /**
@@ -22520,6 +24340,11 @@ export var MILLISECONDS_IN_HOUR: number;
 export var MILLISECONDS_IN_DAY: number;
 export var MILLISECONDS_IN_WEEK: number;
 export var DATETIME_MINDATE_UTC_MS: number;
+/**
+ * Checks whether the specified datestring is in ISO 8601 date format or not.
+ * @param dateString
+ */
+export function isIsoDate(dateString: string): boolean;
 /**
     * Checks whether this date object corresponds to a min date or not
     *
@@ -23700,10 +25525,26 @@ export function classExtend(ctor: any, members: any): any;
 export function getTypeName(type: any): string;
 export function initClassPrototype(ctor: Function, members: any): void;
 export function getModuleBase(moduleName: string): string;
-export function using(moduleNames: string[], moduleLoaded: any): void;
+/**
+* Issue a require statement for the specified modules and invoke the given callback method once available.
+* This is a wrapper around the requireJS 'require' statement which ensures that the missing modules are
+* pulled in via the minimum number of resource requests.
+*
+* @param moduleNames An array of AMD modules to asynchronously require
+* @param callback Method to invoke once the modules have been resolved.
+*/
+export function using(moduleNames: string[], callback: Function): void;
 export function tfsModuleLoaded(moduleName: string, moduleExports: any): void;
 }
 declare module "VSS/WebApi/Constants" {
+export module AccessMappingConstants {
+    var PublicAccessMappingMoniker: string;
+    var ServerAccessMappingMoniker: string;
+    var ClientAccessMappingMoniker: string;
+    var HostGuidAccessMappingMoniker: string;
+    var RootDomainMappingMoniker: string;
+    var AzureInstanceMappingMoniker: string;
+}
 export module AuthenticationResourceIds {
     var AuthenticationLocationId: string;
     var AreaId: string;
@@ -23862,6 +25703,10 @@ export enum ConnectOptions {
      * Includes information about AccessMappings and ServiceDefinitions.
      */
     IncludeServices = 1,
+    /**
+     * Includes the last user access for this host.
+     */
+    IncludeLastUserAccess = 2,
 }
 export interface ExtensionLicenseData {
     createdDate: Date;
@@ -24001,6 +25846,7 @@ export var TypeInfo: {
         enumValues: {
             "none": number;
             "includeServices": number;
+            "includeLastUserAccess": number;
         };
     };
     ExtensionLicenseData: {
