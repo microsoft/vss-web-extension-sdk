@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v96.20160314.1325
+// Type definitions for Microsoft Visual Studio Services v97.20160401.0802
 // Project: http://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -19,13 +19,30 @@ export module ArtifactTypes {
     var GitArtifactType: string;
 }
 export module RunOptionsConstants {
-    var SkipArtifactsDownload: string;
-    var TimeoutInMinutes: string;
     var EnvironmentOwnerEmailNotificationValueAlways: string;
     var EnvironmentOwnerEmailNotificationValueTypeOnlyOnFailure: string;
     var EnvironmentOwnerEmailNotificationValueNever: string;
-    var EnvironmentOwnerEmailNotificationTypeKey: string;
     var EnvironmentOwnerEmailNotificationTypeDefaultValue: string;
+}
+export module WellKnownReleaseVariables {
+    var System: string;
+    var HostType: string;
+    var ArtifactsDirectory: string;
+    var CollectionId: string;
+    var TeamProjectId: string;
+    var TeamProject: string;
+    var AgentReleaseDirectory: string;
+    var HostTypeValue: string;
+    var ReleaseId: string;
+    var SkipArtifactsDownload: string;
+    var ReleaseName: string;
+    var ReleaseDescription: string;
+    var ReleaseDefinitionName: string;
+    var ReleaseUri: string;
+    var ReleaseEnvironmentUri: string;
+    var ReleaseEnvironmentName: string;
+    var RequestorId: string;
+    var RequestedForId: string;
 }
 }
 declare module "ReleaseManagement/Core/Contracts" {
@@ -70,6 +87,7 @@ export enum ApprovalType {
     Undefined = 0,
     PreDeploy = 1,
     PostDeploy = 2,
+    All = 3,
 }
 export interface Artifact {
     alias: string;
@@ -108,6 +126,7 @@ export interface ArtifactSourceReference {
     name: string;
 }
 export interface ArtifactTypeDefinition {
+    displayName: string;
     inputDescriptors: VSS_FormInput_Contracts.InputDescriptor[];
     name: string;
 }
@@ -191,6 +210,10 @@ export interface DeploymentAttempt {
     runPlanId: string;
     tasks: ReleaseTask[];
 }
+export interface EmailRecipients {
+    emailAddresses: string[];
+    tfsIds: string[];
+}
 /**
  * Defines policy on environment queuing at Release Management side queue. We will send to Environment Runner [creating pre-deploy and other steps] only when the policies mentioned are satisfied.
  */
@@ -204,7 +227,21 @@ export interface EnvironmentExecutionPolicy {
      */
     queueDepthCount: number;
 }
+export interface EnvironmentOptions {
+    emailNotificationType: string;
+    skipArtifactsDownload: boolean;
+    timeoutInMinutes: number;
+}
 export enum EnvironmentStatus {
+    Undefined = 0,
+    NotStarted = 1,
+    InProgress = 2,
+    Succeeded = 4,
+    Canceled = 8,
+    Rejected = 16,
+    Queued = 32,
+}
+export enum EnvironmentStatusOld {
     Undefined = 0,
     NotStarted = 1,
     Pending = 2,
@@ -218,6 +255,25 @@ export interface Issue {
     issueType: string;
     message: string;
 }
+export interface MailMessage {
+    body: string;
+    cC: EmailRecipients;
+    inReplyTo: string;
+    messageId: string;
+    replyBy: Date;
+    replyTo: EmailRecipients;
+    sections: MailSectionType[];
+    senderType: SenderType;
+    subject: string;
+    to: EmailRecipients;
+}
+export enum MailSectionType {
+    Details = 0,
+    Environments = 1,
+    Issues = 2,
+    TestResults = 3,
+    WorkItems = 4,
+}
 export interface RealtimeReleaseEvent {
     projectId: string;
     releaseId: number;
@@ -230,6 +286,7 @@ export interface Release {
     environments: ReleaseEnvironment[];
     id: number;
     keepForever: boolean;
+    logsContainerUrl: string;
     modifiedBy: VSS_Common_Contracts.IdentityRef;
     modifiedOn: Date;
     name: string;
@@ -317,6 +374,7 @@ export interface ReleaseDefinitionEnvironment {
     conditions: Condition[];
     demands: any[];
     deployStep: ReleaseDefinitionDeployStep;
+    environmentOptions: EnvironmentOptions;
     executionPolicy: EnvironmentExecutionPolicy;
     id: number;
     name: string;
@@ -374,6 +432,7 @@ export interface ReleaseEnvironment {
     definitionEnvironmentId: number;
     demands: any[];
     deploySteps: DeploymentAttempt[];
+    environmentOptions: EnvironmentOptions;
     id: number;
     modifiedOn: Date;
     name: string;
@@ -406,6 +465,10 @@ export interface ReleaseEnvironmentCompletedEvent {
     status: string;
     title: string;
     webAccessUri: string;
+}
+export interface ReleaseEnvironmentUpdateMetadata {
+    scheduledDeploymentTime: Date;
+    status: EnvironmentStatus;
 }
 export enum ReleaseExpands {
     None = 0,
@@ -456,6 +519,12 @@ export interface ReleaseStartMetadata {
 export enum ReleaseStatus {
     Undefined = 0,
     Draft = 1,
+    Active = 2,
+    Abandoned = 4,
+}
+export enum ReleaseStatusOld {
+    Undefined = 0,
+    Draft = 1,
     Abandoned = 2,
     Active = 3,
 }
@@ -463,11 +532,14 @@ export interface ReleaseTask {
     agentName: string;
     dateEnded: Date;
     dateStarted: Date;
+    finishTime: Date;
     id: number;
     issues: Issue[];
     lineCount: number;
+    logUrl: string;
     name: string;
     rank: number;
+    startTime: Date;
     status: TaskStatus;
     timelineRecordId: string;
 }
@@ -524,6 +596,10 @@ export enum ScheduleDays {
     Sunday = 64,
     All = 127,
 }
+export enum SenderType {
+    ServiceAccount = 1,
+    RequestingUser = 2,
+}
 export interface ShallowReference {
     id: number;
     name: string;
@@ -533,6 +609,12 @@ export interface SourceIdInput {
     id: string;
     name: string;
 }
+export interface SummaryMailSection {
+    htmlContent: string;
+    rank: number;
+    sectionType: MailSectionType;
+    title: string;
+}
 export enum TaskStatus {
     Unknown = 0,
     Pending = 1,
@@ -541,6 +623,8 @@ export enum TaskStatus {
     Failure = 4,
     Canceled = 5,
     Skipped = 6,
+    Succeeded = 7,
+    Failed = 8,
 }
 export interface TimeZone {
     displayName: string;
@@ -553,6 +637,7 @@ export interface TimeZoneList {
 export interface WorkflowTask {
     alwaysRun: boolean;
     continueOnError: boolean;
+    definitionType: string;
     enabled: boolean;
     inputs: {
         [key: string]: string;
@@ -601,6 +686,7 @@ export var TypeInfo: {
             "undefined": number;
             "preDeploy": number;
             "postDeploy": number;
+            "all": number;
         };
     };
     Artifact: {
@@ -665,10 +751,27 @@ export var TypeInfo: {
     DeploymentAttempt: {
         fields: any;
     };
+    EmailRecipients: {
+        fields: any;
+    };
     EnvironmentExecutionPolicy: {
         fields: any;
     };
+    EnvironmentOptions: {
+        fields: any;
+    };
     EnvironmentStatus: {
+        enumValues: {
+            "undefined": number;
+            "notStarted": number;
+            "inProgress": number;
+            "succeeded": number;
+            "canceled": number;
+            "rejected": number;
+            "queued": number;
+        };
+    };
+    EnvironmentStatusOld: {
         enumValues: {
             "undefined": number;
             "notStarted": number;
@@ -682,6 +785,18 @@ export var TypeInfo: {
     };
     Issue: {
         fields: any;
+    };
+    MailMessage: {
+        fields: any;
+    };
+    MailSectionType: {
+        enumValues: {
+            "details": number;
+            "environments": number;
+            "issues": number;
+            "testResults": number;
+            "workItems": number;
+        };
     };
     RealtimeReleaseEvent: {
         fields: any;
@@ -742,6 +857,9 @@ export var TypeInfo: {
     ReleaseEnvironmentCompletedEvent: {
         fields: any;
     };
+    ReleaseEnvironmentUpdateMetadata: {
+        fields: any;
+    };
     ReleaseExpands: {
         enumValues: {
             "none": number;
@@ -771,6 +889,14 @@ export var TypeInfo: {
         fields: any;
     };
     ReleaseStatus: {
+        enumValues: {
+            "undefined": number;
+            "draft": number;
+            "active": number;
+            "abandoned": number;
+        };
+    };
+    ReleaseStatusOld: {
         enumValues: {
             "undefined": number;
             "draft": number;
@@ -822,10 +948,19 @@ export var TypeInfo: {
             "all": number;
         };
     };
+    SenderType: {
+        enumValues: {
+            "serviceAccount": number;
+            "requestingUser": number;
+        };
+    };
     ShallowReference: {
         fields: any;
     };
     SourceIdInput: {
+        fields: any;
+    };
+    SummaryMailSection: {
         fields: any;
     };
     TaskStatus: {
@@ -837,6 +972,8 @@ export var TypeInfo: {
             "failure": number;
             "canceled": number;
             "skipped": number;
+            "succeeded": number;
+            "failed": number;
         };
     };
     TimeZone: {
@@ -882,7 +1019,7 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
  */
 export class ReleaseHttpClient3 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API] Returns the artifact details that automation agent requires
      *
@@ -958,11 +1095,10 @@ export class ReleaseHttpClient3 extends VSS_WebApi.VssHttpClient {
      *
      * @param {string} project - Project ID or project name
      * @param {string} searchText
-     * @param {number} artifactIdFilter
      * @param {Contracts.ReleaseDefinitionExpands} expand
      * @return IPromise<Contracts.ReleaseDefinition[]>
      */
-    getReleaseDefinitions(project: string, searchText?: string, artifactIdFilter?: number, expand?: Contracts.ReleaseDefinitionExpands): IPromise<Contracts.ReleaseDefinition[]>;
+    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands): IPromise<Contracts.ReleaseDefinition[]>;
     /**
      * [Preview API]
      *
@@ -993,13 +1129,13 @@ export class ReleaseHttpClient3 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
-     * @param {any} environmentUpdateData
+     * @param {Contracts.ReleaseEnvironmentUpdateMetadata} environmentUpdateData
      * @param {string} project - Project ID or project name
      * @param {number} releaseId
      * @param {number} environmentId
      * @return IPromise<Contracts.ReleaseEnvironment>
      */
-    updateReleaseEnvironment(environmentUpdateData: any, project: string, releaseId: number, environmentId: number): IPromise<Contracts.ReleaseEnvironment>;
+    updateReleaseEnvironment(environmentUpdateData: Contracts.ReleaseEnvironmentUpdateMetadata, project: string, releaseId: number, environmentId: number): IPromise<Contracts.ReleaseEnvironment>;
     /**
      * [Preview API]
      *
@@ -1149,6 +1285,23 @@ export class ReleaseHttpClient3 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<string>
      */
     getReleaseDefinitionRevision(project: string, definitionId: number, revision: number): IPromise<string>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<Contracts.SummaryMailSection[]>
+     */
+    getSummaryMailSections(project: string, releaseId: number): IPromise<Contracts.SummaryMailSection[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.MailMessage} mailMessage
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<void>
+     */
+    sendSummaryMail(mailMessage: Contracts.MailMessage, project: string, releaseId: number): IPromise<void>;
     /**
      * [Preview API]
      *
@@ -1206,7 +1359,7 @@ export class ReleaseHttpClient3 extends VSS_WebApi.VssHttpClient {
  */
 export class ReleaseHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API] Returns the artifact details that automation agent requires
      *
@@ -1282,11 +1435,10 @@ export class ReleaseHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      *
      * @param {string} project - Project ID or project name
      * @param {string} searchText
-     * @param {number} artifactIdFilter
      * @param {Contracts.ReleaseDefinitionExpands} expand
      * @return IPromise<Contracts.ReleaseDefinition[]>
      */
-    getReleaseDefinitions(project: string, searchText?: string, artifactIdFilter?: number, expand?: Contracts.ReleaseDefinitionExpands): IPromise<Contracts.ReleaseDefinition[]>;
+    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands): IPromise<Contracts.ReleaseDefinition[]>;
     /**
      * [Preview API]
      *
@@ -1317,13 +1469,13 @@ export class ReleaseHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
-     * @param {any} environmentUpdateData
+     * @param {Contracts.ReleaseEnvironmentUpdateMetadata} environmentUpdateData
      * @param {string} project - Project ID or project name
      * @param {number} releaseId
      * @param {number} environmentId
      * @return IPromise<Contracts.ReleaseEnvironment>
      */
-    updateReleaseEnvironment(environmentUpdateData: any, project: string, releaseId: number, environmentId: number): IPromise<Contracts.ReleaseEnvironment>;
+    updateReleaseEnvironment(environmentUpdateData: Contracts.ReleaseEnvironmentUpdateMetadata, project: string, releaseId: number, environmentId: number): IPromise<Contracts.ReleaseEnvironment>;
     /**
      * [Preview API]
      *
@@ -1477,6 +1629,23 @@ export class ReleaseHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<Contracts.SummaryMailSection[]>
+     */
+    getSummaryMailSections(project: string, releaseId: number): IPromise<Contracts.SummaryMailSection[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.MailMessage} mailMessage
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<void>
+     */
+    sendSummaryMail(mailMessage: Contracts.MailMessage, project: string, releaseId: number): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
      * @param {string} typeId
      * @return IPromise<Contracts.ArtifactSourceIdsQueryResult>
      */
@@ -1526,7 +1695,7 @@ export class ReleaseHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     getReleaseWorkItemsRefs(project: string, releaseId: number, baseReleaseId?: number, top?: number): IPromise<Contracts.ReleaseWorkItemRef[]>;
 }
 export class ReleaseHttpClient extends ReleaseHttpClient3 {
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
