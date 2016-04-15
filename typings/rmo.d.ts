@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v97.20160401.0802
+// Type definitions for Microsoft Visual Studio Services v98.20160415.2004
 // Project: http://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -39,6 +39,7 @@ export module WellKnownReleaseVariables {
     var ReleaseDescription: string;
     var ReleaseDefinitionName: string;
     var ReleaseUri: string;
+    var ReleaseWebUrl: string;
     var ReleaseEnvironmentUri: string;
     var ReleaseEnvironmentName: string;
     var RequestorId: string;
@@ -70,9 +71,6 @@ export enum AgentArtifactType {
 export interface ApprovalOptions {
     releaseCreatorCanBeApprover: boolean;
     requiredApproverCount: number;
-}
-export interface ApprovalPendingEvent {
-    environments: ReleaseEnvironment[];
 }
 export enum ApprovalStatus {
     Undefined = 0,
@@ -124,6 +122,12 @@ export interface ArtifactSourceIdsQueryResult {
 export interface ArtifactSourceReference {
     id: string;
     name: string;
+}
+export interface ArtifactSourceTrigger extends ReleaseTriggerBase {
+    /**
+     * Artifact source alias for Artifact Source trigger type
+     */
+    artifactAlias: string;
 }
 export interface ArtifactTypeDefinition {
     displayName: string;
@@ -299,6 +303,9 @@ export interface Release {
         [key: string]: ConfigurationVariableValue;
     };
 }
+export interface ReleaseAbandonedEvent {
+    release: Release;
+}
 export interface ReleaseApproval {
     approvalType: ApprovalType;
     approvedBy: VSS_Common_Contracts.IdentityRef;
@@ -319,6 +326,13 @@ export interface ReleaseApproval {
     status: ApprovalStatus;
     trialNumber: number;
 }
+export interface ReleaseApprovalCompletedEvent {
+    approval: ReleaseApproval;
+    definitionName: string;
+    environmentId: number;
+    environmentName: string;
+    releaseName: string;
+}
 export interface ReleaseApprovalHistory {
     approver: VSS_Common_Contracts.IdentityRef;
     changedBy: VSS_Common_Contracts.IdentityRef;
@@ -326,6 +340,17 @@ export interface ReleaseApprovalHistory {
     createdOn: Date;
     modifiedOn: Date;
     revision: number;
+}
+export interface ReleaseApprovalPendingEvent {
+    approval: ReleaseApproval;
+    definitionName: string;
+    environmentId: number;
+    environmentName: string;
+    environments: ReleaseEnvironment[];
+    releaseCreator: string;
+    releaseName: string;
+    title: string;
+    webAccessUri: string;
 }
 export interface ReleaseArtifact {
     artifactProvider: ArtifactProvider;
@@ -336,6 +361,9 @@ export interface ReleaseArtifact {
     id: number;
     name: string;
     releaseId: number;
+}
+export interface ReleaseCreatedEvent {
+    release: Release;
 }
 export interface ReleaseDefinition {
     artifacts: Artifact[];
@@ -349,7 +377,7 @@ export interface ReleaseDefinition {
     releaseNameFormat: string;
     retentionPolicy: RetentionPolicy;
     revision: number;
-    triggers: ReleaseTrigger[];
+    triggers: ReleaseTriggerBase[];
     variables: {
         [key: string]: ConfigurationVariableValue;
     };
@@ -456,8 +484,10 @@ export interface ReleaseEnvironment {
 }
 export interface ReleaseEnvironmentCompletedEvent {
     createdByName: string;
+    definitionId: number;
     definitionName: string;
     environment: ReleaseEnvironment;
+    environmentId: number;
     projectName: string;
     releaseCreatedBy: VSS_Common_Contracts.IdentityRef;
     releaseLogsUri: string;
@@ -465,6 +495,11 @@ export interface ReleaseEnvironmentCompletedEvent {
     status: string;
     title: string;
     webAccessUri: string;
+}
+export interface ReleaseEnvironmentStartedEvent {
+    environment: ReleaseEnvironment;
+    environmentId: number;
+    release: Release;
 }
 export interface ReleaseEnvironmentUpdateMetadata {
     scheduledDeploymentTime: Date;
@@ -554,15 +589,7 @@ export interface ReleaseTasksUpdatedEvent extends RealtimeReleaseEvent {
     releaseStepId: number;
     tasks: ReleaseTask[];
 }
-export interface ReleaseTrigger {
-    /**
-     * Artifact source alias for ArtifactSource trigger type - value is null for all other trigger types
-     */
-    artifactAlias: string;
-    /**
-     * Release schedule for Schedule trigger type - value is null for all other trigger types
-     */
-    schedule: ReleaseSchedule;
+export interface ReleaseTriggerBase {
     triggerType: ReleaseTriggerType;
 }
 export enum ReleaseTriggerType {
@@ -595,6 +622,12 @@ export enum ScheduleDays {
     Saturday = 32,
     Sunday = 64,
     All = 127,
+}
+export interface ScheduledReleaseTrigger extends ReleaseTriggerBase {
+    /**
+     * Release schedule for Scheduled Release trigger type
+     */
+    schedule: ReleaseSchedule;
 }
 export enum SenderType {
     ServiceAccount = 1,
@@ -667,9 +700,6 @@ export var TypeInfo: {
     ApprovalOptions: {
         fields: any;
     };
-    ApprovalPendingEvent: {
-        fields: any;
-    };
     ApprovalStatus: {
         enumValues: {
             "undefined": number;
@@ -708,6 +738,9 @@ export var TypeInfo: {
         fields: any;
     };
     ArtifactSourceReference: {
+        fields: any;
+    };
+    ArtifactSourceTrigger: {
         fields: any;
     };
     ArtifactTypeDefinition: {
@@ -804,13 +837,25 @@ export var TypeInfo: {
     Release: {
         fields: any;
     };
+    ReleaseAbandonedEvent: {
+        fields: any;
+    };
     ReleaseApproval: {
+        fields: any;
+    };
+    ReleaseApprovalCompletedEvent: {
         fields: any;
     };
     ReleaseApprovalHistory: {
         fields: any;
     };
+    ReleaseApprovalPendingEvent: {
+        fields: any;
+    };
     ReleaseArtifact: {
+        fields: any;
+    };
+    ReleaseCreatedEvent: {
         fields: any;
     };
     ReleaseDefinition: {
@@ -855,6 +900,9 @@ export var TypeInfo: {
         fields: any;
     };
     ReleaseEnvironmentCompletedEvent: {
+        fields: any;
+    };
+    ReleaseEnvironmentStartedEvent: {
         fields: any;
     };
     ReleaseEnvironmentUpdateMetadata: {
@@ -913,7 +961,7 @@ export var TypeInfo: {
     ReleaseTasksUpdatedEvent: {
         fields: any;
     };
-    ReleaseTrigger: {
+    ReleaseTriggerBase: {
         fields: any;
     };
     ReleaseTriggerType: {
@@ -947,6 +995,9 @@ export var TypeInfo: {
             "sunday": number;
             "all": number;
         };
+    };
+    ScheduledReleaseTrigger: {
+        fields: any;
     };
     SenderType: {
         enumValues: {
@@ -1702,5 +1753,5 @@ export class ReleaseHttpClient extends ReleaseHttpClient3 {
  *
  * @return ReleaseHttpClient2_2
  */
-export function getClient(): ReleaseHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ReleaseHttpClient2_2;
 }

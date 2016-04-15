@@ -1,10 +1,11 @@
-// Type definitions for Microsoft Visual Studio Services v97.20160401.0801
+// Type definitions for Microsoft Visual Studio Services v98.20160415.2003
 // Project: http://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
 /// <reference path='../../../typings/knockout/knockout.d.ts' />
 /// <reference path='../../../typings/jquery/jquery.d.ts' />
 /// <reference path='../../../typings/q/q.d.ts' />
+
 //----------------------------------------------------------
 // Common interfaces specific to WebPlatform area
 //----------------------------------------------------------
@@ -902,6 +903,13 @@ interface IContributedTab {
      * Function that is invoked when there is a new context available for the extension.
      */
     updateContext: (context: any) => void | IPromise<void>;
+
+    /**
+     * Determines if this tab should be disabled
+     * @param context Context information
+     * @return boolean Return true to disable this tab.
+     */
+    isDisabled?: (context?: any) => boolean | IPromise<boolean>;
 }
 //----------------------------------------------------------
 // Copyright (C) Microsoft Corporation. All rights reserved.
@@ -1302,9 +1310,13 @@ interface ContributionType {
 */
 interface CoreReferencesContext {
     /**
-    * Core javascript bundle
+    * Core 3rd party javascript bundle reference
     */
     coreScriptsBundle: JavascriptFileReference;
+    /**
+    * Core VSS javascript bundle reference for extension frames
+    */
+    extensionCoreReferences: JavascriptFileReference;
     /**
     * Core javascript files referenced on a page
     */
@@ -1371,7 +1383,7 @@ interface DiagnosticsContext {
     activityId: string;
     allowStatsCollection: boolean;
     /**
-    * Whether or not to enable static content bundling. This is on in non-debug-mode by default but the value can be overridden with a cookie.
+    * Whether or not to enable static content bundling. This is on by default but the value can be overridden with a TFS-BUNDLING cookie or registry entry.
     */
     bundlingEnabled: boolean;
     debugMode: boolean;
@@ -1435,10 +1447,6 @@ interface Extension {
     * Extension flags relevant to contribution consumers
     */
     flags: ExtensionFlags;
-    /**
-    * Globally unique id for this extension (the same id is used for all versions of a single extension)
-    */
-    id: string;
     language: string;
     manifestVersion: any;
     /**
@@ -1685,7 +1693,6 @@ declare enum ExtensionRequestState {
 * The state of an extension
 */
 interface ExtensionState {
-    extensionId: string;
     extensionName: string;
     flags: ExtensionStateFlags;
     lastUpdated: Date;
@@ -1694,9 +1701,6 @@ interface ExtensionState {
     */
     lastVersionCheck: Date;
     publisherName: string;
-    /**
-    * Version of this extension
-    */
     version: string;
 }
 
@@ -1839,7 +1843,6 @@ interface InstalledExtension {
     extensionId: string;
     extensionName: string;
     flags: ExtensionFlags;
-    id: string;
     /**
     * Information about this particular installation of the extension
     */
@@ -1885,7 +1888,7 @@ interface JavascriptFileReference {
     */
     identifier: string;
     /**
-    * Is this a core javascript file that needs to be included on every page
+    * Is this a core javascript file that needs to be included in all child extension frames
     */
     isCoreModule: boolean;
     /**
@@ -2077,6 +2080,10 @@ interface RequestedExtension {
 * Entry for a specific data provider's resulting data
 */
 interface ResolvedDataProvider {
+    /**
+    * The total time the data provider took to resolve its data (in milliseconds)
+    */
+    duration: any;
     error: string;
     id: string;
 }
@@ -2265,7 +2272,11 @@ interface WebPerformanceTimingEntry {
     */
     duration: any;
     /**
-    * Offset from Server Request Context start time in milliseconds
+    * Additional, optional context to distinguish two timings with different arguments
+    */
+    properties: any;
+    /**
+    * Offset from Server Request Context start time in microseconds
     */
     startTime: any;
 }
@@ -2278,6 +2289,12 @@ interface WebPerformanceTimingGroup {
     * A list of timing entries
     */
     timings: WebPerformanceTimingEntry[];
+}
+
+interface WebPerformanceTimingGroupCIData {
+    count: number;
+    duration: any;
+    entries: WebPerformanceTimingEntry[];
 }
 
 declare module XDM {
@@ -2964,7 +2981,7 @@ export class AccountsHttpClient extends AccountsHttpClient3 {
  *
  * @return AccountsHttpClient2_2
  */
-export function getClient(): AccountsHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): AccountsHttpClient2_2;
 }
 declare module "VSS/Adapters/Knockout" {
 import Controls = require("VSS/Controls");
@@ -3523,6 +3540,14 @@ export interface IOfferSubscription {
      */
     isPaidBillingEnabled: boolean;
     /**
+     * Gets the value indicating whether the puchase is canceled.
+     */
+    isPurchaseCanceled: boolean;
+    /**
+     * Gets or sets a value indicating whether this instance is trial or preview.
+     */
+    isTrialOrPreview: boolean;
+    /**
      * Returns true if resource is can be used otherwise returns false. can be used to identify why resource is disabled.
      */
     isUseable: boolean;
@@ -3542,6 +3567,14 @@ export interface IOfferSubscription {
      * Returns a Date of UTC kind indicating when the next reset of quantities is going to happen. On this day at UTC 2:00 AM is when the reset will occur.
      */
     resetDate: Date;
+    /**
+     * Gets or sets the start date for this resource. First install date in any state.
+     */
+    startDate: Date;
+    /**
+     * Gets or sets the trial expiry date.
+     */
+    trialExpiryDate: Date;
 }
 /**
  * The subscription account. Add Sub Type and Owner email later.
@@ -3687,8 +3720,6 @@ export interface IUsageEventAggregate {
 export enum MeterBillingState {
     Free = 0,
     Paid = 1,
-    Trial = 2,
-    PaidWithTrial = 3,
 }
 export enum MeterCategory {
     Legacy = 0,
@@ -3717,9 +3748,17 @@ export interface OfferMeter {
      */
     absoluteMaximumQuantity: number;
     /**
+     * Gets or sets the user assignment model.
+     */
+    assignmentModel: OfferMeterAssignmentModel;
+    /**
      * Gets or sets the billing mode of the resource
      */
     billingMode: ResourceBillingMode;
+    /**
+     * Gets or sets the billing start date. If TrialDays + PreviewGraceDays > then, on 'BillingStartDate' it starts the preview Grace and/or trial period.
+     */
+    billingStartDate: Date;
     /**
      * Gets or sets the state of the billing.
      */
@@ -3765,6 +3804,10 @@ export interface OfferMeter {
      */
     platformMeterId: string;
     /**
+     * Gets or sets the preview grace days.
+     */
+    previewGraceDays: number;
+    /**
      * Gets or sets the Renewak Frequency.
      */
     renewalFrequency: MeterRenewalFrequecy;
@@ -3777,9 +3820,23 @@ export interface OfferMeter {
      */
     trialCycles: number;
     /**
+     * Gets or sets the trial days.
+     */
+    trialDays: number;
+    /**
      * Measuring unit for this meter.
      */
     unit: string;
+}
+export enum OfferMeterAssignmentModel {
+    /**
+     * Users need to be explicitly assigned.
+     */
+    Explicit = 0,
+    /**
+     * Users will be added automatically. All-or-nothing model.
+     */
+    Implicit = 1,
 }
 export enum OfferScope {
     Account = 0,
@@ -3823,6 +3880,14 @@ export interface OfferSubscription {
      */
     isPaidBillingEnabled: boolean;
     /**
+     * Gets the value indicating whether the puchase is canceled.
+     */
+    isPurchaseCanceled: boolean;
+    /**
+     * Gets or sets a value indicating whether this instance is trial or preview.
+     */
+    isTrialOrPreview: boolean;
+    /**
      * Returns true if resource is can be used otherwise returns false. can be used to identify why resource is disabled.
      */
     isUseable: boolean;
@@ -3846,6 +3911,14 @@ export interface OfferSubscription {
      * Returns a Date of UTC kind indicating when the next reset of quantities is going to happen. On this day at UTC 2:00 AM is when the reset will occur.
      */
     resetDate: Date;
+    /**
+     * Gets or sets the start date for this resource. First install date in any state.
+     */
+    startDate: Date;
+    /**
+     * Gets or sets the trial expiry date.
+     */
+    trialExpiryDate: Date;
 }
 /**
  * The Purchasable offer meter.
@@ -4003,6 +4076,10 @@ export interface UsageEvent {
      */
     eventTimestamp: Date;
     /**
+     * Gets or sets the event unique identifier.
+     */
+    eventUniqueId: string;
+    /**
      * Meter Id.
      */
     meterName: string;
@@ -4058,8 +4135,6 @@ export var TypeInfo: {
         enumValues: {
             "free": number;
             "paid": number;
-            "trial": number;
-            "paidWithTrial": number;
         };
     };
     MeterCategory: {
@@ -4093,6 +4168,12 @@ export var TypeInfo: {
     };
     OfferMeter: {
         fields: any;
+    };
+    OfferMeterAssignmentModel: {
+        enumValues: {
+            "explicit": number;
+            "implicit": number;
+        };
     };
     OfferScope: {
         enumValues: {
@@ -4195,7 +4276,7 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
  */
 export class CommerceHttpClient3 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API] Returns resource information like status, committed quantity, included quantity, reset date, etc.
      *
@@ -4243,12 +4324,28 @@ export class CommerceHttpClient3 extends VSS_WebApi.VssHttpClient {
      * [Preview API]
      *
      * @param {Contracts.OfferSubscription} offerSubscription
+     * @param {string} cancelReason
+     * @return IPromise<void>
+     */
+    cancelOfferSubscription(offerSubscription: Contracts.OfferSubscription, cancelReason: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.OfferSubscription} offerSubscription
      * @param {string} offerCode
      * @param {string} tenantId
      * @param {string} objectId
      * @return IPromise<void>
      */
     createOfferSubscription(offerSubscription: Contracts.OfferSubscription, offerCode?: string, tenantId?: string, objectId?: string): IPromise<void>;
+    /**
+     * [Preview API] Creates the trial or preview offer subscription.
+     *
+     * @param {string} offerMeterName - Name of the offer meter.
+     * @param {Contracts.ResourceRenewalGroup} renewalGroup - The renewal group.
+     * @return IPromise<void>
+     */
+    enableTrialOrPreviewOfferSubscription(offerMeterName: string, renewalGroup: Contracts.ResourceRenewalGroup): IPromise<void>;
     /**
      * [Preview API] Get all offer subscriptions for user for valid azure subscriptions. This may be span across multiple accounts
      *
@@ -4395,7 +4492,7 @@ export class CommerceHttpClient3 extends VSS_WebApi.VssHttpClient {
  */
 export class CommerceHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API] Returns resource information like status, committed quantity, included quantity, reset date, etc.
      *
@@ -4443,12 +4540,28 @@ export class CommerceHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * [Preview API]
      *
      * @param {Contracts.OfferSubscription} offerSubscription
+     * @param {string} cancelReason
+     * @return IPromise<void>
+     */
+    cancelOfferSubscription(offerSubscription: Contracts.OfferSubscription, cancelReason: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.OfferSubscription} offerSubscription
      * @param {string} offerCode
      * @param {string} tenantId
      * @param {string} objectId
      * @return IPromise<void>
      */
     createOfferSubscription(offerSubscription: Contracts.OfferSubscription, offerCode?: string, tenantId?: string, objectId?: string): IPromise<void>;
+    /**
+     * [Preview API] Creates the trial or preview offer subscription.
+     *
+     * @param {string} offerMeterName - Name of the offer meter.
+     * @param {Contracts.ResourceRenewalGroup} renewalGroup - The renewal group.
+     * @return IPromise<void>
+     */
+    enableTrialOrPreviewOfferSubscription(offerMeterName: string, renewalGroup: Contracts.ResourceRenewalGroup): IPromise<void>;
     /**
      * [Preview API] Get all offer subscriptions for user for valid azure subscriptions. This may be span across multiple accounts
      *
@@ -4537,7 +4650,7 @@ export class CommerceHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * @param {string} accountId
      * @return IPromise<Contracts.ISubscriptionAccount>
      */
-    getAzureSubscriptionForPurchase(subscriptionId: string, galleryItemId: string, accountId: string): IPromise<Contracts.ISubscriptionAccount>;
+    getAzureSubscriptionForPurchase(subscriptionId: string, galleryItemId: string, accountId?: string): IPromise<Contracts.ISubscriptionAccount>;
     /**
      * [Preview API] Get list of azure subscription where user is admin- co-admin under tenant or valid azure subscriptions for purchase
      *
@@ -4591,14 +4704,14 @@ export class CommerceHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     reportUsage(usageEvent: Contracts.UsageEvent): IPromise<void>;
 }
 export class CommerceHttpClient extends CommerceHttpClient3 {
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
  * @return CommerceHttpClient2_2
  */
-export function getClient(): CommerceHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CommerceHttpClient2_2;
 }
 declare module "VSS/Common/Constants/Platform" {
 /**
@@ -5151,9 +5264,13 @@ export enum ContributionPathType {
 */
 export interface CoreReferencesContext {
     /**
-    * Core javascript bundle
+    * Core 3rd party javascript bundle reference
     */
     coreScriptsBundle: JavascriptFileReference;
+    /**
+    * Core VSS javascript bundle reference for extension frames
+    */
+    extensionCoreReferences: JavascriptFileReference;
     /**
     * Core javascript files referenced on a page
     */
@@ -5321,7 +5438,7 @@ export interface JavascriptFileReference {
     */
     identifier: string;
     /**
-    * Is this a core javascript file that needs to be included on every page
+    * Is this a core javascript file that needs to be included in all child extension frames
     */
     isCoreModule: boolean;
     /**
@@ -5635,7 +5752,11 @@ export interface WebPerformanceTimingEntry {
     */
     duration: any;
     /**
-    * Offset from Server Request Context start time in milliseconds
+    * Additional, optional context to distinguish two timings with different arguments
+    */
+    properties: any;
+    /**
+    * Offset from Server Request Context start time in microseconds
     */
     startTime: any;
 }
@@ -5647,6 +5768,11 @@ export interface WebPerformanceTimingGroup {
     * A list of timing entries
     */
     timings: WebPerformanceTimingEntry[];
+}
+export interface WebPerformanceTimingGroupCIData {
+    count: number;
+    duration: any;
+    entries: WebPerformanceTimingEntry[];
 }
 export var TypeInfo: {
     AccessPointModel: {
@@ -5802,6 +5928,9 @@ export var TypeInfo: {
         fields: any;
     };
     WebPerformanceTimingGroup: {
+        fields: any;
+    };
+    WebPerformanceTimingGroupCIData: {
         fields: any;
     };
 };
@@ -6043,6 +6172,10 @@ export function getDefaultWebContext(): Contracts_Platform.WebContext;
  */
 export function getPageContext(): Contracts_Platform.PageContext;
 /**
+* Get the hub context information from the current page
+*/
+export function getHubsContext(): Contracts_Platform.HubsContext;
+/**
 * Get web access paths for the given service
 *
 * @param serviceInstanceTypeId The id of the service instance type
@@ -6064,6 +6197,27 @@ export function addCssModulePrefixMapping(modulePrefix: string, url: string): vo
 * @returns The url to the themed css file
 */
 export function getCssModuleUrl(modulePrefix: string, cssModulePath: string, theme?: string): string;
+/**
+ * Get the root url for the specified service if the service has contributed to
+ * the page's configuration context
+ *
+ * @param serviceInstanceTypeId The id of the service instance type
+ */
+export function getContributedServiceRootUrl(serviceInstanceTypeId: string): string;
+/**
+ * Is the current window/frame an extension iframe (not the parent frame and has the VSS.SDK loaded)
+ */
+export function isExtensionFrame(): boolean;
+/**
+ * Get the service instace type id of the service that owns the
+ * given script module.
+ *
+ * Returns undefined if the owner is not known.
+ * Returns empty string for TFS-owned scripts on-prem.
+ *
+ * @param module The script module to check (e.g. "VSS/Context")
+ */
+export function getScriptModuleOwner(module: string): string;
 export function isHighContrastMode(): boolean;
 /**
 * Process the contributed configuration from a particular service
@@ -6935,7 +7089,7 @@ export class ContributionsHttpClient extends ContributionsHttpClient3 {
  *
  * @return ContributionsHttpClient2_2
  */
-export function getClient(): ContributionsHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ContributionsHttpClient2_2;
 }
 declare module "VSS/Contributions/Services" {
 import Contributions_Contracts = require("VSS/Contributions/Contracts");
@@ -7968,17 +8122,17 @@ export class ComboO<TOptions extends IComboOptions> extends Controls.Control<TOp
      * @param e
      * @return
      */
-    private _onInputClick(e?);
+    protected _onInputClick(e?: JQueryEventObject): any;
     /**
      * @param e
      * @return
      */
-    private _onInputFocus(e?);
+    protected _onInputFocus(e?: JQueryEventObject): any;
     /**
      * @param e
      * @return
      */
-    private _onInputBlur(e?);
+    protected _onInputBlur(e?: JQueryEventObject): any;
     /**
      * @param e
      * @return
@@ -8348,6 +8502,16 @@ export interface IDialogOptions extends Panels.IAjaxPanelOptions {
      * @defaultValue "false"
      */
     hideCloseButton?: boolean;
+    /**
+     * Min height of the dialog in px or %.
+     * @defaultvalue "auto"
+     */
+    minHeight?: number | string;
+    /**
+     * Min width of the dialog in px or %.
+     * @defaultvalue "auto"
+     */
+    minWidth?: number | string;
 }
 /**
  * @publicapi
@@ -8651,12 +8815,25 @@ export class MessageDialogO<TOptions extends IMessageDialogOptions> extends Dial
      * @param button
      */
     private getButtonOptions(button);
-    static buttons: {
-        ok: IMessageDialogButton;
-        cancel: IMessageDialogButton;
-        yes: IMessageDialogButton;
-        no: IMessageDialogButton;
-    };
+    /**
+    * Common message dialog buttons
+    */
+    static buttons: MessageDialogButtons;
+}
+/**
+* Common message dialog buttons
+*/
+export interface MessageDialogButtons {
+    /** OK button */
+    ok: IMessageDialogButton;
+    /** Cancel button */
+    cancel: IMessageDialogButton;
+    /** Yes button */
+    yes: IMessageDialogButton;
+    /** No button */
+    no: IMessageDialogButton;
+    /** Close button */
+    close: IMessageDialogButton;
 }
 export class MessageDialog extends MessageDialogO<IMessageDialogOptions> {
 }
@@ -9885,6 +10062,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      */
     _rowDropTryActivate(droppingRowInfo: any, e?: any, ui?: any): any;
     _rowIntersect(draggable: any, targetRowInfo: any): any;
+    private _calculateIntersectPosition(draggable);
     initializeDataSource(suppressRedraw?: boolean): void;
     /**
      * Sets the source of the grid using GridSource object.
@@ -10803,33 +10981,19 @@ export interface Hub {
     isSelected: boolean;
 }
 /**
-* Class to manage fetching hub context
+* Obsolete
 */
 export module HubsContextManager {
-    /**
-    * Get the hub context information from the current page
-    */
     function getHubsContext(): HubsContext;
     function getDefaultHubNavigationView(): HubNavigationView;
     function addHub(hub: Hub): void;
     function addHubGroup(hubGroup: HubGroup): void;
     function getSelectedHub(): IPromise<Hub>;
 }
-/**
-* Control that renders the hubs/navigation area at the top of a page
-*/
+/** Obsolete **/
 export class HubNavigationView extends Controls.BaseControl {
     static MAIN_NAVIGATION_HUB_SELECTOR: string;
-    private _$hubgroupSection;
-    private _$hubgroupContainer;
-    private _$hubContainer;
-    private _$hubSection;
-    private _hubGroupsInitialized;
-    private _hubsInitialized;
-    private _selectedHubGroupSet;
     initialize(): void;
-    private _setHubGroupUris(hub?);
-    private _decorate();
     updateHubGroupLink(groupId: string, newUrl: string, clickHandler?: (eventObject: JQueryEventObject) => any): void;
 }
 }
@@ -11187,7 +11351,7 @@ export class MenuItem extends MenuBase<MenuItemOptions> {
      * @param text New text to be displayed
      */
     updateText(text: string): void;
-    getSubMenu(): any;
+    getSubMenu(): Menu<MenuOptions>;
     tryShowSubMenu(options?: any): boolean;
     showSubMenu(options?: any): void;
     hideSubMenu(options?: any): void;
@@ -11317,7 +11481,7 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
      * @return
      */
     getMenuItemOptions(item: any, extraOptions?: any): any;
-    _getFirstMenuItem(): any;
+    _getFirstMenuItem(): MenuItem;
     /**
      * @param item
      * @param ignoreFocus
@@ -11875,6 +12039,8 @@ export interface IPivotViewOptions extends Controls.EnhancementOptions {
     items?: IPivotViewItem[];
     contributionId?: string;
     generateContributionLink?: (contributionId: string) => string;
+    getEnabledState?: (contributionId: string) => boolean;
+    getContributionContext?: () => any;
 }
 export class PivotView extends Controls.Control<IPivotViewOptions> {
     static enhancementTypeName: string;
@@ -11920,8 +12086,12 @@ export class PivotView extends Controls.Control<IPivotViewOptions> {
     getSelectedView(): any;
     /**
      * Set a particular view to be enabled or disabled.
+     *
+     * @param id The view whose state needs an update.
+     * @param isEnabled Weather to enable the view or not
      */
     setViewEnabled(id: any, isEnabled: any): void;
+    private _makeThennable<T>(obj);
     getView(id: any, selectedTabId?: any): any;
     setSelectedView(view: any): void;
     onChanged(view: any): void;
@@ -12452,6 +12622,8 @@ export class AjaxPanelO<TOptions extends IAjaxPanelOptions> extends Controls.Con
 export class AjaxPanel extends AjaxPanelO<IAjaxPanelOptions> {
 }
 }
+declare module "VSS/Controls/PerfBar" {
+}
 declare module "VSS/Controls/PopupContent" {
 import Controls = require("VSS/Controls");
 export class PopupContentControl extends Controls.BaseControl {
@@ -12461,6 +12633,7 @@ export class PopupContentControl extends Controls.BaseControl {
     private _documentEventDelegate;
     initialize(): void;
     setContent(content: any): void;
+    resetContent(): void;
     show(): void;
     hide(): void;
     toggle(): void;
@@ -14784,8 +14957,60 @@ export enum AppSessionTokenError {
     InvalidClientId = 7,
     AuthorizationIsNotSuccessfull = 8,
 }
+export interface Authorization {
+    accessIssued: Date;
+    audience: string;
+    authorizationId: string;
+    identityId: string;
+    isAccessUsed: boolean;
+    isValid: boolean;
+    redirectUri: string;
+    registrationId: string;
+    scopes: string;
+    source: string;
+    validFrom: Date;
+    validTo: Date;
+}
+export interface AuthorizationDecision {
+    authorization: Authorization;
+    authorizationError: AuthorizationError;
+    authorizationGrant: AuthorizationGrant;
+    hasError: boolean;
+    isAuthorized: boolean;
+}
+export interface AuthorizationDescription {
+    clientRegistration: Registration;
+    hasError: boolean;
+    initiationError: InitiationError;
+    scopeDescriptions: AuthorizationScopeDescription[];
+}
+export interface AuthorizationDetails {
+    authorization: Authorization;
+    clientRegistration: Registration;
+    scopeDescriptions: AuthorizationScopeDescription[];
+}
+export enum AuthorizationError {
+    None = 0,
+    ClientIdRequired = 1,
+    InvalidClientId = 2,
+    ResponseTypeRequired = 3,
+    ResponseTypeNotSupported = 4,
+    ScopeRequired = 5,
+    InvalidScope = 6,
+    RedirectUriRequired = 7,
+    InsecureRedirectUri = 8,
+    InvalidRedirectUri = 9,
+    InvalidUserId = 10,
+    InvalidUserType = 11,
+    AccessDenied = 12,
+}
 export interface AuthorizationGrant {
     grantType: GrantType;
+}
+export interface AuthorizationScopeDescription {
+    description: string;
+    market: string;
+    title: string;
 }
 export enum ClientType {
     Confidential = 0,
@@ -14807,6 +15032,18 @@ export enum HostAuthorizationError {
     FailedToAuthorizeHost = 3,
     ClientIdNotFound = 4,
     InvalidClientId = 5,
+}
+export enum InitiationError {
+    None = 0,
+    ClientIdRequired = 1,
+    InvalidClientId = 2,
+    ResponseTypeRequired = 3,
+    ResponseTypeNotSupported = 4,
+    ScopeRequired = 5,
+    InvalidScope = 6,
+    RedirectUriRequired = 7,
+    InsecureRedirectUri = 8,
+    InvalidRedirectUri = 9,
 }
 export interface RefreshTokenGrant extends AuthorizationGrant {
     jwt: VSS_Common_Contracts.JsonWebToken;
@@ -14834,6 +15071,15 @@ export interface Registration {
     scopes: string;
     secret: string;
     secretVersionId: string;
+}
+export enum ResponseType {
+    None = 0,
+    Assertion = 1,
+    IdToken = 2,
+    TenantPicker = 3,
+    SignoutToken = 4,
+    AppToken = 5,
+    Code = 6,
 }
 export enum SessionTokenError {
     None = 0,
@@ -14915,7 +15161,39 @@ export var TypeInfo: {
             "authorizationIsNotSuccessfull": number;
         };
     };
+    Authorization: {
+        fields: any;
+    };
+    AuthorizationDecision: {
+        fields: any;
+    };
+    AuthorizationDescription: {
+        fields: any;
+    };
+    AuthorizationDetails: {
+        fields: any;
+    };
+    AuthorizationError: {
+        enumValues: {
+            "none": number;
+            "clientIdRequired": number;
+            "invalidClientId": number;
+            "responseTypeRequired": number;
+            "responseTypeNotSupported": number;
+            "scopeRequired": number;
+            "invalidScope": number;
+            "redirectUriRequired": number;
+            "insecureRedirectUri": number;
+            "invalidRedirectUri": number;
+            "invalidUserId": number;
+            "invalidUserType": number;
+            "accessDenied": number;
+        };
+    };
     AuthorizationGrant: {
+        fields: any;
+    };
+    AuthorizationScopeDescription: {
         fields: any;
     };
     ClientType: {
@@ -14945,11 +15223,36 @@ export var TypeInfo: {
             "invalidClientId": number;
         };
     };
+    InitiationError: {
+        enumValues: {
+            "none": number;
+            "clientIdRequired": number;
+            "invalidClientId": number;
+            "responseTypeRequired": number;
+            "responseTypeNotSupported": number;
+            "scopeRequired": number;
+            "invalidScope": number;
+            "redirectUriRequired": number;
+            "insecureRedirectUri": number;
+            "invalidRedirectUri": number;
+        };
+    };
     RefreshTokenGrant: {
         fields: any;
     };
     Registration: {
         fields: any;
+    };
+    ResponseType: {
+        enumValues: {
+            "none": number;
+            "assertion": number;
+            "idToken": number;
+            "tenantPicker": number;
+            "signoutToken": number;
+            "appToken": number;
+            "code": number;
+        };
     };
     SessionTokenError: {
         enumValues: {
@@ -15018,6 +15321,203 @@ export var TypeInfo: {
         fields: any;
     };
 };
+}
+declare module "VSS/DelegatedAuthorization/RestClient" {
+import Contracts = require("VSS/DelegatedAuthorization/Contracts");
+import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
+import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
+export class DelegatedAuthorizationHttpClient3 extends VSS_WebApi.VssHttpClient {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {string} redirectUri
+     * @param {string} userId
+     * @param {Contracts.ResponseType} responseType
+     * @param {string} clientId
+     * @param {string} scopes
+     * @return IPromise<Contracts.AuthorizationDecision>
+     */
+    authorize(redirectUri: string, userId: string, responseType: Contracts.ResponseType, clientId: string, scopes: string): IPromise<Contracts.AuthorizationDecision>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} userId
+     * @return IPromise<Contracts.AuthorizationDetails[]>
+     */
+    getAuthorizations(userId: string): IPromise<Contracts.AuthorizationDetails[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} redirectUri
+     * @param {string} userId
+     * @param {Contracts.ResponseType} responseType
+     * @param {string} clientId
+     * @param {string} scopes
+     * @return IPromise<Contracts.AuthorizationDescription>
+     */
+    initiateAuthorization(redirectUri: string, userId: string, responseType: Contracts.ResponseType, clientId: string, scopes: string): IPromise<Contracts.AuthorizationDescription>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} userId
+     * @param {string} authorizationId
+     * @return IPromise<void>
+     */
+    revokeAuthorization(userId: string, authorizationId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} clientId
+     * @return IPromise<void>
+     */
+    host(clientId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} clientId
+     * @param {string} hostId
+     * @return IPromise<void>
+     */
+    revoke(clientId: string, hostId?: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Registration} registration
+     * @param {boolean} includeSecret
+     * @return IPromise<Contracts.Registration>
+     */
+    create(registration: Contracts.Registration, includeSecret?: boolean): IPromise<Contracts.Registration>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} registrationId
+     * @return IPromise<void>
+     */
+    delete(registrationId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} registrationId
+     * @param {boolean} includeSecret
+     * @return IPromise<Contracts.Registration>
+     */
+    get(registrationId: string, includeSecret?: boolean): IPromise<Contracts.Registration>;
+    /**
+     * [Preview API]
+     *
+     * @return IPromise<Contracts.Registration[]>
+     */
+    list(): IPromise<Contracts.Registration[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Registration} registration
+     * @param {boolean} includeSecret
+     * @return IPromise<Contracts.Registration>
+     */
+    update(registration: Contracts.Registration, includeSecret?: boolean): IPromise<Contracts.Registration>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} registrationId
+     * @return IPromise<VSS_Common_Contracts.JsonWebToken>
+     */
+    getSecret(registrationId: string): IPromise<VSS_Common_Contracts.JsonWebToken>;
+}
+export class DelegatedAuthorizationHttpClient2_2 extends VSS_WebApi.VssHttpClient {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * @param {string} redirectUri
+     * @param {string} userId
+     * @param {Contracts.ResponseType} responseType
+     * @param {string} clientId
+     * @param {string} scopes
+     * @return IPromise<Contracts.AuthorizationDecision>
+     */
+    authorize(redirectUri: string, userId: string, responseType: Contracts.ResponseType, clientId: string, scopes: string): IPromise<Contracts.AuthorizationDecision>;
+    /**
+     * @param {string} userId
+     * @return IPromise<Contracts.AuthorizationDetails[]>
+     */
+    getAuthorizations(userId: string): IPromise<Contracts.AuthorizationDetails[]>;
+    /**
+     * @param {string} redirectUri
+     * @param {string} userId
+     * @param {Contracts.ResponseType} responseType
+     * @param {string} clientId
+     * @param {string} scopes
+     * @return IPromise<Contracts.AuthorizationDescription>
+     */
+    initiateAuthorization(redirectUri: string, userId: string, responseType: Contracts.ResponseType, clientId: string, scopes: string): IPromise<Contracts.AuthorizationDescription>;
+    /**
+     * @param {string} userId
+     * @param {string} authorizationId
+     * @return IPromise<void>
+     */
+    revokeAuthorization(userId: string, authorizationId: string): IPromise<void>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} clientId
+     * @return IPromise<void>
+     */
+    host(clientId: string): IPromise<void>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} clientId
+     * @param {string} hostId
+     * @return IPromise<void>
+     */
+    revoke(clientId: string, hostId?: string): IPromise<void>;
+    /**
+     * @param {Contracts.Registration} registration
+     * @param {boolean} includeSecret
+     * @return IPromise<Contracts.Registration>
+     */
+    create(registration: Contracts.Registration, includeSecret?: boolean): IPromise<Contracts.Registration>;
+    /**
+     * @param {string} registrationId
+     * @return IPromise<void>
+     */
+    delete(registrationId: string): IPromise<void>;
+    /**
+     * @param {string} registrationId
+     * @param {boolean} includeSecret
+     * @return IPromise<Contracts.Registration>
+     */
+    get(registrationId: string, includeSecret?: boolean): IPromise<Contracts.Registration>;
+    /**
+     * @return IPromise<Contracts.Registration[]>
+     */
+    list(): IPromise<Contracts.Registration[]>;
+    /**
+     * @param {Contracts.Registration} registration
+     * @param {boolean} includeSecret
+     * @return IPromise<Contracts.Registration>
+     */
+    update(registration: Contracts.Registration, includeSecret?: boolean): IPromise<Contracts.Registration>;
+    /**
+     * @param {string} registrationId
+     * @return IPromise<VSS_Common_Contracts.JsonWebToken>
+     */
+    getSecret(registrationId: string): IPromise<VSS_Common_Contracts.JsonWebToken>;
+}
+export class DelegatedAuthorizationHttpClient extends DelegatedAuthorizationHttpClient3 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * Gets an http client targeting the latest released version of the APIs.
+ *
+ * @return DelegatedAuthorizationHttpClient2_2
+ */
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): DelegatedAuthorizationHttpClient2_2;
 }
 declare module "VSS/Diag" {
 export var perfCollector: PerfTracePointCollector;
@@ -16835,7 +17335,7 @@ export class ExtensionManagementHttpClient extends ExtensionManagementHttpClient
  *
  * @return ExtensionManagementHttpClient2_2
  */
-export function getClient(): ExtensionManagementHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ExtensionManagementHttpClient2_2;
 }
 declare module "VSS/FeatureAvailability/Contracts" {
 export interface FeatureFlag {
@@ -16904,9 +17404,10 @@ export class FeatureAvailabilityHttpClient3 extends VSS_WebApi.VssHttpClient {
      * @param {Contracts.FeatureFlagPatch} state - State that should be set
      * @param {string} name - The name of the feature to change
      * @param {string} userEmail
+     * @param {boolean} checkFeatureExists - Checks if the feature exists before setting the state
      * @return IPromise<Contracts.FeatureFlag>
      */
-    updateFeatureFlag(state: Contracts.FeatureFlagPatch, name: string, userEmail?: string): IPromise<Contracts.FeatureFlag>;
+    updateFeatureFlag(state: Contracts.FeatureFlagPatch, name: string, userEmail?: string, checkFeatureExists?: boolean): IPromise<Contracts.FeatureFlag>;
 }
 /**
  * @exemptedapi
@@ -16949,9 +17450,10 @@ export class FeatureAvailabilityHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * @param {Contracts.FeatureFlagPatch} state - State that should be set
      * @param {string} name - The name of the feature to change
      * @param {string} userEmail
+     * @param {boolean} checkFeatureExists - Checks if the feature exists before setting the state
      * @return IPromise<Contracts.FeatureFlag>
      */
-    updateFeatureFlag(state: Contracts.FeatureFlagPatch, name: string, userEmail?: string): IPromise<Contracts.FeatureFlag>;
+    updateFeatureFlag(state: Contracts.FeatureFlagPatch, name: string, userEmail?: string, checkFeatureExists?: boolean): IPromise<Contracts.FeatureFlag>;
 }
 export class FeatureAvailabilityHttpClient extends FeatureAvailabilityHttpClient3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -16961,7 +17463,7 @@ export class FeatureAvailabilityHttpClient extends FeatureAvailabilityHttpClient
  *
  * @return FeatureAvailabilityHttpClient2_2
  */
-export function getClient(): FeatureAvailabilityHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): FeatureAvailabilityHttpClient2_2;
 }
 declare module "VSS/FeatureAvailability/Services" {
 import Service = require("VSS/Service");
@@ -17325,7 +17827,7 @@ export class FileContainerHttpClient extends FileContainerHttpClient3 {
  *
  * @return FileContainerHttpClient2_2
  */
-export function getClient(): FileContainerHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): FileContainerHttpClient2_2;
 }
 declare module "VSS/FileContainer/Services" {
 import FileContainer_Contracts = require("VSS/FileContainer/Contracts");
@@ -18567,6 +19069,17 @@ export class GalleryHttpClient3 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} version
+     * @param {string} assetType
+     * @param {string} accountToken
+     * @return IPromise<ArrayBuffer>
+     */
+    getAssetAuthenticated(publisherName: string, extensionName: string, version: string, assetType: string, accountToken?: string): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
      * @param {string} languages
      * @return IPromise<string[]>
      */
@@ -19028,7 +19541,7 @@ export class GalleryHttpClient extends GalleryHttpClient3 {
  *
  * @return GalleryHttpClient2_2
  */
-export function getClient(): GalleryHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): GalleryHttpClient2_2;
 }
 declare module "VSS/Identities/Contracts" {
 /**
@@ -19413,7 +19926,7 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
  * @exemptedapi
  */
 export class IdentityMruHttpClient3 extends VSS_WebApi.VssHttpClient {
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
      *
@@ -19445,7 +19958,7 @@ export class IdentityMruHttpClient3 extends VSS_WebApi.VssHttpClient {
  * @exemptedapi
  */
 export class IdentityMruHttpClient2_2 extends VSS_WebApi.VssHttpClient {
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
      *
@@ -19474,14 +19987,14 @@ export class IdentityMruHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     updateMruIdentities(updateData: Contracts.MruIdentitiesUpdateData, identityId: string, containerId: string): IPromise<void>;
 }
 export class IdentityMruHttpClient extends IdentityMruHttpClient3 {
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
  * @return IdentityMruHttpClient2_2
  */
-export function getClient(): IdentityMruHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): IdentityMruHttpClient2_2;
 }
 declare module "VSS/Identities/Picker/Cache" {
 export interface IIdentityPickerCacheException {
@@ -20091,6 +20604,8 @@ export class IdentityPickerSearchControl extends Controls.Control<IIdentityPicke
     private _onInputClick(e?);
     private _onMruTriangleMousedown(e);
     private _onMruTriangleClick(e);
+    private _isDropdownHovered();
+    private _isContactCardHovered();
     private _onInputBlur(e?);
     private _onInputKeyDown(e?);
     private _fireInputValidityEvent();
@@ -20109,6 +20624,7 @@ export class IdentityPickerSearchControl extends Controls.Control<IIdentityPicke
     private _clearWatermark();
     private _showWatermark();
     private _isControlInFocus();
+    private _createResolvedItem(title, dataAttribute);
     private _resolveItem(item, clearInput?, prefix?, resolveByTab?);
     private _getItemNameContainerMaxWidth(otherElementsInItemSpan);
     private _getSearchPrefix(input);
@@ -20990,7 +21506,7 @@ export class IdentitiesHttpClient extends IdentitiesHttpClient3 {
  *
  * @return IdentitiesHttpClient2_2
  */
-export function getClient(): IdentitiesHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): IdentitiesHttpClient2_2;
 }
 declare module "VSS/Licensing/Contracts" {
 export enum AccountLicenseType {
@@ -21763,7 +22279,7 @@ export class OperationsHttpClient extends OperationsHttpClient3 {
  *
  * @return OperationsHttpClient2_2
  */
-export function getClient(): OperationsHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OperationsHttpClient2_2;
 }
 declare module "VSS/Organization/CollectionRestClient" {
 import VSS_Organization_Contracts = require("VSS/Organization/Contracts");
@@ -21836,7 +22352,7 @@ export class CollectionHttpClient extends CollectionHttpClient3 {
  *
  * @return CollectionHttpClient2_2
  */
-export function getClient(): CollectionHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CollectionHttpClient2_2;
 }
 declare module "VSS/Organization/Contracts" {
 export interface Collection {
@@ -22023,7 +22539,7 @@ export class OrganizationHttpClient extends OrganizationHttpClient3 {
  *
  * @return OrganizationHttpClient2_2
  */
-export function getClient(): OrganizationHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OrganizationHttpClient2_2;
 }
 declare module "VSS/Performance" {
 import Telemetry = require("VSS/Telemetry/Services");
@@ -22065,16 +22581,33 @@ export interface IScenarioManager {
      */
     startScenarioFromNavigation(featureArea: string, name: string, isPageInteractive?: boolean): IScenarioDescriptor;
     /**
+     * Record a page load scenario.
+     * @param area Feature area name for CI event.
+     * @param name Name of scenario.
+     * @param data Optional data to be recorded with scenario
+     */
+    recordPageLoadScenario(featureArea: string, name: string, data?: any): any;
+    /**
      * Get active scenarios with given area/name
      * @param area Feature area of scenario.
      * @param name Name of scenario.
      */
     getScenarios(featureArea: string, name: string): IScenarioDescriptor[];
     /**
+     * Get all completed scenarios
+     */
+    getAllCompletedScenarios(): IScenarioDescriptor[];
+    /**
      * Insert split timing for all currently active scenarios
      * @param splitName Name of split timing
      */
     split(splitName: string): void;
+    /**
+     * Add an event listener for scenario-complete events
+     *
+     * @param callback Method invoked when a perf scenario has been marked as completed
+     */
+    addScenarioCompletedListener(callback: IPerfScenarioEventCallback): void;
 }
 /** Describes split timing within scenarios */
 export interface ISplitTiming {
@@ -22130,13 +22663,72 @@ export interface IScenarioDescriptor {
     /** Returns telemetry data for scenario */
     getTelemetry(): Telemetry.TelemetryEventData;
 }
+export interface IPerfScenarioEventCallback {
+    (scenario: IScenarioDescriptor): void;
+}
+export interface IResourceTypeStats {
+    total: number;
+    cached: number;
+    duration: number;
+}
+export interface IBundleLoadStats {
+    innerLoad: number;
+    innerStartTime: number;
+    outerLoad: number;
+    outerStartTime: number;
+    bundleName: string;
+}
+export interface IResourceStats {
+    scripts: IResourceTypeStats;
+    styles: IResourceTypeStats;
+    ajax: IResourceTypeStats;
+    other: IResourceTypeStats;
+    all: IResourceTypeStats;
+    bundleLoads: IBundleLoadStats[];
+    scriptsTotalSize: number;
+    cssTotalSize: number;
+    requireStartTime: number;
+}
+/**
+ * Get the performance timing entries with the specified name
+ *
+ * @param name The name of the timing entries to get
+ */
+export function getResourceTimingEntries(): PerformanceResourceTiming[];
+/**
+ * Get the performance timing entries with the specified name
+ *
+ * @param name The name of the timing entries to get
+ */
+export function getTimingEntriesByName(name: string): PerformanceEntry[];
+/**
+ * Get statistics about the resources currently loaded on the page
+ */
+export function getResourceStats(): IResourceStats;
+/** Map native PerformanceEntry objects for serialization */
+export interface IMappedPerformanceEntry {
+    name: string;
+    startTime: number;
+    duration: number;
+}
+export interface INavigationEvent {
+    name: string;
+    startEvent: string;
+    endEvent: string;
+    perfEntry?: IMappedPerformanceEntry;
+    isAggregate?: boolean;
+}
+/** Return performance events to add to each scenario from the performance API. Note: Will add measurements if not already added */
+export function getDefaultNavigationEvents(scenario?: IScenarioDescriptor): INavigationEvent[];
 export function getTimestamp(): number;
 /**
  * Returns navigation start timestamp, or 0 if browser doesn't support it
  */
 export function getNavigationStartTimestamp(): number;
+/**
+ * Returns timing information about the data providers resolved as part of server-side rendering of this page.
+ */
 export function getJsonIslandDataProviderTiming(): IDictionaryStringTo<number>;
-export function getJsonIslandServerTiming(): IDictionaryStringTo<WebPerformanceTimingGroup[]>;
 }
 declare module "VSS/Profile/Contracts" {
 export interface AttributeDescriptor {
@@ -22619,9 +23211,10 @@ export class ProfileHttpClient3 extends VSS_WebApi.VssHttpClient {
      * @param {boolean} withAttributes
      * @param {string} partition
      * @param {string} coreAttributes
+     * @param {boolean} forceRefresh
      * @return IPromise<Contracts.Profile>
      */
-    getProfile(id: string, details?: boolean, withAttributes?: boolean, partition?: string, coreAttributes?: string): IPromise<Contracts.Profile>;
+    getProfile(id: string, details?: boolean, withAttributes?: boolean, partition?: string, coreAttributes?: string, forceRefresh?: boolean): IPromise<Contracts.Profile>;
     /**
      * [Preview API] Update profile
      *
@@ -22713,9 +23306,10 @@ export class ProfileHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * @param {boolean} withAttributes
      * @param {string} partition
      * @param {string} coreAttributes
+     * @param {boolean} forceRefresh
      * @return IPromise<Contracts.Profile>
      */
-    getProfile(id: string, details?: boolean, withAttributes?: boolean, partition?: string, coreAttributes?: string): IPromise<Contracts.Profile>;
+    getProfile(id: string, details?: boolean, withAttributes?: boolean, partition?: string, coreAttributes?: string, forceRefresh?: boolean): IPromise<Contracts.Profile>;
     /**
      * Update profile
      *
@@ -22747,7 +23341,7 @@ export class ProfileHttpClient extends ProfileHttpClient3 {
  *
  * @return ProfileHttpClient2_2
  */
-export function getClient(): ProfileHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ProfileHttpClient2_2;
 }
 declare module "VSS/SDK/Services/Dialogs" {
 import Contracts_Platform = require("VSS/Common/Contracts/Platform");
@@ -23491,7 +24085,7 @@ export class SecurityRolesHttpClient extends SecurityRolesHttpClient3 {
  *
  * @return SecurityRolesHttpClient2_2
  */
-export function getClient(): SecurityRolesHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): SecurityRolesHttpClient2_2;
 }
 declare module "VSS/Security/Contracts" {
 import VSS_Identities_Contracts = require("VSS/Identities/Contracts");
@@ -24001,7 +24595,7 @@ export class SecurityHttpClient extends SecurityHttpClient3 {
  *
  * @return SecurityHttpClient2_2
  */
-export function getClient(): SecurityHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): SecurityHttpClient2_2;
 }
 declare module "VSS/Serialization" {
 /**
@@ -24345,7 +24939,7 @@ export class CustomerIntelligenceHttpClient extends CustomerIntelligenceHttpClie
  *
  * @return CustomerIntelligenceHttpClient2_2
  */
-export function getClient(): CustomerIntelligenceHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CustomerIntelligenceHttpClient2_2;
 }
 declare module "VSS/Telemetry/Services" {
 /**
@@ -24381,13 +24975,17 @@ export class TelemetryEventData {
  */
 export function getPublishedEvents(): TelemetryEventData[];
 /**
- * Publish event data to the CustomerIntelligence service and App insights.
+ * Publish event data to the CustomerIntelligence service and App Insights.
  * (events are queued and sent in delayed batches unless immediate = true is supplied)
  *
  * @param eventData {TelemetryEventData} telemetry event to publish
  * @param immediate {boolean} If true, make ajax calls to publish the event immediately. Otherwise queue the event and send in delayed batches.
  */
 export function publishEvent(eventData: TelemetryEventData, immediate?: boolean): void;
+/**
+ * Flush queued event data to be sent to CustomerIntelligence service and App Insights
+ */
+export function flush(): IPromise<void>;
 }
 declare module "VSS/Utils/Array" {
 /**
@@ -24541,12 +25139,13 @@ export function clear<T>(array: T[]): void;
 export function intersectUniqueSorted<T>(sortedUniqueArray1: T[], sortedUniqueArray2: T[], comparer?: IComparer<T>): T[];
 }
 declare module "VSS/Utils/Clipboard" {
+import Dialogs = require("VSS/Controls/Dialogs");
 /**
  * Copies the specified data to the clipboard in the TEXT format using a progressively degrading experience.
  *
  * @param data The data to copy.
  */
-export function copyToClipboard(data: string, options?: any): void;
+export function copyToClipboard(data: string, options?: IClipboardOptions): void;
 /**
  * Gets a boolean value indicating whether the current browser supports native clipboard access.
  */
@@ -24555,6 +25154,23 @@ export function supportsNativeCopy(): boolean;
  * Gets a boolean value indicating whether the current browser supports native clipboard access for HTML content.
  */
 export function supportsNativeHtmlCopy(): boolean;
+/**
+ * Options for Copy To Clipboard feature
+ */
+export interface IClipboardOptions {
+    /**
+     * Boolean specifying whether the data should be copied as plain text or html
+     */
+    copyAsHtml?: boolean;
+    /**
+     * Option for always using copy to clipboard dialog or browser native feature (if present)
+     */
+    showCopyDialog?: boolean;
+    /**
+     * Options passed to copy dialog if needed
+     */
+    copyDialogOptions?: Dialogs.CopyContentDialogOptions;
+}
 }
 declare module "VSS/Utils/Core" {
 /**
@@ -25884,6 +26500,13 @@ export class Uri {
     */
     addQueryParam(name: string, value: string, replaceExisting?: boolean): void;
 }
+/**
+ * Determines whether the specified URL is absolute or not.
+ *
+ * @param url Url to check.
+ * @returns {boolean}
+ */
+export function isAbsoluteUrl(url: string): boolean;
 }
 declare module "VSS/VSS" {
 export var uiCulture: string;
@@ -26550,6 +27173,10 @@ export interface IVssHttpClientOptions {
      * If true, the progress indicator will be shown while the request is executing. Defaults to true.
      */
     showProgressIndicator?: boolean;
+    /**
+    * Request timeout in milliseconds. The default is 5 minutes.
+    */
+    timeout?: number;
 }
 /**
 * Base class that should be used (derived from) to make requests to VSS REST apis

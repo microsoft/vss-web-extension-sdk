@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v97.20160401.0801
+// Type definitions for Microsoft Visual Studio Services v98.20160415.2003
 // Project: http://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -82,6 +82,18 @@ export interface Build {
      * Indicates whether the build has been deleted.
      */
     deleted: boolean;
+    /**
+     * Process or person that deleted the build
+     */
+    deletedBy: VSS_Common_Contracts.IdentityRef;
+    /**
+     * Date the build was deleted
+     */
+    deletedDate: Date;
+    /**
+     * Description of how the build was deleted
+     */
+    deletedReason: string;
     /**
      * Demands
      */
@@ -1021,6 +1033,7 @@ export interface DeploymentTest extends Deployment {
 export interface GatedCheckInTrigger extends BuildTrigger {
     pathFilters: string[];
     runContinuousIntegration: boolean;
+    useWorkspaceMappings: boolean;
 }
 export enum GetOption {
     /**
@@ -1980,7 +1993,7 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
  */
 export class BuildHttpClient3 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API] Associates an artifact with a build
      *
@@ -2202,9 +2215,20 @@ export class BuildHttpClient3 extends VSS_WebApi.VssHttpClient {
      * @param {number} logId
      * @param {number} startLine
      * @param {number} endLine
-     * @return IPromise<ArrayBuffer>
+     * @return IPromise<string>
      */
-    getBuildLog(project: string, buildId: number, logId: number, startLine?: number, endLine?: number): IPromise<ArrayBuffer>;
+    getBuildLog(project: string, buildId: number, logId: number, startLine?: number, endLine?: number): IPromise<string>;
+    /**
+     * [Preview API] Gets a log
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId
+     * @param {number} logId
+     * @param {number} startLine
+     * @param {number} endLine
+     * @return IPromise<string[]>
+     */
+    getBuildLogLines(project: string, buildId: number, logId: number, startLine?: number, endLine?: number): IPromise<string[]>;
     /**
      * [Preview API] Gets logs for a build
      *
@@ -2427,7 +2451,7 @@ export class BuildHttpClient3 extends VSS_WebApi.VssHttpClient {
 }
 export class BuildHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * Associates an artifact with a build
      *
@@ -2884,14 +2908,14 @@ export class BuildHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     getWorkItemsBetweenBuilds(project: string, fromBuildId: number, toBuildId: number, top?: number): IPromise<VSS_Common_Contracts.ResourceRef[]>;
 }
 export class BuildHttpClient extends BuildHttpClient3 {
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
  * @return BuildHttpClient2_2
  */
-export function getClient(): BuildHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): BuildHttpClient2_2;
 }
 declare module "TFS/Core/Contracts" {
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
@@ -3336,7 +3360,7 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
  */
 export class CoreHttpClient3 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
      *
@@ -3529,7 +3553,7 @@ export class CoreHttpClient3 extends VSS_WebApi.VssHttpClient {
 }
 export class CoreHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @exemptedapi
      * [Preview API]
@@ -3724,14 +3748,14 @@ export class CoreHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     updateTeam(teamData: Contracts.WebApiTeam, projectId: string, teamId: string): IPromise<Contracts.WebApiTeam>;
 }
 export class CoreHttpClient extends CoreHttpClient3 {
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
  * @return CoreHttpClient2_2
  */
-export function getClient(): CoreHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CoreHttpClient2_2;
 }
 declare module "TFS/DistributedTask/Contracts" {
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
@@ -4573,7 +4597,7 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
  * @exemptedapi
  */
 export class TaskAgentHttpClient3 extends VSS_WebApi.VssHttpClient {
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
      *
@@ -4998,7 +5022,7 @@ export class TaskAgentHttpClient3 extends VSS_WebApi.VssHttpClient {
     }, poolId: number, agentId: number): IPromise<Contracts.TaskAgent>;
 }
 export class TaskAgentHttpClient2_2 extends VSS_WebApi.VssHttpClient {
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @param {Contracts.TaskAgent} agent
      * @param {number} poolId
@@ -5378,14 +5402,14 @@ export class TaskAgentHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     }, poolId: number, agentId: number): IPromise<Contracts.TaskAgent>;
 }
 export class TaskAgentHttpClient extends TaskAgentHttpClient3 {
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
  * @return TaskAgentHttpClient2_2
  */
-export function getClient(): TaskAgentHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TaskAgentHttpClient2_2;
 }
 declare module "TFS/DistributedTask/TaskRestClient" {
 import TFS_DistributedTask_Contracts = require("TFS/DistributedTask/Contracts");
@@ -5395,7 +5419,7 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
  * @exemptedapi
  */
 export class TaskHttpClient3 extends VSS_WebApi.VssHttpClient {
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
      *
@@ -5586,7 +5610,7 @@ export class TaskHttpClient3 extends VSS_WebApi.VssHttpClient {
     getTimelines(scopeIdentifier: string, hubName: string, planId: string): IPromise<TFS_DistributedTask_Contracts.Timeline[]>;
 }
 export class TaskHttpClient2_2 extends VSS_WebApi.VssHttpClient {
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @exemptedapi
      * [Preview API]
@@ -5758,14 +5782,14 @@ export class TaskHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     getTimelines(scopeIdentifier: string, hubName: string, planId: string): IPromise<TFS_DistributedTask_Contracts.Timeline[]>;
 }
 export class TaskHttpClient extends TaskHttpClient3 {
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
  * @return TaskHttpClient2_2
  */
-export function getClient(): TaskHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TaskHttpClient2_2;
 }
 declare module "TFS/TestManagement/Contracts" {
 import TFS_Core_Contracts = require("TFS/Core/Contracts");
@@ -6176,9 +6200,7 @@ export interface ResultsFilter {
     automatedTestName: string;
     maxCompleteDate: Date;
     resultsCount: number;
-    testResultId: number;
     testResultsContext: TestResultsContext;
-    testRunId: number;
     trendDays: number;
 }
 export interface ResultUpdateRequestModel {
@@ -6594,8 +6616,8 @@ export interface TestPlan {
     url: string;
 }
 export interface TestPlanCloneRequest {
-    cloneOptions: CloneOptions;
     destinationTestPlan: TestPlan;
+    options: CloneOptions;
     suiteIds: number[];
 }
 export interface TestPlansWithSelection {
@@ -7370,6 +7392,34 @@ export class TestHttpClient3 extends VSS_WebApi.VssHttpClient {
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
+     * @param {number} cloneOperationId
+     * @param {boolean} includeDetails
+     * @return IPromise<Contracts.CloneOperationInformation>
+     */
+    getCloneInformation(project: string, cloneOperationId: number, includeDetails?: boolean): IPromise<Contracts.CloneOperationInformation>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.TestPlanCloneRequest} cloneRequestBody
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @return IPromise<Contracts.CloneOperationInformation>
+     */
+    cloneTestPlan(cloneRequestBody: Contracts.TestPlanCloneRequest, project: string, planId: number): IPromise<Contracts.CloneOperationInformation>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.TestSuiteCloneRequest} cloneRequestBody
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {number} sourceSuiteId
+     * @return IPromise<Contracts.CloneOperationInformation>
+     */
+    cloneTestSuite(cloneRequestBody: Contracts.TestSuiteCloneRequest, project: string, planId: number, sourceSuiteId: number): IPromise<Contracts.CloneOperationInformation>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
      * @param {number} buildId
      * @param {number} flags
      * @return IPromise<Contracts.BuildCoverage[]>
@@ -7504,15 +7554,6 @@ export class TestHttpClient3 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
-     * @param {string} project - Project ID or project name
-     * @param {number} operationId
-     * @param {boolean} includeDetails
-     * @return IPromise<Contracts.CloneOperationInformation>
-     */
-    getPlanCloneInformation(project: string, operationId: number, includeDetails?: boolean): IPromise<Contracts.CloneOperationInformation>;
-    /**
-     * [Preview API]
-     *
      * @param {Contracts.PlanUpdateModel} testPlan
      * @param {string} project - Project ID or project name
      * @return IPromise<Contracts.TestPlan>
@@ -7555,15 +7596,6 @@ export class TestHttpClient3 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.TestPlan>
      */
     updateTestPlan(planUpdateModel: Contracts.PlanUpdateModel, project: string, planId: number): IPromise<Contracts.TestPlan>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.TestPlanCloneRequest} cloneRequestBody
-     * @param {string} project - Project ID or project name
-     * @param {number} sourcePlanId
-     * @return IPromise<Contracts.CloneOperationInformation>
-     */
-    cloneTestPlan(cloneRequestBody: Contracts.TestPlanCloneRequest, project: string, sourcePlanId: number): IPromise<Contracts.CloneOperationInformation>;
     /**
      * [Preview API]
      *
@@ -7834,15 +7866,6 @@ export class TestHttpClient3 extends VSS_WebApi.VssHttpClient {
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
-     * @param {number} operationId
-     * @param {boolean} includeDetails
-     * @return IPromise<Contracts.CloneOperationInformation>
-     */
-    getSuiteCloneInformation(project: string, operationId: number, includeDetails?: boolean): IPromise<Contracts.CloneOperationInformation>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
      * @param {number} planId
      * @param {number} suiteId
      * @param {string} testCaseIds
@@ -7929,16 +7952,6 @@ export class TestHttpClient3 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.TestSuite>
      */
     updateTestSuite(suiteUpdateModel: Contracts.SuiteUpdateModel, project: string, planId: number, suiteId: number): IPromise<Contracts.TestSuite>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.TestSuiteCloneRequest} cloneRequestBody
-     * @param {string} project - Project ID or project name
-     * @param {number} sourceSuiteId
-     * @param {number} planId
-     * @return IPromise<Contracts.CloneOperationInformation>
-     */
-    cloneTestSuite(cloneRequestBody: Contracts.TestSuiteCloneRequest, project: string, sourceSuiteId: number, planId: number): IPromise<Contracts.CloneOperationInformation>;
     /**
      * [Preview API]
      *
@@ -8116,6 +8129,37 @@ export class TestHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
+     * @param {number} cloneOperationId
+     * @param {boolean} includeDetails
+     * @return IPromise<Contracts.CloneOperationInformation>
+     */
+    getCloneInformation(project: string, cloneOperationId: number, includeDetails?: boolean): IPromise<Contracts.CloneOperationInformation>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.TestPlanCloneRequest} cloneRequestBody
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @return IPromise<Contracts.CloneOperationInformation>
+     */
+    cloneTestPlan(cloneRequestBody: Contracts.TestPlanCloneRequest, project: string, planId: number): IPromise<Contracts.CloneOperationInformation>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.TestSuiteCloneRequest} cloneRequestBody
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {number} sourceSuiteId
+     * @return IPromise<Contracts.CloneOperationInformation>
+     */
+    cloneTestSuite(cloneRequestBody: Contracts.TestSuiteCloneRequest, project: string, planId: number, sourceSuiteId: number): IPromise<Contracts.CloneOperationInformation>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
      * @param {number} buildId
      * @param {number} flags
      * @return IPromise<Contracts.BuildCoverage[]>
@@ -8287,26 +8331,6 @@ export class TestHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.TestPlan>
      */
     updateTestPlan(planUpdateModel: Contracts.PlanUpdateModel, project: string, planId: number): IPromise<Contracts.TestPlan>;
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} operationId
-     * @param {boolean} includeDetails
-     * @return IPromise<Contracts.CloneOperationInformation>
-     */
-    getPlanCloneInformation(project: string, operationId: number, includeDetails?: boolean): IPromise<Contracts.CloneOperationInformation>;
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @param {Contracts.TestPlanCloneRequest} cloneRequestBody
-     * @param {string} project - Project ID or project name
-     * @param {number} sourcePlanId
-     * @return IPromise<Contracts.CloneOperationInformation>
-     */
-    cloneTestPlan(cloneRequestBody: Contracts.TestPlanCloneRequest, project: string, sourcePlanId: number): IPromise<Contracts.CloneOperationInformation>;
     /**
      * @param {string} project - Project ID or project name
      * @param {number} planId
@@ -8596,27 +8620,6 @@ export class TestHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     getSuitesByTestCaseId(testCaseId: number): IPromise<Contracts.TestSuite[]>;
     /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} operationId
-     * @param {boolean} includeDetails
-     * @return IPromise<Contracts.CloneOperationInformation>
-     */
-    getSuiteCloneInformation(project: string, operationId: number, includeDetails?: boolean): IPromise<Contracts.CloneOperationInformation>;
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @param {Contracts.TestSuiteCloneRequest} cloneRequestBody
-     * @param {string} project - Project ID or project name
-     * @param {number} sourceSuiteId
-     * @param {number} planId
-     * @return IPromise<Contracts.CloneOperationInformation>
-     */
-    cloneTestSuite(cloneRequestBody: Contracts.TestSuiteCloneRequest, project: string, sourceSuiteId: number, planId: number): IPromise<Contracts.CloneOperationInformation>;
-    /**
      * @param {Contracts.TestSettings} testSettings
      * @param {string} project - Project ID or project name
      * @return IPromise<number>
@@ -8690,7 +8693,7 @@ export class TestHttpClient extends TestHttpClient3 {
  *
  * @return TestHttpClient2_2
  */
-export function getClient(): TestHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TestHttpClient2_2;
 }
 declare module "TFS/VersionControl/Contracts" {
 import TFS_Core_Contracts = require("TFS/Core/Contracts");
@@ -9011,10 +9014,41 @@ export interface GitPullRequest {
     url: string;
     workItemRefs: VSS_Common_Contracts.ResourceRef[];
 }
+export interface GitPullRequestChangeEntry {
+    base: GitPullRequestChangeEntryFileInfo;
+    /**
+     * Uniquely tracks each change in an iteration. Automatically generated in server.
+     */
+    changeId: number;
+    changeTrackingId: number;
+    modified: GitPullRequestChangeEntryFileInfo;
+    /**
+     * Specify change types that can be used by client to drive client logic.
+     */
+    type: VersionControlChangeType;
+}
+export interface GitPullRequestChangeEntryFileInfo extends GitPullRequestReviewFileContentInfo {
+}
+export enum GitPullRequestChangeEntryFileType {
+    Base = 0,
+    Modified = 1,
+}
 export interface GitPullRequestCompletionOptions {
     deleteSourceBranch: boolean;
     mergeCommitMessage: string;
     squashMerge: boolean;
+}
+export interface GitPullRequestIteration {
+    _links: any;
+    author: VSS_Common_Contracts.IdentityRef;
+    changeList: GitPullRequestChangeEntry[];
+    commonRefCommit: GitCommitRef;
+    createdDate: Date;
+    description: string;
+    id: number;
+    sourceRefCommit: GitCommitRef;
+    targetRefCommit: GitCommitRef;
+    updatedDate: Date;
 }
 /**
  * A pull request query
@@ -9057,6 +9091,18 @@ export enum GitPullRequestQueryType {
      * search by commit
      */
     Commit = 2,
+}
+export interface GitPullRequestReviewFileContentInfo {
+    _links: any;
+    path: string;
+    /**
+     * Content hash of on-disk representation of file content. Its calculated by the client by using SHA1 hash function. Ensure that uploaded file has same encoding as in source control.
+     */
+    sHA1Hash: string;
+}
+export enum GitPullRequestReviewFileType {
+    ChangeEntry = 0,
+    Attachment = 1,
 }
 export interface GitPullRequestSearchCriteria {
     creatorId: string;
@@ -9996,7 +10042,22 @@ export var TypeInfo: {
     GitPullRequest: {
         fields: any;
     };
+    GitPullRequestChangeEntry: {
+        fields: any;
+    };
+    GitPullRequestChangeEntryFileInfo: {
+        fields: any;
+    };
+    GitPullRequestChangeEntryFileType: {
+        enumValues: {
+            "base": number;
+            "modified": number;
+        };
+    };
     GitPullRequestCompletionOptions: {
+        fields: any;
+    };
+    GitPullRequestIteration: {
         fields: any;
     };
     GitPullRequestQuery: {
@@ -10010,6 +10071,15 @@ export var TypeInfo: {
             "notSet": number;
             "lastMergeCommit": number;
             "commit": number;
+        };
+    };
+    GitPullRequestReviewFileContentInfo: {
+        fields: any;
+    };
+    GitPullRequestReviewFileType: {
+        enumValues: {
+            "changeEntry": number;
+            "attachment": number;
         };
     };
     GitPullRequestSearchCriteria: {
@@ -10446,6 +10516,19 @@ export class GitHttpClient3 extends VSS_WebApi.VssHttpClient {
      */
     getChanges(commitId: string, repositoryId: string, project?: string, top?: number, skip?: number): IPromise<Contracts.GitCommitChanges>;
     /**
+     * [Preview API] Get differences in committed items between two commits.
+     *
+     * @param {string} repositoryId - Friendly name or guid of repository
+     * @param {string} project - Project ID or project name
+     * @param {boolean} diffCommonCommit
+     * @param {number} top - Maximum number of changes to return
+     * @param {number} skip - Number of changes to skip
+     * @param {Contracts.GitBaseVersionDescriptor} baseVersionDescriptor
+     * @param {Contracts.GitTargetVersionDescriptor} targetVersionDescriptor
+     * @return IPromise<Contracts.GitCommitDiffs>
+     */
+    getCommitDiffs(repositoryId: string, project?: string, diffCommonCommit?: boolean, top?: number, skip?: number, baseVersionDescriptor?: Contracts.GitBaseVersionDescriptor, targetVersionDescriptor?: Contracts.GitTargetVersionDescriptor): IPromise<Contracts.GitCommitDiffs>;
+    /**
      * [Preview API] Retrieve a particular commit.
      *
      * @param {string} commitId - The id of the commit.
@@ -10590,6 +10673,25 @@ export class GitHttpClient3 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.GitCommitRef[]>
      */
     getPullRequestCommits(repositoryId: string, pullRequestId: number, project?: string): IPromise<Contracts.GitCommitRef[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} repositoryId
+     * @param {number} pullRequestId
+     * @param {number} iterationId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.GitPullRequestIteration>
+     */
+    getPullRequestIteration(repositoryId: string, pullRequestId: number, iterationId: number, project?: string): IPromise<Contracts.GitPullRequestIteration>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} repositoryId
+     * @param {number} pullRequestId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.GitPullRequestIteration[]>
+     */
+    getPullRequestIterations(repositoryId: string, pullRequestId: number, project?: string): IPromise<Contracts.GitPullRequestIteration[]>;
     /**
      * [Preview API] Query for pull requests
      *
@@ -10972,6 +11074,19 @@ export class GitHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     getChanges(commitId: string, repositoryId: string, project?: string, top?: number, skip?: number): IPromise<Contracts.GitCommitChanges>;
     /**
+     * Get differences in committed items between two commits.
+     *
+     * @param {string} repositoryId - Friendly name or guid of repository
+     * @param {string} project - Project ID or project name
+     * @param {boolean} diffCommonCommit
+     * @param {number} top - Maximum number of changes to return
+     * @param {number} skip - Number of changes to skip
+     * @param {Contracts.GitBaseVersionDescriptor} baseVersionDescriptor
+     * @param {Contracts.GitTargetVersionDescriptor} targetVersionDescriptor
+     * @return IPromise<Contracts.GitCommitDiffs>
+     */
+    getCommitDiffs(repositoryId: string, project?: string, diffCommonCommit?: boolean, top?: number, skip?: number, baseVersionDescriptor?: Contracts.GitBaseVersionDescriptor, targetVersionDescriptor?: Contracts.GitTargetVersionDescriptor): IPromise<Contracts.GitCommitDiffs>;
+    /**
      * Retrieve a particular commit.
      *
      * @param {string} commitId - The id of the commit.
@@ -11169,6 +11284,18 @@ export class GitHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      */
     getPullRequestReviewers(repositoryId: string, pullRequestId: number, project?: string): IPromise<Contracts.IdentityRefWithVote[]>;
     /**
+     * @exemptedapi
+     * [Preview API] Query pull requests by project
+     *
+     * @param {string} project - Project ID or project name
+     * @param {Contracts.GitPullRequestSearchCriteria} searchCriteria
+     * @param {number} maxCommentLength
+     * @param {number} skip
+     * @param {number} top
+     * @return IPromise<Contracts.GitPullRequest[]>
+     */
+    getPullRequestsByProject(project: string, searchCriteria: Contracts.GitPullRequestSearchCriteria, maxCommentLength?: number, skip?: number, top?: number): IPromise<Contracts.GitPullRequest[]>;
+    /**
      * Create a git pull request
      *
      * @param {Contracts.GitPullRequest} gitPullRequestToCreate
@@ -11213,18 +11340,6 @@ export class GitHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.GitPullRequest>
      */
     updatePullRequest(gitPullRequestToUpdate: Contracts.GitPullRequest, repositoryId: string, pullRequestId: number, project?: string): IPromise<Contracts.GitPullRequest>;
-    /**
-     * @exemptedapi
-     * [Preview API] Query pull requests by project
-     *
-     * @param {string} project - Project ID or project name
-     * @param {Contracts.GitPullRequestSearchCriteria} searchCriteria
-     * @param {number} maxCommentLength
-     * @param {number} skip
-     * @param {number} top
-     * @return IPromise<Contracts.GitPullRequest[]>
-     */
-    getPullRequestsByProject(project: string, searchCriteria: Contracts.GitPullRequestSearchCriteria, maxCommentLength?: number, skip?: number, top?: number): IPromise<Contracts.GitPullRequest[]>;
     /**
      * @exemptedapi
      * [Preview API] Retrieve a pull request work items
@@ -11382,7 +11497,7 @@ export class GitHttpClient extends GitHttpClient3 {
  *
  * @return GitHttpClient2_2
  */
-export function getClient(): GitHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): GitHttpClient2_2;
 }
 declare module "TFS/VersionControl/Services" {
 import Contracts_Platform = require("VSS/Common/Contracts/Platform");
@@ -11902,7 +12017,7 @@ export class TfvcHttpClient extends TfvcHttpClient3 {
  *
  * @return TfvcHttpClient2_2
  */
-export function getClient(): TfvcHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TfvcHttpClient2_2;
 }
 declare module "TFS/VersionControl/UIContracts" {
 import VCContracts = require("TFS/VersionControl/Contracts");
@@ -13196,6 +13311,15 @@ export class WorkItemTrackingHttpClient3 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
+     * @param {string} processId
+     * @param {string} witRefName
+     * @param {string} stateId
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemStateResultModel>
+     */
+    hideStateDefinition(processId: string, witRefName: string, stateId: string): IPromise<ProcessDefinitionsContracts.WorkItemStateResultModel>;
+    /**
+     * [Preview API]
+     *
      * @param {ProcessDefinitionsContracts.WorkItemStateInputModel} stateModel
      * @param {string} processId
      * @param {string} witRefName
@@ -13407,6 +13531,15 @@ export class WorkItemTrackingHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
+     * @param {string} processId
+     * @param {string} witRefName
+     * @param {string} stateId
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemStateResultModel>
+     */
+    hideStateDefinition(processId: string, witRefName: string, stateId: string): IPromise<ProcessDefinitionsContracts.WorkItemStateResultModel>;
+    /**
+     * [Preview API]
+     *
      * @param {ProcessDefinitionsContracts.WorkItemStateInputModel} stateModel
      * @param {string} processId
      * @param {string} witRefName
@@ -13449,7 +13582,7 @@ export class WorkItemTrackingHttpClient extends WorkItemTrackingHttpClient3 {
  *
  * @return WorkItemTrackingHttpClient2_2
  */
-export function getClient(): WorkItemTrackingHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkItemTrackingHttpClient2_2;
 }
 declare module "TFS/WorkItemTracking/ProcessRestClient" {
 import ProcessContracts = require("TFS/WorkItemTracking/ProcessContracts");
@@ -13506,7 +13639,7 @@ export class WorkItemTrackingHttpClient extends WorkItemTrackingHttpClient3 {
  *
  * @return WorkItemTrackingHttpClient2_2
  */
-export function getClient(): WorkItemTrackingHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkItemTrackingHttpClient2_2;
 }
 declare module "TFS/WorkItemTracking/ProcessTemplateContracts" {
 export interface ProcessExportResult {
@@ -13575,7 +13708,7 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
  */
 export class WorkItemTrackingHttpClient3 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API] Returns requested process template
      *
@@ -13604,7 +13737,7 @@ export class WorkItemTrackingHttpClient3 extends VSS_WebApi.VssHttpClient {
  */
 export class WorkItemTrackingHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API] Returns requested process template
      *
@@ -13629,14 +13762,14 @@ export class WorkItemTrackingHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     importProcessTemplateStatus(id: string): IPromise<ProcessTemplateContracts.ProcessPromoteStatus>;
 }
 export class WorkItemTrackingHttpClient extends WorkItemTrackingHttpClient3 {
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
  * @return WorkItemTrackingHttpClient2_2
  */
-export function getClient(): WorkItemTrackingHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkItemTrackingHttpClient2_2;
 }
 declare module "TFS/WorkItemTracking/RestClient" {
 import Contracts = require("TFS/WorkItemTracking/Contracts");
@@ -13647,7 +13780,7 @@ import VSS_WebApi = require("VSS/WebApi/RestClient");
  */
 export class WorkItemTrackingHttpClient3 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API] Creates an attachment.
      *
@@ -14061,7 +14194,7 @@ export class WorkItemTrackingHttpClient3 extends VSS_WebApi.VssHttpClient {
 }
 export class WorkItemTrackingHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * Creates an attachment.
      *
@@ -14457,14 +14590,14 @@ export class WorkItemTrackingHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     updateWorkItemTypeDefinition(updateModel: Contracts.WorkItemTypeTemplateUpdateModel, project?: string): IPromise<Contracts.ProvisioningResult>;
 }
 export class WorkItemTrackingHttpClient extends WorkItemTrackingHttpClient3 {
-    constructor(rootRequestPath: string);
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
  * @return WorkItemTrackingHttpClient2_2
  */
-export function getClient(): WorkItemTrackingHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkItemTrackingHttpClient2_2;
 }
 declare module "TFS/WorkItemTracking/Services" {
 import Contracts_Platform = require("VSS/Common/Contracts/Platform");
@@ -15114,10 +15247,10 @@ export class WorkHttpClient3 extends VSS_WebApi.VssHttpClient {
      * [Preview API]
      *
      * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
-     * @param {string} boardName
+     * @param {string} board
      * @return IPromise<Contracts.BoardUserSettings>
      */
-    getBoardUserSettings(teamContext: TFS_Core_Contracts.TeamContext, boardName: string): IPromise<Contracts.BoardUserSettings>;
+    getBoardUserSettings(teamContext: TFS_Core_Contracts.TeamContext, board: string): IPromise<Contracts.BoardUserSettings>;
     /**
      * [Preview API] Update board user settings for the board id
      *
@@ -15564,5 +15697,5 @@ export class WorkHttpClient extends WorkHttpClient3 {
  *
  * @return WorkHttpClient2_2
  */
-export function getClient(): WorkHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkHttpClient2_2;
 }
