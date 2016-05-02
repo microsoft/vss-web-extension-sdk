@@ -1,19 +1,33 @@
-# Visual Studio Services Client SDK
-
-## Renamed
-Our SDK is renamed from ```vss-sdk``` to ```vss-web-extension-sdk```. Please use the new package name for npm and bower.
+# Visual Studio Services Web Extension SDK
 
 ## Overview
-This repo contains core client SDK file and TypeScript declare files needed for developing [Visual Studio Online Extensions](https://www.visualstudio.com/integrate/extensions/overview).
 
-**VSS.SDK.js** enables an extension to communicate to host to perform operations like initializing, notifying extension is loaded or getting context about the current page on the host.
+This repository contains core client SDK script files and TypeScript declare files needed for developing [Visual Studio Team Services Extensions](https://www.visualstudio.com/integrate/extensions/overview).
 
-## Getting started
- * Add this line: `<script src="sdk/scripts/VSS.SDK.js"></script>`
- * Using `npm install vss-web-extension-sdk`
- * Using `bower install vss-web-extension-sdk`
+The core SDK script, `VSS.SDK.js`, enables extensions to communicate to the host Team Services frame and to perform operations like initializing, notifying extension is loaded or getting context about the current page.
 
-## Usage
+> A previous version of the SDK was named ```vss-sdk``. Make sure to switch to the new `vss-web-extension-sdk` name.
+
+## Get the SDK
+
+### Bower
+
+1. [Download](https://nodejs.org/en/download/) and install Node.js
+2. Install Bower (`npm install -g bower`)
+3. Run `bower install vss-web-extension-sdk` from a command line 
+
+From your extension's HTML page, add a reference to the imported SDK script. For example:
+
+```html
+ <script src="bower_components/vss-sdk/lib/VSS.SDK.min.js"></script>
+ ```
+  
+### NPM
+
+Alternatively, the SDK is available via NPM. Run `npm install vss-web-extension-sdk`
+\
+## Use the SDK
+
 Next step is initializing the extension using two options below: 
  1. Implicit handshake
  	```javascript
@@ -60,7 +74,8 @@ Full API reference of VSS.SDK.js can be found at [Core Client SDK](https://www.v
  * REST Client and extensibility types for Release Management are available in typings/rmo.d.ts
  
 ### Dependencies
-Dependency graph for the types.
+
+Dependency graph for the types:
 
 ![Dependency Graph](img/dependencies.png)
  
