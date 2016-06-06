@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v98.20160415.2004
+// Type definitions for Microsoft Visual Studio Services v100.20160601.1949
 // Project: http://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -8,6 +8,11 @@ export module ArtifactDefinitionConstants {
     var ProjectId: string;
     var ConnectionId: string;
     var DefinitionId: string;
+    var RepositoryId: string;
+    var MappingsId: string;
+    var MappingTypeId: string;
+    var ServerPathId: string;
+    var LocalPathId: string;
 }
 export module ArtifactTypes {
     var BuildArtifactType: string;
@@ -17,6 +22,8 @@ export module ArtifactTypes {
     var TfsOnPremArtifactType: string;
     var ExternalTfsBuildArtifactType: string;
     var GitArtifactType: string;
+    var TfvcArtifactType: string;
+    var ExternalTfsXamlBuildArtifactType: string;
 }
 export module RunOptionsConstants {
     var EnvironmentOwnerEmailNotificationValueAlways: string;
@@ -26,13 +33,16 @@ export module RunOptionsConstants {
 }
 export module WellKnownReleaseVariables {
     var System: string;
+    var Build: string;
+    var HostTypeValue: string;
+    var ReleaseArtifact: string;
+    var ReleaseEnvironments: string;
+    var AgentReleaseDirectory: string;
     var HostType: string;
     var ArtifactsDirectory: string;
     var CollectionId: string;
     var TeamProjectId: string;
     var TeamProject: string;
-    var AgentReleaseDirectory: string;
-    var HostTypeValue: string;
     var ReleaseId: string;
     var SkipArtifactsDownload: string;
     var ReleaseName: string;
@@ -43,7 +53,28 @@ export module WellKnownReleaseVariables {
     var ReleaseEnvironmentUri: string;
     var ReleaseEnvironmentName: string;
     var RequestorId: string;
+    var ReleaseRequestedForId: string;
+    var AttemptNumber: string;
+    var Status: string;
+    var ArtifactType: string;
+    var DefinitionName: string;
+    var DefinitionVersion: string;
+    var QueuedBy: string;
+    var QueuedById: string;
+    var RequestedFor: string;
     var RequestedForId: string;
+    var SourceBranch: string;
+    var SourceBranchName: string;
+    var SourceVersion: string;
+    var SourceVersionAuthor: string;
+    var SourceVersionMessage: string;
+    var SourceTfvcShelveset: string;
+    var BuildId: string;
+    var BuildUri: string;
+    var BuildNumber: string;
+    var BuildRepositoryName: string;
+    var BuildRepositoryProvider: string;
+    var BuildDefinitionId: string;
 }
 }
 declare module "ReleaseManagement/Core/Contracts" {
@@ -67,6 +98,7 @@ export enum AgentArtifactType {
     TFGit = 7,
     ExternalTfsBuild = 8,
     Custom = 9,
+    Tfvc = 10,
 }
 export interface ApprovalOptions {
     releaseCreatorCanBeApprover: boolean;
@@ -203,16 +235,38 @@ export interface Consumer {
     consumerId: number;
     consumerName: string;
 }
+export interface DeploymentApprovalCompletedEvent {
+    approval: ReleaseApproval;
+    project: ProjectReference;
+    release: Release;
+}
+export interface DeploymentApprovalPendingEvent {
+    approval: ReleaseApproval;
+    project: ProjectReference;
+    release: Release;
+}
 export interface DeploymentAttempt {
     attempt: number;
     /**
      * Error log to show any unexpected error that occurred during executing deploy step
      */
     errorLog: string;
+    /**
+     * The time at which the deployment started, and null if it has not been deployed yet
+     */
+    hasStarted: boolean;
     id: number;
     job: ReleaseTask;
     runPlanId: string;
     tasks: ReleaseTask[];
+}
+export interface DeploymentCompletedEvent {
+    environment: ReleaseEnvironment;
+    project: ProjectReference;
+}
+export interface DeploymentStartedEvent {
+    environment: ReleaseEnvironment;
+    project: ProjectReference;
 }
 export interface EmailRecipients {
     emailAddresses: string[];
@@ -244,6 +298,7 @@ export enum EnvironmentStatus {
     Canceled = 8,
     Rejected = 16,
     Queued = 32,
+    Scheduled = 64,
 }
 export enum EnvironmentStatusOld {
     Undefined = 0,
@@ -277,6 +332,16 @@ export enum MailSectionType {
     Issues = 2,
     TestResults = 3,
     WorkItems = 4,
+    ReleaseInfo = 5,
+}
+export interface MappingDetails {
+    mappings: {
+        [key: string]: VSS_FormInput_Contracts.InputValue;
+    };
+}
+export interface ProjectReference {
+    id: string;
+    name: string;
 }
 export interface RealtimeReleaseEvent {
     projectId: string;
@@ -284,8 +349,10 @@ export interface RealtimeReleaseEvent {
 }
 export interface Release {
     artifacts: Artifact[];
+    comment: string;
     createdBy: VSS_Common_Contracts.IdentityRef;
     createdOn: Date;
+    definitionSnapshotRevision: number;
     description: string;
     environments: ReleaseEnvironment[];
     id: number;
@@ -299,11 +366,13 @@ export interface Release {
     releaseDefinition: ShallowReference;
     releaseNameFormat: string;
     status: ReleaseStatus;
+    url: string;
     variables: {
         [key: string]: ConfigurationVariableValue;
     };
 }
 export interface ReleaseAbandonedEvent {
+    project: ProjectReference;
     release: Release;
 }
 export interface ReleaseApproval {
@@ -325,13 +394,7 @@ export interface ReleaseApproval {
     revision: number;
     status: ApprovalStatus;
     trialNumber: number;
-}
-export interface ReleaseApprovalCompletedEvent {
-    approval: ReleaseApproval;
-    definitionName: string;
-    environmentId: number;
-    environmentName: string;
-    releaseName: string;
+    url: string;
 }
 export interface ReleaseApprovalHistory {
     approver: VSS_Common_Contracts.IdentityRef;
@@ -363,10 +426,12 @@ export interface ReleaseArtifact {
     releaseId: number;
 }
 export interface ReleaseCreatedEvent {
+    project: ProjectReference;
     release: Release;
 }
 export interface ReleaseDefinition {
     artifacts: Artifact[];
+    comment: string;
     createdBy: VSS_Common_Contracts.IdentityRef;
     createdOn: Date;
     environments: ReleaseDefinitionEnvironment[];
@@ -378,6 +443,7 @@ export interface ReleaseDefinition {
     retentionPolicy: RetentionPolicy;
     revision: number;
     triggers: ReleaseTriggerBase[];
+    url: string;
     variables: {
         [key: string]: ConfigurationVariableValue;
     };
@@ -414,6 +480,7 @@ export interface ReleaseDefinitionEnvironment {
     runOptions: {
         [key: string]: string;
     };
+    schedules: ReleaseSchedule[];
     variables: {
         [key: string]: ConfigurationVariableValue;
     };
@@ -445,6 +512,7 @@ export interface ReleaseDefinitionRevision {
     changedBy: VSS_Common_Contracts.IdentityRef;
     changedDate: Date;
     changeType: AuditAction;
+    comment: string;
     definitionId: number;
     definitionUrl: string;
     revision: number;
@@ -471,12 +539,19 @@ export interface ReleaseEnvironment {
     preDeployApprovals: ReleaseApproval[];
     queueId: number;
     rank: number;
+    release: ShallowReference;
+    releaseCreatedBy: VSS_Common_Contracts.IdentityRef;
+    releaseDefinition: ShallowReference;
+    releaseDescription: string;
     releaseId: number;
     runOptions: {
         [key: string]: string;
     };
     scheduledDeploymentTime: Date;
+    schedules: ReleaseSchedule[];
     status: EnvironmentStatus;
+    timeToDeploy: number;
+    triggerReason: string;
     variables: {
         [key: string]: ConfigurationVariableValue;
     };
@@ -496,12 +571,8 @@ export interface ReleaseEnvironmentCompletedEvent {
     title: string;
     webAccessUri: string;
 }
-export interface ReleaseEnvironmentStartedEvent {
-    environment: ReleaseEnvironment;
-    environmentId: number;
-    release: Release;
-}
 export interface ReleaseEnvironmentUpdateMetadata {
+    comment: string;
     scheduledDeploymentTime: Date;
     status: EnvironmentStatus;
 }
@@ -510,6 +581,21 @@ export enum ReleaseExpands {
     Environments = 2,
     Artifacts = 4,
     Approvals = 8,
+}
+export enum ReleaseManagementSecurityPermissions {
+    None = 0,
+    ViewReleaseDefinition = 1,
+    EditReleaseDefinition = 2,
+    DeleteReleaseDefinition = 4,
+    ManageReleaseApprovers = 8,
+    ManageReleases = 16,
+    ViewReleases = 32,
+    CreateReleases = 64,
+    EditReleaseEnvironment = 128,
+    DeleteReleaseEnvironment = 256,
+    AdministerReleasePermissions = 512,
+    DeleteReleases = 1024,
+    ManageDeployments = 2048,
 }
 export enum ReleaseQueryOrder {
     Descending = 0,
@@ -520,6 +606,15 @@ export enum ReleaseReason {
     Manual = 1,
     ContinuousIntegration = 2,
     Schedule = 3,
+}
+export interface ReleaseRevision {
+    changedBy: VSS_Common_Contracts.IdentityRef;
+    changedDate: Date;
+    changeDetails: string;
+    changeType: string;
+    comment: string;
+    definitionSnapshotRevision: number;
+    releaseId: number;
 }
 export interface ReleaseSchedule {
     /**
@@ -601,6 +696,7 @@ export interface ReleaseUpdatedEvent extends RealtimeReleaseEvent {
     release: Release;
 }
 export interface ReleaseUpdateMetadata {
+    comment: string;
     keepForever: boolean;
     manualEnvironments: string[];
     status: ReleaseStatus;
@@ -695,6 +791,7 @@ export var TypeInfo: {
             "tFGit": number;
             "externalTfsBuild": number;
             "custom": number;
+            "tfvc": number;
         };
     };
     ApprovalOptions: {
@@ -781,7 +878,19 @@ export var TypeInfo: {
     Consumer: {
         fields: any;
     };
+    DeploymentApprovalCompletedEvent: {
+        fields: any;
+    };
+    DeploymentApprovalPendingEvent: {
+        fields: any;
+    };
     DeploymentAttempt: {
+        fields: any;
+    };
+    DeploymentCompletedEvent: {
+        fields: any;
+    };
+    DeploymentStartedEvent: {
         fields: any;
     };
     EmailRecipients: {
@@ -802,6 +911,7 @@ export var TypeInfo: {
             "canceled": number;
             "rejected": number;
             "queued": number;
+            "scheduled": number;
         };
     };
     EnvironmentStatusOld: {
@@ -829,7 +939,14 @@ export var TypeInfo: {
             "issues": number;
             "testResults": number;
             "workItems": number;
+            "releaseInfo": number;
         };
+    };
+    MappingDetails: {
+        fields: any;
+    };
+    ProjectReference: {
+        fields: any;
     };
     RealtimeReleaseEvent: {
         fields: any;
@@ -841,9 +958,6 @@ export var TypeInfo: {
         fields: any;
     };
     ReleaseApproval: {
-        fields: any;
-    };
-    ReleaseApprovalCompletedEvent: {
         fields: any;
     };
     ReleaseApprovalHistory: {
@@ -902,9 +1016,6 @@ export var TypeInfo: {
     ReleaseEnvironmentCompletedEvent: {
         fields: any;
     };
-    ReleaseEnvironmentStartedEvent: {
-        fields: any;
-    };
     ReleaseEnvironmentUpdateMetadata: {
         fields: any;
     };
@@ -914,6 +1025,23 @@ export var TypeInfo: {
             "environments": number;
             "artifacts": number;
             "approvals": number;
+        };
+    };
+    ReleaseManagementSecurityPermissions: {
+        enumValues: {
+            "none": number;
+            "viewReleaseDefinition": number;
+            "editReleaseDefinition": number;
+            "deleteReleaseDefinition": number;
+            "manageReleaseApprovers": number;
+            "manageReleases": number;
+            "viewReleases": number;
+            "createReleases": number;
+            "editReleaseEnvironment": number;
+            "deleteReleaseEnvironment": number;
+            "administerReleasePermissions": number;
+            "deleteReleases": number;
+            "manageDeployments": number;
         };
     };
     ReleaseQueryOrder: {
@@ -929,6 +1057,9 @@ export var TypeInfo: {
             "continuousIntegration": number;
             "schedule": number;
         };
+    };
+    ReleaseRevision: {
+        fields: any;
     };
     ReleaseSchedule: {
         fields: any;
@@ -1083,21 +1214,19 @@ export class ReleaseHttpClient3 extends VSS_WebApi.VssHttpClient {
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
-     * @param {string} assignedToFilter
-     * @param {Contracts.ApprovalStatus} statusFilter
-     * @param {number[]} releaseIdsFilter
-     * @param {Contracts.ApprovalType} typeFilter
-     * @return IPromise<Contracts.ReleaseApproval[]>
-     */
-    getApprovals(project: string, assignedToFilter?: string, statusFilter?: Contracts.ApprovalStatus, releaseIdsFilter?: number[], typeFilter?: Contracts.ApprovalType): IPromise<Contracts.ReleaseApproval[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
      * @param {number} approvalStepId
      * @return IPromise<Contracts.ReleaseApproval>
      */
     getApprovalHistory(project: string, approvalStepId: number): IPromise<Contracts.ReleaseApproval>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} approvalId
+     * @param {boolean} includeHistory
+     * @return IPromise<Contracts.ReleaseApproval>
+     */
+    getApproval(project: string, approvalId: number, includeHistory?: boolean): IPromise<Contracts.ReleaseApproval>;
     /**
      * [Preview API]
      *
@@ -1107,6 +1236,21 @@ export class ReleaseHttpClient3 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.ReleaseApproval>
      */
     updateReleaseApproval(approval: Contracts.ReleaseApproval, project: string, approvalId: number): IPromise<Contracts.ReleaseApproval>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} assignedToFilter
+     * @param {Contracts.ApprovalStatus} statusFilter
+     * @param {number[]} releaseIdsFilter
+     * @param {Contracts.ApprovalType} typeFilter
+     * @param {number} top
+     * @param {number} continuationToken
+     * @param {Contracts.ReleaseQueryOrder} queryOrder
+     * @param {boolean} includeMyGroupApprovals
+     * @return IPromise<Contracts.ReleaseApproval[]>
+     */
+    getApprovals(project: string, assignedToFilter?: string, statusFilter?: Contracts.ApprovalStatus, releaseIdsFilter?: number[], typeFilter?: Contracts.ApprovalType, top?: number, continuationToken?: number, queryOrder?: Contracts.ReleaseQueryOrder, includeMyGroupApprovals?: boolean): IPromise<Contracts.ReleaseApproval[]>;
     /**
      * [Preview API]
      *
@@ -1221,6 +1365,14 @@ export class ReleaseHttpClient3 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<Contracts.ReleaseRevision[]>
+     */
+    getReleaseHistory(project: string, releaseId: number): IPromise<Contracts.ReleaseRevision[]>;
+    /**
+     * [Preview API]
+     *
      * @param {VSS_FormInput_Contracts.InputValuesQuery} query
      * @param {string} project - Project ID or project name
      * @return IPromise<VSS_FormInput_Contracts.InputValuesQuery>
@@ -1284,11 +1436,21 @@ export class ReleaseHttpClient3 extends VSS_WebApi.VssHttpClient {
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} definitionSnapshotRevision
+     * @return IPromise<string>
+     */
+    getReleaseRevision(project: string, releaseId: number, definitionSnapshotRevision: number): IPromise<string>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
      * @param {number} definitionId
      * @param {number} definitionEnvironmentId
      * @param {string} searchText
      * @param {string} createdBy
      * @param {Contracts.ReleaseStatus} statusFilter
+     * @param {number} environmentStatusFilter
      * @param {Date} minCreatedTime
      * @param {Date} maxCreatedTime
      * @param {Contracts.ReleaseQueryOrder} queryOrder
@@ -1300,7 +1462,7 @@ export class ReleaseHttpClient3 extends VSS_WebApi.VssHttpClient {
      * @param {string} artifactVersionId
      * @return IPromise<Contracts.Release[]>
      */
-    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, artifactSourceId?: number, artifactVersionId?: string): IPromise<Contracts.Release[]>;
+    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, artifactSourceId?: number, artifactVersionId?: string): IPromise<Contracts.Release[]>;
     /**
      * [Preview API]
      *
@@ -1423,21 +1585,19 @@ export class ReleaseHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
-     * @param {string} assignedToFilter
-     * @param {Contracts.ApprovalStatus} statusFilter
-     * @param {number[]} releaseIdsFilter
-     * @param {Contracts.ApprovalType} typeFilter
-     * @return IPromise<Contracts.ReleaseApproval[]>
-     */
-    getApprovals(project: string, assignedToFilter?: string, statusFilter?: Contracts.ApprovalStatus, releaseIdsFilter?: number[], typeFilter?: Contracts.ApprovalType): IPromise<Contracts.ReleaseApproval[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
      * @param {number} approvalStepId
      * @return IPromise<Contracts.ReleaseApproval>
      */
     getApprovalHistory(project: string, approvalStepId: number): IPromise<Contracts.ReleaseApproval>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} approvalId
+     * @param {boolean} includeHistory
+     * @return IPromise<Contracts.ReleaseApproval>
+     */
+    getApproval(project: string, approvalId: number, includeHistory?: boolean): IPromise<Contracts.ReleaseApproval>;
     /**
      * [Preview API]
      *
@@ -1447,6 +1607,21 @@ export class ReleaseHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.ReleaseApproval>
      */
     updateReleaseApproval(approval: Contracts.ReleaseApproval, project: string, approvalId: number): IPromise<Contracts.ReleaseApproval>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} assignedToFilter
+     * @param {Contracts.ApprovalStatus} statusFilter
+     * @param {number[]} releaseIdsFilter
+     * @param {Contracts.ApprovalType} typeFilter
+     * @param {number} top
+     * @param {number} continuationToken
+     * @param {Contracts.ReleaseQueryOrder} queryOrder
+     * @param {boolean} includeMyGroupApprovals
+     * @return IPromise<Contracts.ReleaseApproval[]>
+     */
+    getApprovals(project: string, assignedToFilter?: string, statusFilter?: Contracts.ApprovalStatus, releaseIdsFilter?: number[], typeFilter?: Contracts.ApprovalType, top?: number, continuationToken?: number, queryOrder?: Contracts.ReleaseQueryOrder, includeMyGroupApprovals?: boolean): IPromise<Contracts.ReleaseApproval[]>;
     /**
      * [Preview API]
      *
@@ -1561,6 +1736,14 @@ export class ReleaseHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<Contracts.ReleaseRevision[]>
+     */
+    getReleaseHistory(project: string, releaseId: number): IPromise<Contracts.ReleaseRevision[]>;
+    /**
+     * [Preview API]
+     *
      * @param {VSS_FormInput_Contracts.InputValuesQuery} query
      * @param {string} project - Project ID or project name
      * @return IPromise<VSS_FormInput_Contracts.InputValuesQuery>
@@ -1624,11 +1807,21 @@ export class ReleaseHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} definitionSnapshotRevision
+     * @return IPromise<string>
+     */
+    getReleaseRevision(project: string, releaseId: number, definitionSnapshotRevision: number): IPromise<string>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
      * @param {number} definitionId
      * @param {number} definitionEnvironmentId
      * @param {string} searchText
      * @param {string} createdBy
      * @param {Contracts.ReleaseStatus} statusFilter
+     * @param {number} environmentStatusFilter
      * @param {Date} minCreatedTime
      * @param {Date} maxCreatedTime
      * @param {Contracts.ReleaseQueryOrder} queryOrder
@@ -1640,7 +1833,7 @@ export class ReleaseHttpClient2_2 extends VSS_WebApi.VssHttpClient {
      * @param {string} artifactVersionId
      * @return IPromise<Contracts.Release[]>
      */
-    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, artifactSourceId?: number, artifactVersionId?: string): IPromise<Contracts.Release[]>;
+    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, artifactSourceId?: number, artifactVersionId?: string): IPromise<Contracts.Release[]>;
     /**
      * [Preview API]
      *
@@ -1754,4 +1947,10 @@ export class ReleaseHttpClient extends ReleaseHttpClient3 {
  * @return ReleaseHttpClient2_2
  */
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ReleaseHttpClient2_2;
+}
+declare module "ReleaseManagement/Core/Utils" {
+import RMContracts = require("ReleaseManagement/Core/Contracts");
+export class ReleaseEnvironmentStatusHelper {
+    static isEnvironmentCompleted(environment: RMContracts.ReleaseEnvironment): boolean;
+}
 }
