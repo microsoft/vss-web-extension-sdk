@@ -5,7 +5,7 @@
 /// <reference path='../../../typings/knockout/knockout.d.ts' />
 /// <reference path='../../../typings/jquery/jquery.d.ts' />
 /// <reference path='../../../typings/q/q.d.ts' />
-/// <reference path='require.d.ts' />
+
 //----------------------------------------------------------
 // Common interfaces specific to WebPlatform area
 //----------------------------------------------------------
