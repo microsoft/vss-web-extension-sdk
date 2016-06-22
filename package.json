@@ -27,9 +27,7 @@
   },
   "homepage": "https://www.visualstudio.com/integrate/extensions/overview",
   "jspm": {
-    "main": "VSS.SDK",
-    "directories": {
-      "lib": "lib"
-    }
+    "main": "lib/VSS.SDK",
+    "format": "global"
   }
 }
