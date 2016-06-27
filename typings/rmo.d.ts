@@ -1,5 +1,5 @@
-// Type definitions for Microsoft Visual Studio Services v100.20160601.1949
-// Project: http://www.visualstudio.com/integrate/extensions/overview
+// Type definitions for Microsoft Visual Studio Services v101.20160627.0902
+// Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
 /// <reference path='vss.d.ts' />
@@ -30,6 +30,8 @@ export module RunOptionsConstants {
     var EnvironmentOwnerEmailNotificationValueTypeOnlyOnFailure: string;
     var EnvironmentOwnerEmailNotificationValueNever: string;
     var EnvironmentOwnerEmailNotificationTypeDefaultValue: string;
+    var ReleaseCreator: string;
+    var EnvironmentOwner: string;
 }
 export module WellKnownReleaseVariables {
     var System: string;
@@ -38,6 +40,7 @@ export module WellKnownReleaseVariables {
     var ReleaseArtifact: string;
     var ReleaseEnvironments: string;
     var AgentReleaseDirectory: string;
+    var EnableAccessTokenVariableName: string;
     var HostType: string;
     var ArtifactsDirectory: string;
     var CollectionId: string;
@@ -48,6 +51,7 @@ export module WellKnownReleaseVariables {
     var ReleaseName: string;
     var ReleaseDescription: string;
     var ReleaseDefinitionName: string;
+    var ReleaseDefinitionId: string;
     var ReleaseUri: string;
     var ReleaseWebUrl: string;
     var ReleaseEnvironmentUri: string;
@@ -58,6 +62,7 @@ export module WellKnownReleaseVariables {
     var Status: string;
     var ArtifactType: string;
     var DefinitionName: string;
+    var DefinitionId: string;
     var DefinitionVersion: string;
     var QueuedBy: string;
     var QueuedById: string;
@@ -126,6 +131,7 @@ export interface Artifact {
     };
     id: number;
     isPrimary: boolean;
+    sourceId: string;
     type: string;
 }
 export interface ArtifactInstanceData {
@@ -165,10 +171,12 @@ export interface ArtifactTypeDefinition {
     displayName: string;
     inputDescriptors: VSS_FormInput_Contracts.InputDescriptor[];
     name: string;
+    uniqueSourceIdentifier: string;
 }
 export interface ArtifactVersion {
     artifactSourceId: number;
     errorMessage: string;
+    sourceId: string;
     versions: BuildVersion[];
 }
 export interface ArtifactVersionQueryResult {
@@ -287,6 +295,8 @@ export interface EnvironmentExecutionPolicy {
 }
 export interface EnvironmentOptions {
     emailNotificationType: string;
+    emailRecipients: string;
+    enableAccessToken: boolean;
     skipArtifactsDownload: boolean;
     timeoutInMinutes: number;
 }
@@ -532,6 +542,7 @@ export interface ReleaseEnvironment {
     id: number;
     modifiedOn: Date;
     name: string;
+    nextScheduledUtcTime: Date;
     owner: VSS_Common_Contracts.IdentityRef;
     postApprovalsSnapshot: ReleaseDefinitionApprovals;
     postDeployApprovals: ReleaseApproval[];
@@ -681,6 +692,7 @@ export interface ReleaseTaskLogUpdatedEvent extends RealtimeReleaseEvent {
 export interface ReleaseTasksUpdatedEvent extends RealtimeReleaseEvent {
     environmentId: number;
     job: ReleaseTask;
+    releaseDeployPhaseId: number;
     releaseStepId: number;
     tasks: ReleaseTask[];
 }
@@ -1172,6 +1184,24 @@ export var TypeInfo: {
 declare module "ReleaseManagement/Core/ExtensionContracts" {
 import RMContracts = require("ReleaseManagement/Core/Contracts");
 /**
+* The type of object to be used when contributing a link. linkId field will be used as an argument to onLickClicked callback.
+*/
+export interface IContributionHtmlLink {
+    linkId: string;
+    onLinkClicked: (linkId: string) => void;
+}
+export interface IContributionHtmlSpanData {
+    text: string;
+    foregroundColor: string;
+    link: IContributionHtmlLink;
+}
+/**
+* The type of object to be used when contributing a hypertext string with link.
+*/
+export interface IContributionHtmlData {
+    spanItems: IContributionHtmlSpanData[];
+}
+/**
 * Interface defining the configuration that is shared between extension targeted at "ms.vss-releaseManagement-web.release-details-view" and the host
 */
 export interface IReleaseViewExtensionConfig {
@@ -1191,16 +1221,31 @@ export interface IReleaseViewExtensionConfig {
     */
     selectTab: (tabId: string) => void;
 }
+export interface IReleaseEnvironmentsSummaryDataExtension {
+    /**
+    * Required if reacting to the current release. RM will call this function whenever it paints environments summary section for a given release.
+    */
+    onReleaseChanged: (release: RMContracts.Release) => IPromise<{
+        [environmentId: number]: IContributionHtmlData;
+    }>;
+}
+export interface IReleaseEnvironmentsSummaryDataExtensionConfig {
+    /**
+    * Optional, for a given tab id, which is essentially contribution id,
+    * the corresponding tab is selected if the tab is visible.
+    */
+    selectTab: (tabId: string, additionalUrlParams?: {
+        [key: string]: string;
+    }) => void;
+}
 }
 declare module "ReleaseManagement/Core/RestClient" {
 import Contracts = require("ReleaseManagement/Core/Contracts");
 import VSS_FormInput_Contracts = require("VSS/Common/Contracts/FormInput");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-/**
- * @exemptedapi
- */
-export class ReleaseHttpClient3 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
+    protected agentartifactsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API] Returns the artifact details that automation agent requires
@@ -1210,32 +1255,343 @@ export class ReleaseHttpClient3 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.AgentArtifactDefinition[]>
      */
     getAgentArtifactDefinitions(project: string, releaseId: number): IPromise<Contracts.AgentArtifactDefinition[]>;
+}
+export class CommonMethods2_2To3 extends CommonMethods2To3 {
+    protected approvalsApiVersion: string;
+    protected approvalsApiVersion_250c7158: string;
+    protected approvalsApiVersion_9328e074: string;
+    protected changesApiVersion: string;
+    protected definitionsApiVersion: string;
+    protected environmentsApiVersion: string;
+    protected environmenttemplatesApiVersion: string;
+    protected historyApiVersion: string;
+    protected inputvaluesqueryApiVersion: string;
+    protected logsApiVersion: string;
+    protected logsApiVersion_c37fbab5: string;
+    protected releasesApiVersion: string;
+    protected revisionsApiVersion: string;
+    protected sendmailApiVersion: string;
+    protected sourcesApiVersion: string;
+    protected tasksApiVersion: string;
+    protected typesApiVersion: string;
+    protected versionsApiVersion: string;
+    protected workitemsApiVersion: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
-     * @param {number} approvalStepId
-     * @return IPromise<Contracts.ReleaseApproval>
+     * @param {number} releaseId
+     * @param {number} baseReleaseId
+     * @param {number} top
+     * @return IPromise<Contracts.ReleaseWorkItemRef[]>
      */
-    getApprovalHistory(project: string, approvalStepId: number): IPromise<Contracts.ReleaseApproval>;
+    getReleaseWorkItemsRefs(project: string, releaseId: number, baseReleaseId?: number, top?: number): IPromise<Contracts.ReleaseWorkItemRef[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Artifact[]} artifacts
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.ArtifactVersionQueryResult>
+     */
+    getArtifactVersionsForSources(artifacts: Contracts.Artifact[], project: string): IPromise<Contracts.ArtifactVersionQueryResult>;
     /**
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
-     * @param {number} approvalId
-     * @param {boolean} includeHistory
-     * @return IPromise<Contracts.ReleaseApproval>
+     * @param {number} releaseDefinitionId
+     * @return IPromise<Contracts.ArtifactVersionQueryResult>
      */
-    getApproval(project: string, approvalId: number, includeHistory?: boolean): IPromise<Contracts.ReleaseApproval>;
+    getArtifactVersions(project: string, releaseDefinitionId: number): IPromise<Contracts.ArtifactVersionQueryResult>;
     /**
      * [Preview API]
      *
-     * @param {Contracts.ReleaseApproval} approval
      * @param {string} project - Project ID or project name
-     * @param {number} approvalId
-     * @return IPromise<Contracts.ReleaseApproval>
+     * @return IPromise<Contracts.ArtifactTypeDefinition[]>
      */
-    updateReleaseApproval(approval: Contracts.ReleaseApproval, project: string, approvalId: number): IPromise<Contracts.ReleaseApproval>;
+    getArtifactTypeDefinitions(project: string): IPromise<Contracts.ArtifactTypeDefinition[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} environmentId
+     * @param {number} attemptId
+     * @return IPromise<Contracts.ReleaseTask[]>
+     */
+    getTasks(project: string, releaseId: number, environmentId: number, attemptId?: number): IPromise<Contracts.ReleaseTask[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} typeId
+     * @return IPromise<Contracts.ArtifactSourceIdsQueryResult>
+     */
+    getArtifactsSources(project: string, typeId?: string): IPromise<Contracts.ArtifactSourceIdsQueryResult>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.MailMessage} mailMessage
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<void>
+     */
+    sendSummaryMail(mailMessage: Contracts.MailMessage, project: string, releaseId: number): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<Contracts.SummaryMailSection[]>
+     */
+    getSummaryMailSections(project: string, releaseId: number): IPromise<Contracts.SummaryMailSection[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId
+     * @param {number} revision
+     * @return IPromise<string>
+     */
+    getReleaseDefinitionRevision(project: string, definitionId: number, revision: number): IPromise<string>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId
+     * @return IPromise<Contracts.ReleaseDefinitionRevision[]>
+     */
+    getReleaseDefinitionHistory(project: string, definitionId: number): IPromise<Contracts.ReleaseDefinitionRevision[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ReleaseUpdateMetadata} releaseUpdateMetadata
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<Contracts.Release>
+     */
+    updateReleaseResource(releaseUpdateMetadata: Contracts.ReleaseUpdateMetadata, project: string, releaseId: number): IPromise<Contracts.Release>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Release} release
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<Contracts.Release>
+     */
+    updateRelease(release: Contracts.Release, project: string, releaseId: number): IPromise<Contracts.Release>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId
+     * @param {number} definitionEnvironmentId
+     * @param {string} searchText
+     * @param {string} createdBy
+     * @param {Contracts.ReleaseStatus} statusFilter
+     * @param {number} environmentStatusFilter
+     * @param {Date} minCreatedTime
+     * @param {Date} maxCreatedTime
+     * @param {Contracts.ReleaseQueryOrder} queryOrder
+     * @param {number} top
+     * @param {number} continuationToken
+     * @param {Contracts.ReleaseExpands} expand
+     * @param {string} artifactTypeId
+     * @param {string} sourceId
+     * @param {string} artifactVersionId
+     * @return IPromise<Contracts.Release[]>
+     */
+    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string): IPromise<Contracts.Release[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} definitionSnapshotRevision
+     * @return IPromise<string>
+     */
+    getReleaseRevision(project: string, releaseId: number, definitionSnapshotRevision: number): IPromise<string>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId
+     * @param {number} releaseCount
+     * @param {boolean} includeArtifact
+     * @return IPromise<Contracts.ReleaseDefinitionSummary>
+     */
+    getReleaseDefinitionSummary(project: string, definitionId: number, releaseCount: number, includeArtifact?: boolean): IPromise<Contracts.ReleaseDefinitionSummary>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {boolean} includeAllApprovals
+     * @return IPromise<Contracts.Release>
+     */
+    getRelease(project: string, releaseId: number, includeAllApprovals?: boolean): IPromise<Contracts.Release>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<void>
+     */
+    deleteRelease(project: string, releaseId: number): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ReleaseStartMetadata} releaseStartMetadata
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.Release>
+     */
+    createRelease(releaseStartMetadata: Contracts.ReleaseStartMetadata, project: string): IPromise<Contracts.Release>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} environmentId
+     * @param {number} taskId
+     * @param {number} attemptId
+     * @return IPromise<string>
+     */
+    getLog(project: string, releaseId: number, environmentId: number, taskId: number, attemptId?: number): IPromise<string>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<ArrayBuffer>
+     */
+    getLogs(project: string, releaseId: number): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_FormInput_Contracts.InputValuesQuery} query
+     * @param {string} project - Project ID or project name
+     * @return IPromise<VSS_FormInput_Contracts.InputValuesQuery>
+     */
+    getInputValues(query: VSS_FormInput_Contracts.InputValuesQuery, project: string): IPromise<VSS_FormInput_Contracts.InputValuesQuery>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<Contracts.ReleaseRevision[]>
+     */
+    getReleaseHistory(project: string, releaseId: number): IPromise<Contracts.ReleaseRevision[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate[]>
+     */
+    listDefinitionEnvironmentTemplates(project: string): IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} templateId
+     * @return IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>
+     */
+    getDefinitionEnvironmentTemplate(project: string, templateId: string): IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} templateId
+     * @return IPromise<void>
+     */
+    deleteDefinitionEnvironmentTemplate(project: string, templateId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ReleaseDefinitionEnvironmentTemplate} template
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>
+     */
+    createDefinitionEnvironmentTemplate(template: Contracts.ReleaseDefinitionEnvironmentTemplate, project: string): IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ReleaseEnvironmentUpdateMetadata} environmentUpdateData
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} environmentId
+     * @return IPromise<Contracts.ReleaseEnvironment>
+     */
+    updateReleaseEnvironment(environmentUpdateData: Contracts.ReleaseEnvironmentUpdateMetadata, project: string, releaseId: number, environmentId: number): IPromise<Contracts.ReleaseEnvironment>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} environmentId
+     * @return IPromise<Contracts.ReleaseEnvironment>
+     */
+    getReleaseEnvironment(project: string, releaseId: number, environmentId: number): IPromise<Contracts.ReleaseEnvironment>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ReleaseDefinition} releaseDefinition
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.ReleaseDefinition>
+     */
+    updateReleaseDefinition(releaseDefinition: Contracts.ReleaseDefinition, project: string): IPromise<Contracts.ReleaseDefinition>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} artifactType
+     * @param {string} artifactSourceId
+     * @param {Contracts.ReleaseDefinitionExpands} expand
+     * @return IPromise<Contracts.ReleaseDefinition[]>
+     */
+    getReleaseDefinitionsForArtifactSource(project: string, artifactType: string, artifactSourceId: string, expand?: Contracts.ReleaseDefinitionExpands): IPromise<Contracts.ReleaseDefinition[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} searchText
+     * @param {Contracts.ReleaseDefinitionExpands} expand
+     * @return IPromise<Contracts.ReleaseDefinition[]>
+     */
+    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands): IPromise<Contracts.ReleaseDefinition[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId
+     * @return IPromise<Contracts.ReleaseDefinition>
+     */
+    getReleaseDefinition(project: string, definitionId: number): IPromise<Contracts.ReleaseDefinition>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId
+     * @return IPromise<void>
+     */
+    deleteReleaseDefinition(project: string, definitionId: number): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ReleaseDefinition} releaseDefinition
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.ReleaseDefinition>
+     */
+    createReleaseDefinition(releaseDefinition: Contracts.ReleaseDefinition, project: string): IPromise<Contracts.ReleaseDefinition>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} baseReleaseId
+     * @param {number} top
+     * @return IPromise<Contracts.Change[]>
+     */
+    getReleaseChanges(project: string, releaseId: number, baseReleaseId?: number, top?: number): IPromise<Contracts.Change[]>;
     /**
      * [Preview API]
      *
@@ -1254,689 +1610,41 @@ export class ReleaseHttpClient3 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
+     * @param {Contracts.ReleaseApproval} approval
      * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {number} baseReleaseId
-     * @param {number} top
-     * @return IPromise<Contracts.Change[]>
+     * @param {number} approvalId
+     * @return IPromise<Contracts.ReleaseApproval>
      */
-    getReleaseChanges(project: string, releaseId: number, baseReleaseId?: number, top?: number): IPromise<Contracts.Change[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.ReleaseDefinition} releaseDefinition
-     * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.ReleaseDefinition>
-     */
-    createReleaseDefinition(releaseDefinition: Contracts.ReleaseDefinition, project: string): IPromise<Contracts.ReleaseDefinition>;
+    updateReleaseApproval(approval: Contracts.ReleaseApproval, project: string, approvalId: number): IPromise<Contracts.ReleaseApproval>;
     /**
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
-     * @param {number} definitionId
-     * @return IPromise<void>
+     * @param {number} approvalId
+     * @param {boolean} includeHistory
+     * @return IPromise<Contracts.ReleaseApproval>
      */
-    deleteReleaseDefinition(project: string, definitionId: number): IPromise<void>;
+    getApproval(project: string, approvalId: number, includeHistory?: boolean): IPromise<Contracts.ReleaseApproval>;
     /**
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
-     * @param {number} definitionId
-     * @return IPromise<Contracts.ReleaseDefinition>
+     * @param {number} approvalStepId
+     * @return IPromise<Contracts.ReleaseApproval>
      */
-    getReleaseDefinition(project: string, definitionId: number): IPromise<Contracts.ReleaseDefinition>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} searchText
-     * @param {Contracts.ReleaseDefinitionExpands} expand
-     * @return IPromise<Contracts.ReleaseDefinition[]>
-     */
-    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands): IPromise<Contracts.ReleaseDefinition[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} artifactType
-     * @param {string} artifactSourceId
-     * @param {Contracts.ReleaseDefinitionExpands} expand
-     * @return IPromise<Contracts.ReleaseDefinition[]>
-     */
-    getReleaseDefinitionsForArtifactSource(project: string, artifactType: string, artifactSourceId: string, expand?: Contracts.ReleaseDefinitionExpands): IPromise<Contracts.ReleaseDefinition[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.ReleaseDefinition} releaseDefinition
-     * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.ReleaseDefinition>
-     */
-    updateReleaseDefinition(releaseDefinition: Contracts.ReleaseDefinition, project: string): IPromise<Contracts.ReleaseDefinition>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {number} environmentId
-     * @return IPromise<Contracts.ReleaseEnvironment>
-     */
-    getReleaseEnvironment(project: string, releaseId: number, environmentId: number): IPromise<Contracts.ReleaseEnvironment>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.ReleaseEnvironmentUpdateMetadata} environmentUpdateData
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {number} environmentId
-     * @return IPromise<Contracts.ReleaseEnvironment>
-     */
-    updateReleaseEnvironment(environmentUpdateData: Contracts.ReleaseEnvironmentUpdateMetadata, project: string, releaseId: number, environmentId: number): IPromise<Contracts.ReleaseEnvironment>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.ReleaseDefinitionEnvironmentTemplate} template
-     * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>
-     */
-    createDefinitionEnvironmentTemplate(template: Contracts.ReleaseDefinitionEnvironmentTemplate, project: string): IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} templateId
-     * @return IPromise<void>
-     */
-    deleteDefinitionEnvironmentTemplate(project: string, templateId: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} templateId
-     * @return IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>
-     */
-    getDefinitionEnvironmentTemplate(project: string, templateId: string): IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate[]>
-     */
-    listDefinitionEnvironmentTemplates(project: string): IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @return IPromise<Contracts.ReleaseRevision[]>
-     */
-    getReleaseHistory(project: string, releaseId: number): IPromise<Contracts.ReleaseRevision[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {VSS_FormInput_Contracts.InputValuesQuery} query
-     * @param {string} project - Project ID or project name
-     * @return IPromise<VSS_FormInput_Contracts.InputValuesQuery>
-     */
-    getInputValues(query: VSS_FormInput_Contracts.InputValuesQuery, project: string): IPromise<VSS_FormInput_Contracts.InputValuesQuery>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @return IPromise<ArrayBuffer>
-     */
-    getLogs(project: string, releaseId: number): IPromise<ArrayBuffer>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {number} environmentId
-     * @param {number} taskId
-     * @param {number} attemptId
-     * @return IPromise<string>
-     */
-    getLog(project: string, releaseId: number, environmentId: number, taskId: number, attemptId?: number): IPromise<string>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.ReleaseStartMetadata} releaseStartMetadata
-     * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.Release>
-     */
-    createRelease(releaseStartMetadata: Contracts.ReleaseStartMetadata, project: string): IPromise<Contracts.Release>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @return IPromise<void>
-     */
-    deleteRelease(project: string, releaseId: number): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {boolean} includeAllApprovals
-     * @return IPromise<Contracts.Release>
-     */
-    getRelease(project: string, releaseId: number, includeAllApprovals?: boolean): IPromise<Contracts.Release>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} definitionId
-     * @param {number} releaseCount
-     * @param {boolean} includeArtifact
-     * @return IPromise<Contracts.ReleaseDefinitionSummary>
-     */
-    getReleaseDefinitionSummary(project: string, definitionId: number, releaseCount: number, includeArtifact?: boolean): IPromise<Contracts.ReleaseDefinitionSummary>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {number} definitionSnapshotRevision
-     * @return IPromise<string>
-     */
-    getReleaseRevision(project: string, releaseId: number, definitionSnapshotRevision: number): IPromise<string>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} definitionId
-     * @param {number} definitionEnvironmentId
-     * @param {string} searchText
-     * @param {string} createdBy
-     * @param {Contracts.ReleaseStatus} statusFilter
-     * @param {number} environmentStatusFilter
-     * @param {Date} minCreatedTime
-     * @param {Date} maxCreatedTime
-     * @param {Contracts.ReleaseQueryOrder} queryOrder
-     * @param {number} top
-     * @param {number} continuationToken
-     * @param {Contracts.ReleaseExpands} expand
-     * @param {string} artifactTypeId
-     * @param {number} artifactSourceId
-     * @param {string} artifactVersionId
-     * @return IPromise<Contracts.Release[]>
-     */
-    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, artifactSourceId?: number, artifactVersionId?: string): IPromise<Contracts.Release[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.Release} release
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @return IPromise<Contracts.Release>
-     */
-    updateRelease(release: Contracts.Release, project: string, releaseId: number): IPromise<Contracts.Release>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.ReleaseUpdateMetadata} releaseUpdateMetadata
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @return IPromise<Contracts.Release>
-     */
-    updateReleaseResource(releaseUpdateMetadata: Contracts.ReleaseUpdateMetadata, project: string, releaseId: number): IPromise<Contracts.Release>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} definitionId
-     * @return IPromise<Contracts.ReleaseDefinitionRevision[]>
-     */
-    getReleaseDefinitionHistory(project: string, definitionId: number): IPromise<Contracts.ReleaseDefinitionRevision[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} definitionId
-     * @param {number} revision
-     * @return IPromise<string>
-     */
-    getReleaseDefinitionRevision(project: string, definitionId: number, revision: number): IPromise<string>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @return IPromise<Contracts.SummaryMailSection[]>
-     */
-    getSummaryMailSections(project: string, releaseId: number): IPromise<Contracts.SummaryMailSection[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.MailMessage} mailMessage
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @return IPromise<void>
-     */
-    sendSummaryMail(mailMessage: Contracts.MailMessage, project: string, releaseId: number): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} typeId
-     * @return IPromise<Contracts.ArtifactSourceIdsQueryResult>
-     */
-    getArtifactsSources(project: string, typeId?: string): IPromise<Contracts.ArtifactSourceIdsQueryResult>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {number} environmentId
-     * @param {number} attemptId
-     * @return IPromise<Contracts.ReleaseTask[]>
-     */
-    getTasks(project: string, releaseId: number, environmentId: number, attemptId?: number): IPromise<Contracts.ReleaseTask[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.ArtifactTypeDefinition[]>
-     */
-    getArtifactTypeDefinitions(project: string): IPromise<Contracts.ArtifactTypeDefinition[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseDefinitionId
-     * @return IPromise<Contracts.ArtifactVersionQueryResult>
-     */
-    getArtifactVersions(project: string, releaseDefinitionId: number): IPromise<Contracts.ArtifactVersionQueryResult>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.Artifact[]} artifacts
-     * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.ArtifactVersionQueryResult>
-     */
-    getArtifactVersionsForSources(artifacts: Contracts.Artifact[], project: string): IPromise<Contracts.ArtifactVersionQueryResult>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {number} baseReleaseId
-     * @param {number} top
-     * @return IPromise<Contracts.ReleaseWorkItemRef[]>
-     */
-    getReleaseWorkItemsRefs(project: string, releaseId: number, baseReleaseId?: number, top?: number): IPromise<Contracts.ReleaseWorkItemRef[]>;
+    getApprovalHistory(project: string, approvalStepId: number): IPromise<Contracts.ReleaseApproval>;
 }
 /**
  * @exemptedapi
  */
-export class ReleaseHttpClient2_2 extends VSS_WebApi.VssHttpClient {
-    static serviceInstanceId: string;
+export class ReleaseHttpClient3 extends CommonMethods2_2To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API] Returns the artifact details that automation agent requires
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @return IPromise<Contracts.AgentArtifactDefinition[]>
-     */
-    getAgentArtifactDefinitions(project: string, releaseId: number): IPromise<Contracts.AgentArtifactDefinition[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} approvalStepId
-     * @return IPromise<Contracts.ReleaseApproval>
-     */
-    getApprovalHistory(project: string, approvalStepId: number): IPromise<Contracts.ReleaseApproval>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} approvalId
-     * @param {boolean} includeHistory
-     * @return IPromise<Contracts.ReleaseApproval>
-     */
-    getApproval(project: string, approvalId: number, includeHistory?: boolean): IPromise<Contracts.ReleaseApproval>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.ReleaseApproval} approval
-     * @param {string} project - Project ID or project name
-     * @param {number} approvalId
-     * @return IPromise<Contracts.ReleaseApproval>
-     */
-    updateReleaseApproval(approval: Contracts.ReleaseApproval, project: string, approvalId: number): IPromise<Contracts.ReleaseApproval>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} assignedToFilter
-     * @param {Contracts.ApprovalStatus} statusFilter
-     * @param {number[]} releaseIdsFilter
-     * @param {Contracts.ApprovalType} typeFilter
-     * @param {number} top
-     * @param {number} continuationToken
-     * @param {Contracts.ReleaseQueryOrder} queryOrder
-     * @param {boolean} includeMyGroupApprovals
-     * @return IPromise<Contracts.ReleaseApproval[]>
-     */
-    getApprovals(project: string, assignedToFilter?: string, statusFilter?: Contracts.ApprovalStatus, releaseIdsFilter?: number[], typeFilter?: Contracts.ApprovalType, top?: number, continuationToken?: number, queryOrder?: Contracts.ReleaseQueryOrder, includeMyGroupApprovals?: boolean): IPromise<Contracts.ReleaseApproval[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {number} baseReleaseId
-     * @param {number} top
-     * @return IPromise<Contracts.Change[]>
-     */
-    getReleaseChanges(project: string, releaseId: number, baseReleaseId?: number, top?: number): IPromise<Contracts.Change[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.ReleaseDefinition} releaseDefinition
-     * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.ReleaseDefinition>
-     */
-    createReleaseDefinition(releaseDefinition: Contracts.ReleaseDefinition, project: string): IPromise<Contracts.ReleaseDefinition>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} definitionId
-     * @return IPromise<void>
-     */
-    deleteReleaseDefinition(project: string, definitionId: number): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} definitionId
-     * @return IPromise<Contracts.ReleaseDefinition>
-     */
-    getReleaseDefinition(project: string, definitionId: number): IPromise<Contracts.ReleaseDefinition>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} searchText
-     * @param {Contracts.ReleaseDefinitionExpands} expand
-     * @return IPromise<Contracts.ReleaseDefinition[]>
-     */
-    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands): IPromise<Contracts.ReleaseDefinition[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} artifactType
-     * @param {string} artifactSourceId
-     * @param {Contracts.ReleaseDefinitionExpands} expand
-     * @return IPromise<Contracts.ReleaseDefinition[]>
-     */
-    getReleaseDefinitionsForArtifactSource(project: string, artifactType: string, artifactSourceId: string, expand?: Contracts.ReleaseDefinitionExpands): IPromise<Contracts.ReleaseDefinition[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.ReleaseDefinition} releaseDefinition
-     * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.ReleaseDefinition>
-     */
-    updateReleaseDefinition(releaseDefinition: Contracts.ReleaseDefinition, project: string): IPromise<Contracts.ReleaseDefinition>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {number} environmentId
-     * @return IPromise<Contracts.ReleaseEnvironment>
-     */
-    getReleaseEnvironment(project: string, releaseId: number, environmentId: number): IPromise<Contracts.ReleaseEnvironment>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.ReleaseEnvironmentUpdateMetadata} environmentUpdateData
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {number} environmentId
-     * @return IPromise<Contracts.ReleaseEnvironment>
-     */
-    updateReleaseEnvironment(environmentUpdateData: Contracts.ReleaseEnvironmentUpdateMetadata, project: string, releaseId: number, environmentId: number): IPromise<Contracts.ReleaseEnvironment>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.ReleaseDefinitionEnvironmentTemplate} template
-     * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>
-     */
-    createDefinitionEnvironmentTemplate(template: Contracts.ReleaseDefinitionEnvironmentTemplate, project: string): IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} templateId
-     * @return IPromise<void>
-     */
-    deleteDefinitionEnvironmentTemplate(project: string, templateId: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} templateId
-     * @return IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>
-     */
-    getDefinitionEnvironmentTemplate(project: string, templateId: string): IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate[]>
-     */
-    listDefinitionEnvironmentTemplates(project: string): IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @return IPromise<Contracts.ReleaseRevision[]>
-     */
-    getReleaseHistory(project: string, releaseId: number): IPromise<Contracts.ReleaseRevision[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {VSS_FormInput_Contracts.InputValuesQuery} query
-     * @param {string} project - Project ID or project name
-     * @return IPromise<VSS_FormInput_Contracts.InputValuesQuery>
-     */
-    getInputValues(query: VSS_FormInput_Contracts.InputValuesQuery, project: string): IPromise<VSS_FormInput_Contracts.InputValuesQuery>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @return IPromise<ArrayBuffer>
-     */
-    getLogs(project: string, releaseId: number): IPromise<ArrayBuffer>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {number} environmentId
-     * @param {number} taskId
-     * @param {number} attemptId
-     * @return IPromise<string>
-     */
-    getLog(project: string, releaseId: number, environmentId: number, taskId: number, attemptId?: number): IPromise<string>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.ReleaseStartMetadata} releaseStartMetadata
-     * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.Release>
-     */
-    createRelease(releaseStartMetadata: Contracts.ReleaseStartMetadata, project: string): IPromise<Contracts.Release>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @return IPromise<void>
-     */
-    deleteRelease(project: string, releaseId: number): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {boolean} includeAllApprovals
-     * @return IPromise<Contracts.Release>
-     */
-    getRelease(project: string, releaseId: number, includeAllApprovals?: boolean): IPromise<Contracts.Release>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} definitionId
-     * @param {number} releaseCount
-     * @param {boolean} includeArtifact
-     * @return IPromise<Contracts.ReleaseDefinitionSummary>
-     */
-    getReleaseDefinitionSummary(project: string, definitionId: number, releaseCount: number, includeArtifact?: boolean): IPromise<Contracts.ReleaseDefinitionSummary>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {number} definitionSnapshotRevision
-     * @return IPromise<string>
-     */
-    getReleaseRevision(project: string, releaseId: number, definitionSnapshotRevision: number): IPromise<string>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} definitionId
-     * @param {number} definitionEnvironmentId
-     * @param {string} searchText
-     * @param {string} createdBy
-     * @param {Contracts.ReleaseStatus} statusFilter
-     * @param {number} environmentStatusFilter
-     * @param {Date} minCreatedTime
-     * @param {Date} maxCreatedTime
-     * @param {Contracts.ReleaseQueryOrder} queryOrder
-     * @param {number} top
-     * @param {number} continuationToken
-     * @param {Contracts.ReleaseExpands} expand
-     * @param {string} artifactTypeId
-     * @param {number} artifactSourceId
-     * @param {string} artifactVersionId
-     * @return IPromise<Contracts.Release[]>
-     */
-    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, artifactSourceId?: number, artifactVersionId?: string): IPromise<Contracts.Release[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.Release} release
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @return IPromise<Contracts.Release>
-     */
-    updateRelease(release: Contracts.Release, project: string, releaseId: number): IPromise<Contracts.Release>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.ReleaseUpdateMetadata} releaseUpdateMetadata
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @return IPromise<Contracts.Release>
-     */
-    updateReleaseResource(releaseUpdateMetadata: Contracts.ReleaseUpdateMetadata, project: string, releaseId: number): IPromise<Contracts.Release>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} definitionId
-     * @return IPromise<Contracts.ReleaseDefinitionRevision[]>
-     */
-    getReleaseDefinitionHistory(project: string, definitionId: number): IPromise<Contracts.ReleaseDefinitionRevision[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} definitionId
-     * @param {number} revision
-     * @return IPromise<string>
-     */
-    getReleaseDefinitionRevision(project: string, definitionId: number, revision: number): IPromise<string>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @return IPromise<Contracts.SummaryMailSection[]>
-     */
-    getSummaryMailSections(project: string, releaseId: number): IPromise<Contracts.SummaryMailSection[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.MailMessage} mailMessage
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @return IPromise<void>
-     */
-    sendSummaryMail(mailMessage: Contracts.MailMessage, project: string, releaseId: number): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} typeId
-     * @return IPromise<Contracts.ArtifactSourceIdsQueryResult>
-     */
-    getArtifactsSources(project: string, typeId?: string): IPromise<Contracts.ArtifactSourceIdsQueryResult>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {number} environmentId
-     * @param {number} attemptId
-     * @return IPromise<Contracts.ReleaseTask[]>
-     */
-    getTasks(project: string, releaseId: number, environmentId: number, attemptId?: number): IPromise<Contracts.ReleaseTask[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.ArtifactTypeDefinition[]>
-     */
-    getArtifactTypeDefinitions(project: string): IPromise<Contracts.ArtifactTypeDefinition[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseDefinitionId
-     * @return IPromise<Contracts.ArtifactVersionQueryResult>
-     */
-    getArtifactVersions(project: string, releaseDefinitionId: number): IPromise<Contracts.ArtifactVersionQueryResult>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.Artifact[]} artifacts
-     * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.ArtifactVersionQueryResult>
-     */
-    getArtifactVersionsForSources(artifacts: Contracts.Artifact[], project: string): IPromise<Contracts.ArtifactVersionQueryResult>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {number} baseReleaseId
-     * @param {number} top
-     * @return IPromise<Contracts.ReleaseWorkItemRef[]>
-     */
-    getReleaseWorkItemsRefs(project: string, releaseId: number, baseReleaseId?: number, top?: number): IPromise<Contracts.ReleaseWorkItemRef[]>;
+}
+/**
+ * @exemptedapi
+ */
+export class ReleaseHttpClient2_2 extends CommonMethods2_2To3 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 export class ReleaseHttpClient extends ReleaseHttpClient3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
