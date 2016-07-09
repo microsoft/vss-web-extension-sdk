@@ -25,5 +25,9 @@
   "bugs": {
     "url": "https://github.com/Microsoft/vss-web-extension-sdk/issues"
   },
-  "homepage": "https://www.visualstudio.com/integrate/extensions/overview"
+  "homepage": "https://www.visualstudio.com/integrate/extensions/overview",
+  "jspm": {
+    "main": "lib/VSS.SDK",
+    "format": "global"
+  }
 }
