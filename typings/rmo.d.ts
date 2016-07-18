@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v101.20160627.0902
+// Type definitions for Microsoft Visual Studio Services v102.20160718.1146
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -7,8 +7,10 @@ declare module "ReleaseManagement/Core/Constants" {
 export module ArtifactDefinitionConstants {
     var ProjectId: string;
     var ConnectionId: string;
+    var ConnectionName: string;
     var DefinitionId: string;
     var RepositoryId: string;
+    var BranchId: string;
     var MappingsId: string;
     var MappingTypeId: string;
     var ServerPathId: string;
@@ -37,6 +39,7 @@ export module WellKnownReleaseVariables {
     var System: string;
     var Build: string;
     var HostTypeValue: string;
+    var DeploymentHostType: string;
     var ReleaseArtifact: string;
     var ReleaseEnvironments: string;
     var AgentReleaseDirectory: string;
@@ -55,6 +58,7 @@ export module WellKnownReleaseVariables {
     var ReleaseUri: string;
     var ReleaseWebUrl: string;
     var ReleaseEnvironmentUri: string;
+    var ReleaseEnvironmentId: string;
     var ReleaseEnvironmentName: string;
     var RequestorId: string;
     var ReleaseRequestedForId: string;
@@ -129,7 +133,6 @@ export interface Artifact {
     definitionReference: {
         [key: string]: ArtifactSourceReference;
     };
-    id: number;
     isPrimary: boolean;
     sourceId: string;
     type: string;
@@ -174,7 +177,7 @@ export interface ArtifactTypeDefinition {
     uniqueSourceIdentifier: string;
 }
 export interface ArtifactVersion {
-    artifactSourceId: number;
+    alias: string;
     errorMessage: string;
     sourceId: string;
     versions: BuildVersion[];
@@ -300,6 +303,11 @@ export interface EnvironmentOptions {
     skipArtifactsDownload: boolean;
     timeoutInMinutes: number;
 }
+export interface EnvironmentRetentionPolicy {
+    daysToKeep: number;
+    releasesToKeep: number;
+    retainBuild: boolean;
+}
 export enum EnvironmentStatus {
     Undefined = 0,
     NotStarted = 1,
@@ -309,16 +317,7 @@ export enum EnvironmentStatus {
     Rejected = 16,
     Queued = 32,
     Scheduled = 64,
-}
-export enum EnvironmentStatusOld {
-    Undefined = 0,
-    NotStarted = 1,
-    Pending = 2,
-    Succeeded = 3,
-    Rejected = 4,
-    InProgress = 5,
-    Canceled = 6,
-    Queued = 7,
+    PartiallySucceeded = 128,
 }
 export interface Issue {
     issueType: string;
@@ -352,6 +351,14 @@ export interface MappingDetails {
 export interface ProjectReference {
     id: string;
     name: string;
+}
+export interface PropertySelector {
+    properties: string[];
+    selectorType: PropertySelectorType;
+}
+export enum PropertySelectorType {
+    Inclusion = 0,
+    Exclusion = 1,
 }
 export interface RealtimeReleaseEvent {
     projectId: string;
@@ -487,6 +494,7 @@ export interface ReleaseDefinitionEnvironment {
     preDeployApprovals: ReleaseDefinitionApprovals;
     queueId: number;
     rank: number;
+    retentionPolicy: EnvironmentRetentionPolicy;
     runOptions: {
         [key: string]: string;
     };
@@ -593,21 +601,6 @@ export enum ReleaseExpands {
     Artifacts = 4,
     Approvals = 8,
 }
-export enum ReleaseManagementSecurityPermissions {
-    None = 0,
-    ViewReleaseDefinition = 1,
-    EditReleaseDefinition = 2,
-    DeleteReleaseDefinition = 4,
-    ManageReleaseApprovers = 8,
-    ManageReleases = 16,
-    ViewReleases = 32,
-    CreateReleases = 64,
-    EditReleaseEnvironment = 128,
-    DeleteReleaseEnvironment = 256,
-    AdministerReleasePermissions = 512,
-    DeleteReleases = 1024,
-    ManageDeployments = 2048,
-}
 export enum ReleaseQueryOrder {
     Descending = 0,
     Ascending = 1,
@@ -662,12 +655,6 @@ export enum ReleaseStatus {
     Draft = 1,
     Active = 2,
     Abandoned = 4,
-}
-export enum ReleaseStatusOld {
-    Undefined = 0,
-    Draft = 1,
-    Abandoned = 2,
-    Active = 3,
 }
 export interface ReleaseTask {
     agentName: string;
@@ -766,6 +753,7 @@ export enum TaskStatus {
     Skipped = 6,
     Succeeded = 7,
     Failed = 8,
+    PartiallySucceeded = 9,
 }
 export interface TimeZone {
     displayName: string;
@@ -785,12 +773,11 @@ export interface WorkflowTask {
     };
     name: string;
     taskId: string;
+    timeoutInMinutes: number;
     version: string;
 }
 export var TypeInfo: {
-    AgentArtifactDefinition: {
-        fields: any;
-    };
+    AgentArtifactDefinition: any;
     AgentArtifactType: {
         enumValues: {
             "xamlBuild": number;
@@ -805,9 +792,6 @@ export var TypeInfo: {
             "custom": number;
             "tfvc": number;
         };
-    };
-    ApprovalOptions: {
-        fields: any;
     };
     ApprovalStatus: {
         enumValues: {
@@ -828,39 +812,8 @@ export var TypeInfo: {
             "all": number;
         };
     };
-    Artifact: {
-        fields: any;
-    };
-    ArtifactInstanceData: {
-        fields: any;
-    };
-    ArtifactMetadata: {
-        fields: any;
-    };
-    ArtifactProvider: {
-        fields: any;
-    };
-    ArtifactSourceId: {
-        fields: any;
-    };
-    ArtifactSourceIdsQueryResult: {
-        fields: any;
-    };
-    ArtifactSourceReference: {
-        fields: any;
-    };
-    ArtifactSourceTrigger: {
-        fields: any;
-    };
-    ArtifactTypeDefinition: {
-        fields: any;
-    };
-    ArtifactVersion: {
-        fields: any;
-    };
-    ArtifactVersionQueryResult: {
-        fields: any;
-    };
+    ArtifactSourceTrigger: any;
+    ArtifactTypeDefinition: any;
     AuditAction: {
         enumValues: {
             "add": number;
@@ -868,15 +821,8 @@ export var TypeInfo: {
             "delete": number;
         };
     };
-    BuildVersion: {
-        fields: any;
-    };
-    Change: {
-        fields: any;
-    };
-    Condition: {
-        fields: any;
-    };
+    Change: any;
+    Condition: any;
     ConditionType: {
         enumValues: {
             "undefined": number;
@@ -884,36 +830,11 @@ export var TypeInfo: {
             "environmentState": number;
         };
     };
-    ConfigurationVariableValue: {
-        fields: any;
-    };
-    Consumer: {
-        fields: any;
-    };
-    DeploymentApprovalCompletedEvent: {
-        fields: any;
-    };
-    DeploymentApprovalPendingEvent: {
-        fields: any;
-    };
-    DeploymentAttempt: {
-        fields: any;
-    };
-    DeploymentCompletedEvent: {
-        fields: any;
-    };
-    DeploymentStartedEvent: {
-        fields: any;
-    };
-    EmailRecipients: {
-        fields: any;
-    };
-    EnvironmentExecutionPolicy: {
-        fields: any;
-    };
-    EnvironmentOptions: {
-        fields: any;
-    };
+    DeploymentApprovalCompletedEvent: any;
+    DeploymentApprovalPendingEvent: any;
+    DeploymentAttempt: any;
+    DeploymentCompletedEvent: any;
+    DeploymentStartedEvent: any;
     EnvironmentStatus: {
         enumValues: {
             "undefined": number;
@@ -924,26 +845,10 @@ export var TypeInfo: {
             "rejected": number;
             "queued": number;
             "scheduled": number;
+            "partiallySucceeded": number;
         };
     };
-    EnvironmentStatusOld: {
-        enumValues: {
-            "undefined": number;
-            "notStarted": number;
-            "pending": number;
-            "succeeded": number;
-            "rejected": number;
-            "inProgress": number;
-            "canceled": number;
-            "queued": number;
-        };
-    };
-    Issue: {
-        fields: any;
-    };
-    MailMessage: {
-        fields: any;
-    };
+    MailMessage: any;
     MailSectionType: {
         enumValues: {
             "details": number;
@@ -954,60 +859,22 @@ export var TypeInfo: {
             "releaseInfo": number;
         };
     };
-    MappingDetails: {
-        fields: any;
+    PropertySelector: any;
+    PropertySelectorType: {
+        enumValues: {
+            "inclusion": number;
+            "exclusion": number;
+        };
     };
-    ProjectReference: {
-        fields: any;
-    };
-    RealtimeReleaseEvent: {
-        fields: any;
-    };
-    Release: {
-        fields: any;
-    };
-    ReleaseAbandonedEvent: {
-        fields: any;
-    };
-    ReleaseApproval: {
-        fields: any;
-    };
-    ReleaseApprovalHistory: {
-        fields: any;
-    };
-    ReleaseApprovalPendingEvent: {
-        fields: any;
-    };
-    ReleaseArtifact: {
-        fields: any;
-    };
-    ReleaseCreatedEvent: {
-        fields: any;
-    };
-    ReleaseDefinition: {
-        fields: any;
-    };
-    ReleaseDefinitionApprovals: {
-        fields: any;
-    };
-    ReleaseDefinitionApprovalStep: {
-        fields: any;
-    };
-    ReleaseDefinitionDeployStep: {
-        fields: any;
-    };
-    ReleaseDefinitionEnvironment: {
-        fields: any;
-    };
-    ReleaseDefinitionEnvironmentStep: {
-        fields: any;
-    };
-    ReleaseDefinitionEnvironmentSummary: {
-        fields: any;
-    };
-    ReleaseDefinitionEnvironmentTemplate: {
-        fields: any;
-    };
+    Release: any;
+    ReleaseAbandonedEvent: any;
+    ReleaseApproval: any;
+    ReleaseApprovalHistory: any;
+    ReleaseApprovalPendingEvent: any;
+    ReleaseCreatedEvent: any;
+    ReleaseDefinition: any;
+    ReleaseDefinitionEnvironment: any;
+    ReleaseDefinitionEnvironmentTemplate: any;
     ReleaseDefinitionExpands: {
         enumValues: {
             "none": number;
@@ -1016,44 +883,17 @@ export var TypeInfo: {
             "triggers": number;
         };
     };
-    ReleaseDefinitionRevision: {
-        fields: any;
-    };
-    ReleaseDefinitionSummary: {
-        fields: any;
-    };
-    ReleaseEnvironment: {
-        fields: any;
-    };
-    ReleaseEnvironmentCompletedEvent: {
-        fields: any;
-    };
-    ReleaseEnvironmentUpdateMetadata: {
-        fields: any;
-    };
+    ReleaseDefinitionRevision: any;
+    ReleaseDefinitionSummary: any;
+    ReleaseEnvironment: any;
+    ReleaseEnvironmentCompletedEvent: any;
+    ReleaseEnvironmentUpdateMetadata: any;
     ReleaseExpands: {
         enumValues: {
             "none": number;
             "environments": number;
             "artifacts": number;
             "approvals": number;
-        };
-    };
-    ReleaseManagementSecurityPermissions: {
-        enumValues: {
-            "none": number;
-            "viewReleaseDefinition": number;
-            "editReleaseDefinition": number;
-            "deleteReleaseDefinition": number;
-            "manageReleaseApprovers": number;
-            "manageReleases": number;
-            "viewReleases": number;
-            "createReleases": number;
-            "editReleaseEnvironment": number;
-            "deleteReleaseEnvironment": number;
-            "administerReleasePermissions": number;
-            "deleteReleases": number;
-            "manageDeployments": number;
         };
     };
     ReleaseQueryOrder: {
@@ -1070,15 +910,9 @@ export var TypeInfo: {
             "schedule": number;
         };
     };
-    ReleaseRevision: {
-        fields: any;
-    };
-    ReleaseSchedule: {
-        fields: any;
-    };
-    ReleaseStartMetadata: {
-        fields: any;
-    };
+    ReleaseRevision: any;
+    ReleaseSchedule: any;
+    ReleaseStartMetadata: any;
     ReleaseStatus: {
         enumValues: {
             "undefined": number;
@@ -1087,26 +921,9 @@ export var TypeInfo: {
             "abandoned": number;
         };
     };
-    ReleaseStatusOld: {
-        enumValues: {
-            "undefined": number;
-            "draft": number;
-            "abandoned": number;
-            "active": number;
-        };
-    };
-    ReleaseTask: {
-        fields: any;
-    };
-    ReleaseTaskLogUpdatedEvent: {
-        fields: any;
-    };
-    ReleaseTasksUpdatedEvent: {
-        fields: any;
-    };
-    ReleaseTriggerBase: {
-        fields: any;
-    };
+    ReleaseTask: any;
+    ReleaseTasksUpdatedEvent: any;
+    ReleaseTriggerBase: any;
     ReleaseTriggerType: {
         enumValues: {
             "undefined": number;
@@ -1114,18 +931,8 @@ export var TypeInfo: {
             "schedule": number;
         };
     };
-    ReleaseUpdatedEvent: {
-        fields: any;
-    };
-    ReleaseUpdateMetadata: {
-        fields: any;
-    };
-    ReleaseWorkItemRef: {
-        fields: any;
-    };
-    RetentionPolicy: {
-        fields: any;
-    };
+    ReleaseUpdatedEvent: any;
+    ReleaseUpdateMetadata: any;
     ScheduleDays: {
         enumValues: {
             "none": number;
@@ -1139,24 +946,14 @@ export var TypeInfo: {
             "all": number;
         };
     };
-    ScheduledReleaseTrigger: {
-        fields: any;
-    };
+    ScheduledReleaseTrigger: any;
     SenderType: {
         enumValues: {
             "serviceAccount": number;
             "requestingUser": number;
         };
     };
-    ShallowReference: {
-        fields: any;
-    };
-    SourceIdInput: {
-        fields: any;
-    };
-    SummaryMailSection: {
-        fields: any;
-    };
+    SummaryMailSection: any;
     TaskStatus: {
         enumValues: {
             "unknown": number;
@@ -1168,16 +965,8 @@ export var TypeInfo: {
             "skipped": number;
             "succeeded": number;
             "failed": number;
+            "partiallySucceeded": number;
         };
-    };
-    TimeZone: {
-        fields: any;
-    };
-    TimeZoneList: {
-        fields: any;
-    };
-    WorkflowTask: {
-        fields: any;
     };
 };
 }
@@ -1271,7 +1060,6 @@ export class CommonMethods2_2To3 extends CommonMethods2To3 {
     protected releasesApiVersion: string;
     protected revisionsApiVersion: string;
     protected sendmailApiVersion: string;
-    protected sourcesApiVersion: string;
     protected tasksApiVersion: string;
     protected typesApiVersion: string;
     protected versionsApiVersion: string;
@@ -1320,14 +1108,6 @@ export class CommonMethods2_2To3 extends CommonMethods2To3 {
      * @return IPromise<Contracts.ReleaseTask[]>
      */
     getTasks(project: string, releaseId: number, environmentId: number, attemptId?: number): IPromise<Contracts.ReleaseTask[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} typeId
-     * @return IPromise<Contracts.ArtifactSourceIdsQueryResult>
-     */
-    getArtifactsSources(project: string, typeId?: string): IPromise<Contracts.ArtifactSourceIdsQueryResult>;
     /**
      * [Preview API]
      *
@@ -1399,9 +1179,10 @@ export class CommonMethods2_2To3 extends CommonMethods2To3 {
      * @param {string} artifactTypeId
      * @param {string} sourceId
      * @param {string} artifactVersionId
+     * @param {string} sourceBranchFilter
      * @return IPromise<Contracts.Release[]>
      */
-    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string): IPromise<Contracts.Release[]>;
+    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string): IPromise<Contracts.Release[]>;
     /**
      * [Preview API]
      *
@@ -1639,6 +1420,14 @@ export class CommonMethods2_2To3 extends CommonMethods2To3 {
  */
 export class ReleaseHttpClient3 extends CommonMethods2_2To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId
+     * @return IPromise<string[]>
+     */
+    getSourceBranches(project: string, definitionId: number): IPromise<string[]>;
 }
 /**
  * @exemptedapi
