@@ -19,7 +19,7 @@ The core SDK script, `VSS.SDK.js`, enables extensions to communicate to the host
 From your extension's HTML page, add a reference to the imported SDK script. For example:
 
 ```html
- <script src="bower_components/vss-sdk/lib/VSS.SDK.min.js"></script>
+ <script src="bower_components/vss-web-extension-sdk/lib/VSS.SDK.min.js"></script>
  ```
   
 ### NPM
