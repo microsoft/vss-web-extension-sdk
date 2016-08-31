@@ -83,7 +83,7 @@ Dependency graph for the types:
 Although TypeScript declare files do not exist at [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) repo, they can still be used through [tsd](https://www.npmjs.com/package/tsd).
 
 1. First, make sure that the dependencies are loaded using below command:
- * `tsd install jquery knockout q --save`
+ * `tsd install jquery knockout q require --save`
  
 2. Next, run below command to get vss-web-extension-sdk types added to tsd.d.ts:
  * `tsd link`

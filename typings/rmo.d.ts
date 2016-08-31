@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v102.20160718.1146
+// Type definitions for Microsoft Visual Studio Services v104.20160831.1112
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -15,6 +15,12 @@ export module ArtifactDefinitionConstants {
     var MappingTypeId: string;
     var ServerPathId: string;
     var LocalPathId: string;
+    var ArtifactId: string;
+    var ItemPath: string;
+    var Version: string;
+    var ArtifactSourceVersionUrl: string;
+    var ArtifactSourceDefinitionUrl: string;
+    var ArtifactItems: string;
 }
 export module ArtifactTypes {
     var BuildArtifactType: string;
@@ -34,6 +40,10 @@ export module RunOptionsConstants {
     var EnvironmentOwnerEmailNotificationTypeDefaultValue: string;
     var ReleaseCreator: string;
     var EnvironmentOwner: string;
+}
+export module WellKnownExtendedReleaseVariables {
+    var ReleaseArtifacts: string;
+    var ReleaseEnvironments: string;
 }
 export module WellKnownReleaseVariables {
     var System: string;
@@ -60,6 +70,7 @@ export module WellKnownReleaseVariables {
     var ReleaseEnvironmentUri: string;
     var ReleaseEnvironmentId: string;
     var ReleaseEnvironmentName: string;
+    var ReleaseDeployPhaseId: string;
     var RequestorId: string;
     var ReleaseRequestedForId: string;
     var AttemptNumber: string;
@@ -109,6 +120,16 @@ export enum AgentArtifactType {
     Custom = 9,
     Tfvc = 10,
 }
+export interface AgentBasedDeployPhase extends DeployPhase {
+    deploymentInput: AgentDeploymentInput;
+}
+export interface AgentDeploymentInput extends BaseDeploymentInput {
+    demands: any[];
+    enableAccessToken: boolean;
+    queueId: number;
+    skipArtifactsDownload: boolean;
+    timeoutInMinutes: number;
+}
 export interface ApprovalOptions {
     releaseCreatorCanBeApprover: boolean;
     requiredApproverCount: number;
@@ -136,6 +157,22 @@ export interface Artifact {
     isPrimary: boolean;
     sourceId: string;
     type: string;
+}
+export interface ArtifactContributionDefinition {
+    artifactType: string;
+    artifactTypeStreamMapping: {
+        [key: string]: string;
+    };
+    browsableArtifactTypeMapping: {
+        [key: string]: string;
+    };
+    dataSourceBindings: DataSourceBinding[];
+    displayName: string;
+    downloadTaskId: string;
+    endpointTypeId: string;
+    inputDescriptors: VSS_FormInput_Contracts.InputDescriptor[];
+    name: string;
+    uniqueSourceIdentifier: string;
 }
 export interface ArtifactInstanceData {
     accountName: string;
@@ -189,6 +226,8 @@ export enum AuditAction {
     Add = 1,
     Update = 2,
     Delete = 3,
+}
+export interface BaseDeploymentInput {
 }
 export interface BuildVersion {
     id: string;
@@ -246,6 +285,23 @@ export interface Consumer {
     consumerId: number;
     consumerName: string;
 }
+export interface ControlOptions {
+    alwaysRun: boolean;
+    continueOnError: boolean;
+    enabled: boolean;
+}
+export interface DataSourceBinding {
+    dataSourceName: string;
+    endpointId: string;
+    endpointUrl: string;
+    parameters: {
+        [key: string]: string;
+    };
+    resultSelector: string;
+    resultTemplate: string;
+    target: string;
+    transformationTemplate: string;
+}
 export interface DeploymentApprovalCompletedEvent {
     approval: ReleaseApproval;
     project: ProjectReference;
@@ -258,6 +314,7 @@ export interface DeploymentApprovalPendingEvent {
 }
 export interface DeploymentAttempt {
     attempt: number;
+    deploymentId: number;
     /**
      * Error log to show any unexpected error that occurred during executing deploy step
      */
@@ -268,16 +325,81 @@ export interface DeploymentAttempt {
     hasStarted: boolean;
     id: number;
     job: ReleaseTask;
+    lastModifiedBy: VSS_Common_Contracts.IdentityRef;
+    lastModifiedOn: Date;
+    operationStatus: DeploymentOperationStatus;
+    queuedOn: Date;
+    reason: DeploymentReason;
+    releaseDeployPhases: ReleaseDeployPhase[];
+    requestedBy: VSS_Common_Contracts.IdentityRef;
     runPlanId: string;
+    status: DeploymentStatus;
     tasks: ReleaseTask[];
 }
 export interface DeploymentCompletedEvent {
     environment: ReleaseEnvironment;
     project: ProjectReference;
 }
+export interface DeploymentJob {
+    job: ReleaseTask;
+    tasks: ReleaseTask[];
+}
+export enum DeploymentOperationStatus {
+    Undefined = 0,
+    Queued = 1,
+    Scheduled = 2,
+    Pending = 4,
+    Approved = 8,
+    Rejected = 16,
+    Deferred = 32,
+    QueuedForAgent = 64,
+    PhaseInProgress = 128,
+    PhaseSucceeded = 256,
+    PhasePartiallySucceeded = 512,
+    PhaseFailed = 1024,
+    Canceled = 2048,
+    PhaseCanceled = 4096,
+}
+export enum DeploymentReason {
+    None = 0,
+    Manual = 1,
+    Automated = 2,
+    Scheduled = 4,
+}
 export interface DeploymentStartedEvent {
     environment: ReleaseEnvironment;
     project: ProjectReference;
+}
+export enum DeploymentStatus {
+    Undefined = 0,
+    NotDeployed = 1,
+    InProgress = 2,
+    Succeeded = 4,
+    PartiallySucceeded = 8,
+    Failed = 16,
+}
+export interface DeployPhase {
+    controlOptions: ControlOptions;
+    name: string;
+    phaseType: DeployPhaseTypes;
+    rank: number;
+    workflowTasks: WorkflowTask[];
+}
+export enum DeployPhaseStatus {
+    Undefined = 0,
+    NotStarted = 1,
+    InProgress = 2,
+    PartiallySucceeded = 4,
+    Succeeded = 8,
+    Failed = 16,
+    Canceled = 32,
+    Skipped = 64,
+}
+export enum DeployPhaseTypes {
+    Undefined = 0,
+    AgentBasedDeployment = 1,
+    RunOnServer = 2,
+    MachineGroupBasedDeployment = 4,
 }
 export interface EmailRecipients {
     emailAddresses: string[];
@@ -323,6 +445,12 @@ export interface Issue {
     issueType: string;
     message: string;
 }
+export interface MachineGroupBasedDeployPhase extends DeployPhase {
+    deploymentInput: MachineGroupDeploymentInput;
+}
+export interface MachineGroupDeploymentInput extends AgentDeploymentInput {
+    healthPercent: number;
+}
 export interface MailMessage {
     body: string;
     cC: EmailRecipients;
@@ -342,6 +470,31 @@ export enum MailSectionType {
     TestResults = 3,
     WorkItems = 4,
     ReleaseInfo = 5,
+}
+export interface ManualIntervention {
+    approver: VSS_Common_Contracts.IdentityRef;
+    comments: string;
+    createdOn: Date;
+    id: number;
+    instructions: string;
+    modifiedOn: Date;
+    release: ShallowReference;
+    releaseDefinition: ShallowReference;
+    releaseEnvironment: ShallowReference;
+    status: ManualInterventionStatus;
+    taskInstanceId: string;
+    url: string;
+}
+export enum ManualInterventionStatus {
+    Unknown = 0,
+    Pending = 1,
+    Rejected = 2,
+    Approved = 4,
+    Canceled = 8,
+}
+export interface ManualInterventionUpdateMetadata {
+    comment: string;
+    status: ManualInterventionStatus;
 }
 export interface MappingDetails {
     mappings: {
@@ -365,6 +518,7 @@ export interface RealtimeReleaseEvent {
     releaseId: number;
 }
 export interface Release {
+    _links: any;
     artifacts: Artifact[];
     comment: string;
     createdBy: VSS_Common_Contracts.IdentityRef;
@@ -447,6 +601,7 @@ export interface ReleaseCreatedEvent {
     release: Release;
 }
 export interface ReleaseDefinition {
+    _links: any;
     artifacts: Artifact[];
     comment: string;
     createdBy: VSS_Common_Contracts.IdentityRef;
@@ -484,6 +639,7 @@ export interface ReleaseDefinitionDeployStep extends ReleaseDefinitionEnvironmen
 export interface ReleaseDefinitionEnvironment {
     conditions: Condition[];
     demands: any[];
+    deployPhases: DeployPhase[];
     deployStep: ReleaseDefinitionDeployStep;
     environmentOptions: EnvironmentOptions;
     executionPolicy: EnvironmentExecutionPolicy;
@@ -540,11 +696,22 @@ export interface ReleaseDefinitionSummary {
     releaseDefinition: ShallowReference;
     releases: Release[];
 }
+export interface ReleaseDeployPhase {
+    deploymentJobs: DeploymentJob[];
+    errorLog: string;
+    id: number;
+    manualInterventions: ManualIntervention[];
+    phaseType: DeployPhaseTypes;
+    rank: number;
+    runPlanId: string;
+    status: DeployPhaseStatus;
+}
 export interface ReleaseEnvironment {
     conditions: Condition[];
     createdOn: Date;
     definitionEnvironmentId: number;
     demands: any[];
+    deployPhasesSnapshot: DeployPhase[];
     deploySteps: DeploymentAttempt[];
     environmentOptions: EnvironmentOptions;
     id: number;
@@ -577,12 +744,14 @@ export interface ReleaseEnvironment {
     workflowTasks: WorkflowTask[];
 }
 export interface ReleaseEnvironmentCompletedEvent {
+    conditions: Condition[];
     createdByName: string;
     definitionId: number;
     definitionName: string;
     environment: ReleaseEnvironment;
     environmentId: number;
     projectName: string;
+    reason: DeploymentReason;
     releaseCreatedBy: VSS_Common_Contracts.IdentityRef;
     releaseLogsUri: string;
     releaseName: string;
@@ -600,6 +769,7 @@ export enum ReleaseExpands {
     Environments = 2,
     Artifacts = 4,
     Approvals = 8,
+    ManualInterventions = 16,
 }
 export enum ReleaseQueryOrder {
     Descending = 0,
@@ -707,6 +877,8 @@ export interface ReleaseWorkItemRef {
 export interface RetentionPolicy {
     daysToKeep: number;
 }
+export interface RunOnServerDeployPhase extends DeployPhase {
+}
 export enum ScheduleDays {
     None = 0,
     Monday = 1,
@@ -793,6 +965,7 @@ export var TypeInfo: {
             "tfvc": number;
         };
     };
+    AgentBasedDeployPhase: any;
     ApprovalStatus: {
         enumValues: {
             "undefined": number;
@@ -812,6 +985,7 @@ export var TypeInfo: {
             "all": number;
         };
     };
+    ArtifactContributionDefinition: any;
     ArtifactSourceTrigger: any;
     ArtifactTypeDefinition: any;
     AuditAction: {
@@ -834,7 +1008,65 @@ export var TypeInfo: {
     DeploymentApprovalPendingEvent: any;
     DeploymentAttempt: any;
     DeploymentCompletedEvent: any;
+    DeploymentJob: any;
+    DeploymentOperationStatus: {
+        enumValues: {
+            "undefined": number;
+            "queued": number;
+            "scheduled": number;
+            "pending": number;
+            "approved": number;
+            "rejected": number;
+            "deferred": number;
+            "queuedForAgent": number;
+            "phaseInProgress": number;
+            "phaseSucceeded": number;
+            "phasePartiallySucceeded": number;
+            "phaseFailed": number;
+            "canceled": number;
+            "phaseCanceled": number;
+        };
+    };
+    DeploymentReason: {
+        enumValues: {
+            "none": number;
+            "manual": number;
+            "automated": number;
+            "scheduled": number;
+        };
+    };
     DeploymentStartedEvent: any;
+    DeploymentStatus: {
+        enumValues: {
+            "undefined": number;
+            "notDeployed": number;
+            "inProgress": number;
+            "succeeded": number;
+            "partiallySucceeded": number;
+            "failed": number;
+        };
+    };
+    DeployPhase: any;
+    DeployPhaseStatus: {
+        enumValues: {
+            "undefined": number;
+            "notStarted": number;
+            "inProgress": number;
+            "partiallySucceeded": number;
+            "succeeded": number;
+            "failed": number;
+            "canceled": number;
+            "skipped": number;
+        };
+    };
+    DeployPhaseTypes: {
+        enumValues: {
+            "undefined": number;
+            "agentBasedDeployment": number;
+            "runOnServer": number;
+            "machineGroupBasedDeployment": number;
+        };
+    };
     EnvironmentStatus: {
         enumValues: {
             "undefined": number;
@@ -848,6 +1080,7 @@ export var TypeInfo: {
             "partiallySucceeded": number;
         };
     };
+    MachineGroupBasedDeployPhase: any;
     MailMessage: any;
     MailSectionType: {
         enumValues: {
@@ -859,6 +1092,17 @@ export var TypeInfo: {
             "releaseInfo": number;
         };
     };
+    ManualIntervention: any;
+    ManualInterventionStatus: {
+        enumValues: {
+            "unknown": number;
+            "pending": number;
+            "rejected": number;
+            "approved": number;
+            "canceled": number;
+        };
+    };
+    ManualInterventionUpdateMetadata: any;
     PropertySelector: any;
     PropertySelectorType: {
         enumValues: {
@@ -885,6 +1129,7 @@ export var TypeInfo: {
     };
     ReleaseDefinitionRevision: any;
     ReleaseDefinitionSummary: any;
+    ReleaseDeployPhase: any;
     ReleaseEnvironment: any;
     ReleaseEnvironmentCompletedEvent: any;
     ReleaseEnvironmentUpdateMetadata: any;
@@ -894,6 +1139,7 @@ export var TypeInfo: {
             "environments": number;
             "artifacts": number;
             "approvals": number;
+            "manualInterventions": number;
         };
     };
     ReleaseQueryOrder: {
@@ -933,6 +1179,7 @@ export var TypeInfo: {
     };
     ReleaseUpdatedEvent: any;
     ReleaseUpdateMetadata: any;
+    RunOnServerDeployPhase: any;
     ScheduleDays: {
         enumValues: {
             "none": number;
@@ -1027,6 +1274,40 @@ export interface IReleaseEnvironmentsSummaryDataExtensionConfig {
         [key: string]: string;
     }) => void;
 }
+export interface IDeploymentWidgetDataExtension {
+    /**
+    * Deployment widget will call this function whenever it tries to render/refresh the widget view.
+    * As the amount of data being fetched is too huge, we need to batch it.
+    * Calling triggerFetchData will only start the process of fetching required data in batches.
+    * The extension will be calling updateContributionData as and when it has finished fetching results for one of the batches.
+    */
+    triggerFetchingContributionData: (releaseEnvironments: {
+        releaseId: number;
+        environmentId: number;
+    }[]) => void;
+}
+export interface IDeploymentWidgetDataExtensionConfig {
+    /**
+    * The extension will be calling this as and when it has finished fetching results for one of the batches.
+    */
+    updateContributionData: (overlayData: IDeploymentWidgetOverlayData[]) => void;
+}
+/**
+    * releaseEnvironmentReference -> release and environment to which the test results belong to.
+    * data: Contains value of the overlay metric
+    * toolTipData: KeyValuePair -> These details will be added to the tool-tip shown on hover
+    * targetUrl: The url to navigate to on clicking the overlayData.
+*/
+export interface IDeploymentWidgetOverlayData {
+    releaseEnvironmentReference: IReleaseEnvironmentReference;
+    data: string;
+    targetUrl: string;
+    toolTipData: string[];
+}
+export interface IReleaseEnvironmentReference {
+    releaseId: number;
+    environmentId: number;
+}
 }
 declare module "ReleaseManagement/Core/RestClient" {
 import Contracts = require("ReleaseManagement/Core/Contracts");
@@ -1056,7 +1337,7 @@ export class CommonMethods2_2To3 extends CommonMethods2To3 {
     protected historyApiVersion: string;
     protected inputvaluesqueryApiVersion: string;
     protected logsApiVersion: string;
-    protected logsApiVersion_c37fbab5: string;
+    protected logsApiVersion_e71ba1ed: string;
     protected releasesApiVersion: string;
     protected revisionsApiVersion: string;
     protected sendmailApiVersion: string;
@@ -1130,18 +1411,18 @@ export class CommonMethods2_2To3 extends CommonMethods2To3 {
      *
      * @param {string} project - Project ID or project name
      * @param {number} definitionId
-     * @param {number} revision
-     * @return IPromise<string>
+     * @return IPromise<Contracts.ReleaseDefinitionRevision[]>
      */
-    getReleaseDefinitionRevision(project: string, definitionId: number, revision: number): IPromise<string>;
+    getReleaseDefinitionHistory(project: string, definitionId: number): IPromise<Contracts.ReleaseDefinitionRevision[]>;
     /**
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
      * @param {number} definitionId
-     * @return IPromise<Contracts.ReleaseDefinitionRevision[]>
+     * @param {number} revision
+     * @return IPromise<string>
      */
-    getReleaseDefinitionHistory(project: string, definitionId: number): IPromise<Contracts.ReleaseDefinitionRevision[]>;
+    getDefinitionRevision(project: string, definitionId: number, revision: number): IPromise<string>;
     /**
      * [Preview API]
      *
@@ -1180,9 +1461,10 @@ export class CommonMethods2_2To3 extends CommonMethods2To3 {
      * @param {string} sourceId
      * @param {string} artifactVersionId
      * @param {string} sourceBranchFilter
+     * @param {boolean} isDeleted
      * @return IPromise<Contracts.Release[]>
      */
-    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string): IPromise<Contracts.Release[]>;
+    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean): IPromise<Contracts.Release[]>;
     /**
      * [Preview API]
      *
@@ -1216,9 +1498,10 @@ export class CommonMethods2_2To3 extends CommonMethods2To3 {
      *
      * @param {string} project - Project ID or project name
      * @param {number} releaseId
+     * @param {string} comment
      * @return IPromise<void>
      */
-    deleteRelease(project: string, releaseId: number): IPromise<void>;
+    deleteRelease(project: string, releaseId: number, comment?: string): IPromise<void>;
     /**
      * [Preview API]
      *
@@ -1232,20 +1515,20 @@ export class CommonMethods2_2To3 extends CommonMethods2To3 {
      *
      * @param {string} project - Project ID or project name
      * @param {number} releaseId
+     * @return IPromise<ArrayBuffer>
+     */
+    getLogs(project: string, releaseId: number): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
      * @param {number} environmentId
      * @param {number} taskId
      * @param {number} attemptId
      * @return IPromise<string>
      */
     getLog(project: string, releaseId: number, environmentId: number, taskId: number, attemptId?: number): IPromise<string>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @return IPromise<ArrayBuffer>
-     */
-    getLogs(project: string, releaseId: number): IPromise<ArrayBuffer>;
     /**
      * [Preview API]
      *
@@ -1344,6 +1627,15 @@ export class CommonMethods2_2To3 extends CommonMethods2To3 {
      *
      * @param {string} project - Project ID or project name
      * @param {number} definitionId
+     * @param {number} revision
+     * @return IPromise<string>
+     */
+    getReleaseDefinitionRevision(project: string, definitionId: number, revision: number): IPromise<string>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId
      * @return IPromise<Contracts.ReleaseDefinition>
      */
     getReleaseDefinition(project: string, definitionId: number): IPromise<Contracts.ReleaseDefinition>;
@@ -1424,10 +1716,67 @@ export class ReleaseHttpClient3 extends CommonMethods2_2To3 {
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} environmentId
+     * @param {number} releaseDeployPhaseId
+     * @param {number} taskId
+     * @return IPromise<string>
+     */
+    getTaskLog(project: string, releaseId: number, environmentId: number, releaseDeployPhaseId: number, taskId: number): IPromise<string>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} manualInterventionId
+     * @return IPromise<Contracts.ManualIntervention>
+     */
+    getManualIntervention(project: string, releaseId: number, manualInterventionId: number): IPromise<Contracts.ManualIntervention>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<Contracts.ManualIntervention[]>
+     */
+    getManualInterventions(project: string, releaseId: number): IPromise<Contracts.ManualIntervention[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ManualInterventionUpdateMetadata} manualInterventionUpdateMetadata
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} manualInterventionId
+     * @return IPromise<Contracts.ManualIntervention>
+     */
+    updateManualIntervention(manualInterventionUpdateMetadata: Contracts.ManualInterventionUpdateMetadata, project: string, releaseId: number, manualInterventionId: number): IPromise<Contracts.ManualIntervention>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {string} comment
+     * @return IPromise<void>
+     */
+    undeleteRelease(project: string, releaseId: number, comment: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
      * @param {number} definitionId
      * @return IPromise<string[]>
      */
     getSourceBranches(project: string, definitionId: number): IPromise<string[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} environmentId
+     * @param {number} releaseDeployPhaseId
+     * @return IPromise<Contracts.ReleaseTask[]>
+     */
+    getTasksForTaskGroup(project: string, releaseId: number, environmentId: number, releaseDeployPhaseId: number): IPromise<Contracts.ReleaseTask[]>;
 }
 /**
  * @exemptedapi
