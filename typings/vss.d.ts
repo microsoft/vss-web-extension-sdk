@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v104.20160831.1042
+// Type definitions for Microsoft Visual Studio Services v105.20160914.0822
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -968,6 +968,11 @@ interface IContributedHub extends Hub {
      * Specifies whether this hub is a default hub or not (rendered differently).
      */
     isDefault?: boolean;
+
+    /**
+    * If true, the hub element should be rendered as a disabled element.
+    */
+    disabled: boolean;
 }
 
 /**
@@ -1977,7 +1982,7 @@ interface HostContext {
 */
 interface Hub {
     builtIn: boolean;
-    disabled: boolean;
+    hidden: boolean;
     groupId: string;
     icon: string;
     id: string;
@@ -5103,6 +5108,10 @@ export interface InputDescriptor {
      */
     name: string;
     /**
+     * Underlying data type for the input value.  When this value is specified, InputMode, Validation and Values are optional.
+     */
+    type: string;
+    /**
      * Gets whether this input is included in the default generated action description.
      */
     useInDefaultDescription: boolean;
@@ -5632,7 +5641,7 @@ export interface HostContext {
 */
 export interface Hub {
     builtIn: boolean;
-    disabled: boolean;
+    hidden: boolean;
     groupId: string;
     icon: string;
     id: string;
@@ -7823,7 +7832,7 @@ export class WebPageDataService extends Service.VssService {
     * Ensure that all data providers have been resolved for all of the given data-provider contributions
     *
     * @param contributions The data provider contributions to resolve
-    * @param refreshIfExpired If true, force a server request to re-populate the data provider data.
+    * @param refreshIfExpired If true, force a server request to re-populate the data provider data if the data has expired.  Default is it is always expired.
     */
     ensureDataProvidersResolved(contributions: Contributions_Contracts.Contribution[], refreshIfExpired?: boolean): IPromise<any>;
     private fetchPageDataForService(serviceInstanceId, contributions);
@@ -8369,6 +8378,14 @@ export class BaseComboBehavior {
     dispose(): void;
     setMode(value: any): void;
     canType(): boolean;
+    /**
+     * Get value for aria-autocomplete attribute of parent.
+     */
+    getAriaAutocomplete(): string;
+    /**
+     * Get additional text to use to label the control for screen reader users.
+     */
+    getAriaDescription(): string;
     getValue<TValue>(): TValue;
     getDropPopup<TDropPopup extends BaseComboDropPopup>(): TDropPopup;
     getDataSource<TDataSource extends Controls.BaseDataSource>(): TDataSource;
@@ -8486,6 +8503,7 @@ export class BaseComboDropPopup extends Controls.BaseControl implements IBaseCom
      */
     getSelectedIndex(): number;
     getSelectedValue(): string;
+    getSelectedItem(): JQuery;
     setSelectedValue(value: string): void;
     selectNext(page?: boolean): boolean;
     selectPrev(page?: boolean): boolean;
@@ -8614,6 +8632,15 @@ export interface IComboOptions {
      * Placeholder text shown on input.
      */
     placeholderText?: string;
+    /**
+     * Called when the drop popup hides.
+     * Return true to close drop popup.
+     */
+    dropHide?: (dropPopup: BaseComboDropPopup) => boolean;
+    /**
+     * Only set the HTML title attribute if the contents overflow the visible area.
+     */
+    setTitleOnlyOnOverflow?: boolean;
 }
 /**
 * Constant for Combo type options
@@ -8693,6 +8720,10 @@ export interface IComboDropOptions {
      */
     getItemContents?: (item: string) => any;
     /**
+     * Only set the HTML title attribute if the contents overflow the visible area.
+     */
+    setTitleOnlyOnOverflow?: boolean;
+    /**
      * DEPRECATED - Alternate renderer for a drop popup item
      */
     createItem?: (index: any) => JQuery;
@@ -8701,15 +8732,16 @@ export interface IComboDropOptions {
  * @publicapi
  */
 export class ComboO<TOptions extends IComboOptions> extends Controls.Control<TOptions> {
+    static invalidAttribute: string;
     static enhancementTypeName: string;
     static registerBehavior(behaviorMode: any, behaviorType: any): void;
     static attachBehavior(combo: any, options?: any): any;
     protected _input: JQuery;
     protected _currentText: string;
     protected _blockBlur: boolean;
-    private _dropPopup;
     private _dropButton;
     private _behavior;
+    private _ariaDescription;
     private _onInputFocusInProgress;
     /**
      * @param options
@@ -8840,6 +8872,10 @@ export class ComboO<TOptions extends IComboOptions> extends Controls.Control<TOp
      * @publicapi
      */
     setInvalid(value: boolean): void;
+    /**
+     * Return true if the combo is in valid state. Otherwise return false.
+     */
+    isValid(): Boolean;
     private _ensureBehavior();
     private _decorate();
     private _updateStyles();
@@ -8878,6 +8914,8 @@ export class ComboO<TOptions extends IComboOptions> extends Controls.Control<TOp
      * @return
      */
     private _onInputKeyUp(e?);
+    protected updateAriaAttributes(isDropVisible?: boolean): void;
+    protected updateAriaActiveDescendant(): void;
 }
 export class Combo extends ComboO<IComboOptions> {
 }
@@ -8907,6 +8945,7 @@ export class ComboListDropPopup extends BaseComboDropPopup {
     getSelectedIndex(): number;
     getSelectedValue(): string;
     setSelectedValue(value: any): void;
+    getSelectedItem(): JQuery;
     getDataSource<TDataSource extends Controls.BaseDataSource>(): TDataSource;
     /**
      * Update internal list view to display current data
@@ -9026,6 +9065,7 @@ export interface IDateTimeComboOptions extends IComboOptions {
 export class DatePanel extends Controls.BaseControl {
     private _date;
     private _selectedDate;
+    private _$selectedItem;
     /**
      * @param options
      */
@@ -9038,6 +9078,7 @@ export class DatePanel extends Controls.BaseControl {
     selectDate(date: Date): void;
     setSelectedDate(date: Date): void;
     getSelectedDate(): Date;
+    getSelectedItem(): JQuery;
     private _draw(date, focusElementClass?);
     private _drawCalendarTable(date);
     /**
@@ -9056,6 +9097,7 @@ export class ComboDateDropPopup extends BaseComboDropPopup {
     private _selectedDate;
     initialize(): void;
     getSelectedDate(): Date;
+    getSelectedItem(): JQuery;
     setSelectedDate(date: Date): void;
     /**
      * @param e
@@ -9068,6 +9110,8 @@ export class ComboDateBehavior extends BaseComboBehavior {
     constructor(combo: any, options?: any);
     initialize(): void;
     canType(): boolean;
+    getAriaAutocomplete(): string;
+    getAriaDescription(): string;
     getValue(): Date;
     /**
      * @return
@@ -9333,6 +9377,7 @@ export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<
     private _progressElement;
     private _dialogResult;
     private _resizeDelegate;
+    private _secondOverlay;
     /**
      * Creates a new dialog with the provided options
      */
@@ -9419,6 +9464,13 @@ export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<
      * @publicapi
      */
     close(): void;
+    dispose(): void;
+    /**
+     * Remove the second overlay added as an Edge/IE hack (see comment in create() method).
+     * We call this several times because there are several different ways that people use to close dialogs,
+     * and onClose() can even be overridden.
+     */
+    private _removeSecondOverlay();
     private _updateSubtitle();
     /**
      * @param e
@@ -9600,6 +9652,10 @@ export interface IShowMessageDialogOptions {
      * Use Bowtie styling. Default is true.
      */
     useBowtieStyle?: boolean;
+    /**
+     * Option to override default focus setting (which sets focus to the next dialog when the current dialog is closed).
+     */
+    noFocusOnClose?: boolean;
     /**
     * Optional delegate that can be called when a dialog button is clicked. This can be used to get a value from UI in the dialog before it is removed from the DOM.
     */
@@ -10035,6 +10091,13 @@ export interface FileInputControlOptions {
     */
     allowedFileExtensions?: string[];
     updateHandler: (updateEvent: FileInputControlUpdateEventData) => void;
+    /**
+    * Callback executed whenever a user bumps into the limit of the file upload control.
+    * @param currentMessage The message provided by the control itself.
+    * @param limitEvent The context data about why the limit was hit.
+    * @returns A message that will be shown to the user in place of currentMessage.
+    */
+    limitMessageFormatter?: (currentMessage: string, limitEvent: FileInputControlLimitEventData) => string;
 }
 /**
 * File result from files uploaded to the FileInputControl.
@@ -10057,6 +10120,23 @@ export enum FileInputControlContentType {
 export interface FileInputControlUpdateEventData {
     loading: boolean;
     files: FileInputControlResult[];
+}
+/**
+* Context for the limit message handler on why the upload limit was reached.
+*/
+export interface FileInputControlLimitEventData {
+    /**
+    * Size of the file that was too large, in bytes.
+    */
+    fileSize?: number;
+    /**
+    * Total size of all files, if the size was too large, in bytes.
+    */
+    totalSize?: number;
+    /**
+    * Number of files the user attempted to upload, if it was capped by maximumNumberOfFiles in the options.
+    */
+    fileCount?: number;
 }
 /**
 * Information about a row in the file input control
@@ -10096,6 +10176,7 @@ export class FileInputControl extends Controls.Control<FileInputControlOptions> 
     private _addFile(file);
     private _getFriendlySizeString(numBytes, decimalPlaces?);
     private _clearError();
+    private _displayLimitError(errorText, limitData);
     private _displayError(errorText);
     getFiles(): FileInputControlResult[];
     isLoadInProgress(): boolean;
@@ -10845,6 +10926,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
     private _showingContextMenu;
     private _automaticContextMenuColumn;
     private _contextMenuKeyPressedState;
+    private _lastFocusTime;
     /**
      *  Offset height, that shifts the row boundaries up and determines whether the pointer is over a particular row or not
      *  e.g. An offset percentage (passed in by the consumer of the grid) of 50 shifts each row boundary up half the row height for the purposes of calculating whether the mouse
@@ -12073,6 +12155,10 @@ declare module "VSS/Controls/Menus" {
 import Contributions_Services = require("VSS/Contributions/Services");
 import Controls = require("VSS/Controls");
 export var menuManager: any;
+/**
+ * Amount of time in ms after a blur that a menu waits before closing.
+ */
+export var BLUR_CLOSE_TIMEOUT: number;
 export enum MenuItemState {
     None = 0,
     Disabled = 1,
@@ -12104,6 +12190,10 @@ export interface IMenuItemSpec extends IContributedMenuItem {
      * @defaultvalue true (for now)
      */
     setDefaultTitle?: boolean;
+    /**
+     * Set the item's title only when the text overflows and when the mouse is hovering over it
+     */
+    setTitleOnlyOnOverflow?: boolean;
     /**
      * Icon for the menu item
      */
@@ -12194,6 +12284,12 @@ export interface IMenuItemSpec extends IContributedMenuItem {
      * Menu options for any sub menu created by this menu.
      */
     childOptions?: MenuOptions;
+    /**
+     * By default, a menu item's id will be used as a command id to execute
+     * an action. Set this to false if this menu item's action should not
+     * default to the item's id.
+     */
+    idIsAction?: boolean;
 }
 export interface ISplitDropMenuItemSpec extends IMenuItemSpec {
 }
@@ -12660,6 +12756,16 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
      * @return
      */
     selectLeft(options?: any): boolean;
+    /**
+     * Show the menu.
+     *
+     * Options:
+     *  immediate: whether to show the menu immediately or after a short delay (default false)
+     *  showTimeout: optional number of milliseconds to wait before showing when immediate is false
+     *  callback: function to call after menu is shown
+     *  align: how to align the menu with its parent
+     *  setFocus: whether to set the focus to the menu (default true)
+     */
     show(options?: any): boolean;
     /**
      * @param options
@@ -12734,10 +12840,10 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
     private _getPrevItem(condition, index, options?);
     private _ensurePopup();
     private _getPopupAlign(align);
-    private _showPopup(element, align);
+    private _showPopup(element, align, setFocus);
     _hidePopup(): void;
     private _updateMenuItemStates();
-    private _startShowTimeout(element, align, showTimeout, callback);
+    private _startShowTimeout(element, align, setFocus, showTimeout, callback);
     private _startHideTimeout(hideTimeout, callback);
     private _attachAncestorScroll(element);
     private _detachAncestorScroll(element);
@@ -12908,6 +13014,10 @@ export interface PopupMenuOptions extends MenuOwnerOptions {
     hidden?: boolean;
     onPopupEscaped?: Function;
     onHide?: Function;
+    /**
+     * If the menu should take focus when it appears. Defaults to true.
+     */
+    setFocus?: boolean;
 }
 export class PopupMenuO<TOptions extends PopupMenuOptions> extends MenuOwner<TOptions> {
     static enhancementTypeName: string;
@@ -12940,6 +13050,11 @@ export class PopupMenuO<TOptions extends PopupMenuOptions> extends MenuOwner<TOp
      * @return
      */
     selectDown(options?: any): boolean;
+    /**
+     * Selects the first item of the child menu.
+     * Override of Menu.selectFirstItem()
+     */
+    selectFirstItem(): boolean;
     /**
      * @param options
      * @return
@@ -13322,6 +13437,13 @@ export class TabbedNavigationView extends NavigationView {
      */
     initializeOptions(options?: any): void;
     initialize(): void;
+    /**
+     * Update the given tabs in the tabbed navigation view.
+     * @param tabs Mapping of tabIds to tabControls
+     */
+    updateTabs(tabs: {
+        [key: string]: NavigationViewTab;
+    }): void;
     getTab(tabId: string): NavigationViewTab;
     showError(error: any): void;
     showErrorContent(title: any, $contentHtml: any, messageType: any, expand: any): void;
@@ -13864,6 +13986,10 @@ export interface IRichEditorOptions extends Controls.EnhancementOptions {
     pageHtml?: string;
     internal: boolean;
     /**
+     * Value for aria-label to apply to the richeditor
+     */
+    ariaLabel?: string;
+    /**
      * Function callback when the richeditor gains focus
      */
     focusIn?: Function;
@@ -13967,6 +14093,8 @@ export class RichEditor extends Controls.Control<IRichEditorOptions> {
     checkModified(): void;
     private _pasteImage(url);
     private _getToolbar();
+    private _onFocusToolbar(e);
+    private _onFocusOutToolbar(e);
     private _createToolbar();
     /**
      * Creates a toolbar button group.
@@ -15737,7 +15865,7 @@ export class ComboTreeDropPopup extends Combos.ComboListDropPopup {
     initializeOptions(options?: any): void;
     expandNode(): boolean;
     collapseNode(): boolean;
-    _createItem(index: any): any;
+    _createItem(index: any): JQuery;
     _onItemClick(e?: any, itemIndex?: any, $target?: any, $li?: any): boolean;
     _getSelectedNode(): any;
 }
@@ -15820,6 +15948,11 @@ export class SearchComboTreeBehavior extends Combos.ComboListBehavior {
     constructor(combo: any, options?: any);
     initialize(): void;
     canType(): boolean;
+    getAriaAutocomplete(): string;
+    /**
+     * Get additional text to use to label the control for screen reader users.
+     */
+    getAriaDescription(): string;
     /**
      * @param e
      * @return
@@ -16124,6 +16257,7 @@ export class VirtualizingListView extends Controls.BaseControl {
      */
     selectPrev(page?: boolean): boolean;
     getSelectedIndex(): number;
+    getSelectedItem(): JQuery;
     /**
      * @param noScrollIntoView
      */
@@ -18334,9 +18468,10 @@ export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
      * @param {string} name - The name of the feature to change
      * @param {string} userEmail
      * @param {boolean} checkFeatureExists - Checks if the feature exists before setting the state
+     * @param {boolean} setAtApplicationLevelAlso
      * @return IPromise<Contracts.FeatureFlag>
      */
-    updateFeatureFlag(state: Contracts.FeatureFlagPatch, name: string, userEmail?: string, checkFeatureExists?: boolean): IPromise<Contracts.FeatureFlag>;
+    updateFeatureFlag(state: Contracts.FeatureFlagPatch, name: string, userEmail?: string, checkFeatureExists?: boolean, setAtApplicationLevelAlso?: boolean): IPromise<Contracts.FeatureFlag>;
     /**
      * [Preview API] Retrieve information on a single feature flag and its current states for a user
      *
@@ -19092,6 +19227,29 @@ export interface AzureRestApiResponseModel extends AzureRestApiRequestModel {
      */
     operationStatus: RestApiResponseStatusModel;
 }
+/**
+ * This is the set of categories in response to the get category query
+ */
+export interface CategoriesResult {
+    categories: ExtensionCategory[];
+}
+/**
+ * Definition of one title of a category
+ */
+export interface CategoryLanguageTitle {
+    /**
+     * The language for which the title is applicable
+     */
+    lang: string;
+    /**
+     * The language culture id of the lang parameter
+     */
+    lcid: number;
+    /**
+     * Actual title to be shown on the UI
+     */
+    title: string;
+}
 export enum ConcernCategory {
     General = 1,
     Abusive = 2,
@@ -19136,9 +19294,27 @@ export interface ExtensionBadge {
     link: string;
 }
 export interface ExtensionCategory {
+    /**
+     * The name of the products with which this category is associated to.
+     */
+    associatedProducts: string[];
     categoryId: number;
+    /**
+     * This is the internal name for a category
+     */
     categoryName: string;
+    /**
+     * This parameter is obsolete. Refer to LanguageTitles for langauge specific titles
+     */
     language: string;
+    /**
+     * The list of all the titles of this category in various languages
+     */
+    languageTitles: CategoryLanguageTitle[];
+    /**
+     * This is the internal name of the parent if this is associated with a parent
+     */
+    parentCategoryName: string;
 }
 export interface ExtensionFile {
     assetType: string;
@@ -19359,6 +19535,10 @@ export enum ExtensionQueryFlags {
      */
     IncludeLatestVersionOnly = 512,
     /**
+     * This flag switches the asset uri to use GetAssetByName instead of CDN When this is used, values of base asset uri and base asset uri fallback are switched When this is used, source of asset files are pointed to Gallery service always even if CDN is available
+     */
+    UseFallbackAssetUri = 1024,
+    /**
      * AllAttributes is designed to be a mask that defines all sub-elements of the extension should be returned.  NOTE: This is not actually All flags. This is now locked to the set defined since changing this enum would be a breaking change and would change the behavior of anyone using it. Try not to use this value when making calls to the service, instead be explicit about the options required.
      */
     AllAttributes = 479,
@@ -19397,6 +19577,7 @@ export interface ExtensionStatisticUpdate {
 export interface ExtensionVersion {
     assetUri: string;
     badges: ExtensionBadge[];
+    fallbackAssetUri: string;
     files: ExtensionFile[];
     flags: ExtensionVersionFlags;
     lastUpdated: Date;
@@ -20047,6 +20228,7 @@ export var TypeInfo: {
             "includeAssetUri": number;
             "includeStatistics": number;
             "includeLatestVersionOnly": number;
+            "useFallbackAssetUri": number;
             "allAttributes": number;
         };
     };
@@ -20191,6 +20373,7 @@ export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
     protected assetbynameApiVersion: string;
     protected assetsApiVersion: string;
     protected categoriesApiVersion: string;
+    protected categoriesApiVersion_e0a5a71e: string;
     protected certificatesApiVersion: string;
     protected extensionqueryApiVersion: string;
     protected extensionsApiVersion: string;
@@ -20372,6 +20555,15 @@ export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<ArrayBuffer>
      */
     getCertificate(publisherName: string, extensionName: string, version?: string): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} categoryName
+     * @param {string} languages
+     * @param {string} product
+     * @return IPromise<Contracts.CategoriesResult>
+     */
+    getCategoryDetails(categoryName: string, languages?: string, product?: string): IPromise<Contracts.CategoriesResult>;
     /**
      * [Preview API]
      *
@@ -21946,6 +22138,7 @@ export interface IEntity {
     signInAddress?: string;
     surname?: string;
     guest?: boolean;
+    active?: boolean;
     description?: string;
     image?: string;
     manager?: string;
@@ -23782,6 +23975,8 @@ export interface IResourceTypeStats {
     duration: number;
 }
 export interface IBundleLoadStats {
+    downloadStartTime: number;
+    downloadDuration: number;
     innerLoad: number;
     innerStartTime: number;
     outerLoad: number;
@@ -25089,8 +25284,9 @@ export class SearchAdapter<T> {
      *
      * @param results An array of items
      * @param finished Represents whether or not the search is finished
+     * @param query search query
      */
-    handleResults(results: T[], finished: boolean): void;
+    handleResults(results: T[], finished: boolean, query?: string): void;
     /**
      *     Handles an error being thrown in the search process.
      *
@@ -26214,6 +26410,14 @@ export function publishEvent(eventData: TelemetryEventData, immediate?: boolean)
  */
 export function flush(): IPromise<void>;
 }
+declare module "VSS/Utils/Accessibility" {
+/**
+ * Causes screen readers to read the given message.
+ * @param message
+ * @param assertive if true, the screen reader will read the announcement immediately, instead of waiting for "the next graceful opportunity"
+ */
+export function announce(message: string, assertive?: boolean): void;
+}
 declare module "VSS/Utils/Array" {
 /**
 * Returns the first element of an array that matches the predicate.
@@ -26707,6 +26911,16 @@ export function parseXml(xml: string): any;
  * @return True if two objects are deepEqual, otherwise false.
  */
 export function equals(first: any, second: any): boolean;
+/**
+ * Executes the provided function after the specified amount of time
+ * @param functionDelegate Function to execute
+ * @param delay Delay in milliseconds to wait before executing the Function
+ * @param maxAttempt The max number of attemp should try, if not specified, it will continus polling
+ * @param firstDelay Delay in milliseconds to wait before executing the Function for the first time (default 0)
+ * @param shouldStopDelegate Callback to determine whether to stop the poll or not
+ * @param reachMaxAttemptCallback Callback when max attempted is reached
+ */
+export function poll(functionDelegate: (sucessCallback: IResultCallback, errorCallback?: IErrorCallback) => void, delay: number, maxAttempt: number, firstDelay?: number, shouldStopDelegate?: (result: any) => boolean, reachMaxAttemptCallback?: () => void): void;
 export var documentSelection: any;
 }
 declare module "VSS/Utils/Culture" {
@@ -27666,7 +27880,13 @@ export module BrowserCheckUtils {
     function isFirefox(): boolean;
     function isChrome(): boolean;
     function isMozilla(): boolean;
+    /**
+     * Returns true if browser is Internet Explorer 10 or earlier.
+     */
     function isMsie(): boolean;
+    /**
+     *  Returns true if the browser is Internet Explorer
+     */
     function isIE(): boolean;
     function isEdge(): boolean;
     function getVersion(): string;
@@ -27701,6 +27921,16 @@ export function calculateTreePath(includeRoot: boolean, separator: string, textF
 export function walkTree(f: IFunctionPPR<any, any, void>): void;
 export function injectStylesheets(cssReferenceUrls: string[], baseUrl?: string): void;
 export function accessible(element: JQuery, handler?: Function): JQuery;
+/**
+ * Show a tooltip on hover, only if the text of the element overflows the visible area.
+ * @param element element with text-overflow: ellipsis set
+ * @param$options titleTarget element whose text will be used to populate the tooltip, only need specify if different than $element
+ *                titleText text to set the title to, otherwise use the $titleTarget's .text() or .val()
+ */
+export function tooltipIfOverflow(element: HTMLElement | HTMLInputElement, options?: {
+    titleTarget?: HTMLElement | HTMLInputElement;
+    titleText?: string;
+}): void;
 export function Watermark(element: JQuery, ...args: any[]): JQuery;
 }
 declare module "VSS/Utils/Url" {
@@ -27837,6 +28067,7 @@ export class Uri {
     */
     addQueryParam(name: string, value: string, replaceExisting?: boolean): void;
 }
+export function escapeUrlComponents(urlString: string): string;
 /**
  * Determines whether the specified URL is absolute or not.
  *

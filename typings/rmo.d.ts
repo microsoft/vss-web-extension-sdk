@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v104.20160831.1112
+// Type definitions for Microsoft Visual Studio Services v105.20160914.0830
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -65,6 +65,8 @@ export module WellKnownReleaseVariables {
     var ReleaseDescription: string;
     var ReleaseDefinitionName: string;
     var ReleaseDefinitionId: string;
+    var ReleaseDefinitionEnvironmentId: string;
+    var DeploymentId: string;
     var ReleaseUri: string;
     var ReleaseWebUrl: string;
     var ReleaseEnvironmentUri: string;
@@ -300,7 +302,29 @@ export interface DataSourceBinding {
     resultSelector: string;
     resultTemplate: string;
     target: string;
-    transformationTemplate: string;
+}
+export interface DefinitionEnvironmentReference {
+    definitionEnvironmentId: number;
+    releaseDefinitionId: number;
+}
+export interface Deployment {
+    attempt: number;
+    conditions: Condition[];
+    definitionEnvironmentId: number;
+    deploymentStatus: DeploymentStatus;
+    id: number;
+    lastModifiedBy: VSS_Common_Contracts.IdentityRef;
+    lastModifiedOn: Date;
+    operationStatus: DeploymentOperationStatus;
+    postDeployApprovals: ReleaseApproval[];
+    preDeployApprovals: ReleaseApproval[];
+    reason: DeploymentReason;
+    release: ReleaseReference;
+    releaseDefinition: ShallowReference;
+    releaseEnvironment: ShallowReference;
+    requestedBy: VSS_Common_Contracts.IdentityRef;
+    scheduledDeploymentTime: Date;
+    startedOn: Date;
 }
 export interface DeploymentApprovalCompletedEvent {
     approval: ReleaseApproval;
@@ -359,6 +383,19 @@ export enum DeploymentOperationStatus {
     PhaseFailed = 1024,
     Canceled = 2048,
     PhaseCanceled = 4096,
+    ManualInterventionPending = 8192,
+}
+export interface DeploymentQueryParameters {
+    artifactSourceId: string;
+    artifactTypeId: string;
+    artifactVersions: string[];
+    deploymentStatus: DeploymentStatus;
+    environments: DefinitionEnvironmentReference[];
+    isDeleted: boolean;
+    latestDeploymentsOnly: boolean;
+    maxDeploymentsPerEnvironment: number;
+    operationStatus: DeploymentOperationStatus;
+    queryOrder: ReleaseQueryOrder;
 }
 export enum DeploymentReason {
     None = 0,
@@ -379,7 +416,6 @@ export enum DeploymentStatus {
     Failed = 16,
 }
 export interface DeployPhase {
-    controlOptions: ControlOptions;
     name: string;
     phaseType: DeployPhaseTypes;
     rank: number;
@@ -730,9 +766,6 @@ export interface ReleaseEnvironment {
     releaseDefinition: ShallowReference;
     releaseDescription: string;
     releaseId: number;
-    runOptions: {
-        [key: string]: string;
-    };
     scheduledDeploymentTime: Date;
     schedules: ReleaseSchedule[];
     status: EnvironmentStatus;
@@ -781,6 +814,12 @@ export enum ReleaseReason {
     ContinuousIntegration = 2,
     Schedule = 3,
 }
+export interface ReleaseReference {
+    artifacts: Artifact[];
+    id: number;
+    name: string;
+    url: string;
+}
 export interface ReleaseRevision {
     changedBy: VSS_Common_Contracts.IdentityRef;
     changedDate: Date;
@@ -811,6 +850,9 @@ export interface ReleaseSchedule {
      * Time zone Id of release schedule, such as 'UTC'
      */
     timeZoneId: string;
+}
+export interface ReleaseSettings {
+    retentionSettings: RetentionSettings;
 }
 export interface ReleaseStartMetadata {
     artifacts: ArtifactMetadata[];
@@ -876,6 +918,11 @@ export interface ReleaseWorkItemRef {
 }
 export interface RetentionPolicy {
     daysToKeep: number;
+}
+export interface RetentionSettings {
+    daysToKeepDeletedReleases: number;
+    defaultEnvironmentRetentionPolicy: EnvironmentRetentionPolicy;
+    maximumEnvironmentRetentionPolicy: EnvironmentRetentionPolicy;
 }
 export interface RunOnServerDeployPhase extends DeployPhase {
 }
@@ -1004,6 +1051,7 @@ export var TypeInfo: {
             "environmentState": number;
         };
     };
+    Deployment: any;
     DeploymentApprovalCompletedEvent: any;
     DeploymentApprovalPendingEvent: any;
     DeploymentAttempt: any;
@@ -1025,8 +1073,10 @@ export var TypeInfo: {
             "phaseFailed": number;
             "canceled": number;
             "phaseCanceled": number;
+            "manualInterventionPending": number;
         };
     };
+    DeploymentQueryParameters: any;
     DeploymentReason: {
         enumValues: {
             "none": number;
@@ -1481,9 +1531,10 @@ export class CommonMethods2_2To3 extends CommonMethods2To3 {
      * @param {number} definitionId
      * @param {number} releaseCount
      * @param {boolean} includeArtifact
+     * @param {number[]} definitionEnvironmentIdsFilter
      * @return IPromise<Contracts.ReleaseDefinitionSummary>
      */
-    getReleaseDefinitionSummary(project: string, definitionId: number, releaseCount: number, includeArtifact?: boolean): IPromise<Contracts.ReleaseDefinitionSummary>;
+    getReleaseDefinitionSummary(project: string, definitionId: number, releaseCount: number, includeArtifact?: boolean, definitionEnvironmentIdsFilter?: number[]): IPromise<Contracts.ReleaseDefinitionSummary>;
     /**
      * [Preview API]
      *
@@ -1716,6 +1767,30 @@ export class ReleaseHttpClient3 extends CommonMethods2_2To3 {
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
+     * @param {number} definitionId
+     * @param {number} definitionEnvironmentId
+     * @param {string} createdBy
+     * @param {Contracts.DeploymentStatus} deploymentStatus
+     * @param {Contracts.DeploymentOperationStatus} operationStatus
+     * @param {boolean} latestAttemptsOnly
+     * @param {Contracts.ReleaseQueryOrder} queryOrder
+     * @param {number} top
+     * @param {number} continuationToken
+     * @return IPromise<Contracts.Deployment[]>
+     */
+    getDeployments(project: string, definitionId?: number, definitionEnvironmentId?: number, createdBy?: string, deploymentStatus?: Contracts.DeploymentStatus, operationStatus?: Contracts.DeploymentOperationStatus, latestAttemptsOnly?: boolean, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number): IPromise<Contracts.Deployment[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DeploymentQueryParameters} queryParameters
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.Deployment[]>
+     */
+    getDeploymentsForMultipleEnvironments(queryParameters: Contracts.DeploymentQueryParameters, project: string): IPromise<Contracts.Deployment[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
      * @param {number} releaseId
      * @param {number} environmentId
      * @param {number} releaseDeployPhaseId
@@ -1763,6 +1838,21 @@ export class ReleaseHttpClient3 extends CommonMethods2_2To3 {
      * [Preview API]
      *
      * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.ReleaseSettings>
+     */
+    getReleaseSettings(project: string): IPromise<Contracts.ReleaseSettings>;
+    /**
+     * [Preview API] Updates the release settings
+     *
+     * @param {Contracts.ReleaseSettings} releaseSettings
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.ReleaseSettings>
+     */
+    updateReleaseSettings(releaseSettings: Contracts.ReleaseSettings, project: string): IPromise<Contracts.ReleaseSettings>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
      * @param {number} definitionId
      * @return IPromise<string[]>
      */
@@ -1781,7 +1871,25 @@ export class ReleaseHttpClient3 extends CommonMethods2_2To3 {
 /**
  * @exemptedapi
  */
+export class ReleaseHttpClient2_3 extends CommonMethods2_2To3 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
 export class ReleaseHttpClient2_2 extends CommonMethods2_2To3 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class ReleaseHttpClient2_1 extends CommonMethods2To3 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class ReleaseHttpClient2 extends CommonMethods2To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 export class ReleaseHttpClient extends ReleaseHttpClient3 {
@@ -1790,9 +1898,9 @@ export class ReleaseHttpClient extends ReleaseHttpClient3 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return ReleaseHttpClient2_2
+ * @return ReleaseHttpClient2_3
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ReleaseHttpClient2_2;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ReleaseHttpClient2_3;
 }
 declare module "ReleaseManagement/Core/Utils" {
 import RMContracts = require("ReleaseManagement/Core/Contracts");

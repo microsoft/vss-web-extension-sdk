@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v104.20160831.1043
+// Type definitions for Microsoft Visual Studio Services v105.20160914.0823
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -1886,7 +1886,6 @@ export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
     protected controllersApiVersion: string;
     protected definitionsApiVersion: string;
     protected optionsApiVersion: string;
-    protected queuesApiVersion: string;
     protected resourceUsageApiVersion: string;
     protected revisionsApiVersion: string;
     protected settingsApiVersion: string;
@@ -2002,34 +2001,6 @@ export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.BuildResourceUsage>
      */
     getResourceUsage(): IPromise<Contracts.BuildResourceUsage>;
-    /**
-     * Gets queues, optionally filtered by name
-     *
-     * @param {string} name
-     * @return IPromise<Contracts.AgentPoolQueue[]>
-     */
-    getQueues(name?: string): IPromise<Contracts.AgentPoolQueue[]>;
-    /**
-     * Gets a queue
-     *
-     * @param {number} controllerId
-     * @return IPromise<Contracts.AgentPoolQueue>
-     */
-    getAgentPoolQueue(controllerId: number): IPromise<Contracts.AgentPoolQueue>;
-    /**
-     * Deletes a build queue
-     *
-     * @param {number} id
-     * @return IPromise<void>
-     */
-    deleteQueue(id: number): IPromise<void>;
-    /**
-     * Creates a build queue
-     *
-     * @param {Contracts.AgentPoolQueue} queue
-     * @return IPromise<Contracts.AgentPoolQueue>
-     */
-    createQueue(queue: Contracts.AgentPoolQueue): IPromise<Contracts.AgentPoolQueue>;
     /**
      * @param {string} project - Project ID or project name
      * @return IPromise<Contracts.BuildOptionDefinition[]>
@@ -2588,6 +2559,34 @@ export class BuildHttpClient2_3 extends CommonMethods2_1To3 {
      */
     getBuildLogsZip(project: string, buildId: number, type?: Contracts.DefinitionType): IPromise<ArrayBuffer>;
     /**
+     * Creates a build queue
+     *
+     * @param {Contracts.AgentPoolQueue} queue
+     * @return IPromise<Contracts.AgentPoolQueue>
+     */
+    createQueue(queue: Contracts.AgentPoolQueue): IPromise<Contracts.AgentPoolQueue>;
+    /**
+     * Deletes a build queue
+     *
+     * @param {number} id
+     * @return IPromise<void>
+     */
+    deleteQueue(id: number): IPromise<void>;
+    /**
+     * Gets a queue
+     *
+     * @param {number} controllerId
+     * @return IPromise<Contracts.AgentPoolQueue>
+     */
+    getAgentPoolQueue(controllerId: number): IPromise<Contracts.AgentPoolQueue>;
+    /**
+     * Gets queues, optionally filtered by name
+     *
+     * @param {string} name
+     * @return IPromise<Contracts.AgentPoolQueue[]>
+     */
+    getQueues(name?: string): IPromise<Contracts.AgentPoolQueue[]>;
+    /**
      * @exemptedapi
      * [Preview API] Gets report for a build
      *
@@ -2801,6 +2800,34 @@ export class BuildHttpClient2_2 extends CommonMethods2_1To3 {
      * @return IPromise<ArrayBuffer>
      */
     getBuildLogsZip(project: string, buildId: number, type?: Contracts.DefinitionType): IPromise<ArrayBuffer>;
+    /**
+     * Creates a build queue
+     *
+     * @param {Contracts.AgentPoolQueue} queue
+     * @return IPromise<Contracts.AgentPoolQueue>
+     */
+    createQueue(queue: Contracts.AgentPoolQueue): IPromise<Contracts.AgentPoolQueue>;
+    /**
+     * Deletes a build queue
+     *
+     * @param {number} id
+     * @return IPromise<void>
+     */
+    deleteQueue(id: number): IPromise<void>;
+    /**
+     * Gets a queue
+     *
+     * @param {number} controllerId
+     * @return IPromise<Contracts.AgentPoolQueue>
+     */
+    getAgentPoolQueue(controllerId: number): IPromise<Contracts.AgentPoolQueue>;
+    /**
+     * Gets queues, optionally filtered by name
+     *
+     * @param {string} name
+     * @return IPromise<Contracts.AgentPoolQueue[]>
+     */
+    getQueues(name?: string): IPromise<Contracts.AgentPoolQueue[]>;
     /**
      * @exemptedapi
      * [Preview API] Gets report for a build
@@ -3016,6 +3043,34 @@ export class BuildHttpClient2_1 extends CommonMethods2_1To3 {
      */
     getBuildLogsZip(project: string, buildId: number, type?: Contracts.DefinitionType): IPromise<ArrayBuffer>;
     /**
+     * Creates a build queue
+     *
+     * @param {Contracts.AgentPoolQueue} queue
+     * @return IPromise<Contracts.AgentPoolQueue>
+     */
+    createQueue(queue: Contracts.AgentPoolQueue): IPromise<Contracts.AgentPoolQueue>;
+    /**
+     * Deletes a build queue
+     *
+     * @param {number} id
+     * @return IPromise<void>
+     */
+    deleteQueue(id: number): IPromise<void>;
+    /**
+     * Gets a queue
+     *
+     * @param {number} controllerId
+     * @return IPromise<Contracts.AgentPoolQueue>
+     */
+    getAgentPoolQueue(controllerId: number): IPromise<Contracts.AgentPoolQueue>;
+    /**
+     * Gets queues, optionally filtered by name
+     *
+     * @param {string} name
+     * @return IPromise<Contracts.AgentPoolQueue[]>
+     */
+    getQueues(name?: string): IPromise<Contracts.AgentPoolQueue[]>;
+    /**
      * Gets the work item ids associated with a build
      *
      * @param {string} project - Project ID or project name
@@ -3207,6 +3262,34 @@ export class BuildHttpClient2 extends CommonMethods2To3 {
      * @return IPromise<ArrayBuffer>
      */
     getBuildLogsZip(project: string, buildId: number, type?: Contracts.DefinitionType): IPromise<ArrayBuffer>;
+    /**
+     * Creates a build queue
+     *
+     * @param {Contracts.AgentPoolQueue} queue
+     * @return IPromise<Contracts.AgentPoolQueue>
+     */
+    createQueue(queue: Contracts.AgentPoolQueue): IPromise<Contracts.AgentPoolQueue>;
+    /**
+     * Deletes a build queue
+     *
+     * @param {number} id
+     * @return IPromise<void>
+     */
+    deleteQueue(id: number): IPromise<void>;
+    /**
+     * Gets a queue
+     *
+     * @param {number} controllerId
+     * @return IPromise<Contracts.AgentPoolQueue>
+     */
+    getAgentPoolQueue(controllerId: number): IPromise<Contracts.AgentPoolQueue>;
+    /**
+     * Gets queues, optionally filtered by name
+     *
+     * @param {string} name
+     * @return IPromise<Contracts.AgentPoolQueue[]>
+     */
+    getQueues(name?: string): IPromise<Contracts.AgentPoolQueue[]>;
     /**
      * Gets the work item ids associated with a build
      *
@@ -3733,6 +3816,22 @@ export interface TeamProjectReference {
      */
     url: string;
 }
+/**
+ * A data transfer object that stores the metadata associated with the creation of temporary data.
+ */
+export interface TemporaryDataCreatedDTO extends TemporaryDataDTO {
+    expirationDate: Date;
+    id: string;
+    url: string;
+}
+/**
+ * A data transfer object that stores the metadata associated with the temporary data.
+ */
+export interface TemporaryDataDTO {
+    expirationSeconds: number;
+    origin: string;
+    value: any;
+}
 export interface WebApiConnectedService extends WebApiConnectedServiceRef {
     /**
      * The user who did the OAuth authentication to created this service
@@ -3898,6 +3997,7 @@ export var TypeInfo: {
             "git": number;
         };
     };
+    TemporaryDataCreatedDTO: any;
 };
 }
 declare module "TFS/Core/RestClient" {
@@ -4150,6 +4250,1016 @@ export class CoreHttpClient extends CoreHttpClient3 {
  */
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CoreHttpClient2_3;
 }
+declare module "TFS/Dashboards/Contracts" {
+export interface Dashboard {
+    _links: any;
+    eTag: string;
+    id: string;
+    name: string;
+    position: number;
+    refreshInterval: number;
+    url: string;
+    widgets: Widget[];
+}
+export interface DashboardGroup {
+    _links: any;
+    dashboardEntries: DashboardGroupEntry[];
+    permission: GroupMemberPermission;
+    url: string;
+}
+/**
+ * Dashboard group entry, wraping around Dashboard (needed?)
+ */
+export interface DashboardGroupEntry extends Dashboard {
+}
+/**
+ * Response from RestAPI when saving and editing DashboardGroupEntry
+ */
+export interface DashboardGroupEntryResponse extends DashboardGroupEntry {
+}
+export interface DashboardResponse extends DashboardGroupEntry {
+}
+export enum DashboardScope {
+    Collection_User = 0,
+    Project_Team = 1,
+}
+export enum GroupMemberPermission {
+    None = 0,
+    Edit = 1,
+    Manage = 2,
+    ManagePermissions = 3,
+}
+/**
+ * Lightbox configuration
+ */
+export interface LightboxOptions {
+    /**
+     * Height of desired lightbox, in pixels
+     */
+    heightPixels: number;
+    /**
+     * True to allow lightbox resizing, false to disallow lightbox resizing, defaults to false.
+     */
+    resizable: boolean;
+    /**
+     * Width of desired lightbox, in pixels
+     */
+    widthPixels: number;
+}
+/**
+ * versioning for an artifact as described at: http://semver.org/, of the form major.minor.patch.
+ */
+export interface SemanticVersion {
+    /**
+     * Major version when you make incompatible API changes
+     */
+    major: number;
+    /**
+     * Minor version when you add functionality in a backwards-compatible manner
+     */
+    minor: number;
+    /**
+     * Patch version when you make backwards-compatible bug fixes
+     */
+    patch: number;
+}
+/**
+ * Widget data
+ */
+export interface Widget {
+    _links: any;
+    /**
+     * Refers to the allowed sizes for the widget. This gets populated when user wants to configure the widget
+     */
+    allowedSizes: WidgetSize[];
+    /**
+     * Refers to unique identifier of a feature artifact. Used for pinning+unpinning a specific artifact.
+     */
+    artifactId: string;
+    configurationContributionId: string;
+    configurationContributionRelativeId: string;
+    contentUri: string;
+    /**
+     * The id of the underlying contribution defining the supplied Widget Configuration.
+     */
+    contributionId: string;
+    /**
+     * Optional partial dashboard content, to support exchanging dashboard-level version ETag for widget-level APIs
+     */
+    dashboard: Dashboard;
+    eTag: string;
+    id: string;
+    isEnabled: boolean;
+    isNameConfigurable: boolean;
+    lightboxOptions: LightboxOptions;
+    loadingImageUrl: string;
+    name: string;
+    position: WidgetPosition;
+    settings: string;
+    settingsVersion: SemanticVersion;
+    size: WidgetSize;
+    typeId: string;
+    url: string;
+}
+/**
+ * For V1, this is just a pool of definitions describing our possible Widget Configurations.
+ */
+export interface WidgetConfigurationMetadata {
+    /**
+     * The id of the underlying contribution defining the supplied Widget Configuration.
+     */
+    contributionId: string;
+    /**
+     * Contribution target IDs
+     */
+    targets: string[];
+}
+/**
+ * For V1, this is just a pool of definitions describing our possible Widgets.
+ */
+export interface WidgetMetadata {
+    /**
+     * Sizes supported by the Widget.
+     */
+    allowedSizes: WidgetSize[];
+    /**
+     * Opt-in boolean that indicates if the widget requires the Analytics Service to function. Widgets requiring the analytics service are hidden from the catalog if the Analytics Service is not available.
+     */
+    analyticsServiceRequired: boolean;
+    /**
+     * Resource for an icon in the widget catalog.
+     */
+    catalogIconUrl: string;
+    /**
+     * Opt-in URL string pointing at widget information. Defaults to extension marketplace URL if omitted
+     */
+    catalogInfoUrl: string;
+    /**
+     * The id of the underlying contribution defining the supplied Widget custom configuration UI. Null if custom configuration UI is not available.
+     */
+    configurationContributionId: string;
+    /**
+     * The relative id of the underlying contribution defining the supplied Widget custom configuration UI. Null if custom configuration UI is not available.
+     */
+    configurationContributionRelativeId: string;
+    /**
+     * Indicates if the widget requires configuration before being added to dashboard.
+     */
+    configurationRequired: boolean;
+    /**
+     * Uri for the WidgetFactory to get the widget
+     */
+    contentUri: string;
+    /**
+     * The id of the underlying contribution defining the supplied Widget.
+     */
+    contributionId: string;
+    /**
+     * Optional default settings to be copied into widget settings
+     */
+    defaultSettings: string;
+    /**
+     * Summary information describing the widget.
+     */
+    description: string;
+    /**
+     * Widgets can be disabled by the app store.  We'll need to gracefully handle for: - persistence (Allow) - Requests (Tag as disabled, and provide context)
+     */
+    isEnabled: boolean;
+    /**
+     * Opt-out boolean that indicates if the widget supports widget name/title configuration. Widgets ignoring the name should set it to false in the manifest.
+     */
+    isNameConfigurable: boolean;
+    /**
+     * Opt-out boolean indicating if the widget is hidden from the catalog.  For V1, only "pull" model widgets can be provided from the catalog.
+     */
+    isVisibleFromCatalog: boolean;
+    /**
+     * Opt-in lightbox properties
+     */
+    lightboxOptions: LightboxOptions;
+    /**
+     * Resource for a loading placeholder image on dashboard
+     */
+    loadingImageUrl: string;
+    /**
+     * User facing name of the widget type. Each widget must use a unique value here.
+     */
+    name: string;
+    /**
+     * Data contract required for the widget to function and to work in its container.
+     */
+    supportedScopes: WidgetScope[];
+    /**
+     * Contribution target IDs
+     */
+    targets: string[];
+    /**
+     * Dev-facing id of this kind of widget.
+     */
+    typeId: string;
+}
+export interface WidgetMetadataResponse {
+    uri: string;
+    widgetMetadata: WidgetMetadata;
+}
+export interface WidgetPosition {
+    column: number;
+    row: number;
+}
+/**
+ * Response from RestAPI when saving and editing Widget
+ */
+export interface WidgetResponse extends Widget {
+}
+export enum WidgetScope {
+    Collection_User = 0,
+    Project_Team = 1,
+}
+export interface WidgetSize {
+    columnSpan: number;
+    rowSpan: number;
+}
+/**
+ * Wrapper class to support HTTP header generation using CreateResponse, ClientHeaderParameter and ClientResponseType in WidgetV2Controller
+ */
+export interface WidgetsVersionedList {
+    eTag: string[];
+    widgets: Widget[];
+}
+export interface WidgetTypesResponse {
+    uri: string;
+    widgetTypes: WidgetMetadata[];
+}
+export var TypeInfo: {
+    DashboardGroup: any;
+    DashboardScope: {
+        enumValues: {
+            "collection_User": number;
+            "project_Team": number;
+        };
+    };
+    GroupMemberPermission: {
+        enumValues: {
+            "none": number;
+            "edit": number;
+            "manage": number;
+            "managePermissions": number;
+        };
+    };
+    WidgetMetadata: any;
+    WidgetMetadataResponse: any;
+    WidgetScope: {
+        enumValues: {
+            "collection_User": number;
+            "project_Team": number;
+        };
+    };
+    WidgetTypesResponse: any;
+};
+}
+declare module "TFS/Dashboards/RestClient" {
+import Contracts = require("TFS/Dashboards/Contracts");
+import TFS_Core_Contracts = require("TFS/Core/Contracts");
+import VSS_WebApi = require("VSS/WebApi/RestClient");
+export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
+    protected widgetTypesApiVersion: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Returns available widgets in alphabetical order.
+     *
+     * @param {Contracts.WidgetScope} scope
+     * @return IPromise<Contracts.WidgetTypesResponse>
+     */
+    getWidgetTypes(scope: Contracts.WidgetScope): IPromise<Contracts.WidgetTypesResponse>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} contributionId
+     * @return IPromise<Contracts.WidgetMetadataResponse>
+     */
+    getWidgetMetadata(contributionId: string): IPromise<Contracts.WidgetMetadataResponse>;
+}
+/**
+ * @exemptedapi
+ */
+export class DashboardHttpClient3 extends CommonMethods2To3 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Dashboard} entry
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @return IPromise<Contracts.Dashboard>
+     */
+    createDashboard(entry: Contracts.Dashboard, teamContext: TFS_Core_Contracts.TeamContext): IPromise<Contracts.Dashboard>;
+    /**
+     * [Preview API]
+     *
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} dashboardId
+     * @return IPromise<void>
+     */
+    deleteDashboard(teamContext: TFS_Core_Contracts.TeamContext, dashboardId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} dashboardId
+     * @return IPromise<Contracts.Dashboard>
+     */
+    getDashboard(teamContext: TFS_Core_Contracts.TeamContext, dashboardId: string): IPromise<Contracts.Dashboard>;
+    /**
+     * [Preview API]
+     *
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @return IPromise<Contracts.DashboardGroup>
+     */
+    getDashboards(teamContext: TFS_Core_Contracts.TeamContext): IPromise<Contracts.DashboardGroup>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Dashboard} dashboard
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} dashboardId
+     * @return IPromise<Contracts.Dashboard>
+     */
+    replaceDashboard(dashboard: Contracts.Dashboard, teamContext: TFS_Core_Contracts.TeamContext, dashboardId: string): IPromise<Contracts.Dashboard>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DashboardGroup} group
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @return IPromise<Contracts.DashboardGroup>
+     */
+    replaceDashboards(group: Contracts.DashboardGroup, teamContext: TFS_Core_Contracts.TeamContext): IPromise<Contracts.DashboardGroup>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Widget} widget
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} dashboardId
+     * @return IPromise<Contracts.Widget>
+     */
+    createWidget(widget: Contracts.Widget, teamContext: TFS_Core_Contracts.TeamContext, dashboardId: string): IPromise<Contracts.Widget>;
+    /**
+     * [Preview API]
+     *
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} dashboardId
+     * @param {string} widgetId
+     * @return IPromise<Contracts.Dashboard>
+     */
+    deleteWidget(teamContext: TFS_Core_Contracts.TeamContext, dashboardId: string, widgetId: string): IPromise<Contracts.Dashboard>;
+    /**
+     * [Preview API]
+     *
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} dashboardId
+     * @param {string} widgetId
+     * @return IPromise<Contracts.Widget>
+     */
+    getWidget(teamContext: TFS_Core_Contracts.TeamContext, dashboardId: string, widgetId: string): IPromise<Contracts.Widget>;
+    /**
+     * [Preview API]
+     *
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} dashboardId
+     * @param {String} eTag - Dashboard Widgets Version
+     * @return IPromise<Contracts.WidgetsVersionedList>
+     */
+    getWidgets(teamContext: TFS_Core_Contracts.TeamContext, dashboardId: string, eTag?: String): IPromise<Contracts.WidgetsVersionedList>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Widget} widget
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} dashboardId
+     * @param {string} widgetId
+     * @return IPromise<Contracts.Widget>
+     */
+    replaceWidget(widget: Contracts.Widget, teamContext: TFS_Core_Contracts.TeamContext, dashboardId: string, widgetId: string): IPromise<Contracts.Widget>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Widget[]} widgets
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} dashboardId
+     * @param {String} eTag - Dashboard Widgets Version
+     * @return IPromise<Contracts.WidgetsVersionedList>
+     */
+    replaceWidgets(widgets: Contracts.Widget[], teamContext: TFS_Core_Contracts.TeamContext, dashboardId: string, eTag?: String): IPromise<Contracts.WidgetsVersionedList>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Widget} widget
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} dashboardId
+     * @param {string} widgetId
+     * @return IPromise<Contracts.Widget>
+     */
+    updateWidget(widget: Contracts.Widget, teamContext: TFS_Core_Contracts.TeamContext, dashboardId: string, widgetId: string): IPromise<Contracts.Widget>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Widget[]} widgets
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} dashboardId
+     * @param {String} eTag - Dashboard Widgets Version
+     * @return IPromise<Contracts.WidgetsVersionedList>
+     */
+    updateWidgets(widgets: Contracts.Widget[], teamContext: TFS_Core_Contracts.TeamContext, dashboardId: string, eTag?: String): IPromise<Contracts.WidgetsVersionedList>;
+}
+/**
+ * @exemptedapi
+ */
+export class DashboardHttpClient2_3 extends CommonMethods2To3 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class DashboardHttpClient2_2 extends CommonMethods2To3 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DashboardGroupEntry} entry
+     * @param {string} groupId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DashboardGroupEntryResponse>
+     */
+    createDashboard(entry: Contracts.DashboardGroupEntry, groupId: string, project?: string): IPromise<Contracts.DashboardGroupEntryResponse>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<void>
+     */
+    deleteDashboard(groupId: string, dashboardId: string, project?: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DashboardResponse>
+     */
+    getDashboard(groupId: string, dashboardId: string, project?: string): IPromise<Contracts.DashboardResponse>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Dashboard} dashboard
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DashboardResponse>
+     */
+    replaceDashboard(dashboard: Contracts.Dashboard, groupId: string, dashboardId: string, project?: string): IPromise<Contracts.DashboardResponse>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} groupId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DashboardGroup>
+     */
+    getDashboardGroup(groupId: string, project?: string): IPromise<Contracts.DashboardGroup>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DashboardGroup} group
+     * @param {string} groupId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DashboardGroup>
+     */
+    replaceDashboardGroup(group: Contracts.DashboardGroup, groupId: string, project?: string): IPromise<Contracts.DashboardGroup>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Widget} widget
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WidgetResponse>
+     */
+    createWidget(widget: Contracts.Widget, groupId: string, dashboardId: string, project?: string): IPromise<Contracts.WidgetResponse>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} widgetId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WidgetResponse>
+     */
+    getWidget(groupId: string, dashboardId: string, widgetId: string, project?: string): IPromise<Contracts.WidgetResponse>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Widget} widget
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} widgetId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WidgetResponse>
+     */
+    updateWidget(widget: Contracts.Widget, groupId: string, dashboardId: string, widgetId: string, project?: string): IPromise<Contracts.WidgetResponse>;
+}
+/**
+ * @exemptedapi
+ */
+export class DashboardHttpClient2_1 extends CommonMethods2To3 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DashboardGroupEntry} entry
+     * @param {string} groupId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DashboardGroupEntryResponse>
+     */
+    createDashboard(entry: Contracts.DashboardGroupEntry, groupId: string, project?: string): IPromise<Contracts.DashboardGroupEntryResponse>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<void>
+     */
+    deleteDashboard(groupId: string, dashboardId: string, project?: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DashboardResponse>
+     */
+    getDashboard(groupId: string, dashboardId: string, project?: string): IPromise<Contracts.DashboardResponse>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Dashboard} dashboard
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DashboardResponse>
+     */
+    replaceDashboard(dashboard: Contracts.Dashboard, groupId: string, dashboardId: string, project?: string): IPromise<Contracts.DashboardResponse>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} groupId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DashboardGroup>
+     */
+    getDashboardGroup(groupId: string, project?: string): IPromise<Contracts.DashboardGroup>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DashboardGroup} group
+     * @param {string} groupId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DashboardGroup>
+     */
+    replaceDashboardGroup(group: Contracts.DashboardGroup, groupId: string, project?: string): IPromise<Contracts.DashboardGroup>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Widget} widget
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WidgetResponse>
+     */
+    createWidget(widget: Contracts.Widget, groupId: string, dashboardId: string, project?: string): IPromise<Contracts.WidgetResponse>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} widgetId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WidgetResponse>
+     */
+    getWidget(groupId: string, dashboardId: string, widgetId: string, project?: string): IPromise<Contracts.WidgetResponse>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Widget} widget
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} widgetId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WidgetResponse>
+     */
+    updateWidget(widget: Contracts.Widget, groupId: string, dashboardId: string, widgetId: string, project?: string): IPromise<Contracts.WidgetResponse>;
+}
+/**
+ * @exemptedapi
+ */
+export class DashboardHttpClient2 extends CommonMethods2To3 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DashboardGroupEntry} entry
+     * @param {string} groupId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DashboardGroupEntryResponse>
+     */
+    createDashboard(entry: Contracts.DashboardGroupEntry, groupId: string, project?: string): IPromise<Contracts.DashboardGroupEntryResponse>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<void>
+     */
+    deleteDashboard(groupId: string, dashboardId: string, project?: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DashboardResponse>
+     */
+    getDashboard(groupId: string, dashboardId: string, project?: string): IPromise<Contracts.DashboardResponse>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Dashboard} dashboard
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DashboardResponse>
+     */
+    replaceDashboard(dashboard: Contracts.Dashboard, groupId: string, dashboardId: string, project?: string): IPromise<Contracts.DashboardResponse>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} groupId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DashboardGroup>
+     */
+    getDashboardGroup(groupId: string, project?: string): IPromise<Contracts.DashboardGroup>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DashboardGroup} group
+     * @param {string} groupId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DashboardGroup>
+     */
+    replaceDashboardGroup(group: Contracts.DashboardGroup, groupId: string, project?: string): IPromise<Contracts.DashboardGroup>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Widget} widget
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WidgetResponse>
+     */
+    createWidget(widget: Contracts.Widget, groupId: string, dashboardId: string, project?: string): IPromise<Contracts.WidgetResponse>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} widgetId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WidgetResponse>
+     */
+    getWidget(groupId: string, dashboardId: string, widgetId: string, project?: string): IPromise<Contracts.WidgetResponse>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Widget} widget
+     * @param {string} groupId
+     * @param {string} dashboardId
+     * @param {string} widgetId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WidgetResponse>
+     */
+    updateWidget(widget: Contracts.Widget, groupId: string, dashboardId: string, widgetId: string, project?: string): IPromise<Contracts.WidgetResponse>;
+}
+export class DashboardHttpClient extends DashboardHttpClient3 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * Gets an http client targeting the latest released version of the APIs.
+ *
+ * @return DashboardHttpClient2_3
+ */
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): DashboardHttpClient2_3;
+}
+declare module "TFS/Dashboards/Services" {
+/**
+* This file is a reference to host services that will be provided by the Dashboards
+* framework and used by the widgets.
+*/
+/**
+* Initial set of options passed to a widget.
+*/
+export interface WidgetOptions {
+    /**
+    * service reference provided by the widget host.
+    */
+    widgetService: IPromise<IWidgetHostService>;
+}
+/**
+* a service that manages widget host requests for action.
+*/
+export interface IWidgetHostService {
+    /**
+    * request the host to open the configuration experience for the widget.
+    * If the widget doesnt have configuration experience this is a no-op
+    */
+    showConfiguration: () => void;
+}
+export module WidgetHostService {
+    /**
+   *  Get an instance of the widget host service
+   *
+   *  @param configuration Optional configuration to scope the service to.
+   */
+    function getService(configuration?: WidgetOptions): IPromise<IWidgetHostService>;
+}
+}
+declare module "TFS/Dashboards/WidgetContracts" {
+import TFS_Dashboards_Contracts = require("TFS/Dashboards/Contracts");
+/**
+* settings of the widget that encapsulate their serialized data and version support.
+*/
+export interface CustomSettings {
+    /**
+    * the settings data serialized as a string.
+    */
+    data: string;
+    /**
+     * (Optional) version for the settings represented as a semantic version object.
+     * If none is available, the version defaults to {major:1, minor:0, patch:0} or "1.0.0"
+     */
+    version?: TFS_Dashboards_Contracts.SemanticVersion;
+}
+/**
+ * A description of widget state, satisfying requirements for rendering a widget (Does not contain grid centric information, or contribution metadata).
+ */
+export interface WidgetSettings {
+    /**
+     * size of the widget (in case of configuration, this maps to the size sub section in the general section of the configuration panel)
+     */
+    size: TFS_Dashboards_Contracts.WidgetSize;
+    /**
+     * name of the widget (in case of configuration, this maps to the name sub section in the general section of the configuration panel)
+     */
+    name: string;
+    /**
+     * settings of the widget
+     */
+    customSettings: CustomSettings;
+    /**
+     * Lightbox options
+     */
+    lightboxOptions?: TFS_Dashboards_Contracts.LightboxOptions;
+}
+/**
+* contract to represent an error used by the framework (and will potentially will be made available to widget authors)
+*/
+export interface ErrorMessage {
+    /**
+    * message representing the error.
+    */
+    message: string;
+    /**
+    * indicates whether its a rich text or not (that it can have renderable html content).
+    */
+    isRichText: boolean;
+    /**
+    * indicates whether this message can be displayed to the user or not. If not a general platform message is shown.
+    */
+    isUserVisible: boolean;
+}
+/**
+ * Used to differentiate between widget status helpers
+ */
+export enum WidgetStatusType {
+    /**
+     * The widget loaded successfully
+     */
+    Success = 0,
+    /**
+     * The widget failed to load
+     */
+    Failure = 1,
+    /**
+     * The widget needs to be configured
+     */
+    Unconfigured = 2,
+}
+/**
+ * The object encapsulating the result for an IWidget/IConfigurableWidget method call. This object is created using the WidgetStatusHelper library.
+ */
+export interface WidgetStatus {
+    /**
+    * the rendered state of the widget serialized to a string.
+    */
+    state?: string;
+    /**
+    * Widget title to render in a lightbox
+    */
+    title?: string;
+    /**
+     * Used to determine which widget status helper was called
+     */
+    statusType?: WidgetStatusType;
+}
+/**
+ * All widgets implement this interface
+ */
+export interface IWidget {
+    /** widgets use the settings provided along with the any cached data they may have to paint an interactive state. No network calls should be made by the widget.
+     *  @param {WidgetSettings} settings of the widget as available when the widget render is called by the host.
+     *  @returns object wrapped in a promise that encapsulates the success of this operation.
+     *          when this calls are completed and the experience is done loading.
+     */
+    preload: (widgetSettings: WidgetSettings) => IPromise<WidgetStatus>;
+    /**
+     *  Widgets use the settings provided as well as server side calls to complete their rendering experience.
+     *  In the future, widgets are expected to provide a loading experience while the calls are being waited to be completed.
+     *  Until then, the widget host will provide the loading experience
+     *  @param {WidgetSettings} settings of the widget as available when the widget render is called by the host.
+     *  @returns object wrapped in a promise that encapsulates the success of this operation.
+     *          when this calls are completed and the experience is done loading.
+     */
+    load: (widgetSettings: WidgetSettings) => IPromise<WidgetStatus>;
+    /**
+    * Widgets manage any operations that are not necessary for initial load but are required for the full widget experience.
+    */
+    onDashboardLoaded?: () => void;
+    /**
+    * The framework calls this method to determine if the widget should be disabled for users with stakeholder license
+    * @param {WidgetSettings} settings of the widget as available when the widget render is called by the host.
+    * @returns A boolean wrapped in a promise that determines if the widget should be disabled for users with stakeholder license
+    */
+    disableWidgetForStakeholders?: (widgetSettings: WidgetSettings) => IPromise<boolean>;
+    /**
+     *  Run widget in lightboxed mode
+     *  @param {WidgetSettings} settings of the widget as available when the widget render is called by the host.
+     *  @param {LightboxSize} size of the lightbox
+     *  @returns object wrapped in a promise that encapsulates the success of this operation.
+     *          when this calls are completed and the experience is done loading.
+     */
+    lightbox?: (widgetSettings: WidgetSettings, lightboxSize: Size) => IPromise<WidgetStatus>;
+    /**
+    *  Listen to message from host
+    * @param {string} type of event
+    * @param {eventArgs} arguments associated with the event.
+    */
+    listen?: <T>(event: string, eventArgs: EventArgs<T>) => void;
+}
+/**
+ * Configurable widgets implement this interface
+ */
+export interface IConfigurableWidget extends IWidget {
+    /**
+     *  When the configuration view is changed, the widget is expected to update its view.
+     *  @param {WidgetSettings} the latest widget settings as available from the configuration view for the widget.
+     *  @returns object wrapped in a promise that encapsulates the success of this operation.
+     */
+    reload: (newWidgetSettings: WidgetSettings) => IPromise<WidgetStatus>;
+}
+/**
+ * Widget authors implement this interface for their configuration.
+ */
+export interface IWidgetConfiguration {
+    /**
+     *  Called by the host to setup the widget configuration, which uses the settings shared with the widget to complete its rendering experience.
+     *  @param {WidgetSettings} settings of the widget as shared with the configuration.
+     *  @param {IWidgetConfigurationContext} widgetConfigurationContext provided by the host of the widget configuration to allow for communication.
+     *  @returns object wrapped in a promise that encapsulates the success of this operation.
+     *           If load fails, returns error message via WidgetStatusHelper.Failure(errorMessage).
+     */
+    load: (widgetSettings: WidgetSettings, widgetConfigurationContext: IWidgetConfigurationContext) => IPromise<WidgetStatus>;
+    /**
+     * Called by the host when the user clicks on the Save button.
+     * Widget author is expected to run validations if needed.
+     * If ready to save, then use WidgetHelpers.WidgetConfigurationSave.Valid() to return the serialized custom settings of the widget from the configuraton.
+     * If custom settings are not valid and so not ready to save, then  use WidgetHelpers.WidgetConfigurationSave.Invalid() to notify the host to stop save.
+     * @returns object of type SaveStatus wrapped in a promise.
+     */
+    onSave: () => IPromise<SaveStatus>;
+    /**
+     * (Optional) Called by the host when the configuration is ready to be saved (when the user clicks the save button on the configuration panel)
+     */
+    onSaveComplete?: () => void;
+    /**
+    *  Listen to message from host
+    * @param {string} type of event
+    * @param {eventArgs} arguments associated with the event.
+    */
+    listen?: <T>(event: string, eventArgs: EventArgs<T>) => void;
+}
+/**
+* The result of a notification being made by a widget configuration.
+*/
+export interface NotifyResult {
+    /**
+    * Gets a response from the subscriber of the notification, if they provide one as part of the schema for the event.
+    * @returns A promise with the data representing the return payload serialized as a string.
+    */
+    getResponse(): IPromise<string>;
+}
+/**
+* Arguments associated with an event being passed by a widget or configurations.
+*/
+export interface EventArgs<T> {
+    /**
+    * Data relevant to the event.
+    */
+    data: T;
+}
+/**
+ * Interface for the object passed to the widget configuration to communicate with its host.
+ */
+export interface IWidgetConfigurationContext {
+    /**
+    * The widget configuration calls this method when it wants to notify any of the WidgetEvents to the host
+    * @param {string} type of event
+    * @param {eventArgs} arguments associated with the event.
+    * @returns a promise with the result of the notification. If arguments are malformed, the promise will be rejected. If multiple notifications are made for the same event
+    * only the promise for the latest notification is resolved and the rest are treated as stale. The subscriber of the notification can send back information in a serialized form.
+    */
+    notify: <T>(event: string, eventArgs: EventArgs<T>) => IPromise<NotifyResult>;
+}
+/**
+* Interface for the object passed to the host when user clicks on the Save button in the configuration pane
+*/
+export interface SaveStatus {
+    /**
+    * The custom settings to save
+    */
+    customSettings?: CustomSettings;
+    /**
+    * Indicates validity of the customSettings. If false, then user will be shown a generic error message and settings will not be saved.
+    */
+    isValid: boolean;
+}
+/**
+ * Size of lightbox to draw widget in
+ */
+export interface Size {
+    /**
+     * width in pixels
+     */
+    width: number;
+    /**
+     * height in pixels
+     */
+    height: number;
+}
+}
+declare module "TFS/Dashboards/WidgetHelpers" {
+import TFS_Dashboards_WidgetContracts = require("TFS/Dashboards/WidgetContracts");
+/**
+ * Loads widget styles for the author into the iframe.
+ */
+export function IncludeWidgetStyles(): void;
+/**
+ * Loads widget configuration styles for the author into the iframe.
+ */
+export function IncludeWidgetConfigurationStyles(): void;
+export class WidgetStatusHelper {
+    static Success(state?: string, title?: string): IPromise<TFS_Dashboards_WidgetContracts.WidgetStatus>;
+    static Failure(message: string, isUserVisible?: boolean, isRichtText?: boolean): IPromise<TFS_Dashboards_WidgetContracts.WidgetStatus>;
+    static Unconfigured(): IPromise<TFS_Dashboards_WidgetContracts.WidgetStatus>;
+}
+export class WidgetConfigurationSave {
+    static Valid(customSettings: TFS_Dashboards_WidgetContracts.CustomSettings): IPromise<TFS_Dashboards_WidgetContracts.SaveStatus>;
+    static Invalid(): IPromise<TFS_Dashboards_WidgetContracts.SaveStatus>;
+}
+export class WidgetEvent {
+    /**
+    * Configuration has changed. When this event is notified, the preview is updated and Save button is enabled.
+    */
+    static ConfigurationChange: string;
+    /**
+    * Lightbox finished resizing. When this event is notified, the lightbox is done resizing.
+    */
+    static LightboxResized: string;
+    /**
+    * Widget configuration general settings changed
+    */
+    static GeneralSettingsChanged: string;
+    static Args<T>(payload: T): TFS_Dashboards_WidgetContracts.EventArgs<T>;
+}
+}
 declare module "TFS/DistributedTask/Contracts" {
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_FormInput_Contracts = require("VSS/Common/Contracts/FormInput");
@@ -4164,6 +5274,9 @@ export interface AgentJobRequestMessage extends JobRequestMessage {
     lockToken: string;
     requestId: number;
     tasks: TaskInstance[];
+}
+export interface AgentMigrationMessage {
+    accessToken: string;
 }
 export interface AgentPoolEvent {
     eventType: string;
@@ -4801,11 +5914,33 @@ export interface TaskExecution {
         };
     };
 }
+export interface TaskGroup extends TaskDefinition {
+    owner: string;
+    tasks: TaskGroupStep[];
+}
 export interface TaskGroupDefinition {
     displayName: string;
     isExpanded: boolean;
     name: string;
     tags: string[];
+}
+export interface TaskGroupStep {
+    alwaysRun: boolean;
+    continueOnError: boolean;
+    displayName: string;
+    enabled: boolean;
+    inputs: {
+        [key: string]: string;
+    };
+    task: TaskDefinitionReference;
+    timeoutInMinutes: number;
+}
+export interface TaskHubLicenseDetails {
+    freeLicenseCount: number;
+    hasLicenseCountEverUpdated: boolean;
+    msdnUsersCount: number;
+    purchasedLicenseCount: number;
+    totalLicenseCount: number;
 }
 export interface TaskInputDefinition {
     defaultValue: string;
@@ -5093,8 +6228,6 @@ export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
     protected messagesApiVersion: string;
     protected poolsApiVersion: string;
     protected queuesApiVersion: string;
-    protected serviceendpointproxyApiVersion: string;
-    protected serviceendpointsApiVersion: string;
     protected serviceendpointtypesApiVersion: string;
     protected sessionsApiVersion: string;
     protected usercapabilitiesApiVersion: string;
@@ -5124,79 +6257,11 @@ export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
      * @exemptedapi
      * [Preview API]
      *
-     * @param {string} scopeIdentifier - The project GUID to scope the request
      * @param {string} type
      * @param {string} scheme
      * @return IPromise<Contracts.ServiceEndpointType[]>
      */
-    getServiceEndpointTypes(scopeIdentifier: string, type?: string, scheme?: string): IPromise<Contracts.ServiceEndpointType[]>;
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @param {Contracts.ServiceEndpoint} endpoint
-     * @param {string} scopeIdentifier - The project GUID to scope the request
-     * @param {string} endpointId
-     * @return IPromise<Contracts.ServiceEndpoint>
-     */
-    updateServiceEndpoint(endpoint: Contracts.ServiceEndpoint, scopeIdentifier: string, endpointId: string): IPromise<Contracts.ServiceEndpoint>;
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @param {string} scopeIdentifier - The project GUID to scope the request
-     * @param {string} type
-     * @param {string[]} authSchemes
-     * @param {string[]} endpointIds
-     * @return IPromise<Contracts.ServiceEndpoint[]>
-     */
-    getServiceEndpoints(scopeIdentifier: string, type?: string, authSchemes?: string[], endpointIds?: string[]): IPromise<Contracts.ServiceEndpoint[]>;
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @param {string} scopeIdentifier - The project GUID to scope the request
-     * @param {string} endpointId
-     * @return IPromise<Contracts.ServiceEndpoint>
-     */
-    getServiceEndpointDetails(scopeIdentifier: string, endpointId: string): IPromise<Contracts.ServiceEndpoint>;
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @param {string} scopeIdentifier - The project GUID to scope the request
-     * @param {string} endpointId
-     * @return IPromise<void>
-     */
-    deleteServiceEndpoint(scopeIdentifier: string, endpointId: string): IPromise<void>;
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @param {Contracts.ServiceEndpoint} endpoint
-     * @param {string} scopeIdentifier - The project GUID to scope the request
-     * @return IPromise<Contracts.ServiceEndpoint>
-     */
-    createServiceEndpoint(endpoint: Contracts.ServiceEndpoint, scopeIdentifier: string): IPromise<Contracts.ServiceEndpoint>;
-    /**
-     * @exemptedapi
-     * [Preview API] Proxy for a GET request defined by an service endpoint. The request is authorized using a data source in service endpoint. The response is filtered using an XPath/Json based selector.
-     *
-     * @param {Contracts.DataSourceBinding} binding - Describes the data source to fetch.
-     * @param {string} scopeIdentifier - The project GUID to scope the request
-     * @return IPromise<string[]>
-     */
-    queryServiceEndpoint(binding: Contracts.DataSourceBinding, scopeIdentifier: string): IPromise<string[]>;
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @param {Contracts.ServiceEndpointRequest} serviceEndpointRequest
-     * @param {string} scopeIdentifier - The project GUID to scope the request
-     * @param {string} endpointId
-     * @return IPromise<Contracts.ServiceEndpointRequestResult>
-     */
-    executeServiceEndpointRequest(serviceEndpointRequest: Contracts.ServiceEndpointRequest, scopeIdentifier: string, endpointId: string): IPromise<Contracts.ServiceEndpointRequestResult>;
+    getServiceEndpointTypes(type?: string, scheme?: string): IPromise<Contracts.ServiceEndpointType[]>;
     /**
      * @exemptedapi
      * [Preview API]
@@ -5362,10 +6427,9 @@ export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
      * @exemptedapi
      * [Preview API]
      *
-     * @param {string} scopeIdentifier - The project GUID to scope the request
      * @return IPromise<Contracts.AzureSubscriptionQueryResult>
      */
-    getAzureSubscriptions(scopeIdentifier: string): IPromise<Contracts.AzureSubscriptionQueryResult>;
+    getAzureSubscriptions(): IPromise<Contracts.AzureSubscriptionQueryResult>;
     /**
      * @param {Contracts.TaskAgent} agent
      * @param {number} poolId
@@ -5508,6 +6572,21 @@ export class TaskAgentHttpClient3 extends CommonMethods2_1To3 {
     /**
      * [Preview API]
      *
+     * @param {string} hubName
+     * @return IPromise<Contracts.TaskHubLicenseDetails>
+     */
+    getTaskHubLicenseDetails(hubName: string): IPromise<Contracts.TaskHubLicenseDetails>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.TaskHubLicenseDetails} taskHubLicenseDetails
+     * @param {string} hubName
+     * @return IPromise<Contracts.TaskHubLicenseDetails>
+     */
+    updateTaskHubLicenseDetails(taskHubLicenseDetails: Contracts.TaskHubLicenseDetails, hubName: string): IPromise<Contracts.TaskHubLicenseDetails>;
+    /**
+     * [Preview API]
+     *
      * @param {string} packageType
      * @param {string} platform
      * @param {string} version
@@ -5523,6 +6602,100 @@ export class TaskAgentHttpClient3 extends CommonMethods2_1To3 {
      * @return IPromise<Contracts.PackageMetadata[]>
      */
     getPackages(packageType?: string, platform?: string, top?: number): IPromise<Contracts.PackageMetadata[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ServiceEndpointRequest} serviceEndpointRequest
+     * @param {string} project - Project ID or project name
+     * @param {string} endpointId
+     * @return IPromise<Contracts.ServiceEndpointRequestResult>
+     */
+    executeServiceEndpointRequest(serviceEndpointRequest: Contracts.ServiceEndpointRequest, project: string, endpointId: string): IPromise<Contracts.ServiceEndpointRequestResult>;
+    /**
+     * [Preview API] Proxy for a GET request defined by an service endpoint. The request is authorized using a data source in service endpoint. The response is filtered using an XPath/Json based selector.
+     *
+     * @param {Contracts.DataSourceBinding} binding - Describes the data source to fetch.
+     * @param {string} project - Project ID or project name
+     * @return IPromise<string[]>
+     */
+    queryServiceEndpoint(binding: Contracts.DataSourceBinding, project: string): IPromise<string[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ServiceEndpoint} endpoint
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    createServiceEndpoint(endpoint: Contracts.ServiceEndpoint, project: string): IPromise<Contracts.ServiceEndpoint>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} endpointId
+     * @return IPromise<void>
+     */
+    deleteServiceEndpoint(project: string, endpointId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} endpointId
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    getServiceEndpointDetails(project: string, endpointId: string): IPromise<Contracts.ServiceEndpoint>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} type
+     * @param {string[]} authSchemes
+     * @param {string[]} endpointIds
+     * @param {boolean} includeFailed
+     * @return IPromise<Contracts.ServiceEndpoint[]>
+     */
+    getServiceEndpoints(project: string, type?: string, authSchemes?: string[], endpointIds?: string[], includeFailed?: boolean): IPromise<Contracts.ServiceEndpoint[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ServiceEndpoint} endpoint
+     * @param {string} project - Project ID or project name
+     * @param {string} endpointId
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    updateServiceEndpoint(endpoint: Contracts.ServiceEndpoint, project: string, endpointId: string): IPromise<Contracts.ServiceEndpoint>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.TaskGroup} taskGroup
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.TaskGroup>
+     */
+    addTaskGroup(taskGroup: Contracts.TaskGroup, project: string): IPromise<Contracts.TaskGroup>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} taskGroupId
+     * @return IPromise<void>
+     */
+    deleteTaskGroup(project: string, taskGroupId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} taskGroupId
+     * @param {boolean} expanded
+     * @return IPromise<Contracts.TaskGroup[]>
+     */
+    getTaskGroups(project: string, taskGroupId?: string, expanded?: boolean): IPromise<Contracts.TaskGroup[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.TaskGroup} taskGroup
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.TaskGroup>
+     */
+    updateTaskGroup(taskGroup: Contracts.TaskGroup, project: string): IPromise<Contracts.TaskGroup>;
 }
 export class TaskAgentHttpClient2_3 extends CommonMethods2_1To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -5544,6 +6717,74 @@ export class TaskAgentHttpClient2_3 extends CommonMethods2_1To3 {
      * @return IPromise<ArrayBuffer>
      */
     getPackageZip(packageType: string): IPromise<ArrayBuffer>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.ServiceEndpointRequest} serviceEndpointRequest
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} endpointId
+     * @return IPromise<Contracts.ServiceEndpointRequestResult>
+     */
+    executeServiceEndpointRequest(serviceEndpointRequest: Contracts.ServiceEndpointRequest, scopeIdentifier: string, endpointId: string): IPromise<Contracts.ServiceEndpointRequestResult>;
+    /**
+     * @exemptedapi
+     * [Preview API] Proxy for a GET request defined by an service endpoint. The request is authorized using a data source in service endpoint. The response is filtered using an XPath/Json based selector.
+     *
+     * @param {Contracts.DataSourceBinding} binding - Describes the data source to fetch.
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @return IPromise<string[]>
+     */
+    queryServiceEndpoint(binding: Contracts.DataSourceBinding, scopeIdentifier: string): IPromise<string[]>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.ServiceEndpoint} endpoint
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    createServiceEndpoint(endpoint: Contracts.ServiceEndpoint, scopeIdentifier: string): IPromise<Contracts.ServiceEndpoint>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} endpointId
+     * @return IPromise<void>
+     */
+    deleteServiceEndpoint(scopeIdentifier: string, endpointId: string): IPromise<void>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} endpointId
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    getServiceEndpointDetails(scopeIdentifier: string, endpointId: string): IPromise<Contracts.ServiceEndpoint>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} type
+     * @param {string[]} authSchemes
+     * @param {string[]} endpointIds
+     * @param {boolean} includeFailed
+     * @return IPromise<Contracts.ServiceEndpoint[]>
+     */
+    getServiceEndpoints(scopeIdentifier: string, type?: string, authSchemes?: string[], endpointIds?: string[], includeFailed?: boolean): IPromise<Contracts.ServiceEndpoint[]>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.ServiceEndpoint} endpoint
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} endpointId
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    updateServiceEndpoint(endpoint: Contracts.ServiceEndpoint, scopeIdentifier: string, endpointId: string): IPromise<Contracts.ServiceEndpoint>;
 }
 export class TaskAgentHttpClient2_2 extends CommonMethods2_1To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -5565,6 +6806,74 @@ export class TaskAgentHttpClient2_2 extends CommonMethods2_1To3 {
      * @return IPromise<ArrayBuffer>
      */
     getPackageZip(packageType: string): IPromise<ArrayBuffer>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.ServiceEndpointRequest} serviceEndpointRequest
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} endpointId
+     * @return IPromise<Contracts.ServiceEndpointRequestResult>
+     */
+    executeServiceEndpointRequest(serviceEndpointRequest: Contracts.ServiceEndpointRequest, scopeIdentifier: string, endpointId: string): IPromise<Contracts.ServiceEndpointRequestResult>;
+    /**
+     * @exemptedapi
+     * [Preview API] Proxy for a GET request defined by an service endpoint. The request is authorized using a data source in service endpoint. The response is filtered using an XPath/Json based selector.
+     *
+     * @param {Contracts.DataSourceBinding} binding - Describes the data source to fetch.
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @return IPromise<string[]>
+     */
+    queryServiceEndpoint(binding: Contracts.DataSourceBinding, scopeIdentifier: string): IPromise<string[]>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.ServiceEndpoint} endpoint
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    createServiceEndpoint(endpoint: Contracts.ServiceEndpoint, scopeIdentifier: string): IPromise<Contracts.ServiceEndpoint>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} endpointId
+     * @return IPromise<void>
+     */
+    deleteServiceEndpoint(scopeIdentifier: string, endpointId: string): IPromise<void>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} endpointId
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    getServiceEndpointDetails(scopeIdentifier: string, endpointId: string): IPromise<Contracts.ServiceEndpoint>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} type
+     * @param {string[]} authSchemes
+     * @param {string[]} endpointIds
+     * @param {boolean} includeFailed
+     * @return IPromise<Contracts.ServiceEndpoint[]>
+     */
+    getServiceEndpoints(scopeIdentifier: string, type?: string, authSchemes?: string[], endpointIds?: string[], includeFailed?: boolean): IPromise<Contracts.ServiceEndpoint[]>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.ServiceEndpoint} endpoint
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} endpointId
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    updateServiceEndpoint(endpoint: Contracts.ServiceEndpoint, scopeIdentifier: string, endpointId: string): IPromise<Contracts.ServiceEndpoint>;
 }
 export class TaskAgentHttpClient2_1 extends CommonMethods2_1To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -5586,6 +6895,74 @@ export class TaskAgentHttpClient2_1 extends CommonMethods2_1To3 {
      * @return IPromise<ArrayBuffer>
      */
     getPackageZip(packageType: string): IPromise<ArrayBuffer>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.ServiceEndpointRequest} serviceEndpointRequest
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} endpointId
+     * @return IPromise<Contracts.ServiceEndpointRequestResult>
+     */
+    executeServiceEndpointRequest(serviceEndpointRequest: Contracts.ServiceEndpointRequest, scopeIdentifier: string, endpointId: string): IPromise<Contracts.ServiceEndpointRequestResult>;
+    /**
+     * @exemptedapi
+     * [Preview API] Proxy for a GET request defined by an service endpoint. The request is authorized using a data source in service endpoint. The response is filtered using an XPath/Json based selector.
+     *
+     * @param {Contracts.DataSourceBinding} binding - Describes the data source to fetch.
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @return IPromise<string[]>
+     */
+    queryServiceEndpoint(binding: Contracts.DataSourceBinding, scopeIdentifier: string): IPromise<string[]>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.ServiceEndpoint} endpoint
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    createServiceEndpoint(endpoint: Contracts.ServiceEndpoint, scopeIdentifier: string): IPromise<Contracts.ServiceEndpoint>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} endpointId
+     * @return IPromise<void>
+     */
+    deleteServiceEndpoint(scopeIdentifier: string, endpointId: string): IPromise<void>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} endpointId
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    getServiceEndpointDetails(scopeIdentifier: string, endpointId: string): IPromise<Contracts.ServiceEndpoint>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} type
+     * @param {string[]} authSchemes
+     * @param {string[]} endpointIds
+     * @param {boolean} includeFailed
+     * @return IPromise<Contracts.ServiceEndpoint[]>
+     */
+    getServiceEndpoints(scopeIdentifier: string, type?: string, authSchemes?: string[], endpointIds?: string[], includeFailed?: boolean): IPromise<Contracts.ServiceEndpoint[]>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.ServiceEndpoint} endpoint
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} endpointId
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    updateServiceEndpoint(endpoint: Contracts.ServiceEndpoint, scopeIdentifier: string, endpointId: string): IPromise<Contracts.ServiceEndpoint>;
 }
 export class TaskAgentHttpClient2 extends CommonMethods2To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -5607,6 +6984,74 @@ export class TaskAgentHttpClient2 extends CommonMethods2To3 {
      * @return IPromise<ArrayBuffer>
      */
     getPackageZip(packageType: string): IPromise<ArrayBuffer>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.ServiceEndpointRequest} serviceEndpointRequest
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} endpointId
+     * @return IPromise<Contracts.ServiceEndpointRequestResult>
+     */
+    executeServiceEndpointRequest(serviceEndpointRequest: Contracts.ServiceEndpointRequest, scopeIdentifier: string, endpointId: string): IPromise<Contracts.ServiceEndpointRequestResult>;
+    /**
+     * @exemptedapi
+     * [Preview API] Proxy for a GET request defined by an service endpoint. The request is authorized using a data source in service endpoint. The response is filtered using an XPath/Json based selector.
+     *
+     * @param {Contracts.DataSourceBinding} binding - Describes the data source to fetch.
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @return IPromise<string[]>
+     */
+    queryServiceEndpoint(binding: Contracts.DataSourceBinding, scopeIdentifier: string): IPromise<string[]>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.ServiceEndpoint} endpoint
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    createServiceEndpoint(endpoint: Contracts.ServiceEndpoint, scopeIdentifier: string): IPromise<Contracts.ServiceEndpoint>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} endpointId
+     * @return IPromise<void>
+     */
+    deleteServiceEndpoint(scopeIdentifier: string, endpointId: string): IPromise<void>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} endpointId
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    getServiceEndpointDetails(scopeIdentifier: string, endpointId: string): IPromise<Contracts.ServiceEndpoint>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} type
+     * @param {string[]} authSchemes
+     * @param {string[]} endpointIds
+     * @param {boolean} includeFailed
+     * @return IPromise<Contracts.ServiceEndpoint[]>
+     */
+    getServiceEndpoints(scopeIdentifier: string, type?: string, authSchemes?: string[], endpointIds?: string[], includeFailed?: boolean): IPromise<Contracts.ServiceEndpoint[]>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.ServiceEndpoint} endpoint
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} endpointId
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    updateServiceEndpoint(endpoint: Contracts.ServiceEndpoint, scopeIdentifier: string, endpointId: string): IPromise<Contracts.ServiceEndpoint>;
 }
 export class TaskAgentHttpClient extends TaskAgentHttpClient3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -5851,6 +7296,7 @@ export interface AggregatedDataForResultTrend {
         [key: number]: AggregatedResultsByOutcome;
     };
     testResultsContext: TestResultsContext;
+    totalTests: number;
 }
 export interface AggregatedResultsAnalysis {
     duration: any;
@@ -5869,6 +7315,7 @@ export interface AggregatedResultsByOutcome {
 export interface AggregatedResultsDifference {
     increaseInDuration: any;
     increaseInFailures: number;
+    increaseInOtherTests: number;
     increaseInPassedTests: number;
     increaseInTotalTests: number;
 }
@@ -6981,7 +8428,7 @@ export enum TestSessionSource {
     /**
      * Source of test session uncertain as it is stale
      */
-    Unkonown = 0,
+    Unknown = 0,
     /**
      * The session was created from Microsoft Test Manager exploratory desktop tool.
      */
@@ -6998,6 +8445,14 @@ export enum TestSessionSource {
      * The session was created from browser extension.
      */
     FeedbackWeb = 4,
+    /**
+     * The session was created from web access using Microsoft Test Manager exploratory desktop tool.
+     */
+    XTDesktop2 = 5,
+    /**
+     * To show sessions from all supported sources.
+     */
+    SessionInsightsForAll = 6,
 }
 export enum TestSessionState {
     /**
@@ -7294,11 +8749,13 @@ export var TypeInfo: {
     TestSessionExploredWorkItemReference: any;
     TestSessionSource: {
         enumValues: {
-            "unkonown": number;
+            "unknown": number;
             "xTDesktop": number;
             "feedbackDesktop": number;
             "xTWeb": number;
             "feedbackWeb": number;
+            "xTDesktop2": number;
+            "sessionInsightsForAll": number;
         };
     };
     TestSessionState: {
@@ -8551,6 +10008,45 @@ export interface CheckinNote {
     name: string;
     value: string;
 }
+export interface Comment {
+    _links: any;
+    /**
+     * The author of the pull request comment.
+     */
+    author: VSS_Common_Contracts.IdentityRef;
+    /**
+     * Determines what kind of comment when it was created.
+     */
+    commentType: CommentType;
+    /**
+     * The comment's content.
+     */
+    content: string;
+    /**
+     * The pull request comment id. It always starts from 1.
+     */
+    id: number;
+    /**
+     * Marks if this comment was soft-deleted.
+     */
+    isDeleted: boolean;
+    /**
+     * The date a comment was last updated.
+     */
+    lastUpdatedDate: Date;
+    /**
+     * The pull request comment id of the parent comment. This is used for replies
+     */
+    parentCommentId: number;
+    /**
+     * The date a comment was first published.
+     */
+    publishedDate: Date;
+    /**
+     * A list of the users who've liked this comment.
+     */
+    usersLiked: VSS_Common_Contracts.IdentityRef[];
+}
 /**
  * Iteration context is used to specify comparing iteration Ids when a comment thread is added while comparing 2 iterations.
  */
@@ -8575,6 +10071,75 @@ export interface CommentPosition {
     offset: number;
 }
 /**
+ * Represents a given comment thread
+ */
+export interface CommentThread {
+    _links: any;
+    /**
+     * A list of the comments.
+     */
+    comments: Comment[];
+    /**
+     * The comment thread id.
+     */
+    id: number;
+    /**
+     * Specify if the thread is deleted which happens when all comments are deleted
+     */
+    isDeleted: boolean;
+    /**
+     * The time this thread was last updated.
+     */
+    lastUpdatedDate: Date;
+    /**
+     * A list of (optional) thread properties.
+     */
+    properties: any;
+    /**
+     * The time this thread was published.
+     */
+    publishedDate: Date;
+    /**
+     * The status of the comment thread.
+     */
+    status: CommentThreadStatus;
+    /**
+     * Specify thread context such as position in left/right file.
+     */
+    threadContext: CommentThreadContext;
+}
+export interface CommentThreadContext {
+    /**
+     * File path relative to the root of the repository. It's up to the client to use any path format.
+     */
+    filePath: string;
+    /**
+     * Position of last character of the comment in left file.
+     */
+    leftFileEnd: CommentPosition;
+    /**
+     * Position of first character of the comment in left file.
+     */
+    leftFileStart: CommentPosition;
+    /**
+     * Position of last character of the comment in right file.
+     */
+    rightFileEnd: CommentPosition;
+    /**
+     * Position of first character of the comment in right file.
+     */
+    rightFileStart: CommentPosition;
+}
+export enum CommentThreadStatus {
+    Unknown = 0,
+    Active = 1,
+    Fixed = 2,
+    WontFix = 3,
+    Closed = 4,
+    ByDesign = 5,
+    Pending = 6,
+}
+/**
  * Criteria to decide if and how a thread should be tracked
  */
 export interface CommentTrackingCriteria {
@@ -8586,6 +10151,24 @@ export interface CommentTrackingCriteria {
      * The second comparing iteration being viewed. Threads will be tracked if this is greater than 0.
      */
     secondComparingIteration: number;
+}
+export enum CommentType {
+    /**
+     * The comment type is not known.
+     */
+    Unknown = 0,
+    /**
+     * This is a regular user comment.
+     */
+    Text = 1,
+    /**
+     * The comment comes as a result of a code change.
+     */
+    CodeChange = 2,
+    /**
+     * The comment represents a system message.
+     */
+    System = 3,
 }
 export interface FileContentMetadata {
     contentType: string;
@@ -8602,6 +10185,18 @@ export enum GitAsyncOperationStatus {
     Completed = 3,
     Failed = 4,
     Abandoned = 5,
+}
+export interface GitAsyncRefOperation {
+    _links: any;
+    detailedStatus: GitAsyncRefOperationDetail;
+    parameters: GitAsyncRefOperationParameters;
+    status: GitAsyncOperationStatus;
+    url: string;
+}
+export interface GitAsyncRefOperationDetail {
+    conflict: boolean;
+    currentCommitId: string;
+    progress: number;
 }
 export interface GitAsyncRefOperationParameters {
     generatedRefName: string;
@@ -8656,11 +10251,8 @@ export interface GitChange extends Change<GitItem> {
      */
     originalPath: string;
 }
-export interface GitCherryPick {
-    _links: any;
+export interface GitCherryPick extends GitAsyncRefOperation {
     cherryPickId: number;
-    parameters: GitAsyncRefOperationParameters;
-    url: string;
 }
 export interface GitCommit extends GitCommitRef {
     push: GitPushRef;
@@ -8723,6 +10315,28 @@ export interface GitHistoryQueryResults extends HistoryQueryResults<GitItem> {
     unpopulatedCount: number;
     unprocessedCount: number;
 }
+/**
+ * Basic Authentication Parameters for creating a git import request
+ */
+export interface GitImportBasicAuthenticationParameters {
+    /**
+     * Password for source repository (in case of private repository)
+     */
+    password: string;
+    /**
+     * Username for source repository (in case of private repository)
+     */
+    username: string;
+}
+/**
+ * Parameter for creating a git import request when source is Git version control
+ */
+export interface GitImportGitSource {
+    /**
+     * Url for the source repo
+     */
+    sourceUrl: string;
+}
 export interface GitImportOperationNotification extends AsyncGitOperationNotification {
     statusDetail: GitImportStatusDetail;
 }
@@ -8743,9 +10357,13 @@ export interface GitImportRequest {
  */
 export interface GitImportRequestParameters {
     /**
-     * Url for the source repo
+     * Basic Authentication details
      */
-    sourceUrl: string;
+    basicAuthentication: GitImportBasicAuthenticationParameters;
+    /**
+     * Source for importing git repository
+     */
+    gitSource: GitImportGitSource;
 }
 export interface GitImportStatusDetail {
     message: string;
@@ -8813,6 +10431,26 @@ export interface GitItemRequestData {
      */
     latestProcessedChange: boolean;
 }
+export interface GitLastChangeItem {
+    /**
+     * Gets or sets the commit Id this item was modified most recently for the provided version.
+     */
+    commitId: string;
+    /**
+     * Gets or sets the path of the item.
+     */
+    path: string;
+}
+export interface GitLastChangeTreeItems {
+    /**
+     * The last change of items.
+     */
+    items: GitLastChangeItem[];
+    /**
+     * The last explored time, in case the result is not comprehensive. Null otherwise.
+     */
+    lastExploredTime: Date;
+}
 export enum GitObjectType {
     Bad = 0,
     Commit = 1,
@@ -8859,13 +10497,13 @@ export interface GitPullRequest {
     lastMergeTargetCommit: GitCommitRef;
     mergeId: string;
     mergeStatus: PullRequestAsyncStatus;
-    newDiscussionFormat: boolean;
     pullRequestId: number;
     remoteUrl: string;
     repository: GitRepository;
     reviewers: IdentityRefWithVote[];
     sourceRefName: string;
     status: PullRequestStatus;
+    supportsIterations: boolean;
     targetRefName: string;
     title: string;
     url: string;
@@ -8877,91 +10515,14 @@ export interface GitPullRequestChange extends GitChange {
      */
     changeTrackingId: number;
 }
-export interface GitPullRequestComment {
-    _links: any;
-    /**
-     * The author of the pull request comment.
-     */
-    author: VSS_Common_Contracts.IdentityRef;
-    /**
-     * Determines what kind of comment when it was created.
-     */
-    commentType: GitPullRequestCommentType;
-    /**
-     * The comment's content.
-     */
-    content: string;
-    /**
-     * The pull request comment id. It always starts from 1.
-     */
-    id: number;
-    /**
-     * Marks if this comment was soft-deleted.
-     */
-    isDeleted: boolean;
-    /**
-     * The date a comment was last updated.
-     */
-    lastUpdatedDate: Date;
-    /**
-     * The pull request comment id of the parent comment. This is used for replies
-     */
-    parentCommentId: number;
-    /**
-     * The date a comment was first published.
-     */
-    publishedDate: Date;
-    /**
-     * A list of the users who've liked this comment.
-     */
-    usersLiked: VSS_Common_Contracts.IdentityRef[];
-}
-export enum GitPullRequestCommentStatus {
-    Unknown = 0,
-    Active = 1,
-    Fixed = 2,
-    WontFix = 3,
-    Closed = 4,
-    ByDesign = 5,
-    Pending = 6,
-}
 /**
  * Represents a given user or system Pull Request comment thread
  */
-export interface GitPullRequestCommentThread {
-    _links: any;
+export interface GitPullRequestCommentThread extends CommentThread {
     /**
-     * A list of the comments.
+     * Extended context information unique to pull requests
      */
-    comments: GitPullRequestComment[];
-    /**
-     * The comment thread id.
-     */
-    id: number;
-    /**
-     * Specify if the thread is deleted which happens when all comments are deleted
-     */
-    isDeleted: boolean;
-    /**
-     * The time this thread was last updated.
-     */
-    lastUpdatedDate: Date;
-    /**
-     * A list of (optional) thread properties.
-     */
-    properties: any;
-    /**
-     * The time this thread was published.
-     */
-    publishedDate: Date;
-    /**
-     * The status of a Pull Request comment.
-     */
-    status: GitPullRequestCommentStatus;
-    /**
-     * Specify thread context such as position in left/right file.
-     */
-    threadContext: GitPullRequestCommentThreadContext;
+    pullRequestThreadContext: GitPullRequestCommentThreadContext;
 }
 export interface GitPullRequestCommentThreadContext {
     /**
@@ -8969,51 +10530,13 @@ export interface GitPullRequestCommentThreadContext {
      */
     changeTrackingId: number;
     /**
-     * File path relative to the root of the repository. It's up to the client to use any path format.
-     */
-    filePath: string;
-    /**
      * Specify comparing iteration Ids when a comment thread is added while comparing 2 iterations.
      */
     iterationContext: CommentIterationContext;
     /**
-     * Position of last character of the comment in left file.
-     */
-    leftFileEnd: CommentPosition;
-    /**
-     * Position of first character of the comment in left file.
-     */
-    leftFileStart: CommentPosition;
-    /**
-     * Position of last character of the comment in right file.
-     */
-    rightFileEnd: CommentPosition;
-    /**
-     * Position of first character of the comment in right file.
-     */
-    rightFileStart: CommentPosition;
-    /**
      * The criteria used to track this thread. If this property is filled out when the thread is returned, then the thread has been tracked from its original location using the given criteria.
      */
     trackingCriteria: CommentTrackingCriteria;
-}
-export enum GitPullRequestCommentType {
-    /**
-     * The comment type is not known.
-     */
-    Unknown = 0,
-    /**
-     * This is a regular user comment.
-     */
-    Text = 1,
-    /**
-     * The comment comes as a result of a code change.
-     */
-    CodeChange = 2,
-    /**
-     * The comment represents a system message.
-     */
-    System = 3,
 }
 export interface GitPullRequestCompletionOptions {
     deleteSourceBranch: boolean;
@@ -9375,11 +10898,8 @@ export interface GitRepositoryStats {
     commitsCount: number;
     repositoryId: string;
 }
-export interface GitRevert {
-    _links: any;
-    parameters: GitAsyncRefOperationParameters;
+export interface GitRevert extends GitAsyncRefOperation {
     revertId: number;
-    url: string;
 }
 export interface GitStatus {
     _links: any;
@@ -9840,12 +11360,18 @@ export interface TfvcPolicyOverrideInfo {
 export interface TfvcShallowBranchRef {
     path: string;
 }
+/**
+ * This is the deep shelveset class
+ */
 export interface TfvcShelveset extends TfvcShelvesetRef {
     changes: TfvcChange[];
     notes: CheckinNote[];
     policyOverride: TfvcPolicyOverrideInfo;
     workItems: AssociatedWorkItem[];
 }
+/**
+ * This is the shallow shelveset class
+ */
 export interface TfvcShelvesetRef {
     _links: any;
     comment: string;
@@ -9858,11 +11384,11 @@ export interface TfvcShelvesetRef {
 }
 export interface TfvcShelvesetRequestData {
     /**
-     * Whether to include policyOverride and notes
+     * Whether to include policyOverride and notes Only applies when requesting a single deep shelveset
      */
     includeDetails: boolean;
     /**
-     * Whether to include the _links field on the shallow references
+     * Whether to include the _links field on the shallow references. Does not apply when requesting a single deep shelveset object. Links will always be included in the deep shelveset.
      */
     includeLinks: boolean;
     /**
@@ -9954,6 +11480,27 @@ export enum VersionControlRecursionType {
 export var TypeInfo: {
     Change: any;
     ChangeList: any;
+    Comment: any;
+    CommentThread: any;
+    CommentThreadStatus: {
+        enumValues: {
+            "unknown": number;
+            "active": number;
+            "fixed": number;
+            "wontFix": number;
+            "closed": number;
+            "byDesign": number;
+            "pending": number;
+        };
+    };
+    CommentType: {
+        enumValues: {
+            "unknown": number;
+            "text": number;
+            "codeChange": number;
+            "system": number;
+        };
+    };
     GitAsyncOperationStatus: {
         enumValues: {
             "queued": number;
@@ -9963,6 +11510,7 @@ export var TypeInfo: {
             "abandoned": number;
         };
     };
+    GitAsyncRefOperation: any;
     GitAsyncRefOperationParameters: any;
     GitAsyncRefOperationSource: any;
     GitBaseVersionDescriptor: any;
@@ -9980,6 +11528,7 @@ export var TypeInfo: {
     GitItem: any;
     GitItemDescriptor: any;
     GitItemRequestData: any;
+    GitLastChangeTreeItems: any;
     GitObjectType: {
         enumValues: {
             "bad": number;
@@ -10005,27 +11554,7 @@ export var TypeInfo: {
     GitPathToItemsCollection: any;
     GitPullRequest: any;
     GitPullRequestChange: any;
-    GitPullRequestComment: any;
-    GitPullRequestCommentStatus: {
-        enumValues: {
-            "unknown": number;
-            "active": number;
-            "fixed": number;
-            "wontFix": number;
-            "closed": number;
-            "byDesign": number;
-            "pending": number;
-        };
-    };
     GitPullRequestCommentThread: any;
-    GitPullRequestCommentType: {
-        enumValues: {
-            "unknown": number;
-            "text": number;
-            "codeChange": number;
-            "system": number;
-        };
-    };
     GitPullRequestIteration: any;
     GitPullRequestIterationChanges: any;
     GitPullRequestQuery: any;
@@ -10397,8 +11926,7 @@ export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
      */
     createPush(push: Contracts.GitPush, repositoryId: string, project?: string): IPromise<Contracts.GitPush>;
     /**
-     * @exemptedapi
-     * [Preview API] Retrieve a pull request work items
+     * Retrieve a pull request work items
      *
      * @param {string} repositoryId
      * @param {number} pullRequestId
@@ -10452,8 +11980,7 @@ export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
      */
     createPullRequest(gitPullRequestToCreate: Contracts.GitPullRequest, repositoryId: string, project?: string): IPromise<Contracts.GitPullRequest>;
     /**
-     * @exemptedapi
-     * [Preview API] Query pull requests by project
+     * Query pull requests by project
      *
      * @param {string} project - Project ID or project name
      * @param {Contracts.GitPullRequestSearchCriteria} searchCriteria
@@ -10761,8 +12288,7 @@ export class CommonMethods2_1To3 extends CommonMethods2To3 {
      */
     createCommitStatus(gitCommitStatusToCreate: Contracts.GitStatus, commitId: string, repositoryId: string, project?: string): IPromise<Contracts.GitStatus>;
     /**
-     * @exemptedapi
-     * [Preview API] Retrieve pull request's commits
+     * Retrieve pull request's commits
      *
      * @param {string} repositoryId
      * @param {number} pullRequestId
@@ -10994,14 +12520,14 @@ export class GitHttpClient3 extends CommonMethods2_2To3 {
     /**
      * [Preview API] Create a pull request review comment
      *
-     * @param {Contracts.GitPullRequestComment} comment
+     * @param {Contracts.Comment} comment
      * @param {string} repositoryId
      * @param {number} pullRequestId
      * @param {number} threadId
      * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.GitPullRequestComment>
+     * @return IPromise<Contracts.Comment>
      */
-    createComment(comment: Contracts.GitPullRequestComment, repositoryId: string, pullRequestId: number, threadId: number, project?: string): IPromise<Contracts.GitPullRequestComment>;
+    createComment(comment: Contracts.Comment, repositoryId: string, pullRequestId: number, threadId: number, project?: string): IPromise<Contracts.Comment>;
     /**
      * [Preview API] Delete a pull request comment by id for a pull request
      *
@@ -11021,9 +12547,9 @@ export class GitHttpClient3 extends CommonMethods2_2To3 {
      * @param {number} threadId
      * @param {number} commentId
      * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.GitPullRequestComment>
+     * @return IPromise<Contracts.Comment>
      */
-    getComment(repositoryId: string, pullRequestId: number, threadId: number, commentId: number, project?: string): IPromise<Contracts.GitPullRequestComment>;
+    getComment(repositoryId: string, pullRequestId: number, threadId: number, commentId: number, project?: string): IPromise<Contracts.Comment>;
     /**
      * [Preview API] Get all pull request comments in a thread.
      *
@@ -11031,21 +12557,21 @@ export class GitHttpClient3 extends CommonMethods2_2To3 {
      * @param {number} pullRequestId
      * @param {number} threadId
      * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.GitPullRequestComment[]>
+     * @return IPromise<Contracts.Comment[]>
      */
-    getComments(repositoryId: string, pullRequestId: number, threadId: number, project?: string): IPromise<Contracts.GitPullRequestComment[]>;
+    getComments(repositoryId: string, pullRequestId: number, threadId: number, project?: string): IPromise<Contracts.Comment[]>;
     /**
      * [Preview API] Update a pull request review comment thread
      *
-     * @param {Contracts.GitPullRequestComment} comment
+     * @param {Contracts.Comment} comment
      * @param {string} repositoryId
      * @param {number} pullRequestId
      * @param {number} threadId
      * @param {number} commentId
      * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.GitPullRequestComment>
+     * @return IPromise<Contracts.Comment>
      */
-    updateComment(comment: Contracts.GitPullRequestComment, repositoryId: string, pullRequestId: number, threadId: number, commentId: number, project?: string): IPromise<Contracts.GitPullRequestComment>;
+    updateComment(comment: Contracts.Comment, repositoryId: string, pullRequestId: number, threadId: number, commentId: number, project?: string): IPromise<Contracts.Comment>;
     /**
      * [Preview API] Create a pull request review comment thread
      *
@@ -11253,7 +12779,7 @@ export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
      * @param {number} skip - Number of shelvesets to skip
      * @return IPromise<TFS_VersionControl_Contracts.TfvcShelvesetRef[]>
      */
-    getShelvesets(requestData: TFS_VersionControl_Contracts.TfvcShelvesetRequestData, top?: number, skip?: number): IPromise<TFS_VersionControl_Contracts.TfvcShelvesetRef[]>;
+    getShelvesets(requestData?: TFS_VersionControl_Contracts.TfvcShelvesetRequestData, top?: number, skip?: number): IPromise<TFS_VersionControl_Contracts.TfvcShelvesetRef[]>;
     /**
      * Get a single deep shelveset.
      *
@@ -11261,7 +12787,7 @@ export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
      * @param {TFS_VersionControl_Contracts.TfvcShelvesetRequestData} requestData - includeDetails, includeWorkItems, maxChangeCount, and maxCommentLength
      * @return IPromise<TFS_VersionControl_Contracts.TfvcShelveset>
      */
-    getShelveset(shelvesetId: string, requestData: TFS_VersionControl_Contracts.TfvcShelvesetRequestData): IPromise<TFS_VersionControl_Contracts.TfvcShelveset>;
+    getShelveset(shelvesetId: string, requestData?: TFS_VersionControl_Contracts.TfvcShelvesetRequestData): IPromise<TFS_VersionControl_Contracts.TfvcShelveset>;
     /**
      * Get changes included in a shelveset.
      *
@@ -12318,19 +13844,20 @@ export enum GetBehaviorsExpand {
     Fields = 1,
 }
 export interface WorkItemBehavior {
+    abstract: boolean;
     color: string;
     description: string;
     fields: WorkItemBehaviorField[];
     id: string;
     inherits: WorkItemBehaviorReference;
-    isAbstract: boolean;
     name: string;
+    overriden: boolean;
     rank: number;
     url: string;
 }
 export interface WorkItemBehaviorField {
     behaviorFieldId: string;
-    fieldId: string;
+    id: string;
 }
 export interface WorkItemBehaviorReference {
     id: string;
@@ -12389,6 +13916,10 @@ export interface Control {
      * A value indicating whether this layout node has been inherited from a parent layout.  This is expected to only be only set by the combiner.
      */
     inherited: boolean;
+    /**
+     * A value indicating if the layout node is contribution or not.
+     */
+    isContribution: boolean;
     /**
      * Label for the field
      */
@@ -12492,6 +14023,10 @@ export interface Group {
      */
     inherited: boolean;
     /**
+     * A value indicating if the layout node is contribution are not.
+     */
+    isContribution: boolean;
+    /**
      * Label for the group.
      */
     label: string;
@@ -12524,6 +14059,10 @@ export interface Page {
      * A value indicating whether this layout node has been inherited from a parent layout.  This is expected to only be only set by the combiner.
      */
     inherited: boolean;
+    /**
+     * A value indicating if the layout node is contribution are not.
+     */
+    isContribution: boolean;
     /**
      * The label for the page.
      */
@@ -12589,24 +14128,35 @@ export interface WitContribution {
      */
     contributionId: string;
     /**
+     * The height for the contribution.
+     */
+    height: number;
+    /**
+     * A dictionary holding key value pairs for contribution inputs.
+     */
+    inputs: {
+        [key: string]: any;
+    };
+    /**
      * A value indicating if the contribution should be show on deleted workItem.
      */
     showOnDeletedWorkItem: boolean;
 }
 export interface WorkItemBehavior {
+    abstract: boolean;
     color: string;
     description: string;
     fields: WorkItemBehaviorField[];
     id: string;
     inherits: WorkItemBehaviorReference;
-    isAbstract: boolean;
     name: string;
+    overriden: boolean;
     rank: number;
     url: string;
 }
 export interface WorkItemBehaviorField {
     behaviorFieldId: string;
-    fieldId: string;
+    id: string;
 }
 export interface WorkItemBehaviorReference {
     id: string;
@@ -12644,6 +14194,7 @@ export interface WorkItemTypeModel {
      * Parent WIT Id/Internal ReferenceName that it inherits from
      */
     inherits: string;
+    isDisabled: boolean;
     name: string;
     states: WorkItemStateResultModel[];
     url: string;
@@ -12651,6 +14202,7 @@ export interface WorkItemTypeModel {
 export interface WorkItemTypeUpdateModel {
     color: string;
     description: string;
+    isDisabled: boolean;
 }
 export var TypeInfo: {
     FieldModel: any;
@@ -12789,12 +14341,12 @@ export class CommonMethods2_1To3 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
-     * @param {ProcessDefinitionsContracts.WorkItemBehavior} behavior
+     * @param {ProcessDefinitionsContracts.WorkItemTypeBehavior} behavior
      * @param {string} processId
      * @param {string} witRefNameForBehaviors
      * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeBehavior>
      */
-    addBehaviorToWorkItemType(behavior: ProcessDefinitionsContracts.WorkItemBehavior, processId: string, witRefNameForBehaviors: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeBehavior>;
+    addBehaviorToWorkItemType(behavior: ProcessDefinitionsContracts.WorkItemTypeBehavior, processId: string, witRefNameForBehaviors: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeBehavior>;
     /**
      * [Preview API]
      *
@@ -13011,27 +14563,27 @@ export class CommonMethods2_1To3 extends VSS_WebApi.VssHttpClient {
      */
     createField(field: ProcessDefinitionsContracts.FieldModel, processId: string): IPromise<ProcessDefinitionsContracts.FieldModel>;
     /**
-     * [Preview API]
+     * [Preview API] Puts a control withan id into a group. Controls backed by fields can generate their own id.
      *
      * @param {ProcessDefinitionsContracts.Control} control
      * @param {string} processId
      * @param {string} witRefName
      * @param {string} groupId
-     * @param {string} fieldRefName
+     * @param {string} controlId
      * @param {string} removeFromGroupId
      * @return IPromise<void>
      */
-    setFieldControlInGroup(control: ProcessDefinitionsContracts.Control, processId: string, witRefName: string, groupId: string, fieldRefName: string, removeFromGroupId?: string): IPromise<void>;
+    setControlInGroup(control: ProcessDefinitionsContracts.Control, processId: string, witRefName: string, groupId: string, controlId: string, removeFromGroupId?: string): IPromise<void>;
     /**
      * [Preview API]
      *
      * @param {string} processId
      * @param {string} witRefName
      * @param {string} groupId
-     * @param {string} fieldRefName
+     * @param {string} controlId
      * @return IPromise<void>
      */
-    removeFieldControlFromGroup(processId: string, witRefName: string, groupId: string, fieldRefName: string): IPromise<void>;
+    removeControlFromGroup(processId: string, witRefName: string, groupId: string, controlId: string): IPromise<void>;
     /**
      * [Preview API]
      *
@@ -13039,10 +14591,20 @@ export class CommonMethods2_1To3 extends VSS_WebApi.VssHttpClient {
      * @param {string} processId
      * @param {string} witRefName
      * @param {string} groupId
-     * @param {string} fieldRefName
+     * @param {string} controlId
      * @return IPromise<void>
      */
-    editFieldControl(control: ProcessDefinitionsContracts.Control, processId: string, witRefName: string, groupId: string, fieldRefName: string): IPromise<void>;
+    editControl(control: ProcessDefinitionsContracts.Control, processId: string, witRefName: string, groupId: string, controlId: string): IPromise<void>;
+    /**
+     * [Preview API] Creates a control, giving it an id, and adds it to the group. So far, the only controls that don't know how to generate their own ids are control extensions.
+     *
+     * @param {ProcessDefinitionsContracts.Control} control
+     * @param {string} processId
+     * @param {string} witRefName
+     * @param {string} groupId
+     * @return IPromise<void>
+     */
+    addControlToGroup(control: ProcessDefinitionsContracts.Control, processId: string, witRefName: string, groupId: string): IPromise<void>;
 }
 /**
  * @exemptedapi
@@ -13737,8 +15299,8 @@ export class WorkItemTrackingHttpClient3 extends CommonMethods2_2To3 {
      * [Preview API] Deletes the template with given id
      *
      * @param {string} project - Project ID or project name
-     * @param {string} templateId - Template id
      * @param {string} team - Team ID or team name
+     * @param {string} templateId - Template id
      * @return IPromise<void>
      */
     deleteTemplate(project: string, team: string, templateId: string): IPromise<void>;
@@ -13746,8 +15308,8 @@ export class WorkItemTrackingHttpClient3 extends CommonMethods2_2To3 {
      * [Preview API] Gets the template with specified id
      *
      * @param {string} project - Project ID or project name
-     * @param {string} templateId - Template Id
      * @param {string} team - Team ID or team name
+     * @param {string} templateId - Template Id
      * @return IPromise<Contracts.WorkItemTemplate>
      */
     getTemplate(project: string, team: string, templateId: string): IPromise<Contracts.WorkItemTemplate>;
@@ -13756,8 +15318,8 @@ export class WorkItemTrackingHttpClient3 extends CommonMethods2_2To3 {
      *
      * @param {Contracts.WorkItemTemplate} templateContent - Template contents to replace with
      * @param {string} project - Project ID or project name
-     * @param {string} templateId - Template id
      * @param {string} team - Team ID or team name
+     * @param {string} templateId - Template id
      * @return IPromise<Contracts.WorkItemTemplate>
      */
     replaceTemplate(templateContent: Contracts.WorkItemTemplate, project: string, team: string, templateId: string): IPromise<Contracts.WorkItemTemplate>;
