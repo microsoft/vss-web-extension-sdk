@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v105.20160914.0830
+// Type definitions for Microsoft Visual Studio Services v106.20161010.0630
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -394,6 +394,8 @@ export interface DeploymentQueryParameters {
     isDeleted: boolean;
     latestDeploymentsOnly: boolean;
     maxDeploymentsPerEnvironment: number;
+    maxModifiedTime: Date;
+    minModifiedTime: Date;
     operationStatus: DeploymentOperationStatus;
     queryOrder: ReleaseQueryOrder;
 }
@@ -1770,6 +1772,8 @@ export class ReleaseHttpClient3 extends CommonMethods2_2To3 {
      * @param {number} definitionId
      * @param {number} definitionEnvironmentId
      * @param {string} createdBy
+     * @param {Date} minModifiedTime
+     * @param {Date} maxModifiedTime
      * @param {Contracts.DeploymentStatus} deploymentStatus
      * @param {Contracts.DeploymentOperationStatus} operationStatus
      * @param {boolean} latestAttemptsOnly
@@ -1778,7 +1782,7 @@ export class ReleaseHttpClient3 extends CommonMethods2_2To3 {
      * @param {number} continuationToken
      * @return IPromise<Contracts.Deployment[]>
      */
-    getDeployments(project: string, definitionId?: number, definitionEnvironmentId?: number, createdBy?: string, deploymentStatus?: Contracts.DeploymentStatus, operationStatus?: Contracts.DeploymentOperationStatus, latestAttemptsOnly?: boolean, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number): IPromise<Contracts.Deployment[]>;
+    getDeployments(project: string, definitionId?: number, definitionEnvironmentId?: number, createdBy?: string, minModifiedTime?: Date, maxModifiedTime?: Date, deploymentStatus?: Contracts.DeploymentStatus, operationStatus?: Contracts.DeploymentOperationStatus, latestAttemptsOnly?: boolean, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number): IPromise<Contracts.Deployment[]>;
     /**
      * [Preview API]
      *

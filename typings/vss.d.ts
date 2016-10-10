@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v105.20160914.0822
+// Type definitions for Microsoft Visual Studio Services v106.20161010.0629
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -5108,7 +5108,13 @@ export interface InputDescriptor {
      */
     name: string;
     /**
-     * Underlying data type for the input value.  When this value is specified, InputMode, Validation and Values are optional.
+     * Custom properties for the input which can be used by the service provider
+     */
+    properties: {
+        [key: string]: any;
+    };
+    /**
+     * Underlying data type for the input value. When this value is specified, InputMode, Validation and Values are optional.
      */
     type: string;
     /**
@@ -8954,7 +8960,7 @@ export class ComboListDropPopup extends BaseComboDropPopup {
 }
 export class ComboListBehavior extends BaseComboBehavior {
     private _enableAutoFill;
-    private _maxItemLength;
+    protected _maxItemLength: number;
     constructor(combo: any, options?: any);
     initialize(): void;
     setSource(source: any): void;
@@ -9346,6 +9352,7 @@ export interface IDialogOptions extends Panels.IAjaxPanelOptions {
      * @defaultvalue "auto"
      */
     maxWidth?: number | string;
+    preventAutoResize?: boolean;
 }
 /**
  * @publicapi
@@ -10219,6 +10226,10 @@ export interface IFilterControlOptions extends Controls.EnhancementOptions {
     enableGrouping?: boolean;
     hideLogicalOperator?: boolean;
     hideOperatorHeader?: boolean;
+    /**
+    * All controls will be in read only mode
+    */
+    readOnly?: boolean;
     /**
      * Enable add or remove clause behavior
      */
@@ -12630,6 +12641,7 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
     private _menuUpdateNeeded;
     /** True if mouse down event has been received on this menu, and mouse up event has not been received. Only tracked for Edge. */
     private _mouseIsDown;
+    private _shouldSelectFirstItem;
     protected _contributedItems: IContributedMenuItem[];
     protected _contributionProviderOptions: MenuContributionProviderOptions;
     protected _contributionPromise: IPromise<IContributedMenuItem[]>;
@@ -14262,6 +14274,10 @@ export interface ISearchBoxControlOptions {
      * Optional: Search box icon when it's active, default behaviour is icon unchanged.
      */
     searchBoxActiveIcon?: string;
+    /**
+     * Optional: Place holder/water mark text for search box.
+     */
+    placeholderText?: string;
 }
 /**
  * A input box control for search or filter.
@@ -14300,6 +14316,7 @@ export class SearchBoxControl extends Controls.Control<ISearchBoxControlOptions>
     protected _displaySearchInputBox(isVisible: boolean): void;
     private _clearInput();
     private _createSearchInput();
+    private _getSearchIconClass();
     private _searchIconClickHandler(e?);
     private _bindInputChangedEventHandler();
     private _keyDown(e?);
@@ -19539,6 +19556,10 @@ export enum ExtensionQueryFlags {
      */
     UseFallbackAssetUri = 1024,
     /**
+     * This flag is used to get all the metadata values associated with the extension. This is not applicable to VSTS or VSCode extensions and usage is only internal.
+     */
+    IncludeMetadata = 2048,
+    /**
      * AllAttributes is designed to be a mask that defines all sub-elements of the extension should be returned.  NOTE: This is not actually All flags. This is now locked to the set defined since changing this enum would be a breaking change and would change the behavior of anyone using it. Try not to use this value when making calls to the service, instead be explicit about the options required.
      */
     AllAttributes = 479,
@@ -20229,6 +20250,7 @@ export var TypeInfo: {
             "includeStatistics": number;
             "includeLatestVersionOnly": number;
             "useFallbackAssetUri": number;
+            "includeMetadata": number;
             "allAttributes": number;
         };
     };
@@ -24510,6 +24532,13 @@ export class ProfileHttpClient3 extends CommonMethods2To3 {
      * @return IPromise<Contracts.Profile>
      */
     getUserDefaults(includeAvatar?: boolean): IPromise<Contracts.Profile>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} id
+     * @return IPromise<Contracts.Profile>
+     */
+    refreshUserDefaults(id: string): IPromise<Contracts.Profile>;
 }
 export class ProfileHttpClient2_3 extends CommonMethods2To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -25076,7 +25105,7 @@ export class SearchCore<T> {
      *
      * @param query Query to run search on
      */
-    beginSearch(query: string): void;
+    beginSearch(query: string): T[];
     /**
      * Returns the search strategy currently being used.
      *
@@ -28067,7 +28096,6 @@ export class Uri {
     */
     addQueryParam(name: string, value: string, replaceExisting?: boolean): void;
 }
-export function escapeUrlComponents(urlString: string): string;
 /**
  * Determines whether the specified URL is absolute or not.
  *

@@ -1,9 +1,10 @@
-// Type definitions for Microsoft Visual Studio Services v105.20160914.0823
+// Type definitions for Microsoft Visual Studio Services v106.20161010.0629
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
 /// <reference path='vss.d.ts' />
 declare module "TFS/Build/Contracts" {
+import DistributedTask_Common = require("TFS/DistributedTaskCommon/Contracts");
 import TFS_Core_Contracts = require("TFS/Core/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 export interface AgentPoolQueue extends ShallowReference {
@@ -332,6 +333,10 @@ export interface BuildDefinition extends BuildDefinitionReference {
      */
     jobTimeoutInMinutes: number;
     options: BuildOption[];
+    /**
+     * Process Parameters
+     */
+    processParameters: DistributedTask_Common.ProcessParameters;
     properties: any;
     /**
      * The repository
@@ -1369,6 +1374,10 @@ export interface SvnMappingDetails {
 export interface SvnWorkspace {
     mappings: SvnMappingDetails[];
 }
+export interface SyncBuildCompletedEvent extends BuildUpdatedEvent {
+}
+export interface SyncBuildStartedEvent extends BuildUpdatedEvent {
+}
 export interface TaskAgentPoolReference {
     id: number;
     name: string;
@@ -1788,6 +1797,8 @@ export var TypeInfo: {
             "offline": number;
         };
     };
+    SyncBuildCompletedEvent: any;
+    SyncBuildStartedEvent: any;
     TaskResult: {
         enumValues: {
             "succeeded": number;
@@ -2183,9 +2194,11 @@ export class BuildHttpClient3 extends CommonMethods2_1To3 {
      * @param {Contracts.BuildQueryOrder} queryOrder
      * @param {string} branchName
      * @param {number[]} buildIds
+     * @param {string} repositoryId
+     * @param {string} repositoryType
      * @return IPromise<Contracts.Build[]>
      */
-    getBuilds(project?: string, definitions?: number[], queues?: number[], buildNumber?: string, minFinishTime?: Date, maxFinishTime?: Date, requestedFor?: string, reasonFilter?: Contracts.BuildReason, statusFilter?: Contracts.BuildStatus, resultFilter?: Contracts.BuildResult, tagFilters?: string[], properties?: string[], top?: number, continuationToken?: string, maxBuildsPerDefinition?: number, deletedFilter?: Contracts.QueryDeletedOption, queryOrder?: Contracts.BuildQueryOrder, branchName?: string, buildIds?: number[]): IPromise<Contracts.Build[]>;
+    getBuilds(project?: string, definitions?: number[], queues?: number[], buildNumber?: string, minFinishTime?: Date, maxFinishTime?: Date, requestedFor?: string, reasonFilter?: Contracts.BuildReason, statusFilter?: Contracts.BuildStatus, resultFilter?: Contracts.BuildResult, tagFilters?: string[], properties?: string[], top?: number, continuationToken?: string, maxBuildsPerDefinition?: number, deletedFilter?: Contracts.QueryDeletedOption, queryOrder?: Contracts.BuildQueryOrder, branchName?: string, buildIds?: number[], repositoryId?: string, repositoryType?: string): IPromise<Contracts.Build[]>;
     /**
      * [Preview API] Queues a build
      *
@@ -2230,10 +2243,11 @@ export class BuildHttpClient3 extends CommonMethods2_1To3 {
      * @param {number} definitionId
      * @param {string} project - Project ID or project name
      * @param {number} revision
+     * @param {Date} minMetricsTime
      * @param {string[]} propertyFilters
      * @return IPromise<Contracts.BuildDefinition>
      */
-    getDefinition(definitionId: number, project?: string, revision?: number, propertyFilters?: string[]): IPromise<Contracts.BuildDefinition>;
+    getDefinition(definitionId: number, project?: string, revision?: number, minMetricsTime?: Date, propertyFilters?: string[]): IPromise<Contracts.BuildDefinition>;
     /**
      * [Preview API] Gets definitions, optionally filtered by name
      *
@@ -4447,6 +4461,10 @@ export interface WidgetMetadata {
      */
     name: string;
     /**
+     * Publisher Name of this kind of widget.
+     */
+    publisherName: string;
+    /**
      * Data contract required for the widget to function and to work in its container.
      */
     supportedScopes: WidgetScope[];
@@ -4488,6 +4506,7 @@ export interface WidgetsVersionedList {
     widgets: Widget[];
 }
 export interface WidgetTypesResponse {
+    _links: any;
     uri: string;
     widgetTypes: WidgetMetadata[];
 }
@@ -4548,11 +4567,11 @@ export class DashboardHttpClient3 extends CommonMethods2To3 {
     /**
      * [Preview API]
      *
-     * @param {Contracts.Dashboard} entry
+     * @param {Contracts.Dashboard} dashboard
      * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
      * @return IPromise<Contracts.Dashboard>
      */
-    createDashboard(entry: Contracts.Dashboard, teamContext: TFS_Core_Contracts.TeamContext): IPromise<Contracts.Dashboard>;
+    createDashboard(dashboard: Contracts.Dashboard, teamContext: TFS_Core_Contracts.TeamContext): IPromise<Contracts.Dashboard>;
     /**
      * [Preview API]
      *
@@ -5229,19 +5248,48 @@ declare module "TFS/Dashboards/WidgetHelpers" {
 import TFS_Dashboards_WidgetContracts = require("TFS/Dashboards/WidgetContracts");
 /**
  * Loads widget styles for the author into the iframe.
+ * @returns a promise for when the styles are done loading into the frame.
  */
-export function IncludeWidgetStyles(): void;
+export function IncludeWidgetStyles(): IPromise<any>;
 /**
  * Loads widget configuration styles for the author into the iframe.
+ * @returns a promise for when the styles are done loading into the frame.
  */
-export function IncludeWidgetConfigurationStyles(): void;
+export function IncludeWidgetConfigurationStyles(): IPromise<any>;
 export class WidgetStatusHelper {
+    /**
+     * method to encapsulate a successful result for a widget loading operation (load, reload, openLightbox etc)
+     * @param state any state information to be passed to the initiator of the loading call.
+     * @param title title for the lightbox of a widget when available.
+     * @returns promise encapsulating the status of the widget loading operations.
+     */
     static Success(state?: string, title?: string): IPromise<TFS_Dashboards_WidgetContracts.WidgetStatus>;
+    /**
+     * method to encapsulate a failed result for a widget loading operation (load, reload, openLightbox etc)
+     * @param message message to display as part within the widget error experience.
+     * @param isUserVisible indicates whether the message should be displayed to the user or a generic error message displayed. Defaults to true.
+     * @param isRichtText indicates whether the message is an html that can be rendered as a rich experience. Defaults to false. Only trusted extensions are
+     * allowed to set this to true. For any 3rd party widgets passing this value as true, it will be ignored.
+     * @returns promise encapsulating the status of the widget loading operations.
+     */
     static Failure(message: string, isUserVisible?: boolean, isRichtText?: boolean): IPromise<TFS_Dashboards_WidgetContracts.WidgetStatus>;
+    /**
+     * method to encapsulate a result for a widget loading operation that results in the widget being in an unconfigured state.
+     * @returns promise encapsulating the status of the widget loading operations.
+     */
     static Unconfigured(): IPromise<TFS_Dashboards_WidgetContracts.WidgetStatus>;
 }
 export class WidgetConfigurationSave {
+    /**
+     * method to encapsulate a valid state that is returned by the widget configuration
+     * @param customSettings settings from the widget configuration to be returned as part of this state.
+     * @returns promise encapsulating the state being returned.
+     */
     static Valid(customSettings: TFS_Dashboards_WidgetContracts.CustomSettings): IPromise<TFS_Dashboards_WidgetContracts.SaveStatus>;
+    /**
+     * method to encapsulate an invalid state that is returned by the widget configuration
+     * @returns promise encapsulating the state being returned.
+     */
     static Invalid(): IPromise<TFS_Dashboards_WidgetContracts.SaveStatus>;
 }
 export class WidgetEvent {
@@ -5258,6 +5306,104 @@ export class WidgetEvent {
     */
     static GeneralSettingsChanged: string;
     static Args<T>(payload: T): TFS_Dashboards_WidgetContracts.EventArgs<T>;
+}
+export class WidgetSizeConverter {
+    /**
+    * Cell width of the grid that is used to draw the widgets, this includes the border around the widget (i.e. this is the size of the div, border included)
+    */
+    private static CellWidth;
+    /**
+    * Cell height of the grid that is used to draw the widgets, this includes the border around the widget (i.e. this is the size of the div, border included)
+    */
+    private static CellHeight;
+    /**
+    * Cell gutter width between the cells that is used to draw the widget, this excludes the border around the widget (i.e. this is distance between widgets)
+    */
+    private static CellMarginWidth;
+    /**
+    * Cell gutter height between the cells that is used to draw the widget, this excludes the border around the widget  (i.e. this is distance between widgets)
+    */
+    private static CellMarginHeight;
+    /**
+    * Calculates a dimension in pixels, given widget cell size and grid dimensions
+    * @returns size in pixels
+    */
+    private static CalculatePixelSize(cellCount, gridCellSize, gridMarginSize);
+    /**
+    * @returns width in pixels for 1x1 widget
+    */
+    static GetWidgetWidth(): number;
+    /**
+    * @returns height in pixels for 1x1 widget
+    */
+    static GetWidgetHeight(): number;
+    /**
+    * @returns width in pixels for widget gutter
+    */
+    static GetWidgetMarginWidth(): number;
+    /**
+    *  @returns height in pixels for widget gutter
+    */
+    static GetWidgetMarginHeight(): number;
+    /**
+    * Converts widget column span into pixels
+    * @returns width in pixels
+    */
+    static ColumnsToPixelWidth(columnSpan: number): number;
+    /**
+    * Converts widget row span into pixels
+    * @returns height in pixels
+    */
+    static RowsToPixelHeight(rowSpan: number): number;
+}
+}
+declare module "TFS/DistributedTaskCommon/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ */
+export interface DataSourceBinding {
+    dataSourceName: string;
+    endpointId: string;
+    endpointUrl: string;
+    parameters: {
+        [key: string]: string;
+    };
+    resultSelector: string;
+    resultTemplate: string;
+    target: string;
+}
+export interface ProcessParameters {
+    dataSourceBindings: DataSourceBinding[];
+    inputs: TaskInputDefinition[];
+    sourceDefinitions: TaskSourceDefinition[];
+}
+export interface TaskInputDefinition {
+    defaultValue: string;
+    groupName: string;
+    helpMarkDown: string;
+    label: string;
+    name: string;
+    options: {
+        [key: string]: string;
+    };
+    properties: {
+        [key: string]: string;
+    };
+    required: boolean;
+    type: string;
+    visibleRule: string;
+}
+export interface TaskSourceDefinition {
+    authKey: string;
+    endpoint: string;
+    keySelector: string;
+    selector: string;
+    target: string;
 }
 }
 declare module "TFS/DistributedTask/Contracts" {
@@ -5345,6 +5491,18 @@ export interface DependencyBinding {
 export interface DependsOn {
     input: string;
     map: DependencyBinding[];
+}
+export interface DeploymentMachine {
+    agent: TaskAgentReference;
+    tags: string[];
+}
+export interface DeploymentMachineGroup {
+    id: number;
+    machines: DeploymentMachine[];
+    name: string;
+    pool: TaskAgentPoolReference;
+    projectId: string;
+    size: number;
 }
 export interface EndpointAuthorization {
     parameters: {
@@ -5436,6 +5594,11 @@ export interface JobRequestMessage {
     timeline: TimelineReference;
 }
 export interface JobStartedEvent extends JobEvent {
+}
+export enum MachineGroupActionFilter {
+    None = 0,
+    Manage = 2,
+    Use = 16,
 }
 export interface MaskHint {
     type: MaskType;
@@ -5704,6 +5867,10 @@ export interface TaskAgentPool extends TaskAgentPoolReference {
      * Gets or sets a value indicating whether or not this pool is managed by the service.
      */
     isHosted: boolean;
+    /**
+     * Gets or sets the type of the pool
+     */
+    poolType: TaskAgentPoolType;
     properties: any;
     /**
      * Gets a value indicating whether or not roles have been provisioned for this pool.
@@ -5722,6 +5889,10 @@ export interface TaskAgentPoolReference {
     id: number;
     name: string;
     scope: string;
+}
+export enum TaskAgentPoolType {
+    Automation = 1,
+    Deployment = 2,
 }
 /**
  * Represents the public key portion of an RSA asymmetric key.
@@ -5857,6 +6028,7 @@ export interface TaskDefinition {
     sourceLocation: string;
     version: TaskVersion;
     visibility: string[];
+    runsOn: string[];
 }
 export interface TaskDefinitionEndpoint {
     /**
@@ -5924,6 +6096,13 @@ export interface TaskGroupDefinition {
     name: string;
     tags: string[];
 }
+export interface TaskHubLicenseDetails {
+    freeLicenseCount: number;
+    hasLicenseCountEverUpdated: boolean;
+    msdnUsersCount: number;
+    purchasedLicenseCount: number;
+    totalLicenseCount: number;
+}
 export interface TaskGroupStep {
     alwaysRun: boolean;
     continueOnError: boolean;
@@ -5934,13 +6113,6 @@ export interface TaskGroupStep {
     };
     task: TaskDefinitionReference;
     timeoutInMinutes: number;
-}
-export interface TaskHubLicenseDetails {
-    freeLicenseCount: number;
-    hasLicenseCountEverUpdated: boolean;
-    msdnUsersCount: number;
-    purchasedLicenseCount: number;
-    totalLicenseCount: number;
 }
 export interface TaskInputDefinition {
     defaultValue: string;
@@ -6121,6 +6293,8 @@ export var TypeInfo: {
     AgentJobRequestMessage: any;
     AgentPoolEvent: any;
     AgentRequestEvent: any;
+    DeploymentMachine: any;
+    DeploymentMachineGroup: any;
     Issue: any;
     IssueType: {
         enumValues: {
@@ -6132,6 +6306,13 @@ export var TypeInfo: {
     JobCompletedEvent: any;
     JobEnvironment: any;
     JobRequestMessage: any;
+    MachineGroupActionFilter: {
+        enumValues: {
+            "none": number;
+            "manage": number;
+            "use": number;
+        };
+    };
     MaskHint: any;
     MaskType: {
         enumValues: {
@@ -6148,6 +6329,12 @@ export var TypeInfo: {
     TaskAgent: any;
     TaskAgentJobRequest: any;
     TaskAgentPool: any;
+    TaskAgentPoolType: {
+        enumValues: {
+            "automation": number;
+            "deployment": number;
+        };
+    };
     TaskAgentQueueActionFilter: {
         enumValues: {
             "none": number;
@@ -6298,7 +6485,7 @@ export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
      * @param {string} project - Project ID or project name
      * @return IPromise<void>
      */
-    createQueuesForAgentPools(project?: string): IPromise<void>;
+    createTeamProject(project?: string): IPromise<void>;
     /**
      * @exemptedapi
      * [Preview API]
@@ -6317,9 +6504,10 @@ export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
     /**
      * @param {string} poolName
      * @param {string[]} properties
+     * @param {Contracts.TaskAgentPoolType} poolType
      * @return IPromise<Contracts.TaskAgentPool[]>
      */
-    getAgentPools(poolName?: string, properties?: string[]): IPromise<Contracts.TaskAgentPool[]>;
+    getAgentPools(poolName?: string, properties?: string[], poolType?: Contracts.TaskAgentPoolType): IPromise<Contracts.TaskAgentPool[]>;
     /**
      * @param {number} poolId
      * @param {string[]} properties
@@ -6584,6 +6772,58 @@ export class TaskAgentHttpClient3 extends CommonMethods2_1To3 {
      * @return IPromise<Contracts.TaskHubLicenseDetails>
      */
     updateTaskHubLicenseDetails(taskHubLicenseDetails: Contracts.TaskHubLicenseDetails, hubName: string): IPromise<Contracts.TaskHubLicenseDetails>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DeploymentMachineGroup} machineGroup
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DeploymentMachineGroup>
+     */
+    addDeploymentMachineGroup(machineGroup: Contracts.DeploymentMachineGroup, project: string): IPromise<Contracts.DeploymentMachineGroup>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} machineGroupId
+     * @return IPromise<void>
+     */
+    deleteDeploymentMachineGroup(project: string, machineGroupId: number): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} machineGroupId
+     * @param {Contracts.MachineGroupActionFilter} actionFilter
+     * @return IPromise<Contracts.DeploymentMachineGroup>
+     */
+    getDeploymentMachineGroup(project: string, machineGroupId: number, actionFilter?: Contracts.MachineGroupActionFilter): IPromise<Contracts.DeploymentMachineGroup>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} machineGroupName
+     * @param {Contracts.MachineGroupActionFilter} actionFilter
+     * @return IPromise<Contracts.DeploymentMachineGroup[]>
+     */
+    getDeploymentMachineGroups(project: string, machineGroupName?: string, actionFilter?: Contracts.MachineGroupActionFilter): IPromise<Contracts.DeploymentMachineGroup[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} machineGroupId
+     * @param {string[]} tagFilters
+     * @return IPromise<Contracts.DeploymentMachine[]>
+     */
+    getDeploymentMachines(project: string, machineGroupId: number, tagFilters?: string[]): IPromise<Contracts.DeploymentMachine[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DeploymentMachine[]} deploymentMachines
+     * @param {string} project - Project ID or project name
+     * @param {number} machineGroupId
+     * @return IPromise<Contracts.DeploymentMachine[]>
+     */
+    updateDeploymentMachines(deploymentMachines: Contracts.DeploymentMachine[], project: string, machineGroupId: number): IPromise<Contracts.DeploymentMachine[]>;
     /**
      * [Preview API]
      *
@@ -10247,6 +10487,10 @@ export interface GitChange extends Change<GitItem> {
      */
     changeId: number;
     /**
+     * New Content template to be used
+     */
+    newContentTemplate: GitTemplate;
+    /**
      * Original path of item if different from current path
      */
     originalPath: string;
@@ -10294,6 +10538,203 @@ export interface GitCommitToCreate {
     comment: string;
     pathActions: GitPathAction[];
 }
+export interface GitConflict {
+    _links: any;
+    conflictId: number;
+    conflictPath: string;
+    conflictType: GitConflictType;
+    mergeBaseCommit: GitCommitRef;
+    mergeOrigin: GitMergeOriginRef;
+    mergeSourceCommit: GitCommitRef;
+    mergeTargetCommit: GitCommitRef;
+    resolutionError: GitResolutionError;
+    resolutionStatus: GitResolutionStatus;
+    resolvedBy: VSS_Common_Contracts.IdentityRef;
+    resolvedDate: Date;
+    url: string;
+}
+/**
+ * Data object for AddAdd conflict
+ */
+export interface GitConflictAddAdd extends GitConflict {
+    resolution: GitResolutionMergeContent;
+    sourceBlob: GitBlobRef;
+    targetBlob: GitBlobRef;
+}
+/**
+ * Data object for RenameAdd conflict
+ */
+export interface GitConflictAddRename extends GitConflict {
+    baseBlob: GitBlobRef;
+    resolution: GitResolutionPathConflict;
+    sourceBlob: GitBlobRef;
+    targetBlob: GitBlobRef;
+    targetOriginalPath: string;
+}
+/**
+ * Data object for EditDelete conflict
+ */
+export interface GitConflictDeleteEdit extends GitConflict {
+    baseBlob: GitBlobRef;
+    resolution: GitResolutionPickOneAction;
+    targetBlob: GitBlobRef;
+}
+/**
+ * Data object for RenameDelete conflict
+ */
+export interface GitConflictDeleteRename extends GitConflict {
+    baseBlob: GitBlobRef;
+    resolution: GitResolutionPickOneAction;
+    targetBlob: GitBlobRef;
+    targetNewPath: string;
+}
+/**
+ * Data object for FileDirectory conflict
+ */
+export interface GitConflictDirectoryFile extends GitConflict {
+    resolution: GitResolutionPathConflict;
+    sourceTree: GitTreeRef;
+    targetBlob: GitBlobRef;
+}
+/**
+ * Data object for DeleteEdit conflict
+ */
+export interface GitConflictEditDelete extends GitConflict {
+    baseBlob: GitBlobRef;
+    resolution: GitResolutionPickOneAction;
+    sourceBlob: GitBlobRef;
+}
+/**
+ * Data object for EditEdit conflict
+ */
+export interface GitConflictEditEdit extends GitConflict {
+    baseBlob: GitBlobRef;
+    resolution: GitResolutionMergeContent;
+    sourceBlob: GitBlobRef;
+    targetBlob: GitBlobRef;
+}
+/**
+ * Data object for DirectoryFile conflict
+ */
+export interface GitConflictFileDirectory extends GitConflict {
+    resolution: GitResolutionPathConflict;
+    sourceBlob: GitBlobRef;
+    targetTree: GitTreeRef;
+}
+/**
+ * Data object for Rename1to2 conflict
+ */
+export interface GitConflictRename1to2 extends GitConflict {
+    baseBlob: GitBlobRef;
+    resolution: GitResolutionRename1to2;
+    sourceBlob: GitBlobRef;
+    sourceNewPath: string;
+    targetBlob: GitBlobRef;
+    targetNewPath: string;
+}
+/**
+ * Data object for Rename2to1 conflict
+ */
+export interface GitConflictRename2to1 extends GitConflict {
+    resolution: GitResolutionPathConflict;
+    sourceNewBlob: GitBlobRef;
+    sourceOriginalBlob: GitBlobRef;
+    sourceOriginalPath: string;
+    targetNewBlob: GitBlobRef;
+    targetOriginalBlob: GitBlobRef;
+    targetOriginalPath: string;
+}
+/**
+ * Data object for AddRename conflict
+ */
+export interface GitConflictRenameAdd extends GitConflict {
+    baseBlob: GitBlobRef;
+    resolution: GitResolutionPathConflict;
+    sourceBlob: GitBlobRef;
+    sourceOriginalPath: string;
+    targetBlob: GitBlobRef;
+}
+/**
+ * Data object for DeleteRename conflict
+ */
+export interface GitConflictRenameDelete extends GitConflict {
+    baseBlob: GitBlobRef;
+    resolution: GitResolutionPickOneAction;
+    sourceBlob: GitBlobRef;
+    sourceNewPath: string;
+}
+/**
+ * Data object for RenameRename conflict
+ */
+export interface GitConflictRenameRename extends GitConflict {
+    baseBlob: GitBlobRef;
+    originalPath: string;
+    resolution: GitResolutionMergeContent;
+    sourceBlob: GitBlobRef;
+    targetBlob: GitBlobRef;
+}
+export enum GitConflictType {
+    /**
+     * No conflict
+     */
+    None = 0,
+    /**
+     * Added on source and target; content differs
+     */
+    AddAdd = 1,
+    /**
+     * Added on source and rename destination on target
+     */
+    AddRename = 2,
+    /**
+     * Deleted on source and edited on target
+     */
+    DeleteEdit = 3,
+    /**
+     * Deleted on source and renamed on target
+     */
+    DeleteRename = 4,
+    /**
+     * Path is a directory on source and a file on target
+     */
+    DirectoryFile = 5,
+    /**
+     * Children of directory which has DirectoryFile or FileDirectory conflict
+     */
+    DirectoryChild = 6,
+    /**
+     * Edited on source and deleted on target
+     */
+    EditDelete = 7,
+    /**
+     * Edited on source and target; content differs
+     */
+    EditEdit = 8,
+    /**
+     * Path is a file on source and a directory on target
+     */
+    FileDirectory = 9,
+    /**
+     * Same file renamed on both source and target; destination paths differ
+     */
+    Rename1to2 = 10,
+    /**
+     * Different files renamed to same destination path on both source and target
+     */
+    Rename2to1 = 11,
+    /**
+     * Rename destination on source and new file on target
+     */
+    RenameAdd = 12,
+    /**
+     * Renamed on source and deleted on target
+     */
+    RenameDelete = 13,
+    /**
+     * Rename destination on both source and target; content differs
+     */
+    RenameRename = 14,
+}
 export interface GitDeletedRepository {
     createdDate: Date;
     deletedBy: VSS_Common_Contracts.IdentityRef;
@@ -10315,18 +10756,9 @@ export interface GitHistoryQueryResults extends HistoryQueryResults<GitItem> {
     unpopulatedCount: number;
     unprocessedCount: number;
 }
-/**
- * Basic Authentication Parameters for creating a git import request
- */
-export interface GitImportBasicAuthenticationParameters {
-    /**
-     * Password for source repository (in case of private repository)
-     */
-    password: string;
-    /**
-     * Username for source repository (in case of private repository)
-     */
-    username: string;
+export interface GitImportFailedEvent {
+    sourceRepositoryName: string;
+    targetRepository: GitRepository;
 }
 /**
  * Parameter for creating a git import request when source is Git version control
@@ -10335,7 +10767,7 @@ export interface GitImportGitSource {
     /**
      * Url for the source repo
      */
-    sourceUrl: string;
+    url: string;
 }
 export interface GitImportOperationNotification extends AsyncGitOperationNotification {
     statusDetail: GitImportStatusDetail;
@@ -10357,17 +10789,26 @@ export interface GitImportRequest {
  */
 export interface GitImportRequestParameters {
     /**
-     * Basic Authentication details
+     * Option to delete service endpoint when import is done
      */
-    basicAuthentication: GitImportBasicAuthenticationParameters;
+    deleteServiceEndpointAfterImportIsDone: boolean;
     /**
      * Source for importing git repository
      */
     gitSource: GitImportGitSource;
+    /**
+     * Service Endpoint for connection to external endpoint
+     */
+    serviceEndpointId: string;
 }
 export interface GitImportStatusDetail {
-    message: string;
-    subStatus: string;
+    allSteps: string[];
+    currentStep: number;
+    errorMessage: string;
+}
+export interface GitImportSucceededEvent {
+    sourceRepositoryName: string;
+    targetRepository: GitRepository;
 }
 export interface GitItem extends ItemModel {
     /**
@@ -10450,6 +10891,8 @@ export interface GitLastChangeTreeItems {
      * The last explored time, in case the result is not comprehensive. Null otherwise.
      */
     lastExploredTime: Date;
+}
+export interface GitMergeOriginRef {
 }
 export enum GitObjectType {
     Bad = 0,
@@ -10562,6 +11005,9 @@ export interface GitPullRequestIterationChanges {
     changeEntries: GitPullRequestChange[];
     nextSkip: number;
     nextTop: number;
+}
+export interface GitPullRequestMergeOriginRef extends GitMergeOriginRef {
+    pullRequestId: number;
 }
 /**
  * A pull request query
@@ -10898,6 +11344,83 @@ export interface GitRepositoryStats {
     commitsCount: number;
     repositoryId: string;
 }
+export interface GitResolution {
+}
+export enum GitResolutionError {
+    /**
+     * No error
+     */
+    None = 0,
+    /**
+     * User set a blob id for resolving a content merge, but blob was not found in repo during application
+     */
+    MergeContentNotFound = 1,
+    /**
+     * Attempted to resolve a conflict by moving a file to another path, but path was already in use
+     */
+    PathInUse = 2,
+    /**
+     * No error
+     */
+    InvalidPath = 3,
+    /**
+     * GitResolutionAction was set to an unrecognized value
+     */
+    UnknownAction = 4,
+    /**
+     * GitResolutionMergeType was set to an unrecognized value
+     */
+    UnknownMergeType = 5,
+    /**
+     * Any error for which a more specific code doesn't apply
+     */
+    OtherError = 255,
+}
+export interface GitResolutionMergeContent extends GitResolution {
+    mergeType: GitResolutionMergeType;
+    userMergedBlob: GitBlobRef;
+    userMergedContent: number[];
+}
+export enum GitResolutionMergeType {
+    Undecided = 0,
+    TakeSourceContent = 1,
+    TakeTargetContent = 2,
+    AutoMerged = 3,
+    UserMerged = 4,
+}
+export interface GitResolutionPathConflict extends GitResolution {
+    action: GitResolutionPathConflictAction;
+    renamePath: string;
+}
+export enum GitResolutionPathConflictAction {
+    Undecided = 0,
+    KeepSourceRenameTarget = 1,
+    KeepSourceDeleteTarget = 2,
+    KeepTargetRenameSource = 3,
+    KeepTargetDeleteSource = 4,
+}
+export interface GitResolutionPickOneAction extends GitResolution {
+    action: GitResolutionWhichAction;
+}
+export interface GitResolutionRename1to2 extends GitResolutionMergeContent {
+    action: GitResolutionRename1to2Action;
+}
+export enum GitResolutionRename1to2Action {
+    Undecided = 0,
+    KeepSourcePath = 1,
+    KeepTargetPath = 2,
+    KeepBothFiles = 3,
+}
+export enum GitResolutionStatus {
+    Unresolved = 0,
+    PartiallyResolved = 1,
+    Resolved = 2,
+}
+export enum GitResolutionWhichAction {
+    Undecided = 0,
+    PickSourceAction = 1,
+    PickTargetAction = 2,
+}
 export interface GitRevert extends GitAsyncRefOperation {
     revertId: number;
 }
@@ -10941,6 +11464,16 @@ export interface GitTargetVersionDescriptor extends GitVersionDescriptor {
      * Version type (branch, tag, or commit). Determines how Id is interpreted
      */
     targetVersionType: GitVersionType;
+}
+export interface GitTemplate {
+    /**
+     * Name of the Template
+     */
+    name: string;
+    /**
+     * Type of the Template
+     */
+    type: string;
 }
 export interface GitTreeEntryRef {
     /**
@@ -11117,6 +11650,13 @@ export enum PullRequestStatus {
     Abandoned = 2,
     Completed = 3,
     All = 4,
+}
+/**
+ * Initial config contract sent to extensions creating tabs on the pull request page
+ */
+export interface PullRequestTabExtensionConfig {
+    pullRequestId: number;
+    repositoryId: string;
 }
 export enum RefFavoriteType {
     Invalid = 0,
@@ -11522,6 +12062,39 @@ export var TypeInfo: {
     GitCommitDiffs: any;
     GitCommitRef: any;
     GitCommitToCreate: any;
+    GitConflict: any;
+    GitConflictAddAdd: any;
+    GitConflictAddRename: any;
+    GitConflictDeleteEdit: any;
+    GitConflictDeleteRename: any;
+    GitConflictDirectoryFile: any;
+    GitConflictEditDelete: any;
+    GitConflictEditEdit: any;
+    GitConflictFileDirectory: any;
+    GitConflictRename1to2: any;
+    GitConflictRename2to1: any;
+    GitConflictRenameAdd: any;
+    GitConflictRenameDelete: any;
+    GitConflictRenameRename: any;
+    GitConflictType: {
+        enumValues: {
+            "none": number;
+            "addAdd": number;
+            "addRename": number;
+            "deleteEdit": number;
+            "deleteRename": number;
+            "directoryFile": number;
+            "directoryChild": number;
+            "editDelete": number;
+            "editEdit": number;
+            "fileDirectory": number;
+            "rename1to2": number;
+            "rename2to1": number;
+            "renameAdd": number;
+            "renameDelete": number;
+            "renameRename": number;
+        };
+    };
     GitDeletedRepository: any;
     GitHistoryQueryResults: any;
     GitImportRequest: any;
@@ -11608,6 +12181,61 @@ export var TypeInfo: {
             "rejectedByPolicy": number;
             "succeededNonExistentRef": number;
             "succeededCorruptRef": number;
+        };
+    };
+    GitResolutionError: {
+        enumValues: {
+            "none": number;
+            "mergeContentNotFound": number;
+            "pathInUse": number;
+            "invalidPath": number;
+            "unknownAction": number;
+            "unknownMergeType": number;
+            "otherError": number;
+        };
+    };
+    GitResolutionMergeContent: any;
+    GitResolutionMergeType: {
+        enumValues: {
+            "undecided": number;
+            "takeSourceContent": number;
+            "takeTargetContent": number;
+            "autoMerged": number;
+            "userMerged": number;
+        };
+    };
+    GitResolutionPathConflict: any;
+    GitResolutionPathConflictAction: {
+        enumValues: {
+            "undecided": number;
+            "keepSourceRenameTarget": number;
+            "keepSourceDeleteTarget": number;
+            "keepTargetRenameSource": number;
+            "keepTargetDeleteSource": number;
+        };
+    };
+    GitResolutionPickOneAction: any;
+    GitResolutionRename1to2: any;
+    GitResolutionRename1to2Action: {
+        enumValues: {
+            "undecided": number;
+            "keepSourcePath": number;
+            "keepTargetPath": number;
+            "keepBothFiles": number;
+        };
+    };
+    GitResolutionStatus: {
+        enumValues: {
+            "unresolved": number;
+            "partiallyResolved": number;
+            "resolved": number;
+        };
+    };
+    GitResolutionWhichAction: {
+        enumValues: {
+            "undecided": number;
+            "pickSourceAction": number;
+            "pickTargetAction": number;
         };
     };
     GitRevert: any;
@@ -12362,13 +12990,13 @@ export class GitHttpClient3 extends CommonMethods2_2To3 {
     /**
      * [Preview API] Create an import request
      *
-     * @param {Contracts.GitImportRequestParameters} importRequestParameters
+     * @param {Contracts.GitImportRequest} importRequest
      * @param {string} project - Project ID or project name
      * @param {string} repositoryId
      * @param {boolean} validateParameters
      * @return IPromise<Contracts.GitImportRequest>
      */
-    createImportRequest(importRequestParameters: Contracts.GitImportRequestParameters, project: string, repositoryId: string, validateParameters?: boolean): IPromise<Contracts.GitImportRequest>;
+    createImportRequest(importRequest: Contracts.GitImportRequest, project: string, repositoryId: string, validateParameters?: boolean): IPromise<Contracts.GitImportRequest>;
     /**
      * [Preview API] Retrieve a particular import request
      *
@@ -12407,6 +13035,39 @@ export class GitHttpClient3 extends CommonMethods2_2To3 {
      * @return IPromise<Contracts.GitCommitRef[]>
      */
     getPullRequestIterationCommits(repositoryId: string, pullRequestId: number, iterationId: number, project?: string): IPromise<Contracts.GitCommitRef[]>;
+    /**
+     * [Preview API] Retrieve one conflict for a pull request by ID
+     *
+     * @param {string} repositoryId
+     * @param {number} pullRequestId
+     * @param {number} conflictId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.GitConflict>
+     */
+    getPullRequestConflict(repositoryId: string, pullRequestId: number, conflictId: number, project?: string): IPromise<Contracts.GitConflict>;
+    /**
+     * [Preview API] Retrieve all conflicts for a pull request
+     *
+     * @param {string} repositoryId
+     * @param {number} pullRequestId
+     * @param {string} project - Project ID or project name
+     * @param {number} skip
+     * @param {number} top
+     * @param {boolean} includeObsolete
+     * @return IPromise<Contracts.GitConflict[]>
+     */
+    getPullRequestConflicts(repositoryId: string, pullRequestId: number, project?: string, skip?: number, top?: number, includeObsolete?: boolean): IPromise<Contracts.GitConflict[]>;
+    /**
+     * [Preview API] Update merge conflict resolution
+     *
+     * @param {Contracts.GitConflict} conflict
+     * @param {string} repositoryId
+     * @param {number} pullRequestId
+     * @param {number} conflictId
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.GitConflict>
+     */
+    updatePullRequestConflict(conflict: Contracts.GitConflict, repositoryId: string, pullRequestId: number, conflictId: number, project?: string): IPromise<Contracts.GitConflict>;
     /**
      * [Preview API]
      *
@@ -12684,6 +13345,14 @@ export class GitHttpClient3 extends CommonMethods2_2To3 {
      * @return IPromise<Contracts.GitRevert>
      */
     getRevertForRefName(project: string, repositoryId: string, refName: string): IPromise<Contracts.GitRevert>;
+    /**
+     * [Preview API] Retrieve all available templates of specified 'type'. If not specified, entire list is returned
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} type - searches for templates with this type
+     * @return IPromise<Contracts.GitTemplate[]>
+     */
+    getTemplateList(project: string, type?: string): IPromise<Contracts.GitTemplate[]>;
 }
 /**
  * @exemptedapi
@@ -13858,6 +14527,7 @@ export interface WorkItemBehavior {
 export interface WorkItemBehaviorField {
     behaviorFieldId: string;
     id: string;
+    url: string;
 }
 export interface WorkItemBehaviorReference {
     id: string;
@@ -14104,6 +14774,7 @@ export interface PickListItemModel {
 }
 export interface PickListMetadataModel {
     id: string;
+    isSuggested: boolean;
     name: string;
     type: string;
     url: string;
@@ -14157,6 +14828,7 @@ export interface WorkItemBehavior {
 export interface WorkItemBehaviorField {
     behaviorFieldId: string;
     id: string;
+    url: string;
 }
 export interface WorkItemBehaviorReference {
     id: string;
@@ -14417,18 +15089,18 @@ export class CommonMethods2_1To3 extends VSS_WebApi.VssHttpClient {
      * @param {ProcessDefinitionsContracts.Page} page
      * @param {string} processId
      * @param {string} witRefName
-     * @return IPromise<void>
+     * @return IPromise<ProcessDefinitionsContracts.Page>
      */
-    editPage(page: ProcessDefinitionsContracts.Page, processId: string, witRefName: string): IPromise<void>;
+    editPage(page: ProcessDefinitionsContracts.Page, processId: string, witRefName: string): IPromise<ProcessDefinitionsContracts.Page>;
     /**
      * [Preview API]
      *
      * @param {ProcessDefinitionsContracts.Page} page
      * @param {string} processId
      * @param {string} witRefName
-     * @return IPromise<void>
+     * @return IPromise<ProcessDefinitionsContracts.Page>
      */
-    addPage(page: ProcessDefinitionsContracts.Page, processId: string, witRefName: string): IPromise<void>;
+    addPage(page: ProcessDefinitionsContracts.Page, processId: string, witRefName: string): IPromise<ProcessDefinitionsContracts.Page>;
     /**
      * [Preview API]
      *
@@ -14487,9 +15159,9 @@ export class CommonMethods2_1To3 extends VSS_WebApi.VssHttpClient {
      * @param {string} sectionId
      * @param {string} groupId
      * @param {string} removeFromSectionId
-     * @return IPromise<void>
+     * @return IPromise<ProcessDefinitionsContracts.Group>
      */
-    setGroupInSection(group: ProcessDefinitionsContracts.Group, processId: string, witRefName: string, pageId: string, sectionId: string, groupId: string, removeFromSectionId: string): IPromise<void>;
+    setGroupInSection(group: ProcessDefinitionsContracts.Group, processId: string, witRefName: string, pageId: string, sectionId: string, groupId: string, removeFromSectionId: string): IPromise<ProcessDefinitionsContracts.Group>;
     /**
      * [Preview API]
      *
@@ -14501,9 +15173,9 @@ export class CommonMethods2_1To3 extends VSS_WebApi.VssHttpClient {
      * @param {string} groupId
      * @param {string} removeFromPageId
      * @param {string} removeFromSectionId
-     * @return IPromise<void>
+     * @return IPromise<ProcessDefinitionsContracts.Group>
      */
-    setGroupInPage(group: ProcessDefinitionsContracts.Group, processId: string, witRefName: string, pageId: string, sectionId: string, groupId: string, removeFromPageId: string, removeFromSectionId: string): IPromise<void>;
+    setGroupInPage(group: ProcessDefinitionsContracts.Group, processId: string, witRefName: string, pageId: string, sectionId: string, groupId: string, removeFromPageId: string, removeFromSectionId: string): IPromise<ProcessDefinitionsContracts.Group>;
     /**
      * [Preview API]
      *
@@ -14524,9 +15196,9 @@ export class CommonMethods2_1To3 extends VSS_WebApi.VssHttpClient {
      * @param {string} pageId
      * @param {string} sectionId
      * @param {string} groupId
-     * @return IPromise<void>
+     * @return IPromise<ProcessDefinitionsContracts.Group>
      */
-    editGroup(group: ProcessDefinitionsContracts.Group, processId: string, witRefName: string, pageId: string, sectionId: string, groupId: string): IPromise<void>;
+    editGroup(group: ProcessDefinitionsContracts.Group, processId: string, witRefName: string, pageId: string, sectionId: string, groupId: string): IPromise<ProcessDefinitionsContracts.Group>;
     /**
      * [Preview API]
      *
@@ -14535,9 +15207,9 @@ export class CommonMethods2_1To3 extends VSS_WebApi.VssHttpClient {
      * @param {string} witRefName
      * @param {string} pageId
      * @param {string} sectionId
-     * @return IPromise<void>
+     * @return IPromise<ProcessDefinitionsContracts.Group>
      */
-    addGroup(group: ProcessDefinitionsContracts.Group, processId: string, witRefName: string, pageId: string, sectionId: string): IPromise<void>;
+    addGroup(group: ProcessDefinitionsContracts.Group, processId: string, witRefName: string, pageId: string, sectionId: string): IPromise<ProcessDefinitionsContracts.Group>;
     /**
      * [Preview API]
      *
@@ -14571,9 +15243,9 @@ export class CommonMethods2_1To3 extends VSS_WebApi.VssHttpClient {
      * @param {string} groupId
      * @param {string} controlId
      * @param {string} removeFromGroupId
-     * @return IPromise<void>
+     * @return IPromise<ProcessDefinitionsContracts.Control>
      */
-    setControlInGroup(control: ProcessDefinitionsContracts.Control, processId: string, witRefName: string, groupId: string, controlId: string, removeFromGroupId?: string): IPromise<void>;
+    setControlInGroup(control: ProcessDefinitionsContracts.Control, processId: string, witRefName: string, groupId: string, controlId: string, removeFromGroupId?: string): IPromise<ProcessDefinitionsContracts.Control>;
     /**
      * [Preview API]
      *
@@ -14592,9 +15264,9 @@ export class CommonMethods2_1To3 extends VSS_WebApi.VssHttpClient {
      * @param {string} witRefName
      * @param {string} groupId
      * @param {string} controlId
-     * @return IPromise<void>
+     * @return IPromise<ProcessDefinitionsContracts.Control>
      */
-    editControl(control: ProcessDefinitionsContracts.Control, processId: string, witRefName: string, groupId: string, controlId: string): IPromise<void>;
+    editControl(control: ProcessDefinitionsContracts.Control, processId: string, witRefName: string, groupId: string, controlId: string): IPromise<ProcessDefinitionsContracts.Control>;
     /**
      * [Preview API] Creates a control, giving it an id, and adds it to the group. So far, the only controls that don't know how to generate their own ids are control extensions.
      *
@@ -14602,9 +15274,9 @@ export class CommonMethods2_1To3 extends VSS_WebApi.VssHttpClient {
      * @param {string} processId
      * @param {string} witRefName
      * @param {string} groupId
-     * @return IPromise<void>
+     * @return IPromise<ProcessDefinitionsContracts.Control>
      */
-    addControlToGroup(control: ProcessDefinitionsContracts.Control, processId: string, witRefName: string, groupId: string): IPromise<void>;
+    addControlToGroup(control: ProcessDefinitionsContracts.Control, processId: string, witRefName: string, groupId: string): IPromise<ProcessDefinitionsContracts.Control>;
 }
 /**
  * @exemptedapi
@@ -15591,6 +16263,23 @@ export interface Activity {
 }
 export interface attribute {
 }
+/**
+ * Contract representing a backlog level
+ */
+export interface BacklogLevel {
+    /**
+     * Reference name of the corresponding WIT category
+     */
+    categoryReferenceName: string;
+    /**
+     * Plural name for the backlog level
+     */
+    pluralName: string;
+    /**
+     * Collection of valid workitem type names for the given backlog level
+     */
+    workItemTypes: string[];
+}
 export interface Board extends ShallowReference {
     _links: any;
     allowedMappings: {
@@ -15698,6 +16387,10 @@ export interface CategoryConfiguration {
      */
     name: string;
     /**
+     * Category Reference Name
+     */
+    referenceName: string;
+    /**
      * Work item types for the backlog category
      */
     workItemTypes: WorkItemTracking_Contracts.WorkItemTypeReference[];
@@ -15748,18 +16441,12 @@ export interface DeliveryViewData extends PlanViewData {
      * All the team data
      */
     teams: TimelineTeamData[];
-    /**
-     * Work Item Types configured for the team.
-     */
-    workItemTypes: {
-        [key: string]: string[];
-    };
 }
 /**
  * Collection of properties, specific to the DeliveryTimelineView
  */
 export interface DeliveryViewProperyCollection extends PlanPropertyCollection {
-    teamWorkItemTypeMapping: TeamWorkItemTypeMapping[];
+    teamBacklogMappings: TeamBacklogMapping[];
 }
 /**
  * An abstracted reference to a field
@@ -15906,6 +16593,13 @@ export interface ShallowReference {
     url: string;
 }
 /**
+ * Mapping of teams to the corresponding work item category
+ */
+export interface TeamBacklogMapping {
+    categoryReferenceName: string;
+    teamId: string;
+}
+/**
  * Represents a single TeamFieldValue
  */
 export interface TeamFieldValue {
@@ -16041,13 +16735,6 @@ export interface TeamSettingsPatch {
     defaultIterationMacro: string;
     workingDays: System_Contracts.DayOfWeek[];
 }
-/**
- * Mapping of teams to the corresponding workitem types
- */
-export interface TeamWorkItemTypeMapping {
-    teamId: string;
-    workItemTypeNames: string[];
-}
 export interface TimelineIterationStatus {
     message: string;
     type: TimelineIterationStatusCode;
@@ -16063,6 +16750,10 @@ export enum TimelineIterationStatusCode {
     IsOverlapping = 1,
 }
 export interface TimelineTeamData {
+    /**
+     * Backlog matching the mapped backlog associated with this team.
+     */
+    backlog: BacklogLevel;
     /**
      * The field reference names of the work item data
      */
@@ -16087,6 +16778,10 @@ export interface TimelineTeamData {
      * The order by field name of this team
      */
     orderByField: string;
+    /**
+     * The field reference names of the partially paged work items, such as ID, WorkItemType
+     */
+    partiallyPagedFieldReferenceNames: string[];
     /**
      * The project id the team belongs team
      */
@@ -16122,6 +16817,10 @@ export interface TimelineTeamIteration {
      */
     name: string;
     /**
+     * All the partially paged workitems in this iteration.
+     */
+    partiallyPagedWorkItems: any[][];
+    /**
      * The iteration path
      */
     path: string;
@@ -16133,10 +16832,6 @@ export interface TimelineTeamIteration {
      * The status of this iteration
      */
     status: TimelineIterationStatus;
-    /**
-     * All the work item ids in this iteration, including the paged as well as unpaged ones.
-     */
-    workItemIds: number[];
     /**
      * The work items that have been paged in this iteration
      */
@@ -16524,10 +17219,9 @@ export class WorkHttpClient3 extends CommonMethods2To3 {
      * @param {string} id - Identifier for delivery view
      * @param {Date} startDate - The start date of timeline
      * @param {Date} endDate - The end date of timeline
-     * @param {string[]} teamIds - The comma-separated list of ids of teams
      * @return IPromise<Contracts.DeliveryViewData>
      */
-    getDeliveryTimelineData(teamContext: TFS_Core_Contracts.TeamContext, id: string, startDate?: Date, endDate?: Date, teamIds?: string[]): IPromise<Contracts.DeliveryViewData>;
+    getDeliveryTimelineData(teamContext: TFS_Core_Contracts.TeamContext, id: string, startDate?: Date, endDate?: Date): IPromise<Contracts.DeliveryViewData>;
     /**
      * [Preview API] Add a new plan for the team
      *
