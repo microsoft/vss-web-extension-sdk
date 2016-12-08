@@ -1,26 +1,20 @@
 {
   "name": "vss-web-extension-sdk",
-  "version": "1.108.0",
-  "description": "Visual Studio Services Client SDK. JavaScript library for Visual Studio Online extensions.",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "version": "1.109.0",
+  "description": "Visual Studio Services Client SDK. JavaScript library for Visual Studio Team Services extensions.",
   "repository": {
     "type": "git",
     "url": "https://github.com/Microsoft/vss-web-extension-sdk.git"
   },
+  "scripts": {
+    "build": "tsc -p .",
+    "prepublish": "npm run build"
+  },
   "keywords": [
     "extensions",
-    "visual studio online"
+    "visual studio team services"
   ],
-  "typescript": {
-    "definitions": [
-      "typings/rmo.d.ts",
-      "typings/tfs.d.ts",
-      "typings/vss.d.ts"
-    ]
-  },
-  "author": "vsalmopen",
+  "author": "Microsoft",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Microsoft/vss-web-extension-sdk/issues"
@@ -29,5 +23,17 @@
   "jspm": {
     "main": "lib/VSS.SDK",
     "format": "global"
+  },
+  "types": "./typings/index.d.ts",
+  "dependencies": {
+    "@types/jquery": "^2.0.34",
+    "@types/jqueryui": "^1.11.31",
+    "@types/knockout": "^3.4.38",
+    "@types/q": "0.0.32",
+    "@types/react": "^0.14.54",
+    "@types/requirejs": "^2.1.28"
+  },
+  "devDependencies": {
+    "typescript": "^2.0.10"
   }
 }
