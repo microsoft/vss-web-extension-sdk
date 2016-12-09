@@ -79,16 +79,15 @@ Dependency graph for the types:
 
 ![Dependency Graph](img/dependencies.png)
  
-### Using tsd
-Although TypeScript declare files do not exist at [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) repo, they can still be used through [tsd](https://www.npmjs.com/package/tsd).
+### Consuming the Types
 
-1. First, make sure that the dependencies are loaded using below command:
- * `tsd install jquery knockout q react require --save`
- 
-2. Next, run below command to get vss-web-extension-sdk types added to tsd.d.ts:
- * `tsd link`
+You only need to add below line to the top of your TypeScript file:
 
-3. Finally, add only reference to typings/tsd.d.ts in your TypeScript files. 
+```
+    /// <reference types="vss-web-extension-sdk" />
+```
+
+Make sure that you specify ```"moduleResolution": "node"``` in your tsconfig.json file.
 
 ## Code of Conduct
 
