@@ -2,35 +2,48 @@
 
 ## Overview
 
-This repository contains core client SDK script files and TypeScript declare files needed for developing [Visual Studio Team Services Extensions](https://www.visualstudio.com/integrate/extensions/overview).
+Core client SDK script files and TypeScript declare files needed for developing [Visual Studio Team Services Extensions](https://www.visualstudio.com/integrate/extensions/overview).
 
-The core SDK script, `VSS.SDK.js`, enables extensions to communicate to the host Team Services frame and to perform operations like initializing, notifying extension is loaded or getting context about the current page.
+The core SDK script, `VSS.SDK.js`, enables web extensions to communicate to the host Team Services frame and to perform operations like initializing, notifying extension is loaded or getting context about the current page.
 
 > A previous version of the SDK was named ```vss-sdk``. Make sure to switch to the new `vss-web-extension-sdk` name.
 
 ## Get the SDK
 
-### Bower
-
 1. [Download](https://nodejs.org/en/download/) and install Node.js
-2. Install Bower (`npm install -g bower`)
-3. Run `bower install vss-web-extension-sdk` from a command line 
+2. Run `npm install vss-web-extension-sdk` from the root of your extension project
 
-From your extension's HTML page, add a reference to the imported SDK script. For example:
+This will place `VSS.SDK.js` and `VSS.SDK.min.js` in `node_modules/vss-web-extension-sdk/lib/`
 
-```html
- <script src="bower_components/vss-web-extension-sdk/lib/VSS.SDK.min.js"></script>
- ```
-  
-### NPM
+### Add script to HTML page
 
-Alternatively, the SDK is available via NPM. Run `npm install vss-web-extension-sdk`
-\
+If you are developing a web extension, you will need to reference the SDK script from your HTML pages. For example:
+
+```
+<script src="lib/VSS.SDK.min.js"></script>
+```
+
+To ensure the SDK is included with your extension package, update your extension manifest (typically `vss-extension.json`) with a new `files` entry:
+
+```
+{       
+	"files": [{
+		"path": "node_modules/vss-web-extension-sdk/lib/VSS.SDK.min.js",
+		"addressable": true,
+		"partName": "lib/VSS.SDK.min.js"
+	}]
+}
+```
+
 ## Use the SDK
 
-Next step is initializing the extension using two options below: 
- 1. Implicit handshake
- 	```javascript
+To initialize the SDK from your HTML page you have two options. 
+
+ 1. Implicit handshake (simplest)
+ 
+ 	```html
+	<script>
+	
 	  // Initialize
 	  VSS.init({
 		  usePlatformScripts: true, 
@@ -41,10 +54,14 @@ Next step is initializing the extension using two options below:
 	  VSS.ready(function() {
 		  // Start using VSS
 	  });
+	  
+	</script>
 	  ```
       
  2. Explicit handshake
-    ```javascript
+ 
+    ```html
+       <script>
 	  // Initialize with explicitNotifyLoaded set to true 
 	  VSS.init({
           explicitNotifyLoaded: true,
@@ -52,18 +69,20 @@ Next step is initializing the extension using two options below:
 		  usePlatformStyles: true
 	  });
       
-      // Perform some async operation here
-      doSomeAsyncStuff().then(
-          function(result) {
+         // Perform some async operation here
+         doSomeAsyncStuff().then(
+            function(result) {
               // Succeeded
               VSS.notifyLoadSucceeded();
               
               // Start using VSS
-          },
-          function(error) {
+            },
+            function(error) {
               // Failed
               VSS.notifyLoadFailed(error);
-          });
+            }
+	 );
+      </script>
     ```
 
 Full API reference of VSS.SDK.js can be found at [Core Client SDK](https://www.visualstudio.com/en-us/integrate/extensions/reference/client/core-sdk) page.
