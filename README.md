@@ -97,7 +97,7 @@ Type definitions are provided for:
  * UI controls and client services (see `typings/vss.d.ts`)
  * REST clients and contracts for Build, Work, and Code (see `typings/tfs.d.ts`)
  * REST clients and contracts for Release Management (see `typings/rmo.d.ts`)
- 
+
 ### Dependencies
 
 Dependency graph for the types:
@@ -106,12 +106,12 @@ Dependency graph for the types:
  
 ### Consuming the types
 
-From [TypeScript](https://www.typescriptlang.org):
+From a [TypeScript](https://www.typescriptlang.org) 2.0 or later project:
 
 1. Install the `vss-web-extension-sdk` NPM module (see above)
 2. Update your `tfsconfig.json` project file to set ```"moduleResolution": "node"```
 
-See [TypeScript Module Resolution](https://www.typescriptlang.org/docs/handbook/module-resolution.html)
+See [TypeScript Module Resolution](https://www.typescriptlang.org/docs/handbook/module-resolution.html) for more details.
 
 You can explicitly reference the types at the top of your TypeScript file with:
 
