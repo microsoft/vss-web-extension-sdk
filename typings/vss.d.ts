@@ -1,15 +1,14 @@
-// Type definitions for Microsoft Visual Studio Services v109.20161208.1536
+// Type definitions for Microsoft Visual Studio Services v108.20161114.1018
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
-/// <reference types='knockout' />
-/// <reference types='jquery' />
-/// <reference types='jqueryui' />
-/// <reference types='q' />
-/// <reference types='requirejs' />
-/// <reference types='react' />
-
-//----------------------------------------------------------
+   /// <reference path='../../../typings/knockout/knockout.d.ts' />
+   /// <reference path='../../../typings/jquery/jquery.d.ts' />
+   /// <reference path='../../../typings/q/q.d.ts' />
+   /// <reference path='../../../typings/react/react.d.ts' />
+   /// <reference path='../../../typings/requirejs/require.d.ts' />
+   
+   //----------------------------------------------------------
 // Common interfaces specific to WebPlatform area
 //----------------------------------------------------------
 
@@ -172,10 +171,6 @@ interface IDictionaryNumberTo<T> {
 }
 
 interface IEventHandler extends Function {
-}
-
-interface JQueryEventHandler {
-    (eventObject: JQueryEventObject, args?: any): any;
 }
 
 interface IWebApiArrayResult {
@@ -1427,24 +1422,6 @@ interface ContributionConstraint {
 }
 
 /**
-* Represents different ways of including contributions based on licensing
-*/
-declare enum ContributionLicensingBehaviorType {
-    /**
-    * Default value - only include the contribution if the user is licensed for the extension
-    */
-    OnlyIfLicensed = 0,
-    /**
-    * Only include the contribution if the user is NOT licensed for the extension
-    */
-    OnlyIfUnlicensed = 1,
-    /**
-    * Always include the contribution regardless of whether or not the user is licensed for the extension
-    */
-    AlwaysInclude = 2,
-}
-
-/**
 * Item representing a contribution path. Can be of type default, resource or bundle
 */
 interface ContributionPath {
@@ -1464,7 +1441,6 @@ interface ContributionPath {
 declare enum ContributionPathType {
     Default = 0,
     Resource = 1,
-    ThirdParty = 2,
 }
 
 /**
@@ -1537,27 +1513,6 @@ declare enum ContributionPropertyType {
     * Value is an arbitrary/custom object
     */
     Object = 512,
-}
-
-interface ContributionProviderDetails {
-    /**
-    * Friendly name for the provider.
-    */
-    displayName: string;
-    /**
-    * Unique identifier for this provider. The provider name can be used to cache the contribution data and refer back to it when looking for changes
-    */
-    name: string;
-    /**
-    * Properties associated with the provider
-    */
-    properties: { [key: string]: string; };
-}
-
-interface ContributionsPageData {
-    contributions: Contribution[];
-    providerDetails: { [key: string]: ContributionProviderDetails; };
-    queriedContributionIds: string[];
 }
 
 /**
@@ -1672,11 +1627,6 @@ interface DiagnosticsContext {
     cdnEnabled: boolean;
     clientLogLevel: number;
     debugMode: boolean;
-    /**
-    * Whether or not to diagnose the bundles.
-    */
-    diagnoseBundles: boolean;
-    inExtensionFallbackMode: boolean;
     isDevFabric: boolean;
     sessionId: string;
     tracePointCollectionEnabled: boolean;
@@ -1853,16 +1803,6 @@ declare enum ExtensionFlags {
 }
 
 /**
-* How an extension should handle including contributions based on licensing
-*/
-interface ExtensionLicensing {
-    /**
-    * A list of contributions which deviate from the default licensing behavior
-    */
-    overrides: LicensingOverride[];
-}
-
-/**
 * Base class for extension properties which are shared by the extension manifest and the extension model
 */
 interface ExtensionManifest {
@@ -1894,10 +1834,6 @@ interface ExtensionManifest {
     * Language Culture Name set by the Gallery
     */
     language: string;
-    /**
-    * How this extension behaves with respect to licensing
-    */
-    licensing: ExtensionLicensing;
     /**
     * Version of the extension manifest format/content
     */
@@ -2097,7 +2033,6 @@ interface Hub {
     isSelected: boolean;
     name: string;
     order: any;
-    supportsXHRNavigate: boolean;
     uri: string;
 }
 
@@ -2202,7 +2137,6 @@ interface InstalledExtension {
     * This represents the date/time the extensions was last updated in the gallery. This doesnt mean this version was updated the value represents changes to any and all versions of the extension.
     */
     lastPublished: Date;
-    licensing: ExtensionLicensing;
     manifestVersion: any;
     /**
     * Unique id of the publisher of this extension
@@ -2305,20 +2239,6 @@ interface JavascriptFileReference {
 */
 interface JsonArrayWrapper {
     __wrappedArray: string;
-}
-
-/**
-* Maps a contribution to a licensing behavior
-*/
-interface LicensingOverride {
-    /**
-    * How the inclusion of this contribution should change based on licensing
-    */
-    behavior: ContributionLicensingBehaviorType;
-    /**
-    * Fully qualified contribution id which we want to define licensing behavior for
-    */
-    id: string;
 }
 
 interface MicrosoftAjaxConfig {
@@ -2469,16 +2389,6 @@ interface PageContext {
     * The web context information for the given page request
     */
     webContext: WebContext;
-}
-
-interface PageXHRData {
-    bundles: DynamicBundlesCollection;
-    contributionsData: ContributionsPageData;
-    dataProviderData: DataProviderResult;
-    featureAvailability: FeatureAvailabilityContext;
-    navigation: NavigationContext;
-    performanceTimings: { [key: string]: any; };
-    serviceLocations: ServiceLocations;
 }
 
 interface PinningPreferences {
@@ -3020,6 +2930,38 @@ export interface AccountCreateInfoInternal {
         value: string;
     }[];
 }
+export interface AccountLicenseInfo {
+    consumedCount: number;
+    inUseCount: number;
+    licenseName: string;
+}
+export enum AccountLicenseSource {
+    /**
+     * The following correspond to various license sources
+     */
+    None = 2,
+    VsExpress = 10,
+    VsPro = 12,
+    VsTestPro = 14,
+    VsPremium = 16,
+    VsUltimate = 18,
+    MSDN = 38,
+    MsdnPro = 40,
+    MsdnTestPro = 42,
+    MsdnPremium = 44,
+    MsdnUltimate = 46,
+    MsdnPlatforms = 48,
+    VSOStandard = 50,
+    VSOAdvanced = 52,
+    VSOProStandard = 54,
+    Win8 = 56,
+    Desktop = 58,
+    Phone = 60,
+    /**
+     * Early adopters may get a special license
+     */
+    VsEarlyAdopter = 70,
+}
 export interface AccountNameAvailability {
     isValidName: boolean;
     /**
@@ -3049,6 +2991,12 @@ export interface AccountRegion {
      */
     locationName: string;
 }
+export enum AccountServiceRights {
+    StandardLicense = 0,
+    AdvancedLicense = 1,
+    ProfessionalLicense = 2,
+    None = 3,
+}
 export enum AccountStatus {
     None = 0,
     /**
@@ -3071,6 +3019,36 @@ export enum AccountStatus {
 export enum AccountType {
     Personal = 0,
     Organization = 1,
+}
+export interface AccountUser {
+    /**
+     * Identifier for an Account
+     */
+    accountId: string;
+    /**
+     * Date account was created
+     */
+    creationDate: Date;
+    /**
+     * Date account was last updated
+     */
+    lastUpdated: Date;
+    /**
+     * What is the license for this user MSDN, VSPro, etc.
+     */
+    licenseSource: AccountLicenseSource;
+    /**
+     * What are the users service rights
+     */
+    serviceRights: AccountServiceRights;
+    /**
+     * The user identity to be associated with the account
+     */
+    userId: string;
+    /**
+     * Current account status
+     */
+    userStatus: AccountUserStatus;
 }
 export enum AccountUserStatus {
     None = 0,
@@ -3101,6 +3079,37 @@ export enum AccountUserStatus {
 }
 export var TypeInfo: {
     Account: any;
+    AccountLicenseSource: {
+        enumValues: {
+            "none": number;
+            "vsExpress": number;
+            "vsPro": number;
+            "vsTestPro": number;
+            "vsPremium": number;
+            "vsUltimate": number;
+            "mSDN": number;
+            "msdnPro": number;
+            "msdnTestPro": number;
+            "msdnPremium": number;
+            "msdnUltimate": number;
+            "msdnPlatforms": number;
+            "vSOStandard": number;
+            "vSOAdvanced": number;
+            "vSOProStandard": number;
+            "win8": number;
+            "desktop": number;
+            "phone": number;
+            "vsEarlyAdopter": number;
+        };
+    };
+    AccountServiceRights: {
+        enumValues: {
+            "standardLicense": number;
+            "advancedLicense": number;
+            "professionalLicense": number;
+            "none": number;
+        };
+    };
     AccountStatus: {
         enumValues: {
             "none": number;
@@ -3116,6 +3125,7 @@ export var TypeInfo: {
             "organization": number;
         };
     };
+    AccountUser: any;
     AccountUserStatus: {
         enumValues: {
             "none": number;
@@ -3521,6 +3531,13 @@ export class ClientLinking extends Service.VssService {
 }
 }
 declare module "VSS/Authentication/Contracts" {
+export interface CustomerIntelligenceEvent {
+    area: string;
+    feature: string;
+    properties: {
+        [key: string]: any;
+    };
+}
 export enum DelegatedAppTokenType {
     Session = 0,
     App = 1,
@@ -3731,10 +3748,6 @@ export function getAuthTokenManager(namedTokenId?: string): IAuthTokenManager<an
 declare module "VSS/Bundling" {
 import Q = require("q");
 import VSS = require("VSS/VSS");
-export module DiagnoseUtils {
-    function isDiagnosing(): boolean;
-    function markUrlForDiagnose(url: string): string;
-}
 /**
  * Gets the content length (in bytes) of all Javascript bundles included on the page
  */
@@ -3911,6 +3924,19 @@ export interface ConnectedServerAuthorization {
     publicKey: string;
 }
 /**
+ * Represents the public key portion of an RSA asymmetric key.
+ */
+export interface ConnectedServerPublicKey {
+    /**
+     * Gets or sets the exponent for the public key.
+     */
+    exponent: number[];
+    /**
+     * Gets or sets the modulus for the public key.
+     */
+    modulus: number[];
+}
+/**
  * Encapsulates the state of offer meter definitions and purchases
  */
 export interface ICommercePackage {
@@ -4001,9 +4027,6 @@ export interface IOfferSubscription {
      */
     trialExpiryDate: Date;
 }
-/**
- * The subscription account. Add Sub Type and Owner email later.
- */
 export interface ISubscriptionAccount {
     /**
      * Gets or sets the account host type.
@@ -4045,14 +4068,6 @@ export interface ISubscriptionAccount {
      * get or set IsPricingPricingAvailable
      */
     isPricingAvailable: boolean;
-    /**
-     * Gets or sets the subscription locale
-     */
-    locale: string;
-    /**
-     * Gets or sets the subscription address country display name
-     */
-    regionDisplayName: string;
     /**
      * Gets or sets the resource group.
      */
@@ -4462,8 +4477,6 @@ export enum PurchaseErrorReason {
     InvalidOfferCode = 2,
     NotAdminOrCoAdmin = 3,
     InvalidRegionPurchase = 4,
-    PaymentInstrumentNotCreditCard = 5,
-    InvalidOfferRegion = 6,
 }
 export enum ResourceBillingMode {
     Committment = 0,
@@ -4691,8 +4704,6 @@ export var TypeInfo: {
             "invalidOfferCode": number;
             "notAdminOrCoAdmin": number;
             "invalidRegionPurchase": number;
-            "paymentInstrumentNotCreditCard": number;
-            "invalidOfferRegion": number;
         };
     };
     ResourceBillingMode: {
@@ -5054,7 +5065,7 @@ export class CommerceHttpClient2_1 extends CommonMethods2To3_1 {
 export class CommerceHttpClient2 extends CommonMethods2To3_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class CommerceHttpClient extends CommerceHttpClient3_1 {
+export class CommerceHttpClient extends CommerceHttpClient3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -5093,26 +5104,6 @@ export module DataProviderConstants {
     */
     var ContributionDataTypeProperty: string;
 }
-export module HtmlProviderConstants {
-    /**
-    * The full contribution type id for html providers
-    */
-    var ContributionType: string;
-    /**
-    * The contribution property name for the registered name of the html provider
-    */
-    var ContributionNameProperty: string;
-}
-export module PropertyProviderConstants {
-    /**
-    * The full contribution type id for property providers
-    */
-    var ContributionType: string;
-    /**
-    * The contribution property name for the registered name of the property provider
-    */
-    var ContributionNameProperty: string;
-}
 /**
 * Constants used to report customer intelligence area data
 */
@@ -5129,8 +5120,6 @@ export module WebPlatformFeatureFlags {
     var VisualStudioServicesContributionUnSecureBrowsers: string;
     var ClientSideErrorLogging: string;
     var UseGalleryCdn: string;
-    var XHRHubSwitching: string;
-    var QueryContributionNodes: string;
 }
 }
 declare module "VSS/Common/Contracts/FormInput" {
@@ -5409,7 +5398,6 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/Common/Contracts/Platform" {
-import VSS_Contributions_Contracts = require("VSS/Contributions/Contracts");
 /**
 * Model to represent a public access uri
 */
@@ -5659,14 +5647,6 @@ export interface ContributionPath {
 export enum ContributionPathType {
     Default = 0,
     Resource = 1,
-    ThirdParty = 2,
-}
-export interface ContributionsPageData {
-    contributions: VSS_Contributions_Contracts.Contribution[];
-    providerDetails: {
-        [key: string]: VSS_Contributions_Contracts.ContributionProviderDetails;
-    };
-    queriedContributionIds: string[];
 }
 /**
 * Contains lists of script and css references that need to be included on the page in order for the controls used by the page to work.
@@ -5719,11 +5699,6 @@ export interface DiagnosticsContext {
     cdnEnabled: boolean;
     clientLogLevel: number;
     debugMode: boolean;
-    /**
-    * Whether or not to diagnose the bundles.
-    */
-    diagnoseBundles: boolean;
-    inExtensionFallbackMode: boolean;
     isDevFabric: boolean;
     sessionId: string;
     tracePointCollectionEnabled: boolean;
@@ -5797,7 +5772,6 @@ export interface Hub {
     isSelected: boolean;
     name: string;
     order: any;
-    supportsXHRNavigate: boolean;
     uri: string;
 }
 /**
@@ -6044,17 +6018,6 @@ export interface PageContext {
     */
     webContext: WebContext;
 }
-export interface PageXHRData {
-    bundles: DynamicBundlesCollection;
-    contributionsData: ContributionsPageData;
-    dataProviderData: VSS_Contributions_Contracts.DataProviderResult;
-    featureAvailability: FeatureAvailabilityContext;
-    navigation: NavigationContext;
-    performanceTimings: {
-        [key: string]: any;
-    };
-    serviceLocations: ServiceLocations;
-}
 export interface PinningPreferences {
     pinnedHubGroupIds: string[];
     pinnedHubs: {
@@ -6209,6 +6172,27 @@ export interface WebPageDataProviderPageSource {
     url: string;
 }
 export var TypeInfo: {
+    AccessPointModel: {
+        fields: any;
+    };
+    ActiveExtensionsData: {
+        fields: any;
+    };
+    AppInsightsConfiguration: {
+        fields: any;
+    };
+    AppInsightsCustomTrackPageData: {
+        fields: any;
+    };
+    ConfigurationContext: {
+        fields: any;
+    };
+    ConfigurationContextApis: {
+        fields: any;
+    };
+    ConfigurationContextPaths: {
+        fields: any;
+    };
     ContextHostType: {
         enumValues: {
             "unknown": number;
@@ -6216,6 +6200,24 @@ export var TypeInfo: {
             "application": number;
             "projectCollection": number;
         };
+    };
+    ContextIdentifier: {
+        fields: any;
+    };
+    ContributedHub: {
+        fields: any;
+    };
+    ContributedHubGroup: {
+        fields: any;
+    };
+    ContributedHubGroupCollection: {
+        fields: any;
+    };
+    ContributedNavElement: {
+        fields: any;
+    };
+    ContributedPage: {
+        fields: any;
     };
     ContributedServiceContext: {
         fields: any;
@@ -6227,16 +6229,66 @@ export var TypeInfo: {
         enumValues: {
             "default": number;
             "resource": number;
-            "thirdParty": number;
         };
     };
+    CoreReferencesContext: {
+        fields: any;
+    };
     DaylightSavingsAdjustmentEntry: {
+        fields: any;
+    };
+    DiagnosticsContext: {
+        fields: any;
+    };
+    DynamicBundlesCollection: {
+        fields: any;
+    };
+    DynamicCSSBundle: {
+        fields: any;
+    };
+    DynamicScriptBundle: {
         fields: any;
     };
     ExtendedHostContext: {
         fields: any;
     };
+    FeatureAvailabilityContext: {
+        fields: any;
+    };
+    GlobalizationContext: {
+        fields: any;
+    };
+    HeaderModel: {
+        fields: any;
+    };
+    HostContext: {
+        fields: any;
+    };
+    Hub: {
+        fields: any;
+    };
+    HubGroup: {
+        fields: any;
+    };
+    HubsContext: {
+        fields: any;
+    };
+    IdentityModel: {
+        fields: any;
+    };
+    JavascriptFileReference: {
+        fields: any;
+    };
+    JsonArrayWrapper: {
+        fields: any;
+    };
+    MicrosoftAjaxConfig: {
+        fields: any;
+    };
     ModuleLoaderConfiguration: {
+        fields: any;
+    };
+    ModuleLoaderShimConfiguration: {
         fields: any;
     };
     NavigationContext: {
@@ -6257,13 +6309,31 @@ export var TypeInfo: {
     PageContext: {
         fields: any;
     };
-    PageXHRData: {
+    PinningPreferences: {
         fields: any;
     };
     ServiceLocations: {
         fields: any;
     };
+    StylesheetReference: {
+        fields: any;
+    };
+    TeamContext: {
+        fields: any;
+    };
+    TeamFoundationServiceHostModel: {
+        fields: any;
+    };
+    TfsMailSettings: {
+        fields: any;
+    };
+    TfsServiceHostDescriptor: {
+        fields: any;
+    };
     TimeZonesConfiguration: {
+        fields: any;
+    };
+    UserContext: {
         fields: any;
     };
     WebContext: {
@@ -6568,18 +6638,6 @@ export function isHighContrastMode(): boolean;
 * @param context The contributed service context to evaluate
 */
 export function processContributedServiceContext(context: Contracts_Platform.ContributedServiceContext): IPromise<any>;
-/**
- * Add feature availability data to the current page context
- *
- * @param featureAvailability Feature availability data to merge-in to the current page context's feature data
- */
-export function addFeatureAvailability(featureAvailability: Contracts_Platform.FeatureAvailabilityContext): void;
-/**
- * Add to the current page context's list of cached service locations
- *
- * @param serviceLocations Service location data to merge into to the current page context's data
- */
-export function addServiceLocations(serviceLocations: Contracts_Platform.ServiceLocations): void;
 }
 declare module "VSS/Contributions/Contracts" {
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
@@ -6766,40 +6824,6 @@ export enum ContributionLicensingBehaviorType {
     AlwaysInclude = 2,
 }
 /**
- * A query that can be issued for contribution nodes
- */
-export interface ContributionNodeQuery {
-    /**
-     * The contribution ids of the nodes to find.
-     */
-    contributionIds: string[];
-    /**
-     * Indicator if contribution provider details should be included in the result.
-     */
-    includeProviderDetails: boolean;
-    /**
-     * Query options tpo be used when fetching ContributionNodes
-     */
-    queryOptions: ContributionQueryOptions;
-}
-/**
- * Result of a contribution node query.  Wraps the resulting contribution nodes and provider details.
- */
-export interface ContributionNodeQueryResult {
-    /**
-     * Map of contribution ids to corresponding node.
-     */
-    nodes: {
-        [key: string]: SerializedContributionNode;
-    };
-    /**
-     * Map of provder ids to the corresponding provider details object.
-     */
-    providerDetails: {
-        [key: string]: ContributionProviderDetails;
-    };
-}
-/**
  * Description about a property of a contribution type
  */
 export interface ContributionPropertyDescription {
@@ -6865,45 +6889,6 @@ export enum ContributionPropertyType {
      * Value is an arbitrary/custom object
      */
     Object = 512,
-}
-export interface ContributionProviderDetails {
-    /**
-     * Friendly name for the provider.
-     */
-    displayName: string;
-    /**
-     * Unique identifier for this provider. The provider name can be used to cache the contribution data and refer back to it when looking for changes
-     */
-    name: string;
-    /**
-     * Properties associated with the provider
-     */
-    properties: {
-        [key: string]: string;
-    };
-}
-export enum ContributionQueryOptions {
-    None = 0,
-    /**
-     * Include the direct contributions that have the ids queried.
-     */
-    IncludeSelf = 16,
-    /**
-     * Include the contributions that directly target the contributions queried.
-     */
-    IncludeChildren = 32,
-    /**
-     * Include the contributions from the entire sub-tree targetting the contributions queried.
-     */
-    IncludeSubTree = 96,
-    /**
-     * Include the contribution being queried as well as all contributions that target them recursively.
-     */
-    IncludeAll = 112,
-    /**
-     * Some callers may want the entire tree back without constraint evaluation being performed.
-     */
-    IgnoreConstraints = 256,
 }
 /**
  * A contribution type, given by a json schema
@@ -7458,23 +7443,6 @@ export interface Scope {
     value: string;
 }
 /**
- * Representaion of a ContributionNode that can be used for serialized to clients.
- */
-export interface SerializedContributionNode {
-    /**
-     * List of ids for contributions which are children to the current contribution.
-     */
-    children: string[];
-    /**
-     * Contribution associated with this node.
-     */
-    contribution: Contribution;
-    /**
-     * List of ids for contributions which are parents to the current contribution.
-     */
-    parents: string[];
-}
-/**
  * Information about the extension
  */
 export interface SupportedExtension {
@@ -7525,7 +7493,6 @@ export var TypeInfo: {
             "alwaysInclude": number;
         };
     };
-    ContributionNodeQuery: any;
     ContributionPropertyDescription: any;
     ContributionPropertyType: {
         enumValues: {
@@ -7540,16 +7507,6 @@ export var TypeInfo: {
             "dictionary": number;
             "array": number;
             "object": number;
-        };
-    };
-    ContributionQueryOptions: {
-        enumValues: {
-            "none": number;
-            "includeSelf": number;
-            "includeChildren": number;
-            "includeSubTree": number;
-            "includeAll": number;
-            "ignoreConstraints": number;
         };
     };
     ContributionType: any;
@@ -7784,13 +7741,6 @@ export class CommonMethods2_2To3_1 extends CommonMethods2_1To3_1 {
  */
 export class ContributionsHttpClient3_1 extends CommonMethods2_2To3_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API] Query for contribution nodes and provider details according the parameters in the passed in query object.
-     *
-     * @param {Contracts.ContributionNodeQuery} query
-     * @return IPromise<Contracts.ContributionNodeQueryResult>
-     */
-    queryContributionNodes(query: Contracts.ContributionNodeQuery): IPromise<Contracts.ContributionNodeQueryResult>;
 }
 /**
  * @exemptedapi
@@ -7833,7 +7783,6 @@ export class ContributionsHttpClient extends ContributionsHttpClient3_1 {
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ContributionsHttpClient3;
 }
 declare module "VSS/Contributions/Services" {
-import Contracts_Platform = require("VSS/Common/Contracts/Platform");
 import Contributions_Contracts = require("VSS/Contributions/Contracts");
 import Serialization = require("VSS/Serialization");
 import Service = require("VSS/Service");
@@ -7848,17 +7797,6 @@ export module ContributionReservedProperties {
     var AttributesProperty: string;
     var BaseUriProperty: string;
     var FallbackBaseUriProperty: string;
-    var VersionProperty: string;
-    var RegistrationIdProperty: string;
-}
-export enum ContributionReservedAttributeValue {
-    BuiltIn = 1,
-    MultiVersion = 2,
-    Paid = 4,
-    Preview = 8,
-    Public = 16,
-    System = 32,
-    Trusted = 64,
 }
 /**
 * Information about an individual contribution that contributes one or more services registered by id.
@@ -7904,21 +7842,17 @@ export enum ContributionQueryCallbackResult {
  */
 export class ExtensionService extends Service.VssService {
     private static _testExecutionFeatureFlag;
+    private _extensions;
     private _webPageDataService;
     private _contributionsById;
     private _contributionsByTargetId;
     private _targetsByUnresolvedContributionId;
     private _loadedContributionTargets;
     private _contributionQueryPromises;
-    private _contributionProviderDetailsMap;
     /**
      * Private constructor - do not call.
      */
     constructor();
-    /**
-     * Clear out the cached contribution hierarchy
-     */
-    private _clearCachedContributionData();
     /**
      * Ensures the page's Json Island has been processed if web context is the default
      * Should be called by the Service factory.
@@ -7926,10 +7860,10 @@ export class ExtensionService extends Service.VssService {
      */
     initializeConnection(connection: Service.VssConnection): void;
     /**
-     * Register contributions
+     * Register an extension
      * @param extension Contributions_Contracts.InstalledExtension The extension to register.
      */
-    registerContributions(contributions: Contributions_Contracts.Contribution[]): void;
+    registerExtension(extension: Contributions_Contracts.InstalledExtension): void;
     /**
      * Get the contribution with the given id.
      *
@@ -7965,6 +7899,13 @@ export class ExtensionService extends Service.VssService {
      */
     getContributions(ids: string[], includeRootItems: boolean, includeChildren: boolean, recursive?: boolean, contributionType?: string): IPromise<Contributions_Contracts.Contribution[]>;
     /**
+     * Contribution come from extensions and when the caller needs properties about the
+     * extension the contribution came from, this method can be used to retrieve it.
+
+     * @param contribution
+     */
+    getExtensionForContribution(contribution: Contributions_Contracts.Contribution): Contributions_Contracts.InstalledExtension;
+    /**
      * Gets contributions for the given contribution ids.
      *
      * @param ids Ids of the targeted contribution(s)
@@ -7979,68 +7920,27 @@ export class ExtensionService extends Service.VssService {
     * @param extensionId The extension id (e.g. 'ms.vss-testmanager-web') to check
     */
     isExtensionActive(extensionId: string): IPromise<boolean>;
-    private _getProviderIdentifier(contribution);
-    private _getProviderDetails(contribution);
-    /**
-     * Get the version this contribution.
-     *
-     * @param contribution The contribution whose version is being requested
-     */
-    getProviderDisplayName(contribution: Contributions_Contracts.Contribution): string;
-    /**
-     * Get the version this contribution.
-     *
-     * @param contribution The contribution whose version is being requested
-     */
-    getVersion(contribution: Contributions_Contracts.Contribution): string;
-    /**
-     * Get the registrationId this contribution.
-     *
-     * @param contribution The contribution whose registration is being requested
-     */
-    getRegistrationId(contribution: Contributions_Contracts.Contribution): string;
-    /**
-     * Get the baseUri this contribution.
-     *
-     * @param contribution The contribution whose baseUri is being requested
-     */
-    getBaseUri(contribution: Contributions_Contracts.Contribution): string;
-    /**
-     * Get the fallbackUri this contribution.
-     *
-     * @param contribution The contribution whose fallbackUri is being requested
-     */
-    getFallbackUri(contribution: Contributions_Contracts.Contribution): string;
-    /**
-     * Get the ServiceInstanceTypeProperty for this contribution.
-     *
-     * @param contribution The contribution whose fallbackUri is being requested
-     */
-    getServiceInstanceType(contribution: Contributions_Contracts.Contribution): string;
     private _resolveContributions(contributions);
     private _getUnqueriedContributions(ids);
     private _getPendingLoadPromises(ids);
     private _getLoadedContributions(ids, queryOptions, contributionType, queryCallback?);
     private _fetchTargetingContributions(contributionId, results, includedContributionIds, queryCallback, contributionType);
     /**
+     * Mark the given contribution ids as already queried-for so that additional gets
+     * for these contributions don't issue a REST call.
+     */
+    private _registerLoadedContributionTargets(contributions);
+    /**
      * Parse the extensions in the JSON island given by the selector
      * @param selector Selector to match a script tag containing JSON
      */
     private _processJsonIsland();
-    /**
-     * Register the given contributions with this service instance, avoiding an AJAX call for the specified contributions
-     *
-     * @param contributionData The contribution data to register
-     * @param clearExisting If true, clear any existing contribution hierarchy. If false, add to it.
-     */
-    registerContributionData(contributionData: Contracts_Platform.ContributionsPageData, clearExisting?: boolean): void;
     /**
      * Register a target for the contribution
      * @param contribution
      * @param targetId
      */
     private _registerContributionTarget(contribution, targetId);
-    private _registerContributionProviderDetails(providerDetails);
     /**
      * Get contributions of the specified type that have already been loaded and cached by this service.
      * This avoids a REST call to query contributions - only looking at contributions seeded on the page
@@ -8092,13 +7992,6 @@ export class WebPageDataService extends Service.VssService {
     private _contributionPromises;
     private _contributionIdsByDataType;
     private _ensureInitialized();
-    /**
-     * Register the given data provider data with this instance of the contribution service
-     *
-     * @param result Data provider result to merge-in
-     * @param contributions Contributions to leverage when resolving provider data
-     */
-    registerProviderData(result: Contributions_Contracts.DataProviderResult, contributions: Contributions_Contracts.Contribution[]): IPromise<any>;
     private _handleDataProviderResult(result, contributions, source);
     private _storeDataProviderData(contributionId, originalResult, pluginResult, caching);
     private _getLocalStorageCacheScope(caching);
@@ -9998,10 +9891,6 @@ export interface IMessageDialogResult {
 export interface IMessageDialogOptions extends IDialogOptions {
     buttons?: IMessageDialogButton[] | any;
     escapeButton?: IMessageDialogButton;
-    /**
-    * If set to true, no button is highlighted as the default button. Otherwise, the first button is the default.
-    */
-    noDefaultButton?: boolean;
     requiredTypedConfirmation?: string;
     /**
     * Optional delegate that can be called when a dialog button is clicked. This can be used to get a value from UI in the dialog before it is removed from the DOM.
@@ -10390,22 +10279,8 @@ export class EditableGrid extends Grids.GridO<any> {
 declare module "VSS/Controls/ExternalHub" {
 import Controls = require("VSS/Controls");
 export class ExternalHub extends Controls.BaseControl {
-    private static INITIAL_PROGRESS_LOAD_DELAY;
-    private static HUB_SWITCH_LOAD_DELAY;
-    private static POP_STATE_HANDLER_ID;
-    private _navigationIndex;
-    private _hubsService;
+    private static PROGRESS_LOAD_DELAY;
     initialize(): void;
-    /**
-     * Navigate the page to the specified hub
-     *
-     * @param hubId Id of the hub to navigate to
-     * @param url (Optional) Specific url to navigate to. The hub's default url if not specified.
-     * @returns true if the navigation was handled.
-     */
-    private navigateToNewHub(hubId, url?);
-    private finishNavigateToNewHub(hub, url, navigateId);
-    private showProgress(navigateId, delay, loadHostAction);
     private createHost(contribution);
     private beginGetHubContentUri(contribution, baseUri?);
 }
@@ -12298,6 +12173,59 @@ export class HistogramO<TOptions extends IHistogramOptions> extends Controls.Con
 export class Histogram extends HistogramO<IHistogramOptions> {
 }
 }
+declare module "VSS/Controls/Hubs" {
+import Controls = require("VSS/Controls");
+/**
+* Info for the hubs and hub groups applicable for a given context
+*/
+export interface HubsContext {
+    HubGroupsCollectionContributionId: string;
+    selectedHubGroupId: string;
+    hubGroups: HubGroup[];
+    hubs: Hub[];
+    /**
+     * List of ids of hubgroups that have been pinned.
+     */
+    pinnedHubGroupIds: string[];
+}
+/**
+* Represents a hub group - the first level of navigation
+*/
+export interface HubGroup {
+    id: string;
+    name: string;
+    uri: string;
+    order: number;
+    hasHubs: boolean;
+}
+/**
+* Represents a hub - the second level of navigation
+*/
+export interface Hub {
+    id: string;
+    name: string;
+    groupId: string;
+    uri: string;
+    order: number;
+    isSelected: boolean;
+}
+/**
+* Obsolete
+*/
+export module HubsContextManager {
+    function getHubsContext(): HubsContext;
+    function getDefaultHubNavigationView(): HubNavigationView;
+    function addHub(hub: Hub): void;
+    function addHubGroup(hubGroup: HubGroup): void;
+    function getSelectedHub(): IPromise<Hub>;
+}
+/** Obsolete **/
+export class HubNavigationView extends Controls.BaseControl {
+    static MAIN_NAVIGATION_HUB_SELECTOR: string;
+    initialize(): void;
+    updateHubGroupLink(groupId: string, newUrl: string, clickHandler?: (eventObject: JQueryEventObject) => any): void;
+}
+}
 declare module "VSS/Controls/KeyboardShortcuts" {
 /**
  * Constants for well known shortcut keys.
@@ -12739,14 +12667,6 @@ export class MenuItem extends MenuBase<MenuItemOptions> {
     private _$menuItemElement;
     private _closeSubmenuOnMouseLeave;
     /**
-     * ID of pointer event that was handled by the pointer down event.
-     */
-    private _handledPointerId;
-    /**
-     * Ignore all clicks until after this time.
-     */
-    private _blockClickUntil;
-    /**
      * Stop propagation of the next mouse leave event.
      * Useful only when _closeSubmenuOnMouseLeave is
      * set. Use this when we close a menu from under
@@ -12876,8 +12796,6 @@ export class MenuItem extends MenuBase<MenuItemOptions> {
      * @param items
      */
     protected _updateContributedMenuItems(updatedItems: IMenuItemSpec[]): void;
-    private _onPointerDown(jqueryEvent?);
-    private _onPointerUp(jqueryEvent?);
     private _onTouchStart(e?);
     private _onMouseEnter(e);
     private _onMouseLeave(e);
@@ -12943,11 +12861,6 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
     /** True if mouse down event has been received on this menu, and mouse up event has not been received. Only tracked for Edge. */
     private _mouseIsDown;
     private _shouldSelectFirstItem;
-    private _shownTime;
-    /**
-     * Time the Menu was last displayed.
-     */
-    readonly shownTime: number;
     protected _contributedItems: IContributedMenuItem[];
     protected _contributionProviderOptions: MenuContributionProviderOptions;
     protected _contributionPromise: IPromise<IContributedMenuItem[]>;
@@ -13170,14 +13083,6 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
     private _onMouseDown(e);
     private _onMenuKeyDown(e);
     private _blockBlurUntilTimeout();
-    /**
-     * Change the contribution options for this menu and reload the contributed menu items
-     *
-     * @param contributionIds The contribution ids to query for this menu
-     * @param contributionType Optional type of contributions to include
-     * @param contributionQueryOptions Optional contribution query options
-     */
-    setContributedItemOptions(contributionIds: string[], contributionType?: string, contributionQueryOptions?: Contributions_Services.ContributionQueryOptions): void;
     /**
      * Load contributed menu items.
      */
@@ -13685,7 +13590,6 @@ export class PivotView extends Controls.Control<IPivotViewOptions> {
     setExtensionContainer(container: JQuery): void;
     showExtensionTab(contributionId: string, configuration?: any): void;
     setContributionContext(context: any): void;
-    private _getTabFromContribution(contribution, instance?);
     /**
      * If there is a contribution ID associated with this PivotView, load all the contributed pivot items.
      * use forceRefresh for for refreshing contributions, by default this ensures we get contributions only once
@@ -16820,6 +16724,12 @@ export enum TokenError {
     FailedToIssueAccessToken = 26,
     AuthorizationGrantScopeMissing = 27,
 }
+export interface TokenPairResult {
+    accessToken: string;
+    hasError: boolean;
+    refreshToken: string;
+    tokenError: TokenError;
+}
 export var TypeInfo: {
     AccessTokenResult: any;
     Authorization: any;
@@ -18535,7 +18445,7 @@ declare module "VSS/ExtensionManagement/RestClient" {
 import Contracts = require("VSS/Contributions/Contracts");
 import VSS_Gallery_Contracts = require("VSS/Gallery/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected installedExtensionsApiVersion: string;
     protected requestedExtensionsApiVersion: string;
@@ -18612,7 +18522,7 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      */
     getInstalledExtensions(includeDisabledExtensions?: boolean, includeErrors?: boolean, assetTypes?: string[], includeInstallationIssues?: boolean): IPromise<Contracts.InstalledExtension[]>;
 }
-export class CommonMethods2_1To3_1 extends CommonMethods2To3_1 {
+export class CommonMethods2_1To3 extends CommonMethods2To3 {
     protected dataApiVersion: string;
     protected extensionStatesApiVersion: string;
     protected installedExtensionQueryApiVersion: string;
@@ -18734,7 +18644,7 @@ export class CommonMethods2_1To3_1 extends CommonMethods2To3_1 {
      */
     createDocumentByName(doc: any, publisherName: string, extensionName: string, scopeType: string, scopeValue: string, collectionName: string): IPromise<any>;
 }
-export class CommonMethods2_2To3_1 extends CommonMethods2_1To3_1 {
+export class CommonMethods2_2To3 extends CommonMethods2_1To3 {
     protected extensionDataCollectionQueryApiVersion: string;
     protected policiesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -18755,20 +18665,20 @@ export class CommonMethods2_2To3_1 extends CommonMethods2_1To3_1 {
      */
     queryCollectionsByName(collectionQuery: Contracts.ExtensionDataCollectionQuery, publisherName: string, extensionName: string): IPromise<Contracts.ExtensionDataCollection[]>;
 }
-export class CommonMethods3To3_1 extends CommonMethods2_2To3_1 {
-    protected acquisitionOptionsApiVersion: string;
-    protected acquisitionRequestsApiVersion: string;
-    protected authorizationsApiVersion: string;
+/**
+ * @exemptedapi
+ */
+export class ExtensionManagementHttpClient3 extends CommonMethods2_2To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
      *
-     * @param {string} publisherName
-     * @param {string} extensionName
-     * @param {string} registrationId
-     * @return IPromise<Contracts.ExtensionAuthorization>
+     * @param {string} itemId
+     * @param {boolean} testCommerce
+     * @param {boolean} isFreeOrTrialInstall
+     * @return IPromise<Contracts.AcquisitionOptions>
      */
-    registerAuthorization(publisherName: string, extensionName: string, registrationId: string): IPromise<Contracts.ExtensionAuthorization>;
+    getAcquisitionOptions(itemId: string, testCommerce?: boolean, isFreeOrTrialInstall?: boolean): IPromise<Contracts.AcquisitionOptions>;
     /**
      * [Preview API]
      *
@@ -18779,50 +18689,38 @@ export class CommonMethods3To3_1 extends CommonMethods2_2To3_1 {
     /**
      * [Preview API]
      *
-     * @param {string} itemId
-     * @param {boolean} testCommerce
-     * @param {boolean} isFreeOrTrialInstall
-     * @return IPromise<Contracts.AcquisitionOptions>
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} registrationId
+     * @return IPromise<Contracts.ExtensionAuthorization>
      */
-    getAcquisitionOptions(itemId: string, testCommerce?: boolean, isFreeOrTrialInstall?: boolean): IPromise<Contracts.AcquisitionOptions>;
+    registerAuthorization(publisherName: string, extensionName: string, registrationId: string): IPromise<Contracts.ExtensionAuthorization>;
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient3_1 extends CommonMethods3To3_1 {
+export class ExtensionManagementHttpClient2_3 extends CommonMethods2_2To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient3 extends CommonMethods3To3_1 {
+export class ExtensionManagementHttpClient2_2 extends CommonMethods2_2To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient2_3 extends CommonMethods2_2To3_1 {
+export class ExtensionManagementHttpClient2_1 extends CommonMethods2_1To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient2_2 extends CommonMethods2_2To3_1 {
+export class ExtensionManagementHttpClient2 extends CommonMethods2To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-/**
- * @exemptedapi
- */
-export class ExtensionManagementHttpClient2_1 extends CommonMethods2_1To3_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-}
-/**
- * @exemptedapi
- */
-export class ExtensionManagementHttpClient2 extends CommonMethods2To3_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-}
-export class ExtensionManagementHttpClient extends ExtensionManagementHttpClient3_1 {
+export class ExtensionManagementHttpClient extends ExtensionManagementHttpClient3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -21467,6 +21365,10 @@ export interface ChangedIdentitiesContext {
      */
     identitySequenceId: number;
 }
+export interface CreateGroupsInfo {
+    groups: Identity[];
+    scopeId: string;
+}
 export interface CreateScopeInfo {
     adminGroupDescription: string;
     adminGroupName: string;
@@ -21551,6 +21453,40 @@ export interface IdentityScope {
     scopeType: GroupScopeType;
     securingHostId: string;
 }
+export enum IdentitySearchFilter {
+    /**
+     * NT account name (domain\alias)
+     */
+    AccountName = 0,
+    /**
+     * Display name
+     */
+    DisplayName = 1,
+    /**
+     * Find project admin group
+     */
+    AdministratorsGroup = 2,
+    /**
+     * Find the identity using the identifier
+     */
+    Identifier = 3,
+    /**
+     * Email address
+     */
+    MailAddress = 4,
+    /**
+     * A general search for an identity.
+     */
+    General = 5,
+    /**
+     * Alternate login username
+     */
+    Alias = 6,
+    /**
+     * Find identity using Domain/TenantId
+     */
+    Domain = 7,
+}
 export interface IdentitySelf {
     accountName: string;
     displayName: string;
@@ -21568,6 +21504,13 @@ export interface IdentityUpdateData {
     id: string;
     index: number;
     updated: boolean;
+}
+export interface JsonPatchOperationData<T> {
+    op: string;
+    path: string;
+    value: T;
+}
+export interface MruIdentitiesUpdateData extends JsonPatchOperationData<string[]> {
 }
 export enum QueryMembership {
     /**
@@ -21595,6 +21538,18 @@ export enum ReadIdentitiesOptions {
     None = 0,
     FilterIllegalMemberships = 1,
 }
+export interface ReadOnlyIdentityDescriptor extends IdentityDescriptor {
+    identifier: string;
+    identityType: string;
+}
+export enum SpecialGroupType {
+    Generic = 0,
+    AdministrativeApplicationGroup = 1,
+    ServiceApplicationGroup = 2,
+    EveryoneApplicationGroup = 3,
+    LicenseesApplicationGroup = 4,
+    AzureActiveDirectoryApplicationGroup = 5,
+}
 export interface TenantInfo {
     homeTenant: boolean;
     tenantId: string;
@@ -21620,6 +21575,18 @@ export var TypeInfo: {
     };
     IdentityBatchInfo: any;
     IdentityScope: any;
+    IdentitySearchFilter: {
+        enumValues: {
+            "accountName": number;
+            "displayName": number;
+            "administratorsGroup": number;
+            "identifier": number;
+            "mailAddress": number;
+            "general": number;
+            "alias": number;
+            "domain": number;
+        };
+    };
     IdentitySnapshot: any;
     QueryMembership: {
         enumValues: {
@@ -21634,6 +21601,16 @@ export var TypeInfo: {
         enumValues: {
             "none": number;
             "filterIllegalMemberships": number;
+        };
+    };
+    SpecialGroupType: {
+        enumValues: {
+            "generic": number;
+            "administrativeApplicationGroup": number;
+            "serviceApplicationGroup": number;
+            "everyoneApplicationGroup": number;
+            "licenseesApplicationGroup": number;
+            "azureActiveDirectoryApplicationGroup": number;
         };
     };
 };
@@ -23555,6 +23532,16 @@ export interface MsdnEntitlement {
      */
     subscriptionStatus: string;
 }
+export enum MsdnLicenseType {
+    None = 0,
+    Eligible = 1,
+    Professional = 2,
+    Platforms = 3,
+    TestProfessional = 4,
+    Premium = 5,
+    Ultimate = 6,
+    Enterprise = 7,
+}
 export enum OperationResult {
     Success = 0,
     Warning = 1,
@@ -23630,6 +23617,18 @@ export var TypeInfo: {
         };
     };
     MsdnEntitlement: any;
+    MsdnLicenseType: {
+        enumValues: {
+            "none": number;
+            "eligible": number;
+            "professional": number;
+            "platforms": number;
+            "testProfessional": number;
+            "premium": number;
+            "ultimate": number;
+            "enterprise": number;
+        };
+    };
     OperationResult: {
         enumValues: {
             "success": number;
@@ -24304,178 +24303,6 @@ export class HubsProvider implements IHubsProvider {
     reloadCachedProviderData(cachedDataProviderContributionId: string): void;
 }
 }
-declare module "VSS/Navigation/HubsService" {
-import Contracts_Platform = require("VSS/Common/Contracts/Platform");
-import PlatformContracts = require("VSS/Common/Contracts/Platform");
-import Service = require("VSS/Service");
-/**
- * Hub-related event names
- */
-export module HubEventNames {
-    /**
-     * Event fired before the AJAX call is made to get data for the hub being navigated to
-     */
-    const PreXHRNavigate: string;
-    /**
-     * Event fired after the XHR request of a navigation has completed, allowing services to update their context.
-     */
-    const ProcessXHRNavigate: string;
-    /**
-     * Event fired after an XHR navigation has completed. UI can update itself with the new hub's UI on this event
-     */
-    const PostXHRNavigate: string;
-    /**
-     * Event fired when the selected hub has changed. The navigation-related UI should update itself when this event is fired
-     */
-    const SelectedHubChanged: string;
-}
-/**
-* Argument data passed to hub events
-*/
-export interface IHubEventArgs {
-    /**
-    * The id of the hub that the event corresponds to
-    */
-    hubId?: string;
-    /**
-    * The hub that the event corresponds to
-    */
-    hub?: Hub;
-    /**
-    * The page json data from
-    */
-    pageXHRData?: PlatformContracts.PageXHRData;
-}
-/**
- * Service for managing the hubs on the current page
- */
-export class HubsService implements Service.ILocalService {
-    private static LOCAL_STORAGE_KEY;
-    private _hubsContext;
-    private _pinningPreferences;
-    constructor();
-    /**
-     * Get the id of the selected hub group
-     */
-    getSelectedHubGroupId(): string;
-    /**
-     * Get the id of the selected hub
-     */
-    getSelectedHubId(): string;
-    /**
-     * Gets all hub groups
-     */
-    getHubGroups(): Contracts_Platform.HubGroup[];
-    /**
-     * Get the hubs in the specified hub group
-     *
-     * @param id Id of the hub group
-     * @param excludeContributed If true, exclude contributed hubs
-     * @param excludeBuiltIn If true, exclude built-in hubs
-     * @param includeHidden If true, exclude hidden hubs
-     */
-    getHubsByGroupId(id: string, excludeContributed?: boolean, excludeBuiltIn?: boolean, includeHidden?: boolean): Hub[];
-    /**
-     * Gets the hub group by its id.
-     *
-     * @param id Id of the hub group to return.
-     * @returns {HubGroup}
-     */
-    getHubGroupById(id: string): HubGroup;
-    /**
-     * Gets the hub by its id
-     *
-     * @param id Id of the hub to return
-     */
-    getHubById(id: string): Hub;
-    /**
-     * Gets non-built in, pinned hubs.
-     *
-     * @param hubGroupId Id of the hub group
-     */
-    getPinnedHubsByGroupId(hubGroupId: string): {
-        pinnedHubs: Hub[];
-        unpinnedHubs: Hub[];
-    };
-    /**
-     * Is the specified hub group explicitly pinned by the user?
-     *
-     * @param hubGroup The hub group to check
-     */
-    isHubGroupPinned(hubGroup: HubGroup): boolean;
-    /**
-     * Is the specified hub group explicitly unpinned by the user?
-     *
-     * @param hubGroup Hub group to check
-     */
-    isHubGroupUnpinned(hubGroup: HubGroup): boolean;
-    /**
-     * Pin the hub group for the current user
-     *
-     * @param hubGroup Hub group to pin
-     */
-    pinHubGroup(hubGroup: HubGroup): void;
-    /**
-     * Unpin the hub group for the current user
-     *
-     * @param hubGroup Hub group to unpin
-     */
-    unpinHubGroup(hubGroup: HubGroup): void;
-    /**
-     * Returns true if the specified hub has not been explicitly unpinned by the current user
-     *
-     * @param hub The hub to check
-     */
-    isHubPinned(hub: Hub): boolean;
-    /**
-     * Pin the specified hub for the current user
-     *
-     * @param hub Hub to pin
-     */
-    pinHub(hub: Hub): void;
-    /**
-     * Unpin the specified hub for the current user
-     *
-     * @param hub Hub to unpin
-     */
-    unpinHub(hub: Hub): void;
-    /**
-     * Get the default hub to use for the specified hub group
-     *
-     * @param hubGroup The hub group whose default hub to return
-     * @param hubGroupHubs Optional list of the hubs to consider for the group.
-     */
-    getDefaultHubForHubGroup(hubGroup: HubGroup, hubGroupHubs?: Hub[]): Hub;
-    /**
-     * Saves details of the current route to Local Storage, keyed off of the Hub Group ID.
-     *
-     * @param hubGroupId The id of the hub group
-     * @param hubId The id of the hub to save/remember as the default hub for the hub group for this user
-     */
-    saveDefaultHubForGroup(hubGroupId: string, hubId: string): void;
-    /**
-     * Trigger the global selected-hub-changed event, letting the system know that the current hub
-     * has changed, so all navigation-related elements should be updated appropriately.
-     *
-     * @param hubId The id of the newly selected hub
-     */
-    triggerSelectedHubChangedEvent(hubId: string): void;
-    /**
-     * Navigate the page to the specified hub
-     *
-     * @param hubId Id of the hub to navigate to
-     * @param url (Optional) Specific url to navigate to. The hub's default url if not specified.
-     */
-    navigateToHub(hubId: string, url?: string): void;
-    /**
-     * Get an event handler to navigate to the specified hub
-     *
-     * @param hubId Id of the hub to navigate to
-     * @param url Optional specific url for the hub (the hub's default url if not specified)
-     */
-    getHubNavigateHandler(hubId: string, url?: string): (e: any) => boolean;
-}
-}
 declare module "VSS/Navigation/Services" {
 import Service = require("VSS/Service");
 /**
@@ -24483,7 +24310,6 @@ import Service = require("VSS/Service");
 */
 export class HistoryService implements Service.ILocalService {
     private _namedEvents;
-    private _popStateHandlers;
     private _usePushState;
     private _suppressNavigate;
     private _initialized;
@@ -24586,38 +24412,6 @@ export class HistoryService implements Service.ILocalService {
     * @param handler The method called whenever a navigation event occurs with the matching action value
     */
     detachNavigate(action: string, handler?: IFunctionPPR<any, any, void>): void;
-    /**
-     * Registers a handler for pop state events which can restore the state of entries added by pushState with the same handlerId
-     *
-     * @param handlerId Id of the handler (as passed to pushState)
-     * @param handler Function to be called on pop-state entries which were added with this handlerId. The handler should return true to indicate that it handled the event.
-     */
-    addPopStateHandler(handlerId: string, handler: IFunctionPR<any, boolean>): void;
-    /**
-     * Removes a pop state handler
-     *
-     * @param handlerId Id of the handler to remove
-     */
-    removePopStateHandler(handlerId: string): void;
-    /**
-     * Add a new history entry to the browser's history (updating the url in the address bar)
-     *
-     * @param url Url to update the browser's address bar to
-     * @param handlerId Optional id of a pop state handler that can be used to restore the state of this entry (e.g. when navigated to via the "back" button)
-     * @param handlerState Optional data to pass to the pop state handler
-     * @param title Document title to set
-     */
-    pushState(url: string, handlerId?: string, handlerState?: any, title?: string): void;
-    /**
-     * Replace the current history entry in the browser's history (updating the url in the address bar)
-     *
-     * @param url Url to update the browser's address bar to
-     * @param handlerId Optional id of a pop state handler that can be used to restore the state of this entry (e.g. when navigated to via the "back" button)
-     * @param handlerState Optional data to pass to the pop state handler
-     * @param title Document title to set
-     */
-    replaceState(url: string, handlerId?: string, handlerState?: any, title?: string): void;
-    private _getFullTitle(title);
     private _moveHashStateToQueryParams();
     private _onHashChanged(e);
     private _onPopState(e);
@@ -24761,79 +24555,6 @@ export class OperationsHttpClient extends OperationsHttpClient3_1 {
  */
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OperationsHttpClient3;
 }
-declare module "VSS/OrganizationPolicy/RestClient" {
-import Contracts = require("VSS/Organization/Contracts");
-import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
-import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods3To3_1 extends VSS_WebApi.VssHttpClient {
-    protected policiesApiVersion: string;
-    protected policyInformationApiVersion: string;
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API]
-     *
-     * @param {string[]} policyNames
-     * @return IPromise<{ [key: string] : Contracts.PolicyInfo; }>
-     */
-    getPolicyInformations(policyNames?: string[]): IPromise<{
-        [key: string]: Contracts.PolicyInfo;
-    }>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} policyName
-     * @return IPromise<Contracts.PolicyInfo>
-     */
-    getPolicyInformation(policyName: string): IPromise<Contracts.PolicyInfo>;
-    /**
-     * [Preview API]
-     *
-     * @param {VSS_Common_Contracts.JsonPatchDocument} patchDocument
-     * @param {string} policyName
-     * @return IPromise<void>
-     */
-    updatePolicy(patchDocument: VSS_Common_Contracts.JsonPatchDocument, policyName: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {any} defaultValue
-     * @param {string} policyName
-     * @return IPromise<Contracts.Policy>
-     */
-    getPolicy(defaultValue: any, policyName: string): IPromise<Contracts.Policy>;
-    /**
-     * [Preview API]
-     *
-     * @param {string[]} policyNames
-     * @param {string[]} defaultValues
-     * @return IPromise<{ [key: string] : Contracts.Policy; }>
-     */
-    getPolicies(policyNames?: string[], defaultValues?: string[]): IPromise<{
-        [key: string]: Contracts.Policy;
-    }>;
-}
-/**
- * @exemptedapi
- */
-export class OrganizationPolicyHttpClient3_1 extends CommonMethods3To3_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-}
-/**
- * @exemptedapi
- */
-export class OrganizationPolicyHttpClient3 extends CommonMethods3To3_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-}
-export class OrganizationPolicyHttpClient extends OrganizationPolicyHttpClient3_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-}
-/**
- * Gets an http client targeting the latest released version of the APIs.
- *
- * @return OrganizationPolicyHttpClient3
- */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OrganizationPolicyHttpClient3;
-}
 declare module "VSS/Organization/Contracts" {
 export interface Account {
     data: {
@@ -24857,12 +24578,28 @@ export interface Account {
     properties: any;
     status: AccountStatus;
 }
+export enum AccountSearchKind {
+    Unknown = 0,
+    ById = 1,
+    ByName = 2,
+}
 export enum AccountStatus {
     Unknown = 0,
     Initial = 10,
     Enabled = 20,
     LogicallyDeleted = 30,
     MarkedForPhysicalDelete = 40,
+}
+export enum AssignmentStatus {
+    Unassignable = 0,
+    Assignable = 10,
+    Assigning = 20,
+    Assigned = 30,
+}
+export enum HostCreationType {
+    None = 0,
+    PreCreated = 1,
+    OnDemand = 2,
 }
 export interface Organization {
     accounts: Account[];
@@ -24933,6 +24670,13 @@ export interface Region {
 }
 export var TypeInfo: {
     Account: any;
+    AccountSearchKind: {
+        enumValues: {
+            "unknown": number;
+            "byId": number;
+            "byName": number;
+        };
+    };
     AccountStatus: {
         enumValues: {
             "unknown": number;
@@ -24940,6 +24684,21 @@ export var TypeInfo: {
             "enabled": number;
             "logicallyDeleted": number;
             "markedForPhysicalDelete": number;
+        };
+    };
+    AssignmentStatus: {
+        enumValues: {
+            "unassignable": number;
+            "assignable": number;
+            "assigning": number;
+            "assigned": number;
+        };
+    };
+    HostCreationType: {
+        enumValues: {
+            "none": number;
+            "preCreated": number;
+            "onDemand": number;
         };
     };
     Organization: any;
@@ -24990,11 +24749,11 @@ export class CommonMethods3To3_1 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
-     * @param {VSS_Common_Contracts.JsonPatchDocument} patchDocument
+     * @param {VSS_Common_Contracts.JsonPatchDocument} patchDoucment
      * @param {string} organizationId
      * @return IPromise<Contracts.Organization>
      */
-    updateOrganization(patchDocument: VSS_Common_Contracts.JsonPatchDocument, organizationId: string): IPromise<Contracts.Organization>;
+    updateOrganization(patchDoucment: VSS_Common_Contracts.JsonPatchDocument, organizationId: string): IPromise<Contracts.Organization>;
     /**
      * [Preview API]
      *
@@ -25044,11 +24803,11 @@ export class CommonMethods3To3_1 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
-     * @param {VSS_Common_Contracts.JsonPatchDocument} patchDocument
+     * @param {VSS_Common_Contracts.JsonPatchDocument} patchDoucment
      * @param {string} accountId
      * @return IPromise<Contracts.Account>
      */
-    updateAccount(patchDocument: VSS_Common_Contracts.JsonPatchDocument, accountId: string): IPromise<Contracts.Account>;
+    updateAccount(patchDoucment: VSS_Common_Contracts.JsonPatchDocument, accountId: string): IPromise<Contracts.Account>;
     /**
      * [Preview API]
      *
@@ -25281,6 +25040,14 @@ export interface IResourceTypeStats {
     cached: number;
     duration: number;
 }
+export interface IXmlHttpRequestResourceTypeStat {
+    name: string;
+    duration: number;
+    isCached: boolean;
+}
+export interface IXmlHttpRequestResourceTypeStats extends IResourceTypeStats {
+    ajaxResourceStats: IXmlHttpRequestResourceTypeStat[];
+}
 export interface IBundleLoadStats {
     downloadStartTime: number;
     downloadDuration: number;
@@ -25293,7 +25060,7 @@ export interface IBundleLoadStats {
 export interface IResourceStats {
     scripts: IResourceTypeStats;
     styles: IResourceTypeStats;
-    ajax: IResourceTypeStats;
+    ajax: IXmlHttpRequestResourceTypeStats;
     other: IResourceTypeStats;
     all: IResourceTypeStats;
     bundleLoads: IBundleLoadStats[];
@@ -25337,6 +25104,10 @@ export function getTimestamp(): number;
  * Returns navigation start timestamp, or 0 if browser doesn't support it
  */
 export function getNavigationStartTimestamp(): number;
+/**
+ * Returns timing information about the data providers resolved as part of server-side rendering of this page.
+ */
+export function getJsonIslandDataProviderTiming(): IDictionaryStringTo<number>;
 }
 declare module "VSS/Profile/Contracts" {
 export interface AttributeDescriptor {
@@ -25349,6 +25120,10 @@ export interface AttributesContainer {
     };
     containerName: string;
     revision: number;
+}
+export enum AttributesScope {
+    Core = 1,
+    Application = 2,
 }
 export interface Avatar {
     isAutoGenerated: boolean;
@@ -25398,6 +25173,13 @@ export interface ProfileAttributeBase<T> {
     timeStamp: Date;
     value: T;
 }
+export enum ProfilePageType {
+    Update = 0,
+    Create = 1,
+    CreateIDE = 2,
+    Review = 3,
+    AvatarImageFormat = 4,
+}
 /**
  * Country/region information
  */
@@ -25428,13 +25210,31 @@ export interface ProfileRegions {
      */
     regions: ProfileRegion[];
 }
-export interface RemoteProfile {
-    avatar: number[];
-    displayName: string;
+export interface ProfileTermsOfService {
+    activatedDate: Date;
+    id: string;
+    lastModified: Date;
+    termsOfServiceUrl: string;
+    version: number;
+}
+export interface UserTermsOfService {
+    currentAcceptedTermsOfService: number;
+    currentAcceptedTermsOfServiceDate: Date;
+    latestTermsOfService: ProfileTermsOfService;
+}
+export interface VerifyPreferredEmailContext {
     emailAddress: string;
+    hashCode: string;
+    id: string;
 }
 export var TypeInfo: {
     AttributesContainer: any;
+    AttributesScope: {
+        enumValues: {
+            "core": number;
+            "application": number;
+        };
+    };
     Avatar: any;
     AvatarSize: {
         enumValues: {
@@ -25447,6 +25247,17 @@ export var TypeInfo: {
     Profile: any;
     ProfileAttribute: any;
     ProfileAttributeBase: any;
+    ProfilePageType: {
+        enumValues: {
+            "update": number;
+            "create": number;
+            "createIDE": number;
+            "review": number;
+            "avatarImageFormat": number;
+        };
+    };
+    ProfileTermsOfService: any;
+    UserTermsOfService: any;
 };
 }
 declare module "VSS/Profile/Metrics" {
@@ -25627,7 +25438,7 @@ declare module "VSS/Profile/RestClient" {
 import Contracts = require("VSS/Profile/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected geoRegionApiVersion: string;
     protected profilesApiVersion: string;
@@ -25670,10 +25481,9 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      * Create profile
      *
      * @param {Contracts.CreateProfileContext} createProfileContext - Context for profile creation
-     * @param {boolean} autoCreate - Create profile automatically
      * @return IPromise<Contracts.Profile>
      */
-    createProfile(createProfileContext: Contracts.CreateProfileContext, autoCreate?: boolean): IPromise<Contracts.Profile>;
+    createProfile(createProfileContext: Contracts.CreateProfileContext): IPromise<Contracts.Profile>;
     /**
      * Lookup up country/region based on provided IPv4, null if using the remote IPv4 address.
      *
@@ -25682,18 +25492,91 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      */
     getGeoRegion(ipaddress: string): IPromise<Contracts.GeoRegion>;
 }
-export class CommonMethods3To3_1 extends CommonMethods2To3_1 {
-    protected attributesApiVersion: string;
-    protected avatarApiVersion: string;
-    protected userDefaultsApiVersion: string;
+/**
+ * @exemptedapi
+ */
+export class ProfileHttpClient3 extends CommonMethods2To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
      *
      * @param {string} id
-     * @return IPromise<Contracts.Profile>
+     * @param {string} descriptor
+     * @return IPromise<void>
      */
-    refreshUserDefaults(id: string): IPromise<Contracts.Profile>;
+    deleteProfileAttribute(id: string, descriptor: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} id
+     * @param {string} descriptor
+     * @return IPromise<Contracts.ProfileAttribute>
+     */
+    getProfileAttribute(id: string, descriptor: string): IPromise<Contracts.ProfileAttribute>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} id
+     * @param {string} partition
+     * @param {string} modifiedSince
+     * @param {string} modifiedAfterRevision
+     * @param {boolean} withCoreAttributes
+     * @param {string} coreAttributes
+     * @return IPromise<Contracts.ProfileAttribute[]>
+     */
+    getProfileAttributes(id: string, partition: string, modifiedSince?: string, modifiedAfterRevision?: string, withCoreAttributes?: boolean, coreAttributes?: string): IPromise<Contracts.ProfileAttribute[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {any} container
+     * @param {string} id
+     * @param {string} descriptor
+     * @return IPromise<void>
+     */
+    setProfileAttribute(container: any, id: string, descriptor: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>} attributesCollection
+     * @param {string} id
+     * @return IPromise<void>
+     */
+    setProfileAttributes(attributesCollection: VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>, id: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} id
+     * @param {string} size
+     * @param {string} format
+     * @return IPromise<Contracts.Avatar>
+     */
+    getAvatar(id: string, size?: string, format?: string): IPromise<Contracts.Avatar>;
+    /**
+     * [Preview API]
+     *
+     * @param {any} container
+     * @param {string} id
+     * @param {string} size
+     * @param {string} format
+     * @param {string} displayName
+     * @return IPromise<Contracts.Avatar>
+     */
+    getAvatarPreview(container: any, id: string, size?: string, format?: string, displayName?: string): IPromise<Contracts.Avatar>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} id
+     * @return IPromise<void>
+     */
+    resetAvatar(id: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {any} container
+     * @param {string} id
+     * @return IPromise<void>
+     */
+    setAvatar(container: any, id: string): IPromise<void>;
     /**
      * [Preview API]
      *
@@ -25704,104 +25587,12 @@ export class CommonMethods3To3_1 extends CommonMethods2To3_1 {
     /**
      * [Preview API]
      *
-     * @param {boolean} includeAvatar
-     * @return IPromise<Contracts.RemoteProfile>
-     */
-    getRemoteProfile(includeAvatar?: boolean): IPromise<Contracts.RemoteProfile>;
-    /**
-     * [Preview API]
-     *
-     * @param {any} container
      * @param {string} id
-     * @return IPromise<void>
+     * @return IPromise<Contracts.Profile>
      */
-    setAvatar(container: any, id: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    resetAvatar(id: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {any} container
-     * @param {string} id
-     * @param {string} size
-     * @param {string} format
-     * @param {string} displayName
-     * @return IPromise<Contracts.Avatar>
-     */
-    getAvatarPreview(container: any, id: string, size?: string, format?: string, displayName?: string): IPromise<Contracts.Avatar>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} id
-     * @param {string} size
-     * @param {string} format
-     * @return IPromise<Contracts.Avatar>
-     */
-    getAvatar(id: string, size?: string, format?: string): IPromise<Contracts.Avatar>;
-    /**
-     * [Preview API]
-     *
-     * @param {VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>} attributesCollection
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    setProfileAttributes(attributesCollection: VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>, id: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {any} container
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<void>
-     */
-    setProfileAttribute(container: any, id: string, descriptor: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} id
-     * @param {string} partition
-     * @param {string} modifiedSince
-     * @param {string} modifiedAfterRevision
-     * @param {boolean} withCoreAttributes
-     * @param {string} coreAttributes
-     * @return IPromise<Contracts.ProfileAttribute[]>
-     */
-    getProfileAttributes(id: string, partition: string, modifiedSince?: string, modifiedAfterRevision?: string, withCoreAttributes?: boolean, coreAttributes?: string): IPromise<Contracts.ProfileAttribute[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<Contracts.ProfileAttribute>
-     */
-    getProfileAttribute(id: string, descriptor: string): IPromise<Contracts.ProfileAttribute>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<void>
-     */
-    deleteProfileAttribute(id: string, descriptor: string): IPromise<void>;
+    refreshUserDefaults(id: string): IPromise<Contracts.Profile>;
 }
-/**
- * @exemptedapi
- */
-export class ProfileHttpClient3_1 extends CommonMethods3To3_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-}
-/**
- * @exemptedapi
- */
-export class ProfileHttpClient3 extends CommonMethods3To3_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-}
-export class ProfileHttpClient2_3 extends CommonMethods2To3_1 {
+export class ProfileHttpClient2_3 extends CommonMethods2To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @param {string} id
@@ -25866,7 +25657,7 @@ export class ProfileHttpClient2_3 extends CommonMethods2To3_1 {
      */
     setAvatar(container: any, id: string): IPromise<void>;
 }
-export class ProfileHttpClient2_2 extends CommonMethods2To3_1 {
+export class ProfileHttpClient2_2 extends CommonMethods2To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @param {string} id
@@ -25935,7 +25726,7 @@ export class ProfileHttpClient2_2 extends CommonMethods2To3_1 {
      */
     getCountries(): IPromise<Contracts.Country[]>;
 }
-export class ProfileHttpClient2_1 extends CommonMethods2To3_1 {
+export class ProfileHttpClient2_1 extends CommonMethods2To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @param {string} id
@@ -26004,7 +25795,7 @@ export class ProfileHttpClient2_1 extends CommonMethods2To3_1 {
      */
     getCountries(): IPromise<Contracts.Country[]>;
 }
-export class ProfileHttpClient2 extends CommonMethods2To3_1 {
+export class ProfileHttpClient2 extends CommonMethods2To3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @param {string} id
@@ -26073,7 +25864,7 @@ export class ProfileHttpClient2 extends CommonMethods2To3_1 {
      */
     getCountries(): IPromise<Contracts.Country[]>;
 }
-export class ProfileHttpClient extends ProfileHttpClient3_1 {
+export class ProfileHttpClient extends ProfileHttpClient3 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -26929,6 +26720,67 @@ export interface PermissionEvaluationBatch {
     evaluations: PermissionEvaluation[];
 }
 /**
+ * Represents a raw access control entry from a remote backing store.
+ */
+export interface RemoteBackingStoreAccessControlEntry {
+    /**
+     * The set of permission bits that represent the actions that the associated descriptor is allowed to perform.
+     */
+    allow: number;
+    /**
+     * The set of permission bits that represent the actions that the associated descriptor is not allowed to perform.
+     */
+    deny: number;
+    /**
+     * The identity for which the access control entry is allowing / denying permission.
+     */
+    identityId: string;
+    /**
+     * The token of the access control list in which this access control entry belongs.
+     */
+    token: string;
+}
+export interface RemoveAccessControlListsRequest {
+    recurse: boolean;
+    tokens: string[];
+}
+export interface RemovePermissionsRequest {
+    identityIds: string[];
+    token: string;
+}
+export interface RenameTokensRequest {
+    renames: TokenRename[];
+}
+/**
+ * Encapsulates the result of a QuerySecurityData call to the backing store.
+ */
+export interface SecurityNamespaceData {
+    /**
+     * The access control entries in this snapshot of the security namespace data.
+     */
+    accessControlEntries: RemoteBackingStoreAccessControlEntry[];
+    /**
+     * Indicates the ACL store whose data is persisted in this SecurityNamespaceData object.
+     */
+    aclStoreId: string;
+    /**
+     * The identity domain for the service host on which this security namespace resides.
+     */
+    identityDomain: string;
+    /**
+     * The sequence ID for this snapshot of or incremental update to the security namespace data.
+     */
+    newSequenceId: number;
+    /**
+     * The list of tokens in the security namespace which have inheritance disabled.
+     */
+    noInheritTokens: string[];
+    /**
+     * If this is a full snapshot of the security namespace data, this value is -1. Otherwise, this instance represents the delta from OldSequenceId to NewSequenceId.
+     */
+    oldSequenceId: number;
+}
+/**
  * Class for describing the details of a TeamFoundationSecurityNamespace.
  */
 export interface SecurityNamespaceDescription {
@@ -26984,6 +26836,47 @@ export interface SecurityNamespaceDescription {
      * The permission bits needed by a user in order to modify security data on the Security Namespace.
      */
     writePermission: number;
+}
+export interface SetAccessControlEntriesInfo {
+    accessControlEntries: AccessControlEntry[];
+    merge: boolean;
+    token: string;
+}
+export interface SetAccessControlListsRequest {
+    accessControlEntries: AccessControlEntry[];
+    accessControlLists: AccessControlList[];
+    throwOnInvalidIdentity: boolean;
+}
+export interface SetInheritFlagInfo {
+    inherit: boolean;
+    token: string;
+}
+export interface SetPermissionsRequest {
+    accessControlEntries: AccessControlEntry[];
+    merge: boolean;
+    throwOnInvalidIdentity: boolean;
+    token: string;
+}
+/**
+ * Represents a request to rename a token in a security namespace.
+ */
+export interface TokenRename {
+    /**
+     * True if the existing token should be preserved; false if it should be deleted.
+     */
+    copy: boolean;
+    /**
+     * The desired new name of the token.
+     */
+    newToken: string;
+    /**
+     * The current name of the token.
+     */
+    oldToken: string;
+    /**
+     * True if the scope of the operation should be extended to all child tokens of OldToken; false otherwise.
+     */
+    recurse: boolean;
 }
 }
 declare module "VSS/Security/RestClient" {
@@ -27493,14 +27386,6 @@ export class SettingsHttpClient extends SettingsHttpClient3_1 {
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): SettingsHttpClient3;
 }
 declare module "VSS/Telemetry/Contracts" {
-/**
- * ---------------------------------------------------------
- * Generated file, DO NOT EDIT
- * ---------------------------------------------------------
- *
- * See following wiki page for instructions on how to regenerate:
- *   https://vsowiki.com/index.php?title=Rest_Client_Generation
- */
 export interface CustomerIntelligenceEvent {
     area: string;
     feature: string;
@@ -27508,6 +27393,30 @@ export interface CustomerIntelligenceEvent {
         [key: string]: any;
     };
 }
+export enum DelegatedAppTokenType {
+    Session = 0,
+    App = 1,
+}
+export interface WebSessionToken {
+    appId: string;
+    extensionName: string;
+    force: boolean;
+    name: string;
+    namedTokenId: string;
+    publisherName: string;
+    token: string;
+    tokenType: DelegatedAppTokenType;
+    validTo: Date;
+}
+export var TypeInfo: {
+    DelegatedAppTokenType: {
+        enumValues: {
+            "session": number;
+            "app": number;
+        };
+    };
+    WebSessionToken: any;
+};
 }
 declare module "VSS/Telemetry/RestClient" {
 import Contracts = require("VSS/Telemetry/Contracts");
@@ -28785,7 +28694,6 @@ export function parseInvariant(value: string): number;
     * @return
     */
 export function localeFormat(value: number, format: string): string;
-export function formatAbreviatedNumber(count: number): string;
 }
 declare module "VSS/Utils/String" {
 import Culture = require("VSS/Utils/Culture");
@@ -29587,7 +29495,6 @@ export class GlobalProgressIndicator {
 export function hasUnloadRequest(): boolean;
 export class GlobalMessageIndicator {
     updateGlobalMessageIfEmpty(message: string, messageLevel?: string): void;
-    clearGlobalMessages(): void;
 }
 export function classExtend(ctor: any, members: any): any;
 export function getTypeName(type: any): string;
@@ -29683,7 +29590,6 @@ export module ContributionsResourceIds {
     var VDiscId: string;
     var VersionDiscoveryLocationId: string;
     var VDiscCompatLocationId: string;
-    var ContributionQueryLocationId: string;
     var AreaId: string;
     var ContributionsAreaName: string;
     var ExtensionsAreaName: string;
@@ -29692,7 +29598,6 @@ export module ContributionsResourceIds {
     var InstalledExtensionsByNameLocationIdString: string;
     var VersionDiscoveryLocationIdString: string;
     var VDiscCompatLocationIdString: string;
-    var ContributionQueryLocationIdString: string;
 }
 export module CustomerIntelligenceResourceIds {
     var EventsLocationId: string;
