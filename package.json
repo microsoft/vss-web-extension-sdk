@@ -1,7 +1,7 @@
 {
   "name": "vss-web-extension-sdk",
-  "version": "2.109.0",
-  "description": "Visual Studio Services Client SDK. JavaScript library for Visual Studio Team Services extensions.",
+  "version": "2.109.1",
+  "description": "Visual Studio Team Services web extension JavaScript library and types.",
   "repository": {
     "type": "git",
     "url": "https://github.com/Microsoft/vss-web-extension-sdk.git"
