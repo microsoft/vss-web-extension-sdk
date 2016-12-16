@@ -119,6 +119,136 @@ You can explicitly reference the types at the top of your TypeScript file with:
     /// <reference types="vss-web-extension-sdk" />
 ```
 
+## Recommended organization
+
+If you are developing a web extension for Visual Studio Team Service using TypeScript, we recommend the following organization:
+
+### Project structure
+
+```
+ |-- src
+     |-- my-module
+         |-- a.ts
+         |-- b.ts
+ |-- static
+     |-- css
+         |-- main.css
+     |-- images
+         |-- logo.png
+     |-- my-hub.html
+ |-- vss-extension.json
+ |-- package.json
+ |-- tsconfig.json
+``` 
+
+### `tsconfig.json`
+
+```json
+{
+    "compilerOptions": {
+        "module": "amd",
+        "moduleResolution": "node",
+        "target": "es5",
+	"rootDir": "src/",
+        "outDir": "dist/",
+        "types": [
+            "vss-web-extension-sdk"
+        ]	
+    },
+    "files": [
+        "src/my-module/a.ts",
+        "src/my-module/b.ts"
+    ]
+}
+```
+
+### `package.json` (abbreviated)
+
+```
+{
+  "scripts": {
+    "build": "tsc -p .",
+    "postbuild": "npm run package",
+    "package": "tfx extension create",
+    "clean": "rimraf ./dist && rimraf ./*.vsix"
+  },
+  "devDependencies": {
+    "rimraf": "^2.5.4",
+    "tfx-cli": "^0.3.45",
+    "typescript": "^2.1.4"
+  },
+  "dependencies": {
+    "@types/jquery": "^2.0.34",
+    "@types/q": "0.0.32",
+    "vss-web-extension-sdk": "^2.109.0"
+  }
+}
+```
+
+* Note: The dependencies on the @types for `jquery` and `q` are only necessary if your TypeScript code is directly referencing either of these types.
+
+
+### `vss-extension.json`
+
+```
+{
+    "files": [
+        {
+            "path": "dist",
+            "addressable": true,
+            "packagePath": "/"
+        },
+        {
+            "path": "static",
+            "addressable": true,
+            "packagePath": "/"
+        },
+        {
+            "path": "node_modules/vss-web-extension-sdk/lib",
+            "addressable": true,
+            "packagePath": "lib"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "my-hub,
+            "type": "ms.vss-web.hub",
+            "properties": {
+                "name": "Hub",
+                "uri": "my-hub.html"
+            }
+        }
+    ]
+}
+```
+
+### Any HTML page
+
+```html
+
+<head>
+   <script src="lib/VSS.SDK.min.js"></script>
+</head>
+
+<body>
+
+ <script type="text/javascript">
+
+        // Initialize the VSS sdk
+        VSS.init({
+            usePlatformScripts: true,
+            usePlatformStyles: true
+        });
+	
+	VSS.require(["my-module/a"], function (a) { 
+	    ...
+	});
+
+ </script>
+
+</body>
+```
+
 ## Code of Conduct
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
