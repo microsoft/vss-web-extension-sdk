@@ -15,7 +15,7 @@ The core SDK script, `VSS.SDK.js`, enables web extensions to communicate to the 
 
 This will place `VSS.SDK.js` and `VSS.SDK.min.js` in `node_modules/vss-web-extension-sdk/lib/`
 
-### Include SDK on your page
+### Include the SDK script on your page
 
 If you are developing a web extension, you will need to reference the SDK script from your HTML pages. For example:
 
@@ -28,14 +28,14 @@ To ensure the SDK script is packaged with your extension, update your extension 
 ```
 {       
 	"files": [{
-		"path": "node_modules/vss-web-extension-sdk/lib/VSS.SDK.min.js",
+		"path": "node_modules/vss-web-extension-sdk/lib"",
 		"addressable": true,
-		"partName": "lib/VSS.SDK.min.js"
+		"packagePath": "lib"
 	}]
 }
 ```
 
-Note: setting `partName` is optional, but creates a simpler path for referencing the SDK script from your page. Not setting a part name would have required you to reference the full path in your `<script>` tag (`src="lib/node_modules/vss-web-extension-sdk/lib/VSS.SDK.min.js"`)
+Note: setting `packagePath` is optional, but results in a simpler path for referencing the SDK script from your HTML pages. Not setting a part name would have required you to reference the full path in your `<script>` tag (`src="node_modules/vss-web-extension-sdk/lib/VSS.SDK.min.js"`)
 
 
 ## Use the SDK
@@ -119,11 +119,11 @@ You can explicitly reference the types at the top of your TypeScript file with:
     /// <reference types="vss-web-extension-sdk" />
 ```
 
-## Recommended organization
+## Organizing your web extension project
 
 If you are developing a web extension for Visual Studio Team Service using TypeScript, we recommend the following organization:
 
-### Project structure
+### Project structure:
 
 ```
  |-- src
@@ -140,6 +140,9 @@ If you are developing a web extension for Visual Studio Team Service using TypeS
  |-- package.json
  |-- tsconfig.json
 ``` 
+
+1. TypeScript source files are placed in `src/` and then one or more logical module names. Your `tsconfig.json` will compile `.ts` files in this folder and place the resulting `.js` files into the `dist/` folder (not shown).
+2. All static content (CSS, images, HTML pages, etc) are placed in a single `static` folder structure. This makes it easy to package all static files into your extension package (only requires a single `files` entry in your `vss-extension.json`).
 
 ### `tsconfig.json`
 
@@ -161,6 +164,8 @@ If you are developing a web extension for Visual Studio Team Service using TypeS
     ]
 }
 ```
+
+1. After compiling (`tsc -p .`), generated .js files will be located under dist. For example, `dist/my-module/a.js`.
 
 ### `package.json` (abbreviated)
 
@@ -185,7 +190,8 @@ If you are developing a web extension for Visual Studio Team Service using TypeS
 }
 ```
 
-* Note: The dependencies on the @types for `jquery` and `q` are only necessary if your TypeScript code is directly referencing either of these types.
+1. `scripts` provides a convenient way to define common actions that you want to perform on your project, like compiling and package. See [Scripts](https://docs.npmjs.com/misc/scripts) for more details. 
+2. The dependencies on the @types for `jquery` and `q` are only necessary if your TypeScript code is directly referencing either of these types.
 
 
 ### `vss-extension.json`
@@ -221,6 +227,9 @@ If you are developing a web extension for Visual Studio Team Service using TypeS
     ]
 }
 ```
+
+1. Compiled JavaScript files (under `dist/`) will be packaged at the root of the extension (along with HTML, CSS, and images files).
+2. The `VSS.SDK.js` bootstrapping script (referenced from your HTML pages) will be placed under the `lib/` folder in the resulting extension package. 
 
 ### Any HTML page
 
