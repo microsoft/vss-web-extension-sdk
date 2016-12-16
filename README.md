@@ -38,12 +38,10 @@ To ensure the SDK script is packaged with your extension, update your extension 
 Note: setting `packagePath` is optional, but results in a simpler path for referencing the SDK script from your HTML pages. Not setting a part name would have required you to reference the full path in your `<script>` tag (`src="node_modules/vss-web-extension-sdk/lib/VSS.SDK.min.js"`)
 
 
-## Use the SDK
+## Use the SDK 
 
-To initialize the SDK from your HTML page you have two options. 
+From your web extension's HTML page, include and initialize the VSS SDK like this:
 
- 1. Implicit handshake (simplest)
- 
  	```html
 	<script>
 	
@@ -61,33 +59,6 @@ To initialize the SDK from your HTML page you have two options.
 	</script>
 	  ```
       
- 2. Explicit handshake
- 
-    ```html
-       <script>
-	  // Initialize with explicitNotifyLoaded set to true 
-	  VSS.init({
-          explicitNotifyLoaded: true,
-		  usePlatformScripts: true, 
-		  usePlatformStyles: true
-	  });
-      
-         // Perform some async operation here
-         doSomeAsyncStuff().then(
-            function(result) {
-              // Succeeded
-              VSS.notifyLoadSucceeded();
-              
-              // Start using VSS
-            },
-            function(error) {
-              // Failed
-              VSS.notifyLoadFailed(error);
-            }
-	 );
-      </script>
-    ```
-
 Full API reference of VSS.SDK.js can be found at [Core Client SDK](https://www.visualstudio.com/en-us/integrate/extensions/reference/client/core-sdk) page.
 
 ## Types
@@ -98,9 +69,7 @@ Type definitions are provided for:
  * REST clients and contracts for Build, Work, and Code (see `typings/tfs.d.ts`)
  * REST clients and contracts for Release Management (see `typings/rmo.d.ts`)
 
-### Dependencies
-
-Dependency graph for the types:
+Dependency graph:
 
 ![Dependency Graph](img/dependencies.png)
  
@@ -108,7 +77,7 @@ Dependency graph for the types:
 
 From a [TypeScript](https://www.typescriptlang.org) 2.0 or later project:
 
-1. Install the `vss-web-extension-sdk` NPM module (see above)
+1. Install the `vss-web-extension-sdk` module (see above)
 2. Update your `tfsconfig.json` project file to set ```"moduleResolution": "node"```
 
 See [TypeScript Module Resolution](https://www.typescriptlang.org/docs/handbook/module-resolution.html) for more details.
@@ -123,7 +92,7 @@ You can explicitly reference the types at the top of your TypeScript file with:
 
 If you are developing a web extension for Visual Studio Team Service using TypeScript, we recommend the following organization:
 
-### Project structure:
+### Project structure
 
 ```
  |-- src
@@ -141,10 +110,12 @@ If you are developing a web extension for Visual Studio Team Service using TypeS
  |-- tsconfig.json
 ``` 
 
-1. TypeScript source files are placed in `src/` and then one or more logical module names. Your `tsconfig.json` will compile `.ts` files in this folder and place the resulting `.js` files into the `dist/` folder (not shown).
-2. All static content (CSS, images, HTML pages, etc) are placed in a single `static` folder structure. This makes it easy to package all static files into your extension package (only requires a single `files` entry in your `vss-extension.json`).
+1. TypeScript source files are placed in `src` (under one or more module folders).
+2. Static content (CSS, images, HTML pages, etc) are placed in `static`. This makes it easy to include all static files in your extension package.
 
-### `tsconfig.json`
+### TypeScript project file (`tsconfig.json`)
+
+Defines the options for compiling your TypeScript files.
 
 ```json
 {
@@ -165,12 +136,19 @@ If you are developing a web extension for Visual Studio Team Service using TypeS
 }
 ```
 
-1. After compiling (`tsc -p .`), generated .js files will be located under dist. For example, `dist/my-module/a.js`.
+1. After compiling (`tsc -p .`), the resulting .js files are placed in `dist`. For example, `dist/my-module/a.js`.
+2. If your extension directly uses types from other @types modules, you will want to list them within `types`. See [@types](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html).
 
-### `package.json` (abbreviated)
+Learn more about [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html)
+
+### NPM package manifest (`package.json`)
+
+Declares the libraries (like the vss-web-extension-sdk) required to compile, package, and use your extension.
 
 ```
 {
+  /* other details like ID, version, etc are omitted */
+  
   "scripts": {
     "build": "tsc -p .",
     "postbuild": "npm run package",
@@ -190,14 +168,16 @@ If you are developing a web extension for Visual Studio Team Service using TypeS
 }
 ```
 
-1. `scripts` provides a convenient way to define common actions that you want to perform on your project, like compiling and package. See [Scripts](https://docs.npmjs.com/misc/scripts) for more details. 
+1. `scripts` provides a convenient way to define common operations that you want to perform on your project, like compiling and package. For example, to build (compile) and package your extension, run: `npm run build`. This runs `build` and `postbuild`. If you make a change that doesn't require compiling, you can package by simply running `npm run package`. 
 2. The dependencies on the @types for `jquery` and `q` are only necessary if your TypeScript code is directly referencing either of these types.
 
+Learn more about [package.json](https://docs.npmjs.com/files/package.json)
 
-### `vss-extension.json`
+### Extension manifest (`vss-extension.json`)
 
 ```
 {
+    /* details omitted */
     "files": [
         {
             "path": "dist",
@@ -228,8 +208,10 @@ If you are developing a web extension for Visual Studio Team Service using TypeS
 }
 ```
 
-1. Compiled JavaScript files (under `dist/`) will be packaged at the root of the extension (along with HTML, CSS, and images files).
-2. The `VSS.SDK.js` bootstrapping script (referenced from your HTML pages) will be placed under the `lib/` folder in the resulting extension package. 
+1. Compiled JavaScript files (placed into `dist`) will get packaged at the root of the extension (along with HTML, CSS, and images files).
+2. The `VSS.SDK.js` scripts (preferenced from your HTML pages) are placed under `lib` in the resulting extension package. 
+
+Learn more about the [extension manifest](https://www.visualstudio.com/en-us/docs/integrate/extensions/develop/manifest).
 
 ### Any HTML page
 
