@@ -42,22 +42,22 @@ Note: setting `packagePath` is optional, but results in a simpler path for refer
 
 From your web extension's HTML page, include and initialize the VSS SDK like this:
 
- 	```html
-	<script>
-	
-	  // Initialize
-	  VSS.init({
-		  usePlatformScripts: true, 
-		  usePlatformStyles: true
-	  });
-	  
-	  // Register callback to get called when initial handshake completed
-	  VSS.ready(function() {
-		  // Start using VSS
-	  });
-	  
-	</script>
-	  ```
+```javascript
+<script>
+
+  // Initialize
+  VSS.init({
+	  usePlatformScripts: true, 
+	  usePlatformStyles: true
+  });
+
+  // Register callback to get called when initial handshake completed
+  VSS.ready(function() {
+	  // Start using VSS
+  });
+
+</script>
+  ```
       
 Full API reference of VSS.SDK.js can be found at [Core Client SDK](https://www.visualstudio.com/en-us/integrate/extensions/reference/client/core-sdk) page.
 
