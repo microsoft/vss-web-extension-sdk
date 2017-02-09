@@ -197,7 +197,7 @@ Learn more about [package.json](https://docs.npmjs.com/files/package.json)
     ],
     "contributions": [
         {
-            "id": "my-hub,
+            "id": "my-hub",
             "type": "ms.vss-web.hub",
             "properties": {
                 "name": "Hub",
