@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v109.20161208.1536
+// Type definitions for Microsoft Visual Studio Services v113.20170227.1600
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -8,7 +8,6 @@
 /// <reference types='q' />
 /// <reference types='requirejs' />
 /// <reference types='react' />
-
 //----------------------------------------------------------
 // Common interfaces specific to WebPlatform area
 //----------------------------------------------------------
@@ -1168,9 +1167,13 @@ declare enum ContextHostType {
     */
     Deployment = 1,
     /**
-    * The Application Host
+    * A legacy name for the Organization host. Use ContextHostType.Organization instead.
     */
     Application = 2,
+    /**
+    * The Organization host
+    */
+    Organization = 2,
     /**
     * The Project Collection
     */
@@ -2472,6 +2475,7 @@ interface PageContext {
 }
 
 interface PageXHRData {
+    activityId: string;
     bundles: DynamicBundlesCollection;
     contributionsData: ContributionsPageData;
     dataProviderData: DataProviderResult;
@@ -2479,6 +2483,7 @@ interface PageXHRData {
     navigation: NavigationContext;
     performanceTimings: { [key: string]: any; };
     serviceLocations: ServiceLocations;
+    staticContentVersion: string;
 }
 
 interface PinningPreferences {
@@ -2984,6 +2989,7 @@ export interface Account {
      * Date account was created
      */
     createdDate: Date;
+    hasMoved: boolean;
     /**
      * Identity of last person to update the account
      */
@@ -2996,6 +3002,7 @@ export interface Account {
      * Namespace for an account
      */
     namespaceId: string;
+    newCollectionId: string;
     /**
      * Organization that created the account
      */
@@ -3132,7 +3139,7 @@ export var TypeInfo: {
 declare module "VSS/Accounts/RestClient" {
 import Contracts = require("VSS/Accounts/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected accountDeletionsApiVersion: string;
     protected accountsApiVersion: string;
@@ -3171,16 +3178,6 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      */
     updateAccount(account: Contracts.Account, accountId: string): IPromise<void>;
     /**
-     * @param {string} creatorId
-     * @param {string} ownerId
-     * @param {string} memberId
-     * @param {boolean} includeOwner
-     * @param {string} properties
-     * @param {boolean} includeDisabledAccounts
-     * @return IPromise<Contracts.Account[]>
-     */
-    getAccounts(creatorId?: string, ownerId?: string, memberId?: string, includeOwner?: boolean, properties?: string, includeDisabledAccounts?: boolean): IPromise<Contracts.Account[]>;
-    /**
      * @param {string} accountId
      * @param {string} properties
      * @return IPromise<Contracts.Account>
@@ -3198,51 +3195,100 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      */
     deleteAccount(accountId: string): IPromise<string>;
 }
+export class CommonMethods3_1To3_2 extends CommonMethods2To3_2 {
+    protected accountsApiVersion: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * A new version GetAccounts API. Only supports limited set of parameters, returns a list of account ref objects that only contains AccountUrl, AccountName and AccountId information, will use collection host Id as the AccountId.
+     *
+     * @param {string} ownerId - Owner Id to query for
+     * @param {string} memberId - Member Id to query for
+     * @param {string} properties - Only support service URL properties
+     * @return IPromise<Contracts.Account[]>
+     */
+    getAccounts(ownerId?: string, memberId?: string, properties?: string): IPromise<Contracts.Account[]>;
+}
 /**
  * @exemptedapi
  */
-export class AccountsHttpClient3_1 extends CommonMethods2To3_1 {
+export class AccountsHttpClient3_2 extends CommonMethods3_1To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class AccountsHttpClient3 extends CommonMethods2To3_1 {
+export class AccountsHttpClient3_1 extends CommonMethods3_1To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-/**
- * @exemptedapi
- */
-export class AccountsHttpClient2_3 extends CommonMethods2To3_1 {
+export class AccountsHttpClient3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * @param {string} creatorId
+     * @param {string} ownerId
+     * @param {string} memberId
+     * @param {boolean} includeOwner
+     * @param {string} properties
+     * @return IPromise<Contracts.Account[]>
+     */
+    getAccounts(creatorId?: string, ownerId?: string, memberId?: string, includeOwner?: boolean, properties?: string): IPromise<Contracts.Account[]>;
 }
-/**
- * @exemptedapi
- */
-export class AccountsHttpClient2_2 extends CommonMethods2To3_1 {
+export class AccountsHttpClient2_3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * @param {string} creatorId
+     * @param {string} ownerId
+     * @param {string} memberId
+     * @param {boolean} includeOwner
+     * @param {string} properties
+     * @return IPromise<Contracts.Account[]>
+     */
+    getAccounts(creatorId?: string, ownerId?: string, memberId?: string, includeOwner?: boolean, properties?: string): IPromise<Contracts.Account[]>;
 }
-/**
- * @exemptedapi
- */
-export class AccountsHttpClient2_1 extends CommonMethods2To3_1 {
+export class AccountsHttpClient2_2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * @param {string} creatorId
+     * @param {string} ownerId
+     * @param {string} memberId
+     * @param {boolean} includeOwner
+     * @param {string} properties
+     * @return IPromise<Contracts.Account[]>
+     */
+    getAccounts(creatorId?: string, ownerId?: string, memberId?: string, includeOwner?: boolean, properties?: string): IPromise<Contracts.Account[]>;
 }
-/**
- * @exemptedapi
- */
-export class AccountsHttpClient2 extends CommonMethods2To3_1 {
+export class AccountsHttpClient2_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * @param {string} creatorId
+     * @param {string} ownerId
+     * @param {string} memberId
+     * @param {boolean} includeOwner
+     * @param {string} properties
+     * @return IPromise<Contracts.Account[]>
+     */
+    getAccounts(creatorId?: string, ownerId?: string, memberId?: string, includeOwner?: boolean, properties?: string): IPromise<Contracts.Account[]>;
 }
-export class AccountsHttpClient extends AccountsHttpClient3_1 {
+export class AccountsHttpClient2 extends CommonMethods2To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * @param {string} creatorId
+     * @param {string} ownerId
+     * @param {string} memberId
+     * @param {boolean} includeOwner
+     * @param {string} properties
+     * @return IPromise<Contracts.Account[]>
+     */
+    getAccounts(creatorId?: string, ownerId?: string, memberId?: string, includeOwner?: boolean, properties?: string): IPromise<Contracts.Account[]>;
+}
+export class AccountsHttpClient extends AccountsHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return AccountsHttpClient3
+ * @return AccountsHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): AccountsHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): AccountsHttpClient3_1;
 }
 declare module "VSS/Adapters/Knockout" {
 import Controls = require("VSS/Controls");
@@ -3549,7 +3595,7 @@ export var TypeInfo: {
 declare module "VSS/Authentication/RestClient" {
 import Contracts = require("VSS/Authentication/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
     protected sessionTokenApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -3563,40 +3609,46 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class AuthenticationHttpClient3_1 extends CommonMethods2To3_1 {
+export class AuthenticationHttpClient3_2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class AuthenticationHttpClient3 extends CommonMethods2To3_1 {
+export class AuthenticationHttpClient3_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class AuthenticationHttpClient2_3 extends CommonMethods2To3_1 {
+export class AuthenticationHttpClient3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class AuthenticationHttpClient2_2 extends CommonMethods2To3_1 {
+export class AuthenticationHttpClient2_3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class AuthenticationHttpClient2_1 extends CommonMethods2To3_1 {
+export class AuthenticationHttpClient2_2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class AuthenticationHttpClient2 extends CommonMethods2To3_1 {
+export class AuthenticationHttpClient2_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class AuthenticationHttpClient extends AuthenticationHttpClient3_1 {
+/**
+ * @exemptedapi
+ */
+export class AuthenticationHttpClient2 extends CommonMethods2To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class AuthenticationHttpClient extends AuthenticationHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 }
@@ -5129,8 +5181,8 @@ export module WebPlatformFeatureFlags {
     var VisualStudioServicesContributionUnSecureBrowsers: string;
     var ClientSideErrorLogging: string;
     var UseGalleryCdn: string;
-    var XHRHubSwitching: string;
     var QueryContributionNodes: string;
+    var MarkdownRendering: string;
 }
 }
 declare module "VSS/Common/Contracts/FormInput" {
@@ -5551,9 +5603,13 @@ export enum ContextHostType {
     */
     Deployment = 1,
     /**
-    * The Application Host
+    * A legacy name for the Organization host. Use ContextHostType.Organization instead.
     */
     Application = 2,
+    /**
+    * The Organization host
+    */
+    Organization = 2,
     /**
     * The Project Collection
     */
@@ -6045,6 +6101,7 @@ export interface PageContext {
     webContext: WebContext;
 }
 export interface PageXHRData {
+    activityId: string;
     bundles: DynamicBundlesCollection;
     contributionsData: ContributionsPageData;
     dataProviderData: VSS_Contributions_Contracts.DataProviderResult;
@@ -6054,6 +6111,7 @@ export interface PageXHRData {
         [key: string]: any;
     };
     serviceLocations: ServiceLocations;
+    staticContentVersion: string;
 }
 export interface PinningPreferences {
     pinnedHubGroupIds: string[];
@@ -6214,6 +6272,7 @@ export var TypeInfo: {
             "unknown": number;
             "deployment": number;
             "application": number;
+            "organization": number;
             "projectCollection": number;
         };
     };
@@ -6521,6 +6580,10 @@ export function getHubsContext(): Contracts_Platform.HubsContext;
 */
 export function getPathsForService(serviceInstanceTypeId: string): Contracts_Platform.ConfigurationContextPaths;
 /**
+ * Get the static content versions for each service currently known by the client.
+ */
+export function getStaticContentVersionsByService(): IDictionaryStringTo<string>;
+/**
  * Get a lookup of service id to contribution paths that come from that service
  */
 export function getContributionPathsForService(serviceInstanceTypeId: string): string[];
@@ -6540,6 +6603,11 @@ export function addCssModulePrefixMapping(modulePrefix: string, url: string): vo
 * @returns The url to the themed css file
 */
 export function getCssModuleUrl(modulePrefix: string, cssModulePath: string, theme?: string): string;
+/**
+ * Because we (try to) automatically detect high contrast mode, the actual theme we're using
+ * doesn't always match the theme in pageContext.globalization.theme.
+ */
+export function getActiveTheme(): string;
 /**
  * Get the root url for the specified service if the service has contributed to
  * the page's configuration context
@@ -6881,6 +6949,10 @@ export interface ContributionProviderDetails {
     properties: {
         [key: string]: string;
     };
+    /**
+     * Version of contributions assoicated with this contribution provider.
+     */
+    version: string;
 }
 export enum ContributionQueryOptions {
     None = 0,
@@ -7238,6 +7310,28 @@ export interface ExtensionRequestedEvent {
      */
     requestUrl: string;
 }
+export interface ExtensionRequestEvent {
+    /**
+     * The extension which has been requested
+     */
+    extension: VSS_Gallery_Contracts.PublishedExtension;
+    /**
+     * Name of the collection for which the extension was requested
+     */
+    hostName: string;
+    /**
+     * Gallery host url
+     */
+    links: ExtensionRequestUrls;
+    /**
+     * The extension request object
+     */
+    request: ExtensionRequest;
+    /**
+     * The type of update that was made
+     */
+    updateType: ExtensionRequestUpdateType;
+}
 export enum ExtensionRequestState {
     /**
      * The request has been opened, but not yet responded to
@@ -7251,6 +7345,26 @@ export enum ExtensionRequestState {
      * The request was rejected (extension not installed or license not assigned)
      */
     Rejected = 2,
+}
+export enum ExtensionRequestUpdateType {
+    Created = 1,
+    Approved = 2,
+    Rejected = 3,
+    Deleted = 4,
+}
+export interface ExtensionRequestUrls {
+    /**
+     * Gallery host url
+     */
+    extensionIcon: string;
+    /**
+     * Link to view the extension details page
+     */
+    extensionPage: string;
+    /**
+     * Linkk to view the extension request
+     */
+    requestPage: string;
 }
 /**
  * The state of an extension
@@ -7566,11 +7680,20 @@ export var TypeInfo: {
     ExtensionManifest: any;
     ExtensionRequest: any;
     ExtensionRequestedEvent: any;
+    ExtensionRequestEvent: any;
     ExtensionRequestState: {
         enumValues: {
             "open": number;
             "accepted": number;
             "rejected": number;
+        };
+    };
+    ExtensionRequestUpdateType: {
+        enumValues: {
+            "created": number;
+            "approved": number;
+            "rejected": number;
+            "deleted": number;
         };
     };
     ExtensionState: any;
@@ -7621,6 +7744,10 @@ export interface IExtensionHost {
     * Gets the promise that is resolved when the host is loaded, and rejected when the load fails or times out.
     */
     getLoadPromise(): IPromise<any>;
+    /**
+    * Dispose the host control
+    */
+    dispose(): void;
 }
 /** The resize options for a contribution host */
 export enum ResizeOptions {
@@ -7740,9 +7867,9 @@ export function getBackgroundInstance<T>(contribution: Contributions_Contracts.C
 declare module "VSS/Contributions/PageEvents" {
 }
 declare module "VSS/Contributions/RestClient" {
-import Contracts = require("VSS/Contributions/Contracts");
+import VSS_Contributions_Contracts = require("VSS/Contributions/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
     protected installedAppsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -7751,11 +7878,11 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      * @param {string[]} contributionIds
      * @param {boolean} includeDisabledApps
      * @param {string[]} assetTypes
-     * @return IPromise<Contracts.InstalledExtension[]>
+     * @return IPromise<VSS_Contributions_Contracts.InstalledExtension[]>
      */
-    getInstalledExtensions(contributionIds?: string[], includeDisabledApps?: boolean, assetTypes?: string[]): IPromise<Contracts.InstalledExtension[]>;
+    getInstalledExtensions(contributionIds?: string[], includeDisabledApps?: boolean, assetTypes?: string[]): IPromise<VSS_Contributions_Contracts.InstalledExtension[]>;
 }
-export class CommonMethods2_1To3_1 extends CommonMethods2To3_1 {
+export class CommonMethods2_1To3_2 extends CommonMethods2To3_2 {
     protected installedAppsApiVersion_3e2f6668: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -7764,73 +7891,83 @@ export class CommonMethods2_1To3_1 extends CommonMethods2To3_1 {
      * @param {string} publisherName
      * @param {string} extensionName
      * @param {string[]} assetTypes
-     * @return IPromise<Contracts.InstalledExtension>
+     * @return IPromise<VSS_Contributions_Contracts.InstalledExtension>
      */
-    getInstalledExtensionByName(publisherName: string, extensionName: string, assetTypes?: string[]): IPromise<Contracts.InstalledExtension>;
+    getInstalledExtensionByName(publisherName: string, extensionName: string, assetTypes?: string[]): IPromise<VSS_Contributions_Contracts.InstalledExtension>;
 }
-export class CommonMethods2_2To3_1 extends CommonMethods2_1To3_1 {
+export class CommonMethods2_2To3_2 extends CommonMethods2_1To3_2 {
     protected dataProvidersQueryApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
      *
-     * @param {Contracts.DataProviderQuery} query
-     * @return IPromise<Contracts.DataProviderResult>
+     * @param {VSS_Contributions_Contracts.DataProviderQuery} query
+     * @return IPromise<VSS_Contributions_Contracts.DataProviderResult>
      */
-    queryDataProviders(query: Contracts.DataProviderQuery): IPromise<Contracts.DataProviderResult>;
+    queryDataProviders(query: VSS_Contributions_Contracts.DataProviderQuery): IPromise<VSS_Contributions_Contracts.DataProviderResult>;
 }
-/**
- * @exemptedapi
- */
-export class ContributionsHttpClient3_1 extends CommonMethods2_2To3_1 {
+export class CommonMethods3_1To3_2 extends CommonMethods2_2To3_2 {
+    protected contributionNodeQueryApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API] Query for contribution nodes and provider details according the parameters in the passed in query object.
      *
-     * @param {Contracts.ContributionNodeQuery} query
-     * @return IPromise<Contracts.ContributionNodeQueryResult>
+     * @param {VSS_Contributions_Contracts.ContributionNodeQuery} query
+     * @return IPromise<VSS_Contributions_Contracts.ContributionNodeQueryResult>
      */
-    queryContributionNodes(query: Contracts.ContributionNodeQuery): IPromise<Contracts.ContributionNodeQueryResult>;
+    queryContributionNodes(query: VSS_Contributions_Contracts.ContributionNodeQuery): IPromise<VSS_Contributions_Contracts.ContributionNodeQueryResult>;
 }
 /**
  * @exemptedapi
  */
-export class ContributionsHttpClient3 extends CommonMethods2_2To3_1 {
+export class ContributionsHttpClient3_2 extends CommonMethods3_1To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ContributionsHttpClient2_3 extends CommonMethods2_2To3_1 {
+export class ContributionsHttpClient3_1 extends CommonMethods3_1To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ContributionsHttpClient2_2 extends CommonMethods2_2To3_1 {
+export class ContributionsHttpClient3 extends CommonMethods2_2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ContributionsHttpClient2_1 extends CommonMethods2_1To3_1 {
+export class ContributionsHttpClient2_3 extends CommonMethods2_2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ContributionsHttpClient2 extends CommonMethods2To3_1 {
+export class ContributionsHttpClient2_2 extends CommonMethods2_2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class ContributionsHttpClient extends ContributionsHttpClient3_1 {
+/**
+ * @exemptedapi
+ */
+export class ContributionsHttpClient2_1 extends CommonMethods2_1To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class ContributionsHttpClient2 extends CommonMethods2To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class ContributionsHttpClient extends ContributionsHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return ContributionsHttpClient3
+ * @return ContributionsHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ContributionsHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ContributionsHttpClient3_1;
 }
 declare module "VSS/Contributions/Services" {
 import Contracts_Platform = require("VSS/Common/Contracts/Platform");
@@ -8097,8 +8234,10 @@ export class WebPageDataService extends Service.VssService {
      *
      * @param result Data provider result to merge-in
      * @param contributions Contributions to leverage when resolving provider data
+     * @param clearExisting If true, clear any existing data providers. If false, add to it.
      */
-    registerProviderData(result: Contributions_Contracts.DataProviderResult, contributions: Contributions_Contracts.Contribution[]): IPromise<any>;
+    registerProviderData(result: Contributions_Contracts.DataProviderResult, contributions: Contributions_Contracts.Contribution[], clearExisting?: boolean): IPromise<any>;
+    private _clearCachedDataProviders();
     private _handleDataProviderResult(result, contributions, source);
     private _storeDataProviderData(contributionId, originalResult, pluginResult, caching);
     private _getLocalStorageCacheScope(caching);
@@ -8145,8 +8284,8 @@ export class WebPageDataService extends Service.VssService {
     * @param contributions The data provider contributions to resolve
     * @param refreshIfExpired If true, force a server request to re-populate the data provider data if the data has expired.  Default is it is always expired.
     */
-    ensureDataProvidersResolved(contributions: Contributions_Contracts.Contribution[], refreshIfExpired?: boolean): IPromise<any>;
-    private fetchPageDataForService(serviceInstanceId, contributions);
+    ensureDataProvidersResolved(contributions: Contributions_Contracts.Contribution[], refreshIfExpired?: boolean, properties?: any): IPromise<any>;
+    private fetchPageDataForService(serviceInstanceId, contributions, properties?);
     /**
      * Get page data from a data provider contribution that is cached, optionally queueing an update of the data
      * after reading from the cache
@@ -8161,8 +8300,9 @@ export class WebPageDataService extends Service.VssService {
      * Always reloads provider data by queuing up a new request
      *
      * @param cachedDataProviderContributionId Id of the data provider
+     * @param properties Additional properties to pass to the provider on reload as part of the context
      */
-    reloadCachedProviderData(cachedDataProviderContributionId: string, reloadCallback?: IResultCallback): void;
+    reloadCachedProviderData(cachedDataProviderContributionId: string, reloadCallback?: IResultCallback, properties?: any): void;
     /**
      * Invalidate any previously-cached data for the given data provider.
      *
@@ -9646,22 +9786,22 @@ export interface IDialogOptions extends Panels.IAjaxPanelOptions {
      */
     hideCloseButton?: boolean;
     /**
-     * Min height of the dialog in px or %.
+     * Min height of the dialog in px.
      * @defaultvalue "auto"
      */
     minHeight?: number | string;
     /**
-     * Min width of the dialog in px or %.
+     * Min width of the dialog in px.
      * @defaultvalue "auto"
      */
     minWidth?: number | string;
     /**
-     * Max height of the dialog in px or %.
+     * Max height of the dialog in px.
      * @defaultvalue "auto"
      */
     maxHeight?: number | string;
     /**
-     * Max width of the dialog in px or %.
+     * Max width of the dialog in px.
      * @defaultvalue "auto"
      */
     maxWidth?: number | string;
@@ -9673,6 +9813,14 @@ export interface IDialogOptions extends Panels.IAjaxPanelOptions {
 export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<TOptions> {
     static enhancementTypeName: string;
     static _dialogActionInProgress: boolean;
+    /**
+     * The maximum width as specified in the options when the dialog was created.
+     */
+    private _specifiedMaxWidth;
+    /**
+     * The maximum height as specified in the options when the dialog was created.
+     */
+    private _specifiedMaxHeight;
     /**
      *     This should be used in cases where you don't want the user to execute more than 1 particular action involving a Dialog
      *     in parallel. For example, clicking a link that does some server processing before opening a dialog. On slow connections
@@ -9696,7 +9844,7 @@ export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<
     private _subtitle;
     private _progressElement;
     private _dialogResult;
-    private _resizeDelegate;
+    private _onWindowResizeDelegate;
     private _secondOverlay;
     /**
      * Creates a new dialog with the provided options
@@ -9823,7 +9971,14 @@ export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<
      */
     private _onDialogMove(e?, ui?);
     private _ensureDialogContentHeight();
+    /**
+     * Set the css maximum height of the dialog.
+     */
     private _setMaxHeight();
+    /**
+     * Set the maximum size jQueryUI will allow the dialog to be.
+     */
+    private _setMaxSize();
 }
 export class Dialog extends DialogO<IDialogOptions> {
 }
@@ -10395,7 +10550,10 @@ export class ExternalHub extends Controls.BaseControl {
     private static POP_STATE_HANDLER_ID;
     private _navigationIndex;
     private _hubsService;
+    private _xhrHubSwitchingEnabled;
+    private _extensionHost;
     initialize(): void;
+    private isXHRHubSwitchingEnabled();
     /**
      * Navigate the page to the specified hub
      *
@@ -10405,6 +10563,7 @@ export class ExternalHub extends Controls.BaseControl {
      */
     private navigateToNewHub(hubId, url?);
     private finishNavigateToNewHub(hub, url, navigateId);
+    private hasStaticContentVersionChanged(previousVersions, currentVersions);
     private showProgress(navigateId, delay, loadHostAction);
     private createHost(contribution);
     private beginGetHubContentUri(contribution, baseUri?);
@@ -10447,10 +10606,12 @@ export interface FileInputControlResult {
     lastModifiedDate: Date;
     content?: string;
     encoding?: Utils_File.FileEncoding;
+    file?: File;
 }
 export enum FileInputControlContentType {
     Base64EncodedText = 0,
     RawText = 1,
+    RawFile = 2,
 }
 /**
 * Event data passed to FileInputControl update events.
@@ -12309,6 +12470,7 @@ export module ShortcutKeys {
     var CONTROL: string;
     var SHIFT: string;
 }
+export type KeyboardAction = (e: ExtendedKeyboardEvent, combo: string) => void;
 export interface IShortcutGroup {
     /**
      *  The name of the group
@@ -12335,7 +12497,7 @@ export interface IShortcut {
     /**
      * Action to invoke for this shortcut
      */
-    action: Function;
+    action: KeyboardAction;
 }
 export interface IShortcutOptions {
     /**
@@ -12345,7 +12507,7 @@ export interface IShortcutOptions {
     /**
      * Action which gets called when shortcut is pressed
      */
-    action: Function;
+    action: KeyboardAction;
     /**
      * The Dom Element to bind the shortcut to
      */
@@ -12358,6 +12520,15 @@ export interface IShortcutOptions {
      * Defaults to false. Use true in the rare case that you want the last key of the chord to propagate to the focused element
      */
     allowPropagation?: boolean;
+    /**
+     * List combos which you want to be always active even if the user has focus on an input box
+     */
+    globalCombos?: string[];
+    /**
+     * Is this a navigation shortcurt? If so, we will handle reseting shortcuts so
+     * if this is an in memory navigation you don't have mixed shortcut state
+     */
+    isPageNavigationShortcut?: boolean;
 }
 /**
 * ShortcutManager handles registering multiple groups of keyboard shortcuts
@@ -12377,7 +12548,7 @@ export interface IShortcutManager {
      *
      * @returns ShortcutManager
      */
-    registerShortcut(group: string, combo: string, description: string, action: Function, allowPropagation?: boolean): IShortcutManager;
+    registerShortcut(group: string, combo: string, description: string, action: KeyboardAction, allowPropagation?: boolean): IShortcutManager;
     /**
      * Unregister a shortcut
      * @param group Name of a shortcut group.
@@ -12396,7 +12567,7 @@ export interface IShortcutManager {
      *
      * @returns ShortcutManager
      */
-    registerShortcuts(group: string, combos: string[], description: string, action: Function, allowPropagation?: boolean): IShortcutManager;
+    registerShortcuts(group: string, combos: string[], description: string, action: KeyboardAction, allowPropagation?: boolean): IShortcutManager;
     /**
      * Register a shortcut
      * @param group Name of a shortcut group.
@@ -12438,10 +12609,15 @@ export class ShortcutManager implements IShortcutManager {
     private _registeredCombos;
     private _shortcutsGroups;
     private _shortcutDialog;
+    private _globalCombos;
+    private _originalStopCallback;
+    constructor();
+    private reset();
     getShortcutGroups(): IShortcutGroup[];
-    registerShortcut(group: string, combo: string, description: string, action: Function, allowPropagation?: boolean): ShortcutManager;
+    getGlobalCombos(): string[];
+    registerShortcut(group: string, combo: string, description: string, action: KeyboardAction, allowPropagation?: boolean): ShortcutManager;
     registerShortcut(group: string, combo: string, options: IShortcutOptions): ShortcutManager;
-    registerShortcuts(group: string, combos: string[], description: string, action: Function, allowPropagation?: boolean): ShortcutManager;
+    registerShortcuts(group: string, combos: string[], description: string, action: KeyboardAction, allowPropagation?: boolean): ShortcutManager;
     registerShortcuts(group: string, combos: string[], options: IShortcutOptions): ShortcutManager;
     unRegisterShortcut(group: string, combo: string): void;
     removeShortcutGroup(group: string): void;
@@ -12454,6 +12630,7 @@ export class ShortcutManager implements IShortcutManager {
 }
 }
 declare module "VSS/Controls/Menus" {
+import Contracts_Platform = require("VSS/Common/Contracts/Platform");
 import Contributions_Services = require("VSS/Contributions/Services");
 import Controls = require("VSS/Controls");
 export var menuManager: any;
@@ -12481,7 +12658,7 @@ export interface IMenuItemSpec extends IContributedMenuItem {
     /**
      * Display html of the menu item (mutually exclusive with text)
      */
-    html?: string;
+    html?: string | JQuery | (() => string | JQuery);
     /**
      * Text displayed when mouse is hovered on the menu item.
      * @defaultvalue the value of the text option
@@ -12894,6 +13071,44 @@ export class MenuItem extends MenuBase<MenuItemOptions> {
 export interface MenuContributionProviderOptions {
     defaultTextToTitle?: boolean;
 }
+export class MenuContributionProvider {
+    private static readonly ACTION_TYPE;
+    private static readonly HYPERLINK_ACTION_TYPE;
+    private static _contributionSourceTimeout;
+    private static _contributionGetItemsTimeout;
+    private _webContext;
+    private _contributionIds;
+    private _contributionType;
+    private _contributionQueryOptions;
+    private _getMenuActionContext;
+    private _contributionsPromise;
+    private _contributedMenuItems;
+    private _options;
+    private _menu;
+    constructor(menu: Menu<MenuOptions>, webContext: Contracts_Platform.WebContext, contributionIds: string[], contributionType: string, contributionQueryOptions: Contributions_Services.ContributionQueryOptions, getMenuActionContext: () => any, options: MenuContributionProviderOptions);
+    private _immediateInstanceRequired(contribution);
+    private _getContributions();
+    private _getContributionWithSource(contribution);
+    private _makeThennable<T>(obj);
+    private _contributionToMenuItems(contributionWithSource, context);
+    /**
+     * Given a contributed menu item, create a menu item with the same properties.
+     * Prevents a contributed menu item specifying properties not on the IContributedMenuItem interface
+     * @param contributedItem
+     * @return IMenuItemSpec
+     */
+    private static _getMenuItemFromContributedMenuItem(contributedItem);
+    private _updateContributedMenuFromSource(contributedMenuItem, contribution, menuSource, isRootItem?);
+    private _getBasicMenuItemFromContribution(contributionId, contribution, menuSource);
+    private _getMenuAction(contribution, menuSource, contributedMenuAction);
+    /**
+     * Handles an extension calling updateMenuItems() to update its contributions.
+     * @param items
+     * @param contributionWithSource
+     */
+    private _updateContributedMenuItems(items, contributionWithSource);
+    getContributedMenuItems(context: any): IPromise<IContributedMenuItem[]>;
+}
 export interface MenuOptions extends MenuBaseOptions {
     suppressInitContributions?: boolean;
     contributionIds?: string[];
@@ -13052,6 +13267,7 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
     _selectItem(item?: MenuItem, ignoreFocus?: boolean, setKeyboardFocus?: boolean): void;
     selectDefaultItem(ignoreFocus?: boolean): void;
     selectFirstItem(): boolean;
+    selectLastItem(): void;
     selectNextItem(): boolean;
     selectPrevItem(): boolean;
     /**
@@ -13440,6 +13656,7 @@ export class NavigationView extends Controls.BaseControl {
     private _chromelessMode;
     private _leftPaneVisible;
     private _useHostedTitle;
+    private _historyNavigated;
     /**
      * Creates an instance of the object for the given page
      *
@@ -13516,6 +13733,8 @@ export class NavigationView extends Controls.BaseControl {
     _getPageTitleString(): string;
     private _attachNavigate();
     _onNavigate(state: any): void;
+    private _onHistoryNavigate;
+    protected _dispose(): void;
 }
 /**
  * A high-level singleton wrapper class for a Tri-Split page, providing lightweight
@@ -13716,6 +13935,8 @@ export class PivotView extends Controls.Control<IPivotViewOptions> {
     private _populateItems(ul);
     private _attachEvents();
     private _onClick(e?);
+    private _onFocus(e);
+    private _onKeydown(jqe);
 }
 export class NavigationViewTab extends Controls.BaseControl {
     /**
@@ -14251,34 +14472,117 @@ declare module "VSS/Controls/PerfBar" {
 }
 declare module "VSS/Controls/PopupContent" {
 import Controls = require("VSS/Controls");
-export class PopupContentControl extends Controls.BaseControl {
+import Utils_UI = require("VSS/Utils/UI");
+export interface IPopupContentControlOptions extends Controls.EnhancementOptions {
+    /**
+     * HTML content to display in the popup (or a function that returns the content).
+     */
+    content?: string | JQuery | ((this: PopupContentControlO<IPopupContentControlOptions>) => string);
+    /**
+     * If true, show popup on hover. If false (default), show popup on click.
+     */
+    openCloseOnHover?: boolean;
+    /**
+     * The number of milliseconds to wait before displaying the tooltip on hover or focus.
+     */
+    openDelay?: number;
+    /**
+     * If openCloseOnHover is true, popup will be shown on focus as well as hover unlesss this is set to false.
+     */
+    showOnFocus?: boolean;
+    /**
+     * where to align the element (horizontal-vertical)
+     */
+    elementAlign?: string;
+    /**
+     * where to align the element against base element (horizontal-vertical)
+     */
+    baseAlign?: string;
+    /**
+     * behavior when the element overflows the window (horizontal-vertical)
+     */
+    overflow?: string;
+    /**
+     * how much extra left offset (if any) should be given to the target element versus the reference element.
+     */
+    leftOffsetPixels?: number;
+    /**
+     * how much extra top offset (if any) should be given to the target element versus the reference element.
+     */
+    topOffsetPixels?: number;
+    supportScroll?: boolean;
+    menuContainer?: any;
+}
+export interface IPositionOptions {
+    useMousePosition: boolean;
+}
+export class PopupContentControlO<TOptions extends IPopupContentControlOptions> extends Controls.Control<TOptions> {
     private _$dropElement;
     private _$contentContainer;
     private _contentSet;
+    private _visible;
     private _documentEventDelegate;
     private _onForceHideDropPopupDelegate;
+    private _mouseMoveDelegate;
+    private _delayedShow;
+    private _delayedHide;
+    protected _mousePosition: Utils_UI.Positioning.ILocation;
     initialize(): void;
     onForceHideDropPopup(e?: JQueryEventObject): void;
-    setContent(content: any): void;
+    /**
+     * Set the content to display (in HTML)
+     */
+    setContent(content: string | JQuery): void;
     resetContent(): void;
     show(): void;
-    hide(): void;
     toggle(): void;
     _enhance($dropElement: any): void;
     private _decorate();
+    private _onMouseMove(e);
+    private _onMouseEnter(e);
+    private _onMouseLeave(e);
+    /**
+     * Show the popup, after a delay if the openDelay option is set.
+     */
+    private _showDelayed(e, options?);
     private _handleDocumentMouseDown(e);
+    /**
+     * Set the position of the popup.
+     */
     _setPosition(): void;
+    protected _setPositionInternal(options: IPositionOptions): void;
     _getDropElement(): JQuery;
-    private _onShow();
-    private _onHide();
+    private _show(options);
+    hide(): void;
     _dispose(): void;
 }
-export class RichContentTooltip extends PopupContentControl {
+export class PopupContentControl extends PopupContentControlO<any> {
+}
+export interface IRichContentTooltipOptions extends IPopupContentControlOptions {
+    /**
+     * If explicitly set to false, show popup on click, not hover.
+     */
+    openCloseOnHover?: boolean;
+    /**
+     * If explicitly set to false, don't show the little arrow at the top of the tooltip pointing to its parent.
+     */
+    popupTag?: boolean;
+}
+export class RichContentTooltipO<TOptions extends IRichContentTooltipOptions> extends PopupContentControlO<TOptions> {
     private _$popupTag;
     initializeOptions(options?: any): void;
     initialize(): void;
     _getPopupTooltipElement(): JQuery;
-    _setPosition(): void;
+    protected _setPositionInternal(options: IPositionOptions): void;
+    /**
+     * Add a tooltip to the target with common default settings.
+     * @param content Content to place in the tooltip (HTML)
+     * @param target
+     * @param options
+     */
+    static addTooltip(content: string, target: HTMLElement | JQuery, options?: IRichContentTooltipOptions): RichContentTooltip;
+}
+export class RichContentTooltip extends RichContentTooltipO<any> {
 }
 }
 declare module "VSS/Controls/RichEditor" {
@@ -15672,7 +15976,7 @@ export class TabControl extends Controls.Control<ITabControlOption> {
     invokeSaveCallbacks(): void;
     clearOnSavedCallbackList(): void;
     getRefreshOnCloseStatus(): boolean;
-    private _createTabControl(groupTitle, tab, titleContainer, contentContainer, savingMode, navigationMode);
+    private _createTabControl(groupTitle, tab, titleContainer, contentContainer, savingMode, navigationMode, tabIndex);
     private _onTabChanged(tab);
     private _onTabChanging();
     private _onTabSaved(result);
@@ -15739,6 +16043,10 @@ export interface ITabPageOption {
      * If set to true, the control will handle the server errors and the individual tabs should handle only the client-side validation errors
      */
     handleServerError?: boolean;
+    /**
+     * The first tab should have tabindex 0, the remaining -1.
+     */
+    tabIndex: 0 | -1;
 }
 /**
  * A base class for the all the tab content classes that implement the ITabContent.
@@ -15983,6 +16291,16 @@ export interface ITreeOptions {
      * @defaultvalue false
      */
     useBowtieStyle?: boolean;
+    /**
+     * Determine use arrow keys or TAB for navigation between tree nodes, in arrow keys mode only one node will have tabIndex at one time.
+     * @defaultvalue false
+     */
+    useArrowKeysForNavigation?: boolean;
+    /**
+     * Determine if always set title or only set title on overflow
+     * @defaultvalue false
+     */
+    setTitleOnlyOnOverflow?: boolean;
 }
 /**
  * @publicapi
@@ -16052,6 +16370,7 @@ export class TreeNode {
     path(includeRoot: any, sepChar: any): any;
     level(noRoot: any): number;
     getContributionContext(): TreeNode;
+    getHtmlId(): string;
     private _ensureNodeId();
     private _sort(recursive, treeNodeComparer);
 }
@@ -16064,6 +16383,7 @@ export class TreeViewO<TOptions extends ITreeOptions> extends Controls.Control<T
     static LEVEL_DATA_NAME: string;
     static EXPANDED_CLASS: string;
     static COLLAPSED_CLASS: string;
+    private static NODE_VISIBLE_AND_FOCUSABLE;
     private _focusDelegate;
     private _blurDelegate;
     private _dragStartDelegate;
@@ -16072,6 +16392,7 @@ export class TreeViewO<TOptions extends ITreeOptions> extends Controls.Control<T
     private _droppable;
     _focusedNode: JQuery;
     private _popupMenu;
+    private _nodeHasTabindex;
     rootNode: TreeNode;
     _selectedNode: TreeNode;
     /**
@@ -16145,9 +16466,10 @@ export class TreeViewO<TOptions extends ITreeOptions> extends Controls.Control<T
      * Update the specified node by refreshing the child nodes if anything is added or removed.
      *
      * @param node Node to be updated.
+     * @param suppressFocus suppress focusing on the node
      * @publicapi
      */
-    updateNode(node: TreeNode): void;
+    updateNode(node: TreeNode, suppressFocus?: boolean): void;
     /**
      * @param e
      * @return
@@ -16226,6 +16548,8 @@ export class TreeViewO<TOptions extends ITreeOptions> extends Controls.Control<T
     setDroppable(droppable: any): void;
     private _getFirstTabbableChild(nodeElement);
     private _setNodeElementExpandState(nodeElement, expand, hasChildren?);
+    private _restoreTabindexAndFocus(fallbackNode);
+    private _setNodeHasTabindex(node);
 }
 export class TreeView extends TreeViewO<ITreeOptions> {
 }
@@ -16298,6 +16622,16 @@ export class MultiSelectTreeComboBehavior extends Combos.ComboListBehavior {
      * @return
      */
     keyUp(e?: JQueryEventObject): any;
+    /**
+     * @param e
+     * @return
+     */
+    upKey(e?: JQueryEventObject): any;
+    /**
+     * @param e
+     * @return
+     */
+    downKey(e?: JQueryEventObject): any;
     /**
      * @param e
      * @return
@@ -18535,7 +18869,7 @@ declare module "VSS/ExtensionManagement/RestClient" {
 import Contracts = require("VSS/Contributions/Contracts");
 import VSS_Gallery_Contracts = require("VSS/Gallery/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected installedExtensionsApiVersion: string;
     protected requestedExtensionsApiVersion: string;
@@ -18612,7 +18946,7 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      */
     getInstalledExtensions(includeDisabledExtensions?: boolean, includeErrors?: boolean, assetTypes?: string[], includeInstallationIssues?: boolean): IPromise<Contracts.InstalledExtension[]>;
 }
-export class CommonMethods2_1To3_1 extends CommonMethods2To3_1 {
+export class CommonMethods2_1To3_2 extends CommonMethods2To3_2 {
     protected dataApiVersion: string;
     protected extensionStatesApiVersion: string;
     protected installedExtensionQueryApiVersion: string;
@@ -18734,7 +19068,7 @@ export class CommonMethods2_1To3_1 extends CommonMethods2To3_1 {
      */
     createDocumentByName(doc: any, publisherName: string, extensionName: string, scopeType: string, scopeValue: string, collectionName: string): IPromise<any>;
 }
-export class CommonMethods2_2To3_1 extends CommonMethods2_1To3_1 {
+export class CommonMethods2_2To3_2 extends CommonMethods2_1To3_2 {
     protected extensionDataCollectionQueryApiVersion: string;
     protected policiesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -18755,7 +19089,7 @@ export class CommonMethods2_2To3_1 extends CommonMethods2_1To3_1 {
      */
     queryCollectionsByName(collectionQuery: Contracts.ExtensionDataCollectionQuery, publisherName: string, extensionName: string): IPromise<Contracts.ExtensionDataCollection[]>;
 }
-export class CommonMethods3To3_1 extends CommonMethods2_2To3_1 {
+export class CommonMethods3To3_2 extends CommonMethods2_2To3_2 {
     protected acquisitionOptionsApiVersion: string;
     protected acquisitionRequestsApiVersion: string;
     protected authorizationsApiVersion: string;
@@ -18789,48 +19123,54 @@ export class CommonMethods3To3_1 extends CommonMethods2_2To3_1 {
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient3_1 extends CommonMethods3To3_1 {
+export class ExtensionManagementHttpClient3_2 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient3 extends CommonMethods3To3_1 {
+export class ExtensionManagementHttpClient3_1 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient2_3 extends CommonMethods2_2To3_1 {
+export class ExtensionManagementHttpClient3 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient2_2 extends CommonMethods2_2To3_1 {
+export class ExtensionManagementHttpClient2_3 extends CommonMethods2_2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient2_1 extends CommonMethods2_1To3_1 {
+export class ExtensionManagementHttpClient2_2 extends CommonMethods2_2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient2 extends CommonMethods2To3_1 {
+export class ExtensionManagementHttpClient2_1 extends CommonMethods2_1To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class ExtensionManagementHttpClient extends ExtensionManagementHttpClient3_1 {
+/**
+ * @exemptedapi
+ */
+export class ExtensionManagementHttpClient2 extends CommonMethods2To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class ExtensionManagementHttpClient extends ExtensionManagementHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return ExtensionManagementHttpClient3
+ * @return ExtensionManagementHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ExtensionManagementHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ExtensionManagementHttpClient3_1;
 }
 declare module "VSS/FeatureAvailability/Contracts" {
 /**
@@ -18840,6 +19180,9 @@ declare module "VSS/FeatureAvailability/Contracts" {
  *
  * See following wiki page for instructions on how to regenerate:
  *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *
+ * Configuration file:
+ *   Vssf\Client\WebApi\HttpClients\ClientGeneratorConfigs\genclient.json
  */
 export interface FeatureFlag {
     description: string;
@@ -18858,7 +19201,7 @@ export interface FeatureFlagPatch {
 declare module "VSS/FeatureAvailability/RestClient" {
 import Contracts = require("VSS/FeatureAvailability/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
     protected featureFlagsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -18906,48 +19249,54 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class FeatureAvailabilityHttpClient3_1 extends CommonMethods2To3_1 {
+export class FeatureAvailabilityHttpClient3_2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureAvailabilityHttpClient3 extends CommonMethods2To3_1 {
+export class FeatureAvailabilityHttpClient3_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureAvailabilityHttpClient2_3 extends CommonMethods2To3_1 {
+export class FeatureAvailabilityHttpClient3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureAvailabilityHttpClient2_2 extends CommonMethods2To3_1 {
+export class FeatureAvailabilityHttpClient2_3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureAvailabilityHttpClient2_1 extends CommonMethods2To3_1 {
+export class FeatureAvailabilityHttpClient2_2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureAvailabilityHttpClient2 extends CommonMethods2To3_1 {
+export class FeatureAvailabilityHttpClient2_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class FeatureAvailabilityHttpClient extends FeatureAvailabilityHttpClient3_1 {
+/**
+ * @exemptedapi
+ */
+export class FeatureAvailabilityHttpClient2 extends CommonMethods2To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class FeatureAvailabilityHttpClient extends FeatureAvailabilityHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return FeatureAvailabilityHttpClient3
+ * @return FeatureAvailabilityHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): FeatureAvailabilityHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): FeatureAvailabilityHttpClient3_1;
 }
 declare module "VSS/FeatureAvailability/Services" {
 import Service = require("VSS/Service");
@@ -18994,13 +19343,17 @@ declare module "VSS/FeatureManagement/Contracts" {
  */
 export interface ContributedFeature {
     /**
+     * Named links describing the feature
+     */
+    _links: any;
+    /**
      * If true, the feature is enabled unless overridden at some scope
      */
     defaultState: boolean;
     /**
      * Rules for setting the default value if not specified by any setting/scope. Evaluated in order until a rule returns an Enabled or Disabled state (not Undefined)
      */
-    defaultValueRules: ContributedFeatureDefaultValueRule[];
+    defaultValueRules: ContributedFeatureValueRule[];
     /**
      * The description of the feature
      */
@@ -19014,24 +19367,13 @@ export interface ContributedFeature {
      */
     name: string;
     /**
+     * Rules for overriding a feature value. These rules are run before explicit user/host state values are checked. They are evaluated in order until a rule returns an Enabled or Disabled state (not Undefined)
+     */
+    overrideRules: ContributedFeatureValueRule[];
+    /**
      * The scopes/levels at which settings can set the enabled/disabled state of this feature
      */
     scopes: ContributedFeatureSettingScope[];
-}
-/**
- * A rules for setting the default value of a feature if not specified by any setting/scope
- */
-export interface ContributedFeatureDefaultValueRule {
-    /**
-     * Name of the IContributedFeatureValuePlugin to run
-     */
-    name: string;
-    /**
-     * Properties to feed to the IContributedFeatureValuePlugin
-     */
-    properties: {
-        [key: string]: any;
-    };
 }
 export enum ContributedFeatureEnabledValue {
     /**
@@ -19077,6 +19419,42 @@ export interface ContributedFeatureState {
      */
     state: ContributedFeatureEnabledValue;
 }
+/**
+ * A query for the effective contributed feature states for a list of feature ids
+ */
+export interface ContributedFeatureStateQuery {
+    /**
+     * The list of feature ids to query
+     */
+    featureIds: string[];
+    /**
+     * The query result containing the current feature states for each of the queried feature ids
+     */
+    featureStates: {
+        [key: string]: ContributedFeatureState;
+    };
+    /**
+     * A dictionary of scope values (project name, etc.) to use in the query (if querying across scopes)
+     */
+    scopeValues: {
+        [key: string]: string;
+    };
+}
+/**
+ * A rule for dynamically getting the enabled/disabled state of a feature
+ */
+export interface ContributedFeatureValueRule {
+    /**
+     * Name of the IContributedFeatureValuePlugin to run
+     */
+    name: string;
+    /**
+     * Properties to feed to the IContributedFeatureValuePlugin
+     */
+    properties: {
+        [key: string]: any;
+    };
+}
 export var TypeInfo: {
     ContributedFeatureEnabledValue: {
         enumValues: {
@@ -19086,12 +19464,13 @@ export var TypeInfo: {
         };
     };
     ContributedFeatureState: any;
+    ContributedFeatureStateQuery: any;
 };
 }
 declare module "VSS/FeatureManagement/RestClient" {
 import Contracts = require("VSS/FeatureManagement/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods3To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods3To3_2 extends VSS_WebApi.VssHttpClient {
     protected featuresApiVersion: string;
     protected featureStatesApiVersion: string;
     protected featureStatesApiVersion_98911314: string;
@@ -19139,11 +19518,12 @@ export class CommonMethods3To3_1 extends VSS_WebApi.VssHttpClient {
      */
     getFeatureState(featureId: string, userScope: string): IPromise<Contracts.ContributedFeatureState>;
     /**
-     * [Preview API]
+     * [Preview API] Get a list of all defined features
      *
+     * @param {string} targetContributionId - Optional target contribution. If null/empty, return all features. If specified include the features that target the specified contribution.
      * @return IPromise<Contracts.ContributedFeature[]>
      */
-    getFeatures(): IPromise<Contracts.ContributedFeature[]>;
+    getFeatures(targetContributionId?: string): IPromise<Contracts.ContributedFeature[]>;
     /**
      * [Preview API] Get a specific feature by its id
      *
@@ -19152,27 +19532,64 @@ export class CommonMethods3To3_1 extends VSS_WebApi.VssHttpClient {
      */
     getFeature(featureId: string): IPromise<Contracts.ContributedFeature>;
 }
+export class CommonMethods3_1To3_2 extends CommonMethods3To3_2 {
+    protected featureStatesQueryApiVersion: string;
+    protected featureStatesQueryApiVersion_2b4486ad: string;
+    protected featureStatesQueryApiVersion_3f810f28: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Get the states of the specified features for the specific named scope
+     *
+     * @param {Contracts.ContributedFeatureStateQuery} query - Query describing the features to query.
+     * @param {string} userScope
+     * @param {string} scopeName
+     * @param {string} scopeValue
+     * @return IPromise<Contracts.ContributedFeatureStateQuery>
+     */
+    queryFeatureStatesForNamedScope(query: Contracts.ContributedFeatureStateQuery, userScope: string, scopeName: string, scopeValue: string): IPromise<Contracts.ContributedFeatureStateQuery>;
+    /**
+     * [Preview API] Get the states of the specified features for the default scope
+     *
+     * @param {Contracts.ContributedFeatureStateQuery} query - Query describing the features to query.
+     * @param {string} userScope
+     * @return IPromise<Contracts.ContributedFeatureStateQuery>
+     */
+    queryFeatureStatesForDefaultScope(query: Contracts.ContributedFeatureStateQuery, userScope: string): IPromise<Contracts.ContributedFeatureStateQuery>;
+    /**
+     * [Preview API] Get the effective state for a list of feature ids
+     *
+     * @param {Contracts.ContributedFeatureStateQuery} query - Features to query along with current scope values
+     * @return IPromise<Contracts.ContributedFeatureStateQuery>
+     */
+    queryFeatureStates(query: Contracts.ContributedFeatureStateQuery): IPromise<Contracts.ContributedFeatureStateQuery>;
+}
 /**
  * @exemptedapi
  */
-export class FeatureManagementHttpClient3_1 extends CommonMethods3To3_1 {
+export class FeatureManagementHttpClient3_2 extends CommonMethods3_1To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureManagementHttpClient3 extends CommonMethods3To3_1 {
+export class FeatureManagementHttpClient3_1 extends CommonMethods3_1To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class FeatureManagementHttpClient extends FeatureManagementHttpClient3_1 {
+/**
+ * @exemptedapi
+ */
+export class FeatureManagementHttpClient3 extends CommonMethods3To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class FeatureManagementHttpClient extends FeatureManagementHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return FeatureManagementHttpClient3
+ * @return FeatureManagementHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): FeatureManagementHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): FeatureManagementHttpClient3_1;
 }
 declare module "VSS/FileContainer/Contracts" {
 export enum ContainerItemStatus {
@@ -19512,11 +19929,9 @@ export class Action<T> {
 }
 }
 declare module "VSS/Flux/AsyncLoadedComponent" {
-import * as React from 'react';
+import * as React from "react";
 /** Given the imported modules (in the order given in the modules array), return the type of the component to create */
-export type ModuleComponentSelector<TComponent> = (...modules: any[]) => {
-    new (): TComponent;
-};
+export type ModuleComponentSelector<TProps> = (...modules: any[]) => React.ComponentClass<TProps> | React.StatelessComponent<TProps>;
 /**
  * Create a method returning a delay loaded component instance
  * @param modules Paths of modules to load
@@ -19524,7 +19939,7 @@ export type ModuleComponentSelector<TComponent> = (...modules: any[]) => {
  *                                the desired component.
  * @param componentWhileLoading Optional function to return a component to display while loading
  */
-export function getAsyncLoadedComponent<TComponent extends React.Component<TProps, any>, TProps>(modules: string[], moduleComponentSelector: ModuleComponentSelector<TComponent>, componentWhileLoading?: () => JSX.Element): (props: TProps) => JSX.Element;
+export function getAsyncLoadedComponent<TProps>(modules: string[], moduleComponentSelector: ModuleComponentSelector<TProps>, componentWhileLoading?: () => JSX.Element): (props: TProps) => JSX.Element;
 }
 declare module "VSS/Flux/Component" {
 import React = require("react");
@@ -19814,6 +20229,40 @@ export enum ConcernCategory {
     Abusive = 2,
     Spam = 4,
 }
+export interface EventCounts {
+    /**
+     * Number of times the extension was bought in hosted scenario (applies only to VSTS extensions)
+     */
+    buyCount: number;
+    /**
+     * Number of times the extension was bought in connected scenario (applies only to VSTS extensions)
+     */
+    connectedBuyCount: number;
+    /**
+     * Number of times the extension was installed in connected scenario (applies only to VSTS extensions)
+     */
+    connectedInstallCount: number;
+    /**
+     * Number of times the extension was downloaded (applies only to VSTS extensions)
+     */
+    downloadCount: number;
+    /**
+     * Number of times the extension was installed
+     */
+    installCount: number;
+    /**
+     * Number of times the extension was installed as a trial (applies only to VSTS extensions)
+     */
+    tryCount: number;
+    /**
+     * Number of times the extension was uninstalled (applies only to VSTS extensions)
+     */
+    uninstallCount: number;
+    /**
+     * Number of detail page views
+     */
+    webPageViews: number;
+}
 /**
  * Contract for handling the extension acquisition process
  */
@@ -19875,11 +20324,86 @@ export interface ExtensionCategory {
      */
     parentCategoryName: string;
 }
+export interface ExtensionDailyStat {
+    /**
+     * Stores the event counts
+     */
+    counts: EventCounts;
+    /**
+     * Timestamp of this data point
+     */
+    statisticDate: Date;
+    /**
+     * Version of the extension
+     */
+    version: string;
+}
+export interface ExtensionDailyStats {
+    /**
+     * List of extension statistics data points
+     */
+    dailyStats: ExtensionDailyStat[];
+    /**
+     * Id of the extension, this will never be sent back to the client. For internal use only.
+     */
+    extensionId: string;
+    /**
+     * Name of the extension
+     */
+    extensionName: string;
+    /**
+     * Name of the publisher
+     */
+    publisherName: string;
+    /**
+     * Count of stats
+     */
+    statCount: number;
+}
 export enum ExtensionDeploymentTechnology {
     Exe = 1,
     Msi = 2,
     Vsix = 3,
     ReferralLink = 4,
+}
+export interface ExtensionEventBase {
+    /**
+     * Id which identifies each data point uniquely
+     */
+    id: number;
+    /**
+     * Timestamp of when the event occured
+     */
+    statisticDate: Date;
+    /**
+     * Version of the extension
+     */
+    version: string;
+}
+/**
+ * Container object for all extension events. Stores all install and uninstall events related to an extension.
+ */
+export interface ExtensionEvents {
+    /**
+     * Id of the extension, this will never be sent back to the client. This field will mainly be used when EMS calls into Gallery REST API to update install/uninstall events for various extensions in one go.
+     */
+    extensionId: string;
+    /**
+     * Name of the extension
+     */
+    extensionName: string;
+    /**
+     * List of install events for this extension
+     */
+    installEvents: InstallEvent[];
+    /**
+     * Name of the publisher
+     */
+    publisherName: string;
+    /**
+     * List of all uninstall events for this extension
+     */
+    uninstallEvents: UninstallEvent[];
 }
 export interface ExtensionFile {
     assetType: string;
@@ -19934,6 +20458,10 @@ export interface ExtensionIdentifier {
      * The PublisherName component part of the fully qualified ExtensionIdentifier
      */
     publisherName: string;
+}
+export enum ExtensionLifecycleEventType {
+    Uninstall = 1,
+    Install = 2,
 }
 /**
  * Package that will be used to create or update a published extension
@@ -20057,6 +20585,18 @@ export enum ExtensionQueryFilterType {
      * When retrieving extensions from a query, include the extensions which are having the given flags. The value specified for this filter should be a string representing the integer values of the flags to be included. In case of mulitple flags to be specified, a logical OR of the interger values should be given as value for this filter This should be at most one filter of this type. This only acts as a restrictive filter after. In case of having a particular flag in both IncludeWithFlags and ExcludeWithFlags, excludeFlags will remove the included extensions giving empty result for that flag. In case of multiple flags given in IncludeWithFlags in ORed fashion, extensions having any of the given flags will be included.
      */
     IncludeWithFlags = 13,
+    /**
+     * Fitler the extensions based on the LCID values applicable. Any extensions which are not having any LCID values will also be filtered. This is currenlty only supported for VS extensions.
+     */
+    Lcid = 14,
+    /**
+     * Filter to provide the version of the installation target. This filter will be used along with InstallationTarget filter. The value should be a valid version string. Currently supported only if search text is provided.
+     */
+    InstallationTargetVersion = 15,
+    /**
+     * Filter type for specifying a range of installation target version. The filter will be used along with InstallationTarget filter. The value should be a pair of well formed version values separated by hyphen(-). Currently supported only if search text is provided.
+     */
+    InstallationTargetVersionRange = 16,
 }
 export enum ExtensionQueryFlags {
     /**
@@ -20183,7 +20723,31 @@ export interface FilterCriteria {
     value: string;
 }
 export interface InstallationTarget {
+    maxInclusive: boolean;
+    maxVersion: string;
+    minInclusive: boolean;
+    minVersion: string;
     target: string;
+    targetVersion: string;
+}
+export interface InstallEvent extends ExtensionEventBase {
+    /**
+     * Install metadata
+     */
+    properties: InstallProperties;
+}
+/**
+ * Properties associated with install event
+ */
+export interface InstallProperties {
+    /**
+     * Id of account
+     */
+    accountId: string;
+    /**
+     * Name of account
+     */
+    accountName: string;
 }
 /**
  * MetadataItem is one value of metadata under a given category of metadata
@@ -20673,6 +21237,14 @@ export enum SortByType {
      * The results will be sorted as per ReleaseDate of the extensions (date on which the extension first went public)
      */
     ReleaseDate = 10,
+    /**
+     * The results will be sorted as per Author defined in the VSix/Metadata. If not defined, publisher name is used This is specifically needed by VS IDE, other (new and old) clients are not encouraged to use this
+     */
+    Author = 11,
+    /**
+     * The results will be sorted as per Weighted Rating of the extension.
+     */
+    WeightedRating = 12,
 }
 export enum SortOrderType {
     /**
@@ -20687,6 +21259,33 @@ export enum SortOrderType {
      * The results will be sorted in Descending order
      */
     Descending = 2,
+}
+export interface UninstallEvent extends ExtensionEventBase {
+    /**
+     * Uninstall metadata
+     */
+    properties: UninstallProperties;
+}
+/**
+ * Properties associated with uninstall event
+ */
+export interface UninstallProperties {
+    /**
+     * Id of account
+     */
+    accountId: string;
+    /**
+     * Name of account
+     */
+    accountName: string;
+    /**
+     * Reason code of uninstall
+     */
+    reasonCode: string;
+    /**
+     * User entered text while uninstalling an extension
+     */
+    reasonText: string;
 }
 /**
  * Represents the extension policy applied to a given user
@@ -20763,6 +21362,8 @@ export var TypeInfo: {
         };
     };
     ExtensionAcquisitionRequest: any;
+    ExtensionDailyStat: any;
+    ExtensionDailyStats: any;
     ExtensionDeploymentTechnology: {
         enumValues: {
             "exe": number;
@@ -20771,7 +21372,15 @@ export var TypeInfo: {
             "referralLink": number;
         };
     };
+    ExtensionEventBase: any;
+    ExtensionEvents: any;
     ExtensionFilterResult: any;
+    ExtensionLifecycleEventType: {
+        enumValues: {
+            "uninstall": number;
+            "install": number;
+        };
+    };
     ExtensionPolicy: any;
     ExtensionPolicyFlags: {
         enumValues: {
@@ -20800,6 +21409,9 @@ export var TypeInfo: {
             "featuredInCategory": number;
             "excludeWithFlags": number;
             "includeWithFlags": number;
+            "lcid": number;
+            "installationTargetVersion": number;
+            "installationTargetVersionRange": number;
         };
     };
     ExtensionQueryFlags: {
@@ -20838,6 +21450,7 @@ export var TypeInfo: {
             "validated": number;
         };
     };
+    InstallEvent: any;
     PagingDirection: {
         enumValues: {
             "backward": number;
@@ -20939,6 +21552,8 @@ export var TypeInfo: {
             "trendingWeekly": number;
             "trendingMonthly": number;
             "releaseDate": number;
+            "author": number;
+            "weightedRating": number;
         };
     };
     SortOrderType: {
@@ -20948,6 +21563,7 @@ export var TypeInfo: {
             "descending": number;
         };
     };
+    UninstallEvent: any;
     UserExtensionPolicy: any;
     UserReportedConcern: any;
 };
@@ -20955,7 +21571,7 @@ export var TypeInfo: {
 declare module "VSS/Gallery/RestClient" {
 import Contracts = require("VSS/Gallery/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected accountsApiVersion: string;
     protected accountsbynameApiVersion: string;
@@ -20967,6 +21583,7 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
     protected extensionqueryApiVersion: string;
     protected extensionsApiVersion: string;
     protected extensionsApiVersion_a41192c8: string;
+    protected packageApiVersion: string;
     protected privateassetApiVersion: string;
     protected publisherqueryApiVersion: string;
     protected publishersApiVersion: string;
@@ -21042,19 +21659,21 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      *
      * @param {string} publisherName
      * @param {string} extensionName
+     * @param {string} version
+     * @param {string} accountToken
+     * @param {boolean} acceptDefault
+     * @return IPromise<ArrayBuffer>
+     */
+    getPackage(publisherName: string, extensionName: string, version: string, accountToken?: string, acceptDefault?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
      * @param {Contracts.PublishedExtensionFlags} flags
      * @return IPromise<Contracts.PublishedExtension>
      */
     updateExtensionProperties(publisherName: string, extensionName: string, flags: Contracts.PublishedExtensionFlags): IPromise<Contracts.PublishedExtension>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.ExtensionPackage} extensionPackage
-     * @param {string} publisherName
-     * @param {string} extensionName
-     * @return IPromise<Contracts.PublishedExtension>
-     */
-    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
     /**
      * [Preview API]
      *
@@ -21078,22 +21697,6 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
-     * @param {Contracts.ExtensionPackage} extensionPackage
-     * @param {string} publisherName
-     * @return IPromise<Contracts.PublishedExtension>
-     */
-    createExtensionWithPublisher(extensionPackage: Contracts.ExtensionPackage, publisherName: string): IPromise<Contracts.PublishedExtension>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.ExtensionPackage} extensionPackage
-     * @param {string} extensionId
-     * @return IPromise<Contracts.PublishedExtension>
-     */
-    updateExtensionById(extensionPackage: Contracts.ExtensionPackage, extensionId: string): IPromise<Contracts.PublishedExtension>;
-    /**
-     * [Preview API]
-     *
      * @param {string} extensionId
      * @param {string} version
      * @param {Contracts.ExtensionQueryFlags} flags
@@ -21108,13 +21711,6 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<void>
      */
     deleteExtensionById(extensionId: string, version?: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.ExtensionPackage} extensionPackage
-     * @return IPromise<Contracts.PublishedExtension>
-     */
-    createExtension(extensionPackage: Contracts.ExtensionPackage): IPromise<Contracts.PublishedExtension>;
     /**
      * [Preview API]
      *
@@ -21206,7 +21802,7 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      */
     shareExtensionById(extensionId: string, accountName: string): IPromise<void>;
 }
-export class CommonMethods2_1To3_1 extends CommonMethods2To3_1 {
+export class CommonMethods2_1To3_2 extends CommonMethods2To3_2 {
     protected acquisitionrequestsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -21217,7 +21813,7 @@ export class CommonMethods2_1To3_1 extends CommonMethods2To3_1 {
      */
     requestAcquisition(acquisitionRequest: Contracts.ExtensionAcquisitionRequest): IPromise<Contracts.ExtensionAcquisitionRequest>;
 }
-export class CommonMethods2_2To3_1 extends CommonMethods2_1To3_1 {
+export class CommonMethods2_2To3_2 extends CommonMethods2_1To3_2 {
     protected acquisitionoptionsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -21231,7 +21827,7 @@ export class CommonMethods2_2To3_1 extends CommonMethods2_1To3_1 {
      */
     getAcquisitionOptions(itemId: string, installationTarget: string, testCommerce?: boolean, isFreeOrTrialInstall?: boolean): IPromise<Contracts.AcquisitionOptions>;
 }
-export class CommonMethods3To3_1 extends CommonMethods2_2To3_1 {
+export class CommonMethods3To3_2 extends CommonMethods2_2To3_2 {
     protected authenticatedassetApiVersion: string;
     protected azurepublisherApiVersion: string;
     protected extensionValidatorApiVersion: string;
@@ -21330,11 +21926,32 @@ export class CommonMethods3To3_1 extends CommonMethods2_2To3_1 {
      */
     getAssetAuthenticated(publisherName: string, extensionName: string, version: string, assetType: string, accountToken?: string): IPromise<ArrayBuffer>;
 }
-/**
- * @exemptedapi
- */
-export class GalleryHttpClient3_1 extends CommonMethods3To3_1 {
+export class CommonMethods3_1To3_2 extends CommonMethods3To3_2 {
+    protected eventsApiVersion: string;
+    protected eventsApiVersion_3d13c499: string;
+    protected reportsApiVersion: string;
+    protected settingsApiVersion: string;
+    protected statsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {number} days
+     * @return IPromise<Contracts.ExtensionDailyStats>
+     */
+    getExtensionDailyStats(publisherName: string, extensionName: string, days?: number): IPromise<Contracts.ExtensionDailyStats>;
+    /**
+     * [Preview API] Set all setting entries for the given user/all-users scope
+     *
+     * @param {{ [key: string] : any; }} entries - A key-value pair of all settings that need to be set
+     * @param {string} userScope - User-Scope at which to get the value. Should be "me" for the current user or "host" for all users.
+     * @return IPromise<void>
+     */
+    setGalleryUserSettings(entries: {
+        [key: string]: any;
+    }, userScope: string): IPromise<void>;
     /**
      * [Preview API] Get all setting entries for the given user/all-users scope
      *
@@ -21346,99 +21963,727 @@ export class GalleryHttpClient3_1 extends CommonMethods3To3_1 {
         [key: string]: any;
     }>;
     /**
-     * [Preview API] Set all setting entries for the given user/all-users scope
+     * [Preview API] Returns extension reports
      *
-     * @param {{ [key: string] : any; }} entries - A key-value pair of all settings that need to be set
-     * @param {string} userScope - User-Scope at which to get the value. Should be "me" for the current user or "host" for all users.
+     * @param {string} publisherName - Name of the publisher who published the extension
+     * @param {string} extensionName - Name of the extension
+     * @param {number} days - Last n days report
+     * @return IPromise<string>
+     */
+    getExtensionReports(publisherName: string, extensionName: string, days?: number): IPromise<string>;
+    /**
+     * [Preview API] API endpoint to publish extension install/uninstall events. This is meant to be invoked by EMS only for sending us data related to install/uninstall of an extension.
+     *
+     * @param {Contracts.ExtensionEvents[]} extensionEvents
      * @return IPromise<void>
      */
-    setGalleryUserSettings(entries: {
-        [key: string]: any;
-    }, userScope: string): IPromise<void>;
+    publishExtensionEvents(extensionEvents: Contracts.ExtensionEvents[]): IPromise<void>;
+    /**
+     * [Preview API] Get install/uninstall events of an extension.
+     *
+     * @param {string} publisherName - Name of the publisher
+     * @param {string} extensionName - Name of the extension
+     * @param {number} count - Count of events to fetch, applies to each event type.
+     * @param {Date} afterDate - Fetch events that occured on or after this value
+     * @param {string} queryFlags - Filter options. Supported values: includeInstall, includeUninstall. Default is to fetch all types of events
+     * @return IPromise<Contracts.ExtensionEvents>
+     */
+    getExtensionEvents(publisherName: string, extensionName: string, count?: number, afterDate?: Date, queryFlags?: string): IPromise<Contracts.ExtensionEvents>;
 }
 /**
  * @exemptedapi
  */
-export class GalleryHttpClient3 extends CommonMethods3To3_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-}
-/**
- * @exemptedapi
- */
-export class GalleryHttpClient2_3 extends CommonMethods2_2To3_1 {
+export class GalleryHttpClient3_2 extends CommonMethods3_1To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
      *
+     * @param {any} content - Content to upload
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    createExtension(content: any): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} extensionId
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    updateExtensionById(extensionId: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {any} content - Content to upload
+     * @param {string} publisherName
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    createExtensionWithPublisher(content: any, publisherName: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {any} content - Content to upload
      * @param {string} publisherName
      * @param {string} extensionName
-     * @param {string} version
-     * @param {string} accountToken
-     * @param {boolean} acceptDefault
-     * @return IPromise<ArrayBuffer>
+     * @return IPromise<Contracts.PublishedExtension>
      */
-    getPackage(publisherName: string, extensionName: string, version: string, accountToken?: string, acceptDefault?: boolean): IPromise<ArrayBuffer>;
+    updateExtension(content: any, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
 }
 /**
  * @exemptedapi
  */
-export class GalleryHttpClient2_2 extends CommonMethods2_2To3_1 {
+export class GalleryHttpClient3_1 extends CommonMethods3_1To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
      *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    createExtension(extensionPackage: Contracts.ExtensionPackage): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} extensionId
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    updateExtensionById(extensionPackage: Contracts.ExtensionPackage, extensionId: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} publisherName
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    createExtensionWithPublisher(extensionPackage: Contracts.ExtensionPackage, publisherName: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
      * @param {string} publisherName
      * @param {string} extensionName
-     * @param {string} version
-     * @param {string} accountToken
-     * @param {boolean} acceptDefault
-     * @return IPromise<ArrayBuffer>
+     * @return IPromise<Contracts.PublishedExtension>
      */
-    getPackage(publisherName: string, extensionName: string, version: string, accountToken?: string, acceptDefault?: boolean): IPromise<ArrayBuffer>;
+    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
 }
 /**
  * @exemptedapi
  */
-export class GalleryHttpClient2_1 extends CommonMethods2_1To3_1 {
+export class GalleryHttpClient3 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
      *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    createExtension(extensionPackage: Contracts.ExtensionPackage): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} extensionId
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    updateExtensionById(extensionPackage: Contracts.ExtensionPackage, extensionId: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} publisherName
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    createExtensionWithPublisher(extensionPackage: Contracts.ExtensionPackage, publisherName: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
      * @param {string} publisherName
      * @param {string} extensionName
-     * @param {string} version
-     * @param {string} accountToken
-     * @param {boolean} acceptDefault
-     * @return IPromise<ArrayBuffer>
+     * @return IPromise<Contracts.PublishedExtension>
      */
-    getPackage(publisherName: string, extensionName: string, version: string, accountToken?: string, acceptDefault?: boolean): IPromise<ArrayBuffer>;
+    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
 }
 /**
  * @exemptedapi
  */
-export class GalleryHttpClient2 extends CommonMethods2To3_1 {
+export class GalleryHttpClient2_3 extends CommonMethods2_2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
      *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    createExtension(extensionPackage: Contracts.ExtensionPackage): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} extensionId
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    updateExtensionById(extensionPackage: Contracts.ExtensionPackage, extensionId: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} publisherName
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    createExtensionWithPublisher(extensionPackage: Contracts.ExtensionPackage, publisherName: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
      * @param {string} publisherName
      * @param {string} extensionName
-     * @param {string} version
-     * @param {string} accountToken
-     * @param {boolean} acceptDefault
-     * @return IPromise<ArrayBuffer>
+     * @return IPromise<Contracts.PublishedExtension>
      */
-    getPackage(publisherName: string, extensionName: string, version: string, accountToken?: string, acceptDefault?: boolean): IPromise<ArrayBuffer>;
+    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
 }
-export class GalleryHttpClient extends GalleryHttpClient3_1 {
+/**
+ * @exemptedapi
+ */
+export class GalleryHttpClient2_2 extends CommonMethods2_2To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    createExtension(extensionPackage: Contracts.ExtensionPackage): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} extensionId
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    updateExtensionById(extensionPackage: Contracts.ExtensionPackage, extensionId: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} publisherName
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    createExtensionWithPublisher(extensionPackage: Contracts.ExtensionPackage, publisherName: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
+}
+/**
+ * @exemptedapi
+ */
+export class GalleryHttpClient2_1 extends CommonMethods2_1To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    createExtension(extensionPackage: Contracts.ExtensionPackage): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} extensionId
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    updateExtensionById(extensionPackage: Contracts.ExtensionPackage, extensionId: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} publisherName
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    createExtensionWithPublisher(extensionPackage: Contracts.ExtensionPackage, publisherName: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
+}
+/**
+ * @exemptedapi
+ */
+export class GalleryHttpClient2 extends CommonMethods2To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    createExtension(extensionPackage: Contracts.ExtensionPackage): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} extensionId
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    updateExtensionById(extensionPackage: Contracts.ExtensionPackage, extensionId: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} publisherName
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    createExtensionWithPublisher(extensionPackage: Contracts.ExtensionPackage, publisherName: string): IPromise<Contracts.PublishedExtension>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionPackage} extensionPackage
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @return IPromise<Contracts.PublishedExtension>
+     */
+    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
+}
+export class GalleryHttpClient extends GalleryHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return GalleryHttpClient3
+ * @return GalleryHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): GalleryHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): GalleryHttpClient3_1;
+}
+declare module "VSS/Graph/Contracts" {
+import VSS_Identities_Contracts = require("VSS/Identities/Contracts");
+export enum GraphDisabledFilter {
+    Unknown = 0,
+    IncludeOnlyEnabled = 1,
+    IncludeOnlyDisabled = 2,
+    IncludeBoth = 3,
+}
+export interface GraphGroup extends GraphMember {
+    /**
+     * A short phrase to help human readers disambiguate groups with similar names
+     */
+    description: string;
+}
+/**
+ * Do not attempt to use this type to create a new group. This type does not contain sufficient fields to create a new group.
+ */
+export interface GraphGroupCreationContext {
+    /**
+     * Optional: If provided, we will use this identifier for the Id of the created group
+     */
+    id: string;
+}
+/**
+ * Use this type to create a new group that is a reference to an existing group from an external AD or AAD backed provider. This is the subset of GraphGroup fields required for creation of a group for the AD and AAD use case.
+ */
+export interface GraphGroupOriginIdCreationContext extends GraphGroupCreationContext {
+    /**
+     * This should be the object id or sid of the group from the source AD or AAD provider. Vsts will comunicate with the source provider to fill all other fields on creation.
+     */
+    originId: string;
+}
+/**
+ * Use this type to create a new group that is a reference to an existing group from an external AD or AAD backed provider. This is the subset of GraphGroup fields required for creation of a group for the AAD and AD use case.
+ */
+export interface GraphGroupPrincipalNameCreationContext extends GraphGroupCreationContext {
+    /**
+     * This should be the principal name or upn or the group in the source AD or AAD provider. Vsts will comunicate with the source provider to fill all other fields on creation.
+     */
+    principalName: string;
+}
+/**
+ * Use this type to create a new Vsts group that is not backed by an external provider.
+ */
+export interface GraphGroupVstsCreationContext extends GraphGroupCreationContext {
+    /**
+     * For internal use only in back compat scenarios.
+     */
+    crossProject: boolean;
+    descriptor: string;
+    /**
+     * Used by VSTS groups; if set this will be the group DisplayName, otherwise ignored
+     */
+    displayName: string;
+    /**
+     * Used by VSTS groups; if set this will be the group description, otherwise ignored
+     */
+    groupDescription: string;
+    /**
+     * For internal use only in back compat scenarios.
+     */
+    restrictedVisibility: boolean;
+    /**
+     * For internal use only in back compat scenarios.
+     */
+    specialGroupType: string;
+}
+export interface GraphMember extends GraphSubject {
+    /**
+     * This represents the name of the container of origin for a graph member. (For MSA this is "Windows Live ID", for AD the name of the domain, for AAD the name of the directory, for Vsts groups the ScopeId, etc)
+     */
+    domain: string;
+    /**
+     * Used only for internal back-compat scenarios.
+     */
+    metaTypeId: number;
+}
+export interface GraphMembership {
+    containerDescriptor: string;
+    memberDescriptor: string;
+}
+export interface GraphScope extends GraphSubject {
+    /**
+     * The subject descriptor that references the administrators group for this scope. Only members of this group can change the contents of this scope or assign other users permissions to access this scope.
+     */
+    administratorDescriptor: string;
+    /**
+     * When true, this scope is also a securing host for one or more scopes.
+     */
+    isGlobal: boolean;
+    /**
+     * The subject descriptor for the closest account or organization in the ancestor tree of this scope.
+     */
+    parentDescriptor: string;
+    /**
+     * The type of this scope. Typically ServiceHost or TeamProject.
+     */
+    scopeType: VSS_Identities_Contracts.GroupScopeType;
+    /**
+     * The subject descriptor for the containing organization in the ancestor tree of this scope.
+     */
+    securingHostDescriptor: string;
+}
+/**
+ * This type is the subset of fields that can be provided by the user to create a Vsts scope. Scope creation is currently limited to internal back-compat scenarios. End users that attempt to create a scope with this API will fail.
+ */
+export interface GraphScopeCreationContext {
+    /**
+     * Set this field to override the default decription of this scope's admin group.
+     */
+    adminGroupDescription: string;
+    /**
+     * All scopes have an Adminstrator Group that controls access to the contents of the scope. Set this field to use a non-default group name for that administrators group.
+     */
+    adminGroupName: string;
+    /**
+     * Set this optional field if this scope is created on behalf of a user other than the user making the request. This should be the Id of the user that is not the requestor.
+     */
+    creatorId: string;
+    /**
+     * An optional ID that uniquely represents the scope within it's parent scope. If this parameter is not provided, Vsts will generate on automatically.
+     */
+    id: string;
+    /**
+     * The scope must be provided with a unique name within the parent scope. This means the created scope can have a parent or child with the same name, but no siblings with the same name.
+     */
+    name: string;
+    /**
+     * The type of scope being created.
+     */
+    scopeType: VSS_Identities_Contracts.GroupScopeType;
+}
+export interface GraphSubject {
+    /**
+     * This field contains zero or more iteresting links about the the graph subject. These links may be invoked to obtain additional relationships or more detailed information about this graph subject.
+     */
+    _links: any;
+    /**
+     * The descriptor is the primary way to reference the graph subject while the system is running. This field will uniquely identify the same graph subject across both Accounts and Organizations.
+     */
+    descriptor: string;
+    /**
+     * If this value is true, the graph subject is not active within the current Vsts scope. This graph subject can be used reliably for presenting historical data but may not be valid for other operations.
+     */
+    disabled: boolean;
+    /**
+     * This is the non-unique display name of the graph subject. To change this field, you must alter its value in the source provider.
+     */
+    displayName: string;
+    /**
+     * The unique identifier within the subject's scope. This identifier will not change for the lifetime of the subject. If you must perisist a reference to a graph subject within your system, only persist this field. All other fields can change over time.
+     */
+    id: string;
+    /**
+     * The type of source provider for the origin identifier (ex:AD, AAD, MSA)
+     */
+    origin: string;
+    /**
+     * The unique identifier from the system of origin. Typically a sid, object id or Guid. Linking and unlinking operations can cause this value to change for a user because the user is not backed by a different provider and has a different unique id in the new provider.
+     */
+    originId: string;
+    /**
+     * This is the PrincipalName of this graph subject from the source provider. The source provider may change this field over time and it is not guaranteed to be immutable for the life of the graph subject by Vsts.
+     */
+    principalName: string;
+    /**
+     * This field identifies the type of the graph subject (ex: Group, Scope, User).
+     */
+    subjectKind: string;
+    /**
+     * This url is the full route to the source resource of this graph subject.
+     */
+    url: string;
+}
+export interface GraphSubjectLookup {
+    lookupKeys: GraphSubjectLookupKey[];
+}
+export interface GraphSubjectLookupKey {
+    descriptor: SubjectDescriptor;
+}
+export enum GraphTraversalDirection {
+    Unknown = 0,
+    Down = 1,
+    Up = 2,
+}
+export interface GraphUser extends GraphMember {
+    /**
+     * The email address of record for a given user. This may be different then the principla name.
+     */
+    mailAddress: string;
+}
+/**
+ * Do not attempt to use this type to create a new user. Use one of the subclasses instead. This type does not contain sufficient fields to create a new user.
+ */
+export interface GraphUserCreationContext {
+    /**
+     * Optional: If provided, we will use this identifier for the Id of the created user
+     */
+    id: string;
+}
+/**
+ * Use this type to create a new user reference to an existing user from an external AD or AAD backed provider. This is the subset of GraphUser fields required for creation of a GraphUser for the AD and AAD use case.
+ */
+export interface GraphUserOriginIdCreationContext extends GraphUserCreationContext {
+    originId: string;
+}
+/**
+ * Use this type to create a new user reference to an existing user from an external AD or AAD backed provider. This is the subset of GraphUser fields required for creation of a GraphUser for the AD and AAD use case.
+ */
+export interface GraphUserPrincipalNameCreationContext extends GraphUserCreationContext {
+    principalName: string;
+}
+export interface SubjectDescriptor {
+    identifier: string;
+    subjectType: string;
+}
+export var TypeInfo: {
+    GraphDisabledFilter: {
+        enumValues: {
+            "unknown": number;
+            "includeOnlyEnabled": number;
+            "includeOnlyDisabled": number;
+            "includeBoth": number;
+        };
+    };
+    GraphScope: any;
+    GraphScopeCreationContext: any;
+    GraphTraversalDirection: {
+        enumValues: {
+            "unknown": number;
+            "down": number;
+            "up": number;
+        };
+    };
+};
+}
+declare module "VSS/Graph/RestClient" {
+import Contracts = require("VSS/Graph/Contracts");
+import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
+import VSS_WebApi = require("VSS/WebApi/RestClient");
+export class CommonMethods3_1To3_2 extends VSS_WebApi.VssHttpClient {
+    protected descriptorsApiVersion: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {string} id
+     * @param {boolean} isMasterId
+     * @return IPromise<Contracts.SubjectDescriptor>
+     */
+    getDescriptorById(id: string, isMasterId?: boolean): IPromise<Contracts.SubjectDescriptor>;
+}
+/**
+ * @exemptedapi
+ */
+export class GraphHttpClient3_2 extends CommonMethods3_1To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] The body of the request must be a derived type of GraphGroupCreationContext which contains a group reference. A group reference must either:  1. uniquely identify a group that exists in the graph of the instance's identity provider , such as Azure Active Directory (AAD) or Microsoft account (MSA), for a hosted VS Team Services account, or Active Directory (AD), for a TFS server. Use one of these supported creation contexts: - originId(e.g.the AAD object ID) [GraphGroupOriginIdCreationContext] - principalName(e.g.the AAD group principal name or the Microsoft account name) [GraphGroupPrincipalNameCreationContext]  2. Uniquely identify a group that exists in a hosted VS Team Services account and you want to restore that group. Use GraphGroupVstsCreationContext and fill only one of the following peroperties: - id (to reference a specific VS Team Services group in the restore case only) - descriptors (to reference a specific VS Team Services group in the restore case only)  3. Specify properties that should be used to create a new Team Foundation group. Use the GraphGroupVstsCreationContext  - displayName [required] - description - optional test to help understand the pupose of the group - id - optionally specify the internal Guid - descriptor - optionally specify the sid at creation time
+     *
+     * @param {Contracts.GraphGroupCreationContext} creationContext - The subset of the full graph group used to uniquely find the graph subject in an external provider.
+     * @param {string} scopeDescriptor
+     * @param {Contracts.SubjectDescriptor[]} groupDescriptors - A comma separated list of descriptors referencing groups you want the graph group to join
+     * @return IPromise<Contracts.GraphGroup>
+     */
+    createGroup(creationContext: Contracts.GraphGroupCreationContext, scopeDescriptor?: string, groupDescriptors?: Contracts.SubjectDescriptor[]): IPromise<Contracts.GraphGroup>;
+    /**
+     * [Preview API] This call makes the group disabled and by default removes all members. If the includeMemberships=false flag is set, the memberships within this group are not evaluated and provide no permissions. Calls to GET .../groups/{} will return the group with disabled marked true. Other GET calls, which may return multiple groups, can control whether or not deleted groups should be returned using the disabled flag, which defaults to false.
+     *
+     * @param {string} groupDescriptor - The descriptor of the group to delete.
+     * @return IPromise<void>
+     */
+    deleteGroup(groupDescriptor: string): IPromise<void>;
+    /**
+     * [Preview API] This endpoint returns a result for any descriptor that has ever been valid in the system, even if the group has since been deleted or has had all their memberships deleted. The current validity of the group is indicated through its disabled property, which is omitted when false.
+     *
+     * @param {string} groupDescriptor - The descriptor of the desired graph group.
+     * @return IPromise<Contracts.GraphGroup>
+     */
+    getGroup(groupDescriptor: string): IPromise<Contracts.GraphGroup>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} scopeDescriptor
+     * @param {Contracts.GraphDisabledFilter} disabled
+     * @return IPromise<Contracts.GraphGroup[]>
+     */
+    getGroups(scopeDescriptor?: string, disabled?: Contracts.GraphDisabledFilter): IPromise<Contracts.GraphGroup[]>;
+    /**
+     * [Preview API] Update the fields of a VS Team Services group.  Currently limited to only changing the description and account name.
+     *
+     * @param {string} groupDescriptor - The descriptor of the group to modify.
+     * @param {VSS_Common_Contracts.JsonPatchDocument} patchDocument - The JSON+Patch document containing the fields to alter.
+     * @return IPromise<void>
+     */
+    updateGroup(groupDescriptor: string, patchDocument: VSS_Common_Contracts.JsonPatchDocument): IPromise<void>;
+    /**
+     * [Preview API] Create a new membership between two eligible members
+     *
+     * @param {string} subjectDescriptor - A descriptor to a group or user that can be the child subject in the relationship.
+     * @param {string} containerDescriptor - A descriptor to a group that can be the container in the relationship.
+     * @return IPromise<Contracts.GraphMembership>
+     */
+    addMembership(subjectDescriptor: string, containerDescriptor: string): IPromise<Contracts.GraphMembership>;
+    /**
+     * [Preview API] This method will search for a requested membership and return 200 if the membership is found.
+     *
+     * @param {string} subjectDescriptor - The group or user that is a child of the relationship.
+     * @param {string} containerDescriptor - The group that is the parent in the relationship.
+     * @return IPromise<void>
+     */
+    checkMembership(subjectDescriptor: string, containerDescriptor: string): IPromise<void>;
+    /**
+     * [Preview API] This method will search for a requested membership and return the membership if found.
+     *
+     * @param {string} subjectDescriptor - A descriptor to the member in the relationship.
+     * @param {string} containerDescriptor - A descriptor to the container in the relationship.
+     * @return IPromise<Contracts.GraphMembership>
+     */
+    getMembership(subjectDescriptor: string, containerDescriptor: string): IPromise<Contracts.GraphMembership>;
+    /**
+     * [Preview API] Deletes a membership between to members of the graph.
+     *
+     * @param {string} subjectDescriptor - A descriptor to a group or user that is the child subject in the relationship.
+     * @param {string} containerDescriptor - A descriptor to a group that is the container in the relationship.
+     * @return IPromise<void>
+     */
+    removeMembership(subjectDescriptor: string, containerDescriptor: string): IPromise<void>;
+    /**
+     * [Preview API] Get all the memberships where this descriptor is a member in the relationship by default. To get relationships where the descriptor is a container, use the optional parameter direction with a value of down. Scopes are not supported in this method yet.
+     *
+     * @param {string} subjectDescriptor - Fetch all direct memberships of this descriptor.
+     * @param {string} direction - Defaults to down for groups and up for users. Explicitly set this to change the default behavior.
+     * @return IPromise<Contracts.GraphMembership[]>
+     */
+    getMemberships(subjectDescriptor: string, direction?: string): IPromise<Contracts.GraphMembership[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.GraphScopeCreationContext} creationContext
+     * @param {string} scopeDescriptor
+     * @return IPromise<Contracts.GraphScope>
+     */
+    createScope(creationContext: Contracts.GraphScopeCreationContext, scopeDescriptor?: string): IPromise<Contracts.GraphScope>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} scopeDescriptor
+     * @return IPromise<void>
+     */
+    deleteScope(scopeDescriptor: string): IPromise<void>;
+    /**
+     * [Preview API] Get a scope identified by its descriptor
+     *
+     * @param {string} scopeDescriptor - A descriptor that uniquely identifies a scope.
+     * @return IPromise<Contracts.GraphScope>
+     */
+    getScope(scopeDescriptor: string): IPromise<Contracts.GraphScope>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} scopeDescriptor
+     * @param {VSS_Common_Contracts.JsonPatchDocument} patchDocument
+     * @return IPromise<void>
+     */
+    updateScope(scopeDescriptor: string, patchDocument: VSS_Common_Contracts.JsonPatchDocument): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.GraphSubjectLookup} subjectLookup
+     * @return IPromise<Contracts.GraphSubject[]>
+     */
+    lookupSubjects(subjectLookup: Contracts.GraphSubjectLookup): IPromise<Contracts.GraphSubject[]>;
+    /**
+     * [Preview API] The body of the request must be a derived type of GraphUserCreationContext which contains a user reference. The user reference must uniquely identify a user that exists in the graph of the instance's identity provider, such as Azure Active Directory (AAD) or Microsoft Account (MSA), for a hosted VS Team Services account, or Active Directory (AD), for a TFS server. The properties supported for each user reference include: - originId(e.g.the AAD object ID) [GraphUserOriginIdCreationContext] - principalName(e.g.the AAD user principal name or the Microsoft account name) [GraphUserPrincipalNameCreationContext] - onPremisesSecurityIdentifier(e.g.the AD security identifier)  [GraphUserOriginIdCreationContext] - id (optional, if you want the ID to be a particular GUID)  If the user to be added corresponds to a user that was previously deleted, then that user will be restored. If the user was deleted with includeMemberships=false, they will have their previous memberships upon completion of the subsequent add request.
+     *
+     * @param {Contracts.GraphUserCreationContext} creationContext - The subset of the full graph user used to uniquely find the graph subject in an external provider.
+     * @param {Contracts.SubjectDescriptor[]} groupDescriptors - A comma separated list of descriptors of groups you want the graph user to join
+     * @return IPromise<Contracts.GraphUser>
+     */
+    createUser(creationContext: Contracts.GraphUserCreationContext, groupDescriptors?: Contracts.SubjectDescriptor[]): IPromise<Contracts.GraphUser>;
+    /**
+     * [Preview API] This is a soft delete. Calls to GET .../users/{persistentId} will return the user with disabled marked true. Other GET calls, which may return multiple users, can control whether or not deleted users should be returned using the disabled flag, which defaults to false.
+     *
+     * @param {string} userDescriptor - The descriptor of the user to delete.
+     * @return IPromise<void>
+     */
+    deleteUser(userDescriptor: string): IPromise<void>;
+    /**
+     * [Preview API] This endpoint returns a result for any user that has ever been valid in the system, even if the user has since been deleted or has had all their memberships deleted. The current validity of the user is indicated through its disabled property, which is omitted when false.
+     *
+     * @param {string} userDescriptor
+     * @return IPromise<Contracts.GraphUser>
+     */
+    getUser(userDescriptor: string): IPromise<Contracts.GraphUser>;
+    /**
+     * [Preview API] Gets all users in the current scope (usually organization or account). The optional parameters are used to filter down the returned results. May truncate exceptionally large result sets. Returned results are in no guaranteed order.
+     *
+     * @param {string[]} subjectType - A comma separated list of user subject subtypes to reduce the retrieved results, e.g. Microsoft.IdentityModel.Claims.ClaimsIdentity>
+     * @param {Contracts.GraphDisabledFilter} disabled - Selects a subset of users based on their disabled state. If false, selects enabled users only. If true, selects disabled users only. If any, selects both enabled and disabled users.
+     * @return IPromise<Contracts.GraphUser[]>
+     */
+    getUsers(subjectType?: string[], disabled?: Contracts.GraphDisabledFilter): IPromise<Contracts.GraphUser[]>;
+}
+/**
+ * @exemptedapi
+ */
+export class GraphHttpClient3_1 extends CommonMethods3_1To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class GraphHttpClient extends GraphHttpClient3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * Gets an http client targeting the latest released version of the APIs.
+ *
+ * @return GraphHttpClient3_1
+ */
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): GraphHttpClient3_1;
 }
 declare module "VSS/Identities/Contracts" {
 /**
@@ -21646,6 +22891,9 @@ declare module "VSS/Identities/Mru/Contracts" {
  *
  * See following wiki page for instructions on how to regenerate:
  *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *
+ * Configuration file:
+ *   Sps\Clients\Identity\ClientGeneratorConfigs\genclient.json
  */
 export interface JsonPatchOperationData<T> {
     op: string;
@@ -21658,7 +22906,7 @@ export interface MruIdentitiesUpdateData extends JsonPatchOperationData<string[]
 declare module "VSS/Identities/Mru/RestClient" {
 import Contracts = require("VSS/Identities/Mru/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
     protected mruIdentitiesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -21691,48 +22939,54 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class IdentityMruHttpClient3_1 extends CommonMethods2To3_1 {
+export class IdentityMruHttpClient3_2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentityMruHttpClient3 extends CommonMethods2To3_1 {
+export class IdentityMruHttpClient3_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentityMruHttpClient2_3 extends CommonMethods2To3_1 {
+export class IdentityMruHttpClient3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentityMruHttpClient2_2 extends CommonMethods2To3_1 {
+export class IdentityMruHttpClient2_3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentityMruHttpClient2_1 extends CommonMethods2To3_1 {
+export class IdentityMruHttpClient2_2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentityMruHttpClient2 extends CommonMethods2To3_1 {
+export class IdentityMruHttpClient2_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class IdentityMruHttpClient extends IdentityMruHttpClient3_1 {
+/**
+ * @exemptedapi
+ */
+export class IdentityMruHttpClient2 extends CommonMethods2To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class IdentityMruHttpClient extends IdentityMruHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return IdentityMruHttpClient3
+ * @return IdentityMruHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): IdentityMruHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): IdentityMruHttpClient3_1;
 }
 declare module "VSS/Identities/Picker/Cache" {
 /**
@@ -21886,6 +23140,10 @@ export class FilterByScope {
     filterByEntityIds: string[];
     constructor(filterByAncestorEntityIds?: string[], filterByEntityIds?: string[]);
     static GetHashCode(filterByScope: FilterByScope): number;
+    /**
+    * Return true if the filterByScope is not null and the ancestorEntitityIds and entityIds arrays are empty, otherwise false.
+    **/
+    static isFilterByScopeEmpty(filterByScope: FilterByScope): boolean;
     private static readonly _hashSeparator;
 }
 /**
@@ -22027,7 +23285,8 @@ export interface IIdentityPickerDropdownOptions extends Identities_Picker_Servic
     focusElementOnContactCardClose?: JQuery;
     /**
     *   Specifies whether or not the dropdown will try to use all remaining space below the positioning element.
-    *   This is specifically for the mobile work item form where we want to show the picker in a full screen view.
+    *   For internal use only, this is specifically for the mobile work item form where we want to show the picker in a
+    *   full screen view and the behavior may change over time.
     **/
     useRemainingSpace?: boolean;
 }
@@ -22291,6 +23550,10 @@ export interface ISearchControlCallbackOptions {
     *   a pre-render hook that takes in the list of identities that would otherwise have been displayed and rearranges or adds to them prior to returning the new list
     **/
     preDropdownRender?: (entityList: Identities_Picker_RestClient.IEntity[]) => Identities_Picker_RestClient.IEntity[];
+    /**
+    *   callback for a custom tooltip to be displayed for the single-select search control instead of the display name and sign-in address of the resolved identity
+    **/
+    getCustomTooltip?: () => string;
 }
 export interface IIdentityPickerSearchOptions extends Identities_Picker_Services.IIdentityServiceOptions, Identities_Picker_Services.IIdentityPickerExtensionOptions {
     /**
@@ -22373,7 +23636,8 @@ export interface IIdentityPickerSearchOptions extends Identities_Picker_Services
     forceOpen?: boolean;
     /**
     *   Specifies whether or not the dropdown will try to use all remaining space below the positioning element.
-    *   This is specifically for the mobile work item form where we want to show the picker in a full screen view.
+    *   For internal use only, this is specifically for the mobile work item form where we want to show the picker in a
+    *   full screen view and the behavior may change over time.
     **/
     useRemainingSpace?: boolean;
 }
@@ -22995,12 +24259,15 @@ export interface IIdentityServiceOptions {
     operationScope?: IOperationScope;
     /**
     *   The scope over which the search and MRU results are filtered by.
-    *   A consumer must pass a FilterByScope instance as an option, which can be constructed by passing two arrays of strings
+    *   A consumer must pass a delegate that returns a FilterByScope instance, which can be constructed by passing two arrays of strings
     *   corresponding to Entity Ids and Ancestor Entity Ids
     *   over which the scope is restricted.
     *   Default null.
+    *   NOTE: Null scope and an empty scope (a scope which is not null but whose internal arrays are empty) are treated differently.
+    *         Null scope means no filtering will take place on entities, whereas empty scope means no entities would be returned.
+    *         So an empty FilterByScope will result in no search being issued.
     **/
-    filterByScope?: Identities_Picker_Common.FilterByScope;
+    getFilterByScope?: () => Identities_Picker_Common.FilterByScope;
 }
 /**
  * @exemptedapi
@@ -23343,6 +24610,54 @@ export class IdentitiesHttpClient extends IdentitiesHttpClient3_1 {
  */
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): IdentitiesHttpClient3;
 }
+declare module "VSS/JoinOrganization/Contracts" {
+import Contracts = require("VSS/ReparentCollection/Contracts");
+export interface JoinOrganizationRequest {
+    /**
+     * New organization for this collection (application host id)
+     */
+    organizationId: string;
+    properties: Contracts.PropertyPair[];
+}
+}
+declare module "VSS/JoinOrganization/RestClient" {
+import Contracts = require("VSS/JoinOrganization/Contracts");
+import VSS_Operations_Contracts = require("VSS/Operations/Contracts");
+import VSS_WebApi = require("VSS/WebApi/RestClient");
+export class CommonMethods3To3_1 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    protected requestsApiVersion: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.JoinOrganizationRequest} request
+     * @return IPromise<VSS_Operations_Contracts.OperationReference>
+     */
+    queueJoinOrganization(request: Contracts.JoinOrganizationRequest): IPromise<VSS_Operations_Contracts.OperationReference>;
+}
+/**
+ * @exemptedapi
+ */
+export class OrganizationJoinHttpClient3_1 extends CommonMethods3To3_1 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class OrganizationJoinHttpClient3 extends CommonMethods3To3_1 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class OrganizationJoinHttpClient extends OrganizationJoinHttpClient3_1 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * Gets an http client targeting the latest released version of the APIs.
+ *
+ * @return OrganizationJoinHttpClient3
+ */
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OrganizationJoinHttpClient3;
+}
 declare module "VSS/Licensing/Contracts" {
 import VSS_Accounts_Contracts = require("VSS/Accounts/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
@@ -23436,6 +24751,20 @@ export interface ExtensionAssignment {
      * Gets or sets the user IDs to assign the extension to.
      */
     userIds: string[];
+}
+export interface ExtensionAssignmentDetails {
+    assignmentStatus: ExtensionAssignmentStatus;
+    sourceCollectionName: string;
+}
+export enum ExtensionAssignmentStatus {
+    NotEligible = 0,
+    NotAssigned = 1,
+    AccountAssignment = 2,
+    BundleAssignment = 3,
+    ImplicitAssignment = 4,
+    PendingValidation = 5,
+    TrialAssignment = 6,
+    RoamingAccountAssignment = 7,
 }
 export enum ExtensionFilterOptions {
     None = 1,
@@ -23599,6 +24928,19 @@ export var TypeInfo: {
     AccountRights: any;
     AccountUserLicense: any;
     ExtensionAssignment: any;
+    ExtensionAssignmentDetails: any;
+    ExtensionAssignmentStatus: {
+        enumValues: {
+            "notEligible": number;
+            "notAssigned": number;
+            "accountAssignment": number;
+            "bundleAssignment": number;
+            "implicitAssignment": number;
+            "pendingValidation": number;
+            "trialAssignment": number;
+            "roamingAccountAssignment": number;
+        };
+    };
     ExtensionFilterOptions: {
         enumValues: {
             "none": number;
@@ -23656,7 +24998,8 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
     protected clientRightsApiVersion: string;
     protected entitlementsApiVersion: string;
     protected entitlementsApiVersion_c01e9fd5: string;
-    protected entitlementsApiVersion_ea37be6f: string;
+    protected entitlementsBatchApiVersion: string;
+    protected extensionEntitlementsBatchApiVersion: string;
     protected extensionRegistrationApiVersion: string;
     protected extensionRightsApiVersion: string;
     protected msdnApiVersion: string;
@@ -23721,12 +25064,29 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      */
     getExtensionLicenseData(extensionId: string): IPromise<Contracts.ExtensionLicenseData>;
     /**
+     * [Preview API] Returns extensions that are currently assigned to the given list of users in the account
+     *
+     * @param {string[]} userIds - List of user Ids.
+     * @return IPromise<{ [key: string] : string[]; }>
+     */
+    getExtensionsAssignedToUsers(userIds: string[]): IPromise<{
+        [key: string]: string[];
+    }>;
+    /**
+     * [Preview API] Returns AccountEntitlements that are currently assigned to the given list of users in the account
+     *
+     * @param {string[]} userIds - List of user Ids.
+     * @return IPromise<Contracts.AccountEntitlement[]>
+     */
+    obtainAvailableAccountEntitlements(userIds: string[]): IPromise<Contracts.AccountEntitlement[]>;
+    /**
      * [Preview API] Get the entitlements for a user
      *
      * @param {string} userId - The id of the user
+     * @param {boolean} determineRights
      * @return IPromise<Contracts.AccountEntitlement>
      */
-    getAccountEntitlementForUser(userId: string): IPromise<Contracts.AccountEntitlement>;
+    getAccountEntitlementForUser(userId: string, determineRights?: boolean): IPromise<Contracts.AccountEntitlement>;
     /**
      * [Preview API]
      *
@@ -23742,12 +25102,6 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.AccountEntitlement>
      */
     assignAccountEntitlementForUser(body: Contracts.AccountEntitlementUpdateModel, userId: string): IPromise<Contracts.AccountEntitlement>;
-    /**
-     * [Preview API]
-     *
-     * @return IPromise<Contracts.AccountEntitlement[]>
-     */
-    getAccountEntitlements(): IPromise<Contracts.AccountEntitlement[]>;
     /**
      * [Preview API]
      *
@@ -23808,6 +25162,16 @@ export class CommonMethods3To3_1 extends CommonMethods2To3_1 {
      * @return IPromise<Contracts.ExtensionOperationResult[]>
      */
     assignExtensionToUsers(body: Contracts.ExtensionAssignment): IPromise<Contracts.ExtensionOperationResult[]>;
+    /**
+     * [Preview API] Returns extension assignment status of all account users
+     *
+     * @param {string} extensionId - The extension to check the status of the users for.
+     * @param {Contracts.ExtensionFilterOptions} options
+     * @return IPromise<{ [key: string] : Contracts.ExtensionAssignmentDetails; }>
+     */
+    getExtensionStatusForUsers(extensionId: string, options: Contracts.ExtensionFilterOptions): IPromise<{
+        [key: string]: Contracts.ExtensionAssignmentDetails;
+    }>;
     /**
      * [Preview API] Returns users that are currently eligible to assign the extension to. the list is filtered based on the value of ExtensionFilterOptions
      *
@@ -24023,6 +25387,10 @@ export interface AccessMapping {
     displayName: string;
     moniker: string;
     /**
+     * The service which owns this access mapping e.g. TFS, ELS, etc.
+     */
+    serviceOwner: string;
+    /**
      * Part of the access mapping which applies context after the access point of the server.
      */
     virtualDirectory: string;
@@ -24039,6 +25407,10 @@ export interface ConnectionData {
      * The Id of the authorized user who made this request. More information about the user can be obtained by passing this Id to the Identity service
      */
     authorizedUser: VSS_Identities_Contracts.Identity;
+    /**
+     * The id for the server.
+     */
+    deploymentId: string;
     /**
      * The instance id for this host.
      */
@@ -24136,8 +25508,13 @@ export interface ServiceDefinition {
      * The current resource version supported by this resource location. Copied from ApiResourceLocation.
      */
     resourceVersion: number;
+    /**
+     * The service which owns this definition e.g. TFS, ELS, etc.
+     */
+    serviceOwner: string;
     serviceType: string;
     status: ServiceStatus;
+    toolId: string;
 }
 export enum ServiceStatus {
     Assigned = 0,
@@ -24258,7 +25635,7 @@ export class LocationsHttpClient2_1 extends CommonMethods2To3_1 {
 export class LocationsHttpClient2 extends CommonMethods2To3_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class LocationsHttpClient extends LocationsHttpClient3 {
+export class LocationsHttpClient extends LocationsHttpClient3_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 }
@@ -24300,8 +25677,9 @@ export class HubsProvider implements IHubsProvider {
      * Always reloads provider data by queuing up a new request
      *
      * @param cachedDataProviderContributionId Id of the data provider
+     * @param properties Additional properties to pass to the provider on reload as part of the context
      */
-    reloadCachedProviderData(cachedDataProviderContributionId: string): void;
+    reloadCachedProviderData(cachedDataProviderContributionId: string, properties?: any): void;
 }
 }
 declare module "VSS/Navigation/HubsService" {
@@ -24315,19 +25693,19 @@ export module HubEventNames {
     /**
      * Event fired before the AJAX call is made to get data for the hub being navigated to
      */
-    const PreXHRNavigate: string;
+    const PreXHRNavigate = "hub-navigate-pre-xhr";
     /**
      * Event fired after the XHR request of a navigation has completed, allowing services to update their context.
      */
-    const ProcessXHRNavigate: string;
+    const ProcessXHRNavigate = "hub-navigate-process";
     /**
      * Event fired after an XHR navigation has completed. UI can update itself with the new hub's UI on this event
      */
-    const PostXHRNavigate: string;
+    const PostXHRNavigate = "hub-navigate-post-xhr";
     /**
      * Event fired when the selected hub has changed. The navigation-related UI should update itself when this event is fired
      */
-    const SelectedHubChanged: string;
+    const SelectedHubChanged = "selected-hub-changed";
 }
 /**
 * Argument data passed to hub events
@@ -24439,6 +25817,7 @@ export class HubsService implements Service.ILocalService {
      * @param hub Hub to unpin
      */
     unpinHub(hub: Hub): void;
+    getPinningPreferences(): PinningPreferences;
     /**
      * Get the default hub to use for the specified hub group
      *
@@ -24479,6 +25858,20 @@ export class HubsService implements Service.ILocalService {
 declare module "VSS/Navigation/Services" {
 import Service = require("VSS/Service");
 /**
+* Handler for pop state events.
+*/
+export interface IPopStateHandler {
+    /**
+    * Handler for pop state events
+    *
+    * @param newState The new push state
+    * @param oldState The previous push state
+    *
+    * @returns True if the event was handled. False otherwise.
+    */
+    (newState: Object, previousState: Object): boolean;
+}
+/**
 * Local service to manage history and navigation state
 */
 export class HistoryService implements Service.ILocalService {
@@ -24490,6 +25883,7 @@ export class HistoryService implements Service.ILocalService {
     private _lastNavigatedHashString;
     private _lastNavigatedQueryString;
     private _ignoreQueryString;
+    private _currentState;
     constructor();
     /**
     * Gets the serialized version of the current navigation state.
@@ -24534,7 +25928,7 @@ export class HistoryService implements Service.ILocalService {
     * @param windowTitle The new window title. A null or empty value indicates to leave the title unchanged.
     * @param suppressNavigate If true, don't trigger any of the attached navigate event handlers due to this update.
     */
-    addHistoryPoint(action: string, data?: any, windowTitle?: string, suppressNavigate?: boolean): void;
+    addHistoryPoint(action: string, data?: any, windowTitle?: string, suppressNavigate?: boolean, mergeCurrentState?: boolean): void;
     /**
     * Update the current history entry
     *
@@ -24592,7 +25986,7 @@ export class HistoryService implements Service.ILocalService {
      * @param handlerId Id of the handler (as passed to pushState)
      * @param handler Function to be called on pop-state entries which were added with this handlerId. The handler should return true to indicate that it handled the event.
      */
-    addPopStateHandler(handlerId: string, handler: IFunctionPR<any, boolean>): void;
+    addPopStateHandler(handlerId: string, handler: IPopStateHandler): void;
     /**
      * Removes a pop state handler
      *
@@ -24617,6 +26011,7 @@ export class HistoryService implements Service.ILocalService {
      * @param title Document title to set
      */
     replaceState(url: string, handlerId?: string, handlerState?: any, title?: string): void;
+    private handleStateChange(stateChanger, url, handlerId?, handlerState?, title?);
     private _getFullTitle(title);
     private _moveHashStateToQueryParams();
     private _onHashChanged(e);
@@ -24704,7 +26099,7 @@ export var TypeInfo: {
 declare module "VSS/Operations/RestClient" {
 import Contracts = require("VSS/Operations/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
     protected operationsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -24718,55 +26113,88 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class OperationsHttpClient3_1 extends CommonMethods2To3_1 {
+export class OperationsHttpClient3_2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OperationsHttpClient3 extends CommonMethods2To3_1 {
+export class OperationsHttpClient3_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OperationsHttpClient2_3 extends CommonMethods2To3_1 {
+export class OperationsHttpClient3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OperationsHttpClient2_2 extends CommonMethods2To3_1 {
+export class OperationsHttpClient2_3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OperationsHttpClient2_1 extends CommonMethods2To3_1 {
+export class OperationsHttpClient2_2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OperationsHttpClient2 extends CommonMethods2To3_1 {
+export class OperationsHttpClient2_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class OperationsHttpClient extends OperationsHttpClient3_1 {
+/**
+ * @exemptedapi
+ */
+export class OperationsHttpClient2 extends CommonMethods2To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class OperationsHttpClient extends OperationsHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return OperationsHttpClient3
+ * @return OperationsHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OperationsHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OperationsHttpClient3_1;
+}
+declare module "VSS/OrganizationPolicy/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *
+ * Configuration file:
+ *   Vssf\Client\WebApi\HttpClients\ClientGeneratorConfigs\genclient.json
+ */
+export interface Policy {
+    effectiveValue: any;
+    enforce: boolean;
+    isValueUndefined: boolean;
+    name: string;
+    parentPolicy: Policy;
+    value: any;
+}
+export interface PolicyInfo {
+    description: string;
+    moreInfoLink: string;
+    name: string;
+}
 }
 declare module "VSS/OrganizationPolicy/RestClient" {
 import Contracts = require("VSS/Organization/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods3To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods3To3_2 extends VSS_WebApi.VssHttpClient {
     protected policiesApiVersion: string;
+    protected policiesBatchApiVersion: string;
     protected policyInformationApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -24788,6 +26216,16 @@ export class CommonMethods3To3_1 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
+     * @param {string[]} policyNames
+     * @param {string[]} defaultValues
+     * @return IPromise<{ [key: string] : Contracts.Policy; }>
+     */
+    getPolicies(policyNames: string[], defaultValues: string[]): IPromise<{
+        [key: string]: Contracts.Policy;
+    }>;
+    /**
+     * [Preview API]
+     *
      * @param {VSS_Common_Contracts.JsonPatchDocument} patchDocument
      * @param {string} policyName
      * @return IPromise<void>
@@ -24796,43 +26234,39 @@ export class CommonMethods3To3_1 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
-     * @param {any} defaultValue
      * @param {string} policyName
+     * @param {string} defaultValue
      * @return IPromise<Contracts.Policy>
      */
-    getPolicy(defaultValue: any, policyName: string): IPromise<Contracts.Policy>;
-    /**
-     * [Preview API]
-     *
-     * @param {string[]} policyNames
-     * @param {string[]} defaultValues
-     * @return IPromise<{ [key: string] : Contracts.Policy; }>
-     */
-    getPolicies(policyNames?: string[], defaultValues?: string[]): IPromise<{
-        [key: string]: Contracts.Policy;
-    }>;
+    getPolicy(policyName: string, defaultValue: string): IPromise<Contracts.Policy>;
 }
 /**
  * @exemptedapi
  */
-export class OrganizationPolicyHttpClient3_1 extends CommonMethods3To3_1 {
+export class OrganizationPolicyHttpClient3_2 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OrganizationPolicyHttpClient3 extends CommonMethods3To3_1 {
+export class OrganizationPolicyHttpClient3_1 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class OrganizationPolicyHttpClient extends OrganizationPolicyHttpClient3_1 {
+/**
+ * @exemptedapi
+ */
+export class OrganizationPolicyHttpClient3 extends CommonMethods3To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class OrganizationPolicyHttpClient extends OrganizationPolicyHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return OrganizationPolicyHttpClient3
+ * @return OrganizationPolicyHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OrganizationPolicyHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OrganizationPolicyHttpClient3_1;
 }
 declare module "VSS/Organization/Contracts" {
 export interface Account {
@@ -24864,8 +26298,38 @@ export enum AccountStatus {
     LogicallyDeleted = 30,
     MarkedForPhysicalDelete = 40,
 }
+export interface Collection {
+    data: {
+        [key: string]: any;
+    };
+    dateCreated: Date;
+    /**
+     * Identifier for a account under an organization
+     */
+    id: string;
+    lastUpdated: Date;
+    /**
+     * The unqiue name of account under an organziation
+     */
+    name: string;
+    owner: string;
+    preferredRegion: string;
+    /**
+     * Extended properties
+     */
+    properties: any;
+    status: CollectionStatus;
+}
+export enum CollectionStatus {
+    Unknown = 0,
+    Initial = 10,
+    Enabled = 20,
+    LogicallyDeleted = 30,
+    MarkedForPhysicalDelete = 40,
+}
 export interface Organization {
     accounts: Account[];
+    collections: Collection[];
     creatorId: string;
     dateCreated: Date;
     /**
@@ -24879,6 +26343,7 @@ export interface Organization {
      */
     name: string;
     primaryAccount: Account;
+    primaryCollection: Collection;
     /**
      * Extended properties
      */
@@ -24909,8 +26374,8 @@ export enum OrganizationType {
     Work = 2,
 }
 export interface Policy {
-    allowOverride: boolean;
     effectiveValue: any;
+    enforce: boolean;
     isValueUndefined: boolean;
     name: string;
     parentPolicy: Policy;
@@ -24934,6 +26399,16 @@ export interface Region {
 export var TypeInfo: {
     Account: any;
     AccountStatus: {
+        enumValues: {
+            "unknown": number;
+            "initial": number;
+            "enabled": number;
+            "logicallyDeleted": number;
+            "markedForPhysicalDelete": number;
+        };
+    };
+    Collection: any;
+    CollectionStatus: {
         enumValues: {
             "unknown": number;
             "initial": number;
@@ -24972,10 +26447,12 @@ declare module "VSS/Organization/RestClient" {
 import Contracts = require("VSS/Organization/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods3To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods3To3_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected accountPropertiesApiVersion: string;
     protected accountsApiVersion: string;
+    protected collectionPropertiesApiVersion: string;
+    protected collectionsApiVersion: string;
     protected organizationMigrationBlobsApiVersion: string;
     protected organizationPropertiesApiVersion: string;
     protected organizationsApiVersion: string;
@@ -25045,6 +26522,58 @@ export class CommonMethods3To3_1 extends VSS_WebApi.VssHttpClient {
      * [Preview API]
      *
      * @param {VSS_Common_Contracts.JsonPatchDocument} patchDocument
+     * @param {string} collectionId
+     * @return IPromise<Contracts.Collection>
+     */
+    updateCollection(patchDocument: VSS_Common_Contracts.JsonPatchDocument, collectionId: string): IPromise<Contracts.Collection>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} collectionId
+     * @param {string} collectionName
+     * @return IPromise<boolean>
+     */
+    restoreCollection(collectionId: string, collectionName: string): IPromise<boolean>;
+    /**
+     * [Preview API]
+     *
+     * @return IPromise<Contracts.Collection[]>
+     */
+    getCollections(): IPromise<Contracts.Collection[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} collectionId
+     * @param {string[]} propertyNames
+     * @return IPromise<Contracts.Collection>
+     */
+    getCollection(collectionId: string, propertyNames?: string[]): IPromise<Contracts.Collection>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} collectionId
+     * @return IPromise<boolean>
+     */
+    deleteCollection(collectionId: string): IPromise<boolean>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Collection} resource
+     * @return IPromise<Contracts.Collection>
+     */
+    createCollection(resource: Contracts.Collection): IPromise<Contracts.Collection>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} collectionId
+     * @param {VSS_Common_Contracts.JsonPatchDocument} patchDocument
+     * @return IPromise<boolean>
+     */
+    updateCollectionProperties(collectionId: string, patchDocument: VSS_Common_Contracts.JsonPatchDocument): IPromise<boolean>;
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_Common_Contracts.JsonPatchDocument} patchDocument
      * @param {string} accountId
      * @return IPromise<Contracts.Account>
      */
@@ -25097,24 +26626,30 @@ export class CommonMethods3To3_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class OrganizationHttpClient3_1 extends CommonMethods3To3_1 {
+export class OrganizationHttpClient3_2 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OrganizationHttpClient3 extends CommonMethods3To3_1 {
+export class OrganizationHttpClient3_1 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class OrganizationHttpClient extends OrganizationHttpClient3_1 {
+/**
+ * @exemptedapi
+ */
+export class OrganizationHttpClient3 extends CommonMethods3To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class OrganizationHttpClient extends OrganizationHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return OrganizationHttpClient3
+ * @return OrganizationHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OrganizationHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OrganizationHttpClient3_1;
 }
 declare module "VSS/Performance" {
 import Telemetry = require("VSS/Telemetry/Services");
@@ -25375,7 +26910,9 @@ export interface CreateProfileContext {
     countryName: string;
     displayName: string;
     emailAddress: string;
+    hasAccount: boolean;
     language: string;
+    phoneNumber: string;
 }
 export interface GeoRegion {
     regionCode: string;
@@ -25627,7 +27164,7 @@ declare module "VSS/Profile/RestClient" {
 import Contracts = require("VSS/Profile/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected geoRegionApiVersion: string;
     protected profilesApiVersion: string;
@@ -25682,7 +27219,7 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      */
     getGeoRegion(ipaddress: string): IPromise<Contracts.GeoRegion>;
 }
-export class CommonMethods3To3_1 extends CommonMethods2To3_1 {
+export class CommonMethods3To3_2 extends CommonMethods2To3_2 {
     protected attributesApiVersion: string;
     protected avatarApiVersion: string;
     protected userDefaultsApiVersion: string;
@@ -25792,81 +27329,22 @@ export class CommonMethods3To3_1 extends CommonMethods2To3_1 {
 /**
  * @exemptedapi
  */
-export class ProfileHttpClient3_1 extends CommonMethods3To3_1 {
+export class ProfileHttpClient3_2 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ProfileHttpClient3 extends CommonMethods3To3_1 {
+export class ProfileHttpClient3_1 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class ProfileHttpClient2_3 extends CommonMethods2To3_1 {
+/**
+ * @exemptedapi
+ */
+export class ProfileHttpClient3 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<void>
-     */
-    deleteProfileAttribute(id: string, descriptor: string): IPromise<void>;
-    /**
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<Contracts.ProfileAttribute>
-     */
-    getProfileAttribute(id: string, descriptor: string): IPromise<Contracts.ProfileAttribute>;
-    /**
-     * @param {string} id
-     * @param {string} partition
-     * @param {string} modifiedSince
-     * @param {string} modifiedAfterRevision
-     * @param {boolean} withCoreAttributes
-     * @param {string} coreAttributes
-     * @return IPromise<Contracts.ProfileAttribute[]>
-     */
-    getProfileAttributes(id: string, partition: string, modifiedSince?: string, modifiedAfterRevision?: string, withCoreAttributes?: boolean, coreAttributes?: string): IPromise<Contracts.ProfileAttribute[]>;
-    /**
-     * @param {any} container
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<void>
-     */
-    setProfileAttribute(container: any, id: string, descriptor: string): IPromise<void>;
-    /**
-     * @param {VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>} attributesCollection
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    setProfileAttributes(attributesCollection: VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>, id: string): IPromise<void>;
-    /**
-     * @param {string} id
-     * @param {string} size
-     * @param {string} format
-     * @return IPromise<Contracts.Avatar>
-     */
-    getAvatar(id: string, size?: string, format?: string): IPromise<Contracts.Avatar>;
-    /**
-     * @param {any} container
-     * @param {string} id
-     * @param {string} size
-     * @param {string} format
-     * @param {string} displayName
-     * @return IPromise<Contracts.Avatar>
-     */
-    getAvatarPreview(container: any, id: string, size?: string, format?: string, displayName?: string): IPromise<Contracts.Avatar>;
-    /**
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    resetAvatar(id: string): IPromise<void>;
-    /**
-     * @param {any} container
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    setAvatar(container: any, id: string): IPromise<void>;
 }
-export class ProfileHttpClient2_2 extends CommonMethods2To3_1 {
+export class ProfileHttpClient2_3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @param {string} id
@@ -25930,12 +27408,8 @@ export class ProfileHttpClient2_2 extends CommonMethods2To3_1 {
      * @return IPromise<void>
      */
     setAvatar(container: any, id: string): IPromise<void>;
-    /**
-     * @return IPromise<Contracts.Country[]>
-     */
-    getCountries(): IPromise<Contracts.Country[]>;
 }
-export class ProfileHttpClient2_1 extends CommonMethods2To3_1 {
+export class ProfileHttpClient2_2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @param {string} id
@@ -26004,7 +27478,7 @@ export class ProfileHttpClient2_1 extends CommonMethods2To3_1 {
      */
     getCountries(): IPromise<Contracts.Country[]>;
 }
-export class ProfileHttpClient2 extends CommonMethods2To3_1 {
+export class ProfileHttpClient2_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @param {string} id
@@ -26073,15 +27547,149 @@ export class ProfileHttpClient2 extends CommonMethods2To3_1 {
      */
     getCountries(): IPromise<Contracts.Country[]>;
 }
-export class ProfileHttpClient extends ProfileHttpClient3_1 {
+export class ProfileHttpClient2 extends CommonMethods2To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * @param {string} id
+     * @param {string} descriptor
+     * @return IPromise<void>
+     */
+    deleteProfileAttribute(id: string, descriptor: string): IPromise<void>;
+    /**
+     * @param {string} id
+     * @param {string} descriptor
+     * @return IPromise<Contracts.ProfileAttribute>
+     */
+    getProfileAttribute(id: string, descriptor: string): IPromise<Contracts.ProfileAttribute>;
+    /**
+     * @param {string} id
+     * @param {string} partition
+     * @param {string} modifiedSince
+     * @param {string} modifiedAfterRevision
+     * @param {boolean} withCoreAttributes
+     * @param {string} coreAttributes
+     * @return IPromise<Contracts.ProfileAttribute[]>
+     */
+    getProfileAttributes(id: string, partition: string, modifiedSince?: string, modifiedAfterRevision?: string, withCoreAttributes?: boolean, coreAttributes?: string): IPromise<Contracts.ProfileAttribute[]>;
+    /**
+     * @param {any} container
+     * @param {string} id
+     * @param {string} descriptor
+     * @return IPromise<void>
+     */
+    setProfileAttribute(container: any, id: string, descriptor: string): IPromise<void>;
+    /**
+     * @param {VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>} attributesCollection
+     * @param {string} id
+     * @return IPromise<void>
+     */
+    setProfileAttributes(attributesCollection: VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>, id: string): IPromise<void>;
+    /**
+     * @param {string} id
+     * @param {string} size
+     * @param {string} format
+     * @return IPromise<Contracts.Avatar>
+     */
+    getAvatar(id: string, size?: string, format?: string): IPromise<Contracts.Avatar>;
+    /**
+     * @param {any} container
+     * @param {string} id
+     * @param {string} size
+     * @param {string} format
+     * @param {string} displayName
+     * @return IPromise<Contracts.Avatar>
+     */
+    getAvatarPreview(container: any, id: string, size?: string, format?: string, displayName?: string): IPromise<Contracts.Avatar>;
+    /**
+     * @param {string} id
+     * @return IPromise<void>
+     */
+    resetAvatar(id: string): IPromise<void>;
+    /**
+     * @param {any} container
+     * @param {string} id
+     * @return IPromise<void>
+     */
+    setAvatar(container: any, id: string): IPromise<void>;
+    /**
+     * @return IPromise<Contracts.Country[]>
+     */
+    getCountries(): IPromise<Contracts.Country[]>;
+}
+export class ProfileHttpClient extends ProfileHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return ProfileHttpClient3
+ * @return ProfileHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ProfileHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ProfileHttpClient3_1;
+}
+declare module "VSS/ReparentCollection/Contracts" {
+export interface FrameworkReparentCollectionRequest extends FrameworkServicingOrchestrationRequest {
+    sourceOrganizationId: string;
+    targetOrganizationId: string;
+}
+export interface FrameworkServicingOrchestrationRequest extends ServicingOrchestrationRequest {
+    /**
+     * Host Id this request is targeting
+     */
+    hostId: string;
+}
+export interface PropertyPair {
+    name: string;
+    value: string;
+}
+export interface ServicingOrchestrationRequest {
+    /**
+     * The Servicing Job Id used to process this particular request
+     */
+    jobId: string;
+    /**
+     * Property bag for the custom data
+     */
+    properties: PropertyPair[];
+    /**
+     * Id of the import request (MUST be the same for all activities of the particular import)
+     */
+    requestId: string;
+    /**
+     * Full type name of the payload used to construct proper object during the deserialization
+     */
+    typeName: string;
+}
+export interface ServicingOrchestrationRequestStatus {
+    completedDate: Date;
+    completedStepCount: number;
+    createdDate: Date;
+    properties: PropertyPair[];
+    requestId: string;
+    servicingJobId: string;
+    startDate: Date;
+    status: ServicingOrchestrationStatus;
+    statusMessage: string;
+    totalStepCount: number;
+}
+export enum ServicingOrchestrationStatus {
+    Created = 0,
+    Queued = 1,
+    Running = 2,
+    Completed = 3,
+    Failed = 4,
+}
+export var TypeInfo: {
+    ServicingOrchestrationRequestStatus: any;
+    ServicingOrchestrationStatus: {
+        enumValues: {
+            "created": number;
+            "queued": number;
+            "running": number;
+            "completed": number;
+            "failed": number;
+        };
+    };
+};
 }
 declare module "VSS/SDK/Services/Dialogs" {
 import Contracts_Platform = require("VSS/Common/Contracts/Platform");
@@ -26711,7 +28319,7 @@ export var TypeInfo: {
 declare module "VSS/SecurityRoles/RestClient" {
 import Contracts = require("VSS/SecurityRoles/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2_2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2_2To3_2 extends VSS_WebApi.VssHttpClient {
     protected roleassignmentsApiVersion: string;
     protected roledefinitionsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -26771,36 +28379,42 @@ export class CommonMethods2_2To3_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class SecurityRolesHttpClient3_1 extends CommonMethods2_2To3_1 {
+export class SecurityRolesHttpClient3_2 extends CommonMethods2_2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityRolesHttpClient3 extends CommonMethods2_2To3_1 {
+export class SecurityRolesHttpClient3_1 extends CommonMethods2_2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityRolesHttpClient2_3 extends CommonMethods2_2To3_1 {
+export class SecurityRolesHttpClient3 extends CommonMethods2_2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityRolesHttpClient2_2 extends CommonMethods2_2To3_1 {
+export class SecurityRolesHttpClient2_3 extends CommonMethods2_2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class SecurityRolesHttpClient extends SecurityRolesHttpClient3_1 {
+/**
+ * @exemptedapi
+ */
+export class SecurityRolesHttpClient2_2 extends CommonMethods2_2To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class SecurityRolesHttpClient extends SecurityRolesHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return SecurityRolesHttpClient3
+ * @return SecurityRolesHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): SecurityRolesHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): SecurityRolesHttpClient3_1;
 }
 declare module "VSS/Security/Contracts" {
 /**
@@ -26810,6 +28424,9 @@ declare module "VSS/Security/Contracts" {
  *
  * See following wiki page for instructions on how to regenerate:
  *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *
+ * Configuration file:
+ *   Vssf\Client\WebApi\HttpClients\ClientGeneratorConfigs\genclient.json
  */
 import VSS_Identities_Contracts = require("VSS/Identities/Contracts");
 /**
@@ -26990,7 +28607,7 @@ declare module "VSS/Security/RestClient" {
 import Contracts = require("VSS/Security/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
     protected accessControlEntriesApiVersion: string;
     protected accessControlListsApiVersion: string;
     protected permissionsApiVersion: string;
@@ -27052,7 +28669,7 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      */
     removeAccessControlEntries(securityNamespaceId: string, token?: string, descriptors?: string): IPromise<boolean>;
 }
-export class CommonMethods2_2To3_1 extends CommonMethods2To3_1 {
+export class CommonMethods2_2To3_2 extends CommonMethods2To3_2 {
     protected permissionsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -27065,7 +28682,7 @@ export class CommonMethods2_2To3_1 extends CommonMethods2To3_1 {
      */
     hasPermissions(securityNamespaceId: string, permissions?: number, tokens?: string, alwaysAllowAdministrators?: boolean, delimiter?: string): IPromise<boolean[]>;
 }
-export class CommonMethods3To3_1 extends CommonMethods2_2To3_1 {
+export class CommonMethods3To3_2 extends CommonMethods2_2To3_2 {
     protected permissionEvaluationBatchApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -27079,28 +28696,34 @@ export class CommonMethods3To3_1 extends CommonMethods2_2To3_1 {
 /**
  * @exemptedapi
  */
-export class SecurityHttpClient3_1 extends CommonMethods3To3_1 {
+export class SecurityHttpClient3_2 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityHttpClient3 extends CommonMethods3To3_1 {
+export class SecurityHttpClient3_1 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityHttpClient2_3 extends CommonMethods2_2To3_1 {
+export class SecurityHttpClient3 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityHttpClient2_2 extends CommonMethods2_2To3_1 {
+export class SecurityHttpClient2_3 extends CommonMethods2_2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class SecurityHttpClient2_1 extends CommonMethods2To3_1 {
+/**
+ * @exemptedapi
+ */
+export class SecurityHttpClient2_2 extends CommonMethods2_2To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class SecurityHttpClient2_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @param {string} securityNamespaceId
@@ -27111,7 +28734,7 @@ export class SecurityHttpClient2_1 extends CommonMethods2To3_1 {
      */
     hasPermission(securityNamespaceId: string, permissions?: number, token?: string, alwaysAllowAdministrators?: boolean): IPromise<boolean>;
 }
-export class SecurityHttpClient2 extends CommonMethods2To3_1 {
+export class SecurityHttpClient2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @param {string} securityNamespaceId
@@ -27122,15 +28745,15 @@ export class SecurityHttpClient2 extends CommonMethods2To3_1 {
      */
     hasPermission(securityNamespaceId: string, permissions?: number, token?: string, alwaysAllowAdministrators?: boolean): IPromise<boolean>;
 }
-export class SecurityHttpClient extends SecurityHttpClient3_1 {
+export class SecurityHttpClient extends SecurityHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return SecurityHttpClient3
+ * @return SecurityHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): SecurityHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): SecurityHttpClient3_1;
 }
 declare module "VSS/Serialization" {
 /**
@@ -27268,7 +28891,6 @@ export class VssConnection {
     * @param faultInMissingHost If true, attempt to fault in the target host if the location's service definition doesn't already exist.
     */
     beginGetServiceUrl(serviceInstanceId: string, hostType?: Contracts_Platform.ContextHostType, faultInMissingHost?: boolean): IPromise<string>;
-    private _isSameOrigin(serviceUrl);
 }
 /**
 * A client service which can be cached per TFS connection.
@@ -27403,7 +29025,7 @@ export class LocalSettingsService implements Service.ILocalService {
 }
 declare module "VSS/Settings/RestClient" {
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods3To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods3To3_2 extends VSS_WebApi.VssHttpClient {
     protected entriesApiVersion: string;
     protected entriesApiVersion_cd006711: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -27473,24 +29095,30 @@ export class CommonMethods3To3_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class SettingsHttpClient3_1 extends CommonMethods3To3_1 {
+export class SettingsHttpClient3_2 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SettingsHttpClient3 extends CommonMethods3To3_1 {
+export class SettingsHttpClient3_1 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class SettingsHttpClient extends SettingsHttpClient3_1 {
+/**
+ * @exemptedapi
+ */
+export class SettingsHttpClient3 extends CommonMethods3To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class SettingsHttpClient extends SettingsHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return SettingsHttpClient3
+ * @return SettingsHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): SettingsHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): SettingsHttpClient3_1;
 }
 declare module "VSS/Telemetry/Contracts" {
 /**
@@ -27500,6 +29128,9 @@ declare module "VSS/Telemetry/Contracts" {
  *
  * See following wiki page for instructions on how to regenerate:
  *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *
+ * Configuration file:
+ *   Vssf\Client\WebApi\HttpClients\ClientGeneratorConfigs\genclient.json
  */
 export interface CustomerIntelligenceEvent {
     area: string;
@@ -27512,7 +29143,7 @@ export interface CustomerIntelligenceEvent {
 declare module "VSS/Telemetry/RestClient" {
 import Contracts = require("VSS/Telemetry/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
     protected eventsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -27526,48 +29157,54 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class CustomerIntelligenceHttpClient3_1 extends CommonMethods2To3_1 {
+export class CustomerIntelligenceHttpClient3_2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CustomerIntelligenceHttpClient3 extends CommonMethods2To3_1 {
+export class CustomerIntelligenceHttpClient3_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CustomerIntelligenceHttpClient2_3 extends CommonMethods2To3_1 {
+export class CustomerIntelligenceHttpClient3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CustomerIntelligenceHttpClient2_2 extends CommonMethods2To3_1 {
+export class CustomerIntelligenceHttpClient2_3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CustomerIntelligenceHttpClient2_1 extends CommonMethods2To3_1 {
+export class CustomerIntelligenceHttpClient2_2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CustomerIntelligenceHttpClient2 extends CommonMethods2To3_1 {
+export class CustomerIntelligenceHttpClient2_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class CustomerIntelligenceHttpClient extends CustomerIntelligenceHttpClient3_1 {
+/**
+ * @exemptedapi
+ */
+export class CustomerIntelligenceHttpClient2 extends CommonMethods2To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class CustomerIntelligenceHttpClient extends CustomerIntelligenceHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return CustomerIntelligenceHttpClient3
+ * @return CustomerIntelligenceHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CustomerIntelligenceHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CustomerIntelligenceHttpClient3_1;
 }
 declare module "VSS/Telemetry/Services" {
 /**
@@ -27632,21 +29269,10 @@ export var TypeInfo: {
 declare module "VSS/UserMapping/RestClient" {
 import Contracts = require("VSS/UserMapping/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-/**
- * @exemptedapi
- */
-export class UserMappingHttpClient3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods3_1To3_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
+    protected userAccountMappingsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API]
-     *
-     * @param {string} userId
-     * @param {string} accountId
-     * @param {Contracts.UserType} userType
-     * @return IPromise<void>
-     */
-    activateUserAccountMapping(userId: string, accountId: string, userType?: Contracts.UserType): IPromise<void>;
     /**
      * [Preview API]
      *
@@ -27657,8 +29283,29 @@ export class UserMappingHttpClient3_1 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<string[]>
      */
     queryAccountIds(userId: string, userType: Contracts.UserType, useEqualsCheckForUserTypeMatch?: boolean, includeDeletedAccounts?: boolean): IPromise<string[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} userId
+     * @param {string} accountId
+     * @param {Contracts.UserType} userType
+     * @return IPromise<void>
+     */
+    activateUserAccountMapping(userId: string, accountId: string, userType?: Contracts.UserType): IPromise<void>;
 }
-export class UserMappingHttpClient extends UserMappingHttpClient3_1 {
+/**
+ * @exemptedapi
+ */
+export class UserMappingHttpClient3_2 extends CommonMethods3_1To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class UserMappingHttpClient3_1 extends CommonMethods3_1To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class UserMappingHttpClient extends UserMappingHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -28287,6 +29934,16 @@ export interface ICultureInfo {
     name: string;
     numberFormat: INumberFormatSettings;
     dateTimeFormat: IDateTimeFormatSettings;
+    numberShortForm: INumberShortForm;
+}
+/**
+* Number Short form setting
+* it is the same internal class from the ClientCultureInfo.cs
+*/
+export interface INumberShortForm {
+    QuantitySymbols: string[];
+    NumberGroupSize: number;
+    ThousandSymbol: string;
 }
 /**
 * Number formatting culture settings
@@ -28382,6 +30039,10 @@ export function getNumberFormat(): INumberFormatSettings;
 * Get the DateTime format settings for the current culture
 */
 export function getDateTimeFormat(): IDateTimeFormatSettings;
+/**
+* Get the Number Short Form setting for the current culture
+*/
+export function getNumberShortForm(): INumberShortForm;
 }
 declare module "VSS/Utils/Date" {
 import Contracts_Platform = require("VSS/Common/Contracts/Platform");
@@ -28733,7 +30394,7 @@ export class TemplateEngine {
     constructor();
 }
 export module Utils {
-    const ISEMPTY_MINIMAL_CONTENT_LENGTH: number;
+    const ISEMPTY_MINIMAL_CONTENT_LENGTH = 500;
     /**
      * Checks whether html is visually empty.
      * 1. Not empty if content length is over the minimal threshold. See ISEMPTY_MINIMAL_CONTENT_LENGTH.
@@ -28741,6 +30402,20 @@ export module Utils {
      */
     function isEmpty(value: string): boolean;
 }
+}
+declare module "VSS/Utils/Mobile" {
+export enum MobileOperatingSystem {
+    iOS = 0,
+    Android = 1,
+    WindowsPhone = 2,
+    Other = 3,
+}
+export function getMobileOperatingSystem(): MobileOperatingSystem;
+/**
+* Determines if the mobile OS supports the left to right and right to left swipe for
+* navigating back and forward in history
+*/
+export function isNavigationSwipeSupported(): boolean;
 }
 declare module "VSS/Utils/Number" {
 import Culture = require("VSS/Utils/Culture");
@@ -28785,7 +30460,13 @@ export function parseInvariant(value: string): number;
     * @return
     */
 export function localeFormat(value: number, format: string): string;
-export function formatAbreviatedNumber(count: number): string;
+/**
+ * Format a given number to the AbbreviatedShortForm with the given locale.
+ * For example (US) 10,000 -> 10k ; 9,200 -> 9.2K (JA) 10,000 -> 1万 ; 9,200 -> 9.2千
+ * @param count - the number to format with
+ * @param cultureInfo - the cultureInfo, use user's default if not given.
+ */
+export function formatAbbreviatedNumber(count: number, cultureInfo?: Culture.ICultureInfo): string;
 }
 declare module "VSS/Utils/String" {
 import Culture = require("VSS/Utils/Culture");
@@ -28984,6 +30665,53 @@ export class StringBuilder {
     toString(): string;
 }
 }
+declare module "VSS/Utils/Tree" {
+/**
+ * Traverse a given tree pre-order
+ * @param root Root node of tree
+ * @param getChildren Given a tree node, returns its children
+ * @param visitor Callback to be called for each node in the tree, in order
+ */
+export function traversePreOrder<TNode>(root: TNode, getChildren: (node: TNode) => TNode[], visitor: (node: TNode, parentNode?: TNode, level?: number, childrenCount?: number) => boolean | void): void;
+/** Result of a `filterTree` operation. */
+export interface IFilterResult {
+    /** Map of nodes included as part of the  */
+    [key: string]: {
+        /** Node matches the filter predicat */
+        isPredicateMatch: boolean;
+        /** Node has a matching descendant */
+        hasMatchingDescendant: boolean;
+    };
+}
+/**
+ * Filters a given tree by a given predicate. The result of this operation will include
+ * - all nodes that match the predicate (`isPredicateMatch` set to true)
+ * - all nodes that have a predicate matching descendant (`hasMatchingDescendant` set to true)
+ * - all descendants of predicate matching nodes.
+ *
+ * Example (* denotes predicate matching nodes):
+ *       R
+ *     / | \
+ *    A* X  B
+ *    |  |  |
+ *    C  Y  D*
+ *
+ * Result set (isPredicateMatch iPM, hasMatchingDescendant hMD):
+ * Node | hMD | iPM
+ *  R      x
+ *  A            x
+ *  C
+ *  B      x
+ *  D            x
+ *
+ * @param root Root node of tree to filter
+ * @param predicate Filter predicate
+ * @param getKey Given a tree node, returns a unique identifier
+ * @param getChildren Given a tree node, returns its children
+ * @param preFilter Previous filter result, any node that didn't match previously will not be considered again
+ */
+export function filterTree<TNode>(root: TNode, predicate: (node: TNode) => boolean, getKey: (node: TNode) => string, getChildren: (node: TNode) => TNode[], preFilter?: IFilterResult): IFilterResult;
+}
 declare module "VSS/Utils/UI" {
 export function getWheelDelta(e?: any): number;
 /**
@@ -29113,26 +30841,41 @@ export module Positioning {
         /**
          * how much extra left offset (if any) should be given to the target element versus the reference element.
          */
-        leftOffsetPixels?: Number;
+        leftOffsetPixels?: number;
         /**
          * how much extra top offset (if any) should be given to the target element versus the reference element.
          */
-        topOffsetPixels?: Number;
+        topOffsetPixels?: number;
         supportScroll?: boolean;
         /**
          * prevent setting z-index on the target element
          */
         skipZIndexSetting?: boolean;
     }
+    interface ILocation {
+        left: number;
+        top: number;
+        width?: number;
+        height?: number;
+    }
     function _topOverflow(top: any): number;
     function _bottomOverflow(bottom: any): number;
-    function _fitHorizontal(position: any, data: any): void;
-    function _flipHorizontal(position: any, data: any): void;
+    function _fitHorizontal(position: JQueryCoordinates, data: {
+        leftOffsetPixels?: number;
+        elementMeasure: number;
+        adjustedWidth: number;
+    }): void;
+    function _flipHorizontal(position: JQueryCoordinates, data: {
+        baseMeasure: number;
+        elementMeasure: number;
+        elementAlign: string;
+        adjustedWidth: number;
+    }): void;
     /**
      * Tries to fit the positioned element by using the base element if any overflow exists.
      * If still overflow exists after flipping, it shrinks the element where it best fits.
      */
-    function _fitVertical(position: any, data: any): {
+    function _fitVertical(position: JQueryCoordinates, data: any): {
         top: any;
         shrink: number;
     };
@@ -29140,10 +30883,11 @@ export module Positioning {
      * Tries to flip the positioned element by using the base element if any overflow exists.
      * If still overflow exists after flipping, it shrinks the element where it best fits.
      */
-    function _flipVertical(position: any, data: any): {
+    function _flipVertical(position: JQueryCoordinates, data: any): {
         top: any;
         shrink: any;
     };
+    function positionAtLocation(element: any, location: ILocation, options?: IPositionOptions): void;
     /**
      * Positions the given element by taking the given base element
      * as a reference using the options provided
@@ -29238,7 +30982,18 @@ export function findTreeNode(path: string, separator: string, comparer: ICompare
 export function calculateTreePath(includeRoot: boolean, separator: string, textField: string, rootField: string): string;
 export function walkTree(f: IFunctionPPR<any, any, void>): void;
 export function injectStylesheets(cssReferenceUrls: string[], baseUrl?: string): void;
+/**
+ * When user presses space or enter on element, execute click handler and then move keyboard
+ * focus to the next visible and tabbable element on the page.
+ * @param element
+ * @param handler
+ */
 export function accessible(element: JQuery, handler?: Function): JQuery;
+/**
+ * Keydown handler that, when the user presses enter or spacebar, executes the click event handler.
+ * @param e
+ */
+export function buttonKeydownHandler(e: JQueryEventObject): void;
 /**
  * Show a tooltip on hover, only if the text of the element overflows the visible area.
  * @param element element with text-overflow: ellipsis set
@@ -29364,6 +31119,10 @@ export class Uri {
     */
     absoluteUri: string;
     /**
+     * Gets the effective port number, returning the default port number if omitted for the given scheme.
+     */
+    getEffectivePort(): number;
+    /**
     * Get the query string for this Uri.
     */
     /**
@@ -29392,6 +31151,13 @@ export class Uri {
  * @returns {boolean}
  */
 export function isAbsoluteUrl(url: string): boolean;
+/**
+ * Do the given urls have the same origin (scheme, host and port)
+ *
+ * @param url1 First url to check
+ * @param url2 Second url to check
+ */
+export function isSameOrigin(url1: string, url2: string): boolean;
 /**
  * Combines 2 url paths. If 'url' is an absolute url, then it is returned
  * without attempting to prepend baseUrl.
@@ -29586,7 +31352,7 @@ export class GlobalProgressIndicator {
 }
 export function hasUnloadRequest(): boolean;
 export class GlobalMessageIndicator {
-    updateGlobalMessageIfEmpty(message: string, messageLevel?: string): void;
+    updateGlobalMessageIfEmpty(message: string, messageLevel?: string, customIcon?: string, onDismiss?: () => void): HTMLElement;
     clearGlobalMessages(): void;
 }
 export function classExtend(ctor: any, members: any): any;
@@ -29645,6 +31411,13 @@ export function using(moduleNames: string[], callback: Function): void;
 * @param moduleNames An array of AMD modules to asynchronously require
 */
 export function requireModules(moduleNames: string[], options?: IModuleLoadOptions): Q.Promise<any>;
+/**
+ * Listen to the load complete of a module's all plugins.
+ *
+ * @param moduleName Name of the module (Not the full name, instead the name specified in VSS.tfsModuleLoaded).
+ * @param callback A function to execute when all the plugins of a module loaded.
+ */
+export function modulePluginsLoaded(moduleName: string, callback: Function): void;
 export function tfsModuleLoaded(moduleName: string, moduleExports: any): void;
 }
 declare module "VSS/WebApi/Constants" {
@@ -29940,6 +31713,19 @@ export enum Operation {
     Move = 3,
     Copy = 4,
     Test = 5,
+}
+/**
+ * Represents the public key portion of an RSA asymmetric key.
+ */
+export interface PublicKey {
+    /**
+     * Gets or sets the exponent for the public key.
+     */
+    exponent: number[];
+    /**
+     * Gets or sets the modulus for the public key.
+     */
+    modulus: number[];
 }
 export interface Publisher {
     /**

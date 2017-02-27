@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v109.20161208.1538
+// Type definitions for Microsoft Visual Studio Services v113.20170227.1600
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -30,6 +30,13 @@ export module ArtifactDefinitionConstants {
     var ArtifactSourceVersionUrl: string;
     var ArtifactSourceDefinitionUrl: string;
     var ArtifactItems: string;
+    var LabelSources: string;
+    var LabelSourcesFormat: string;
+    var CheckoutSubmodules: string;
+    var GitLfsSupport: string;
+    var FetchDepth: string;
+    var ReportBuildStatus: string;
+    var ArtifactItemContent: string;
 }
 export module ArtifactTypes {
     var BuildArtifactType: string;
@@ -41,6 +48,14 @@ export module ArtifactTypes {
     var GitArtifactType: string;
     var TfvcArtifactType: string;
     var ExternalTfsXamlBuildArtifactType: string;
+    var PipelineArtifactType: string;
+}
+export module DeploymentHealthOptionConstants {
+    var AllTargetsInParallel: string;
+    var HalfOfTargetsInParallel: string;
+    var QuarterOfTargetsInParallel: string;
+    var OneTargetAtATime: string;
+    var Custom: string;
 }
 export module FavoriteItemKeys {
     var ReleaseDefinitionId: string;
@@ -74,12 +89,14 @@ export module WellKnownMetrics {
     var PartiallySuccessfulDeployments: string;
 }
 export module WellKnownReleaseVariables {
+    var Build_RepoUri: string;
     var System: string;
     var Build: string;
     var HostTypeValue: string;
     var DeploymentHostType: string;
     var ReleaseArtifact: string;
     var ReleaseEnvironments: string;
+    var ContainerId: string;
     var AgentReleaseDirectory: string;
     var EnableAccessTokenVariableName: string;
     var HostType: string;
@@ -128,6 +145,36 @@ export module WellKnownReleaseVariables {
     var BuildRepositoryName: string;
     var BuildRepositoryProvider: string;
     var BuildDefinitionId: string;
+    var Build_System: string;
+    var Build_CollectionId: string;
+    var Build_TeamProject: string;
+    var Build_TeamProjectId: string;
+    var Build_DefinitionId: string;
+    var Build_HostType: string;
+    var Build_DefinitionName: string;
+    var Build_DefinitionVersion: string;
+    var Build_QueuedBy: string;
+    var Build_QueuedById: string;
+    var Build_RequestedFor: string;
+    var Build_RequestedForId: string;
+    var Build_RequestedForEmail: string;
+    var Build_SourceBranch: string;
+    var Build_SourceBranchName: string;
+    var Build_SourceVersion: string;
+    var Build_SourceVersionAuthor: string;
+    var Build_SourceVersionMessage: string;
+    var Build_SourceTfvcShelveset: string;
+    var Build_BuildId: string;
+    var Build_BuildUri: string;
+    var Build_BuildNumber: string;
+    var Build_ContainerId: string;
+    var Build_SyncSources: string;
+    var Build_JobAuthorizeAs: string;
+    var Build_JobAuthorizeAsId: string;
+    var Pipeline_DefinitionType: string;
+    var Pipeline_InstanceId: string;
+    var Pipeline_Artifact_Clean: string;
+    var Pipeline_Artifact_CleanOptions: string;
 }
 }
 declare module "ReleaseManagement/Core/Contracts" {
@@ -152,14 +199,18 @@ export enum AgentArtifactType {
     ExternalTfsBuild = 8,
     Custom = 9,
     Tfvc = 10,
+    Svn = 11,
+    Pipeline = 12,
 }
 export interface AgentBasedDeployPhase extends DeployPhase {
     deploymentInput: AgentDeploymentInput;
 }
 export interface AgentDeploymentInput extends DeploymentInput {
+    imageId: number;
     parallelExecution: ExecutionInput;
 }
 export interface ApprovalOptions {
+    autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped: boolean;
     releaseCreatorCanBeApprover: boolean;
     requiredApproverCount: number;
 }
@@ -205,6 +256,7 @@ export interface ArtifactContributionDefinition {
 }
 export interface ArtifactFilter {
     sourceBranch: string;
+    tags: string[];
 }
 export interface ArtifactInstanceData {
     accountName: string;
@@ -262,6 +314,7 @@ export enum AuditAction {
     Delete = 3,
 }
 export interface BaseDeploymentInput {
+    shareOutputVariables: boolean;
 }
 export interface BuildVersion {
     id: string;
@@ -355,7 +408,8 @@ export interface ContinuousDeploymentTestWebAppConfiguration {
 export enum ContinuousDeploymentWebAppProjectType {
     AspNetWap = 0,
     AspNetCore = 1,
-    NodeJS = 2,
+    NodeJSWithGulp = 2,
+    NodeJSWithGrunt = 3,
 }
 export interface ControlOptions {
     alwaysRun: boolean;
@@ -435,6 +489,8 @@ export interface DeploymentCompletedEvent {
     project: ProjectReference;
 }
 export interface DeploymentInput extends BaseDeploymentInput {
+    clean: boolean;
+    cleanOptions: RepositoryCleanOptions;
     demands: any[];
     enableAccessToken: boolean;
     queueId: number;
@@ -444,6 +500,12 @@ export interface DeploymentInput extends BaseDeploymentInput {
 export interface DeploymentJob {
     job: ReleaseTask;
     tasks: ReleaseTask[];
+}
+export interface DeploymentManualInterventionPendingEvent {
+    environmentOwner: VSS_Common_Contracts.IdentityRef;
+    manualIntervention: ManualIntervention;
+    project: ProjectReference;
+    release: Release;
 }
 export enum DeploymentOperationStatus {
     Undefined = 0,
@@ -580,6 +642,28 @@ export interface FavoriteItem {
      */
     type: string;
 }
+export interface Folder {
+    createdBy: VSS_Common_Contracts.IdentityRef;
+    createdOn: Date;
+    description: string;
+    lastChangedBy: VSS_Common_Contracts.IdentityRef;
+    lastChangedDate: Date;
+    path: string;
+}
+export enum FolderPathQueryOrder {
+    /**
+     * No order
+     */
+    None = 0,
+    /**
+     * Order by folder name and path ascending.
+     */
+    Ascending = 1,
+    /**
+     * Order by folder name and path descending.
+     */
+    Descending = 2,
+}
 export interface Issue {
     issueType: string;
     message: string;
@@ -588,6 +672,7 @@ export interface MachineGroupBasedDeployPhase extends DeployPhase {
     deploymentInput: MachineGroupDeploymentInput;
 }
 export interface MachineGroupDeploymentInput extends DeploymentInput {
+    deploymentHealthOption: string;
     healthPercent: number;
     tags: string[];
 }
@@ -703,6 +788,7 @@ export interface Release {
     releaseNameFormat: string;
     status: ReleaseStatus;
     url: string;
+    variableGroups: VariableGroup[];
     variables: {
         [key: string]: ConfigurationVariableValue;
     };
@@ -742,10 +828,15 @@ export interface ReleaseApprovalHistory {
 }
 export interface ReleaseApprovalPendingEvent {
     approval: ReleaseApproval;
+    approvalOptions: ApprovalOptions;
+    completedApprovals: ReleaseApproval[];
     definitionName: string;
+    deployment: Deployment;
     environmentId: number;
     environmentName: string;
     environments: ReleaseEnvironment[];
+    isMultipleRankApproval: boolean;
+    pendingApprovals: ReleaseApproval[];
     releaseCreator: string;
     releaseName: string;
     title: string;
@@ -773,14 +864,18 @@ export interface ReleaseDefinition {
     createdOn: Date;
     environments: ReleaseDefinitionEnvironment[];
     id: number;
+    lastRelease: ReleaseReference;
     modifiedBy: VSS_Common_Contracts.IdentityRef;
     modifiedOn: Date;
     name: string;
+    path: string;
     releaseNameFormat: string;
     retentionPolicy: RetentionPolicy;
     revision: number;
+    source: ReleaseDefinitionSource;
     triggers: ReleaseTriggerBase[];
     url: string;
+    variableGroups: number[];
     variables: {
         [key: string]: ConfigurationVariableValue;
     };
@@ -846,6 +941,7 @@ export enum ReleaseDefinitionExpands {
     Environments = 2,
     Artifacts = 4,
     Triggers = 8,
+    Variables = 16,
 }
 export enum ReleaseDefinitionQueryOrder {
     IdAscending = 0,
@@ -861,6 +957,12 @@ export interface ReleaseDefinitionRevision {
     definitionId: number;
     definitionUrl: string;
     revision: number;
+}
+export enum ReleaseDefinitionSource {
+    Undefined = 0,
+    RestApi = 1,
+    UserInterface = 2,
+    Ibiza = 4,
 }
 export interface ReleaseDefinitionSummary {
     environments: ReleaseDefinitionEnvironmentSummary[];
@@ -938,6 +1040,7 @@ export enum ReleaseExpands {
     Artifacts = 4,
     Approvals = 8,
     ManualInterventions = 16,
+    Variables = 32,
 }
 export enum ReleaseQueryOrder {
     Descending = 0,
@@ -951,9 +1054,14 @@ export enum ReleaseReason {
 }
 export interface ReleaseReference {
     artifacts: Artifact[];
+    createdBy: VSS_Common_Contracts.IdentityRef;
+    createdOn: Date;
+    description: string;
     id: number;
     name: string;
+    releaseDefinition: ShallowReference;
     url: string;
+    webAccessUri: string;
 }
 export interface ReleaseRevision {
     changedBy: VSS_Common_Contracts.IdentityRef;
@@ -1016,6 +1124,7 @@ export interface ReleaseTask {
     rank: number;
     startTime: Date;
     status: TaskStatus;
+    task: WorkflowTaskReference;
     timelineRecordId: string;
 }
 export interface ReleaseTaskLogUpdatedEvent extends RealtimeReleaseEvent {
@@ -1050,6 +1159,18 @@ export interface ReleaseUpdateMetadata {
 export interface ReleaseWorkItemRef {
     id: string;
     url: string;
+}
+export enum RepositoryCleanOptions {
+    Source = 0,
+    SourceAndOutputDir = 1,
+    /**
+     * Re-create $(build.sourcesDirectory)
+     */
+    SourceDir = 2,
+    /**
+     * Re-create $(agnet.buildDirectory) which contains $(build.sourcesDirectory), $(build.binariesDirectory) and any folders that left from previous build.
+     */
+    AllBuildDir = 3,
 }
 export interface RetentionPolicy {
     daysToKeep: number;
@@ -1108,6 +1229,13 @@ export interface SummaryMailSection {
     sectionType: MailSectionType;
     title: string;
 }
+export interface TaskOrchestrationPlanGroupReference {
+    planGroup: string;
+    projectId: string;
+}
+export interface TaskOrchestrationPlanGroupsStartedEvent {
+    planGroups: TaskOrchestrationPlanGroupReference[];
+}
 export enum TaskStatus {
     Unknown = 0,
     Pending = 1,
@@ -1128,6 +1256,27 @@ export interface TimeZoneList {
     utcTimeZone: TimeZone;
     validTimeZones: TimeZone[];
 }
+export interface VariableGroup {
+    createdBy: VSS_Common_Contracts.IdentityRef;
+    createdOn: Date;
+    description: string;
+    id: number;
+    modifiedBy: VSS_Common_Contracts.IdentityRef;
+    modifiedOn: Date;
+    name: string;
+    variables: {
+        [key: string]: VariableValue;
+    };
+}
+export enum VariableGroupActionFilter {
+    None = 0,
+    Manage = 2,
+    Use = 16,
+}
+export interface VariableValue {
+    isSecret: boolean;
+    value: string;
+}
 export interface WorkflowTask {
     alwaysRun: boolean;
     continueOnError: boolean;
@@ -1139,6 +1288,11 @@ export interface WorkflowTask {
     name: string;
     taskId: string;
     timeoutInMinutes: number;
+    version: string;
+}
+export interface WorkflowTaskReference {
+    id: string;
+    name: string;
     version: string;
 }
 export var TypeInfo: {
@@ -1156,6 +1310,8 @@ export var TypeInfo: {
             "externalTfsBuild": number;
             "custom": number;
             "tfvc": number;
+            "svn": number;
+            "pipeline": number;
         };
     };
     AgentBasedDeployPhase: any;
@@ -1205,7 +1361,8 @@ export var TypeInfo: {
         enumValues: {
             "aspNetWap": number;
             "aspNetCore": number;
-            "nodeJS": number;
+            "nodeJSWithGulp": number;
+            "nodeJSWithGrunt": number;
         };
     };
     Deployment: any;
@@ -1213,7 +1370,9 @@ export var TypeInfo: {
     DeploymentApprovalPendingEvent: any;
     DeploymentAttempt: any;
     DeploymentCompletedEvent: any;
+    DeploymentInput: any;
     DeploymentJob: any;
+    DeploymentManualInterventionPendingEvent: any;
     DeploymentOperationStatus: {
         enumValues: {
             "undefined": number;
@@ -1288,7 +1447,16 @@ export var TypeInfo: {
         };
     };
     ExecutionInput: any;
+    Folder: any;
+    FolderPathQueryOrder: {
+        enumValues: {
+            "none": number;
+            "ascending": number;
+            "descending": number;
+        };
+    };
     MachineGroupBasedDeployPhase: any;
+    MachineGroupDeploymentInput: any;
     MailMessage: any;
     MailSectionType: {
         enumValues: {
@@ -1343,6 +1511,7 @@ export var TypeInfo: {
             "environments": number;
             "artifacts": number;
             "triggers": number;
+            "variables": number;
         };
     };
     ReleaseDefinitionQueryOrder: {
@@ -1354,6 +1523,14 @@ export var TypeInfo: {
         };
     };
     ReleaseDefinitionRevision: any;
+    ReleaseDefinitionSource: {
+        enumValues: {
+            "undefined": number;
+            "restApi": number;
+            "userInterface": number;
+            "ibiza": number;
+        };
+    };
     ReleaseDefinitionSummary: any;
     ReleaseDeployPhase: any;
     ReleaseEnvironment: any;
@@ -1366,6 +1543,7 @@ export var TypeInfo: {
             "artifacts": number;
             "approvals": number;
             "manualInterventions": number;
+            "variables": number;
         };
     };
     ReleaseQueryOrder: {
@@ -1382,6 +1560,7 @@ export var TypeInfo: {
             "schedule": number;
         };
     };
+    ReleaseReference: any;
     ReleaseRevision: any;
     ReleaseSchedule: any;
     ReleaseStartMetadata: any;
@@ -1405,6 +1584,14 @@ export var TypeInfo: {
     };
     ReleaseUpdatedEvent: any;
     ReleaseUpdateMetadata: any;
+    RepositoryCleanOptions: {
+        enumValues: {
+            "source": number;
+            "sourceAndOutputDir": number;
+            "sourceDir": number;
+            "allBuildDir": number;
+        };
+    };
     RunOnServerDeployPhase: any;
     ScheduleDays: {
         enumValues: {
@@ -1447,6 +1634,14 @@ export var TypeInfo: {
             "succeeded": number;
             "failed": number;
             "partiallySucceeded": number;
+        };
+    };
+    VariableGroup: any;
+    VariableGroupActionFilter: {
+        enumValues: {
+            "none": number;
+            "manage": number;
+            "use": number;
         };
     };
 };
@@ -1815,7 +2010,7 @@ export class CommonMethods2_2To3_1 extends CommonMethods2To3_1 {
      */
     updateReleaseDefinition(releaseDefinition: Contracts.ReleaseDefinition, project: string): IPromise<Contracts.ReleaseDefinition>;
     /**
-     * [Preview API]
+     * [Obsolete - This REST API is deprecated and will be removed in a future release. Use GetReleaseDefinitions instead.]
      *
      * @param {string} project - Project ID or project name
      * @param {string} artifactType
@@ -1830,12 +2025,16 @@ export class CommonMethods2_2To3_1 extends CommonMethods2To3_1 {
      * @param {string} project - Project ID or project name
      * @param {string} searchText
      * @param {Contracts.ReleaseDefinitionExpands} expand
+     * @param {string} artifactType
+     * @param {string} artifactSourceId
      * @param {number} top
      * @param {string} continuationToken
      * @param {Contracts.ReleaseDefinitionQueryOrder} queryOrder
+     * @param {string} path
+     * @param {boolean} isExactNameMatch
      * @return IPromise<Contracts.ReleaseDefinition[]>
      */
-    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands, top?: number, continuationToken?: string, queryOrder?: Contracts.ReleaseDefinitionQueryOrder): IPromise<Contracts.ReleaseDefinition[]>;
+    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands, artifactType?: string, artifactSourceId?: string, top?: number, continuationToken?: string, queryOrder?: Contracts.ReleaseDefinitionQueryOrder, path?: string, isExactNameMatch?: boolean): IPromise<Contracts.ReleaseDefinition[]>;
     /**
      * [Preview API]
      *
@@ -2089,6 +2288,41 @@ export class ReleaseHttpClient3_1 extends CommonMethods3To3_1 {
      * @return IPromise<Contracts.FavoriteItem[]>
      */
     getFavorites(project: string, scope: string, identityId?: string): IPromise<Contracts.FavoriteItem[]>;
+    /**
+     * [Preview API] Creates a new folder
+     *
+     * @param {Contracts.Folder} folder
+     * @param {string} project - Project ID or project name
+     * @param {string} path
+     * @return IPromise<Contracts.Folder>
+     */
+    createFolder(folder: Contracts.Folder, project: string, path: string): IPromise<Contracts.Folder>;
+    /**
+     * [Preview API] Deletes a definition folder for given folder name and path and all it's existing definitions
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} path
+     * @return IPromise<void>
+     */
+    deleteFolder(project: string, path: string): IPromise<void>;
+    /**
+     * [Preview API] Gets folders
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} path
+     * @param {Contracts.FolderPathQueryOrder} queryOrder
+     * @return IPromise<Contracts.Folder[]>
+     */
+    getFolders(project: string, path?: string, queryOrder?: Contracts.FolderPathQueryOrder): IPromise<Contracts.Folder[]>;
+    /**
+     * [Preview API] Updates an existing folder at given  existing path
+     *
+     * @param {Contracts.Folder} folder
+     * @param {string} project - Project ID or project name
+     * @param {string} path
+     * @return IPromise<Contracts.Folder>
+     */
+    updateFolder(folder: Contracts.Folder, project: string, path: string): IPromise<Contracts.Folder>;
     /**
      * [Preview API]
      *
