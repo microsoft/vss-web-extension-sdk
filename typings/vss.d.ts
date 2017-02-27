@@ -12470,7 +12470,7 @@ export module ShortcutKeys {
     var CONTROL: string;
     var SHIFT: string;
 }
-export type KeyboardAction = (e: ExtendedKeyboardEvent, combo: string) => void;
+export type KeyboardAction = (e: any, combo: string) => void;
 export interface IShortcutGroup {
     /**
      *  The name of the group
