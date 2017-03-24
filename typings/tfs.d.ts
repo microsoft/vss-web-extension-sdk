@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v113.20170227.1601
+// Type definitions for Microsoft Visual Studio Services v114.20170324.0806
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -3553,8 +3553,6 @@ export interface Room {
      */
     name: string;
 }
-export interface RoomCollection {
-}
 export interface RoomData {
     /**
      * Description of the room
@@ -3586,8 +3584,6 @@ export interface User {
      * The shallow reference for the user
      */
     user: VSS_Common_Contracts.IdentityRef;
-}
-export interface UserCollection {
 }
 export interface UserData {
     userId: string;
@@ -3644,9 +3640,9 @@ export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
      * Retrieve a listing of all chat users
      *
      * @param {number} roomId - Id of the room
-     * @return IPromise<Contracts.UserCollection>
+     * @return IPromise<Contracts.User[]>
      */
-    getAllChatRoomUsers(roomId: number): IPromise<Contracts.UserCollection>;
+    getAllChatRoomUsers(roomId: number): IPromise<Contracts.User[]>;
     /**
      * Update information on a single chat room
      *
@@ -3663,9 +3659,9 @@ export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
      */
     getChatRoomById(roomId: number): IPromise<Contracts.Room>;
     /**
-     * @return IPromise<Contracts.RoomCollection>
+     * @return IPromise<Contracts.Room[]>
      */
-    getAllRooms(): IPromise<Contracts.RoomCollection>;
+    getAllRooms(): IPromise<Contracts.Room[]>;
     /**
      * Delete a given chat room
      *
@@ -5624,6 +5620,10 @@ export enum AadLoginPromptOption {
      * Force the user to select which account they are logging in with instead of automatically picking the user up from the session state. NOTE: This does not work for switching bewtween the variants of a dual-homed user.
      */
     SelectAccount = 2,
+    /**
+     * Force the user to login again.  Ignore current authentication state and force the user to authenticate again. This option should be used instead of Login.
+     */
+    FreshLogin = 3,
 }
 export interface AadOauthTokenRequest {
     refresh: boolean;
@@ -5665,6 +5665,7 @@ export interface AgentQueuesEvent {
 }
 export interface AgentRefreshMessage {
     agentId: number;
+    targetVersion: string;
     timeout: any;
 }
 export interface AgentRequestEvent {
@@ -5731,6 +5732,25 @@ export interface DependsOn {
     input: string;
     map: DependencyBinding[];
 }
+export interface DeploymentGroup extends DeploymentGroupReference {
+    machineCount: number;
+    machines: DeploymentMachine[];
+}
+export enum DeploymentGroupActionFilter {
+    None = 0,
+    Manage = 2,
+    Use = 16,
+}
+export enum DeploymentGroupExpands {
+    None = 0,
+    Machines = 2,
+}
+export interface DeploymentGroupReference {
+    id: number;
+    name: string;
+    pool: TaskAgentPoolReference;
+    project: ProjectReference;
+}
 export interface DeploymentMachine {
     agent: TaskAgentReference;
     tags: string[];
@@ -5746,7 +5766,7 @@ export interface DeploymentMachineGroupReference {
     project: ProjectReference;
 }
 export interface DeploymentMachinesChangeEvent {
-    machineGroupReference: DeploymentMachineGroupReference;
+    machineGroupReference: DeploymentGroupReference;
     machines: DeploymentMachine[];
 }
 export interface EndpointAuthorization {
@@ -5801,6 +5821,7 @@ export interface JobEnvironment {
     options: {
         [key: string]: JobOption;
     };
+    secureFiles: SecureFile[];
     /**
      * Gets or sets the endpoint used for communicating back to the calling service.
      */
@@ -5929,6 +5950,7 @@ export interface SecureFile {
     properties: {
         [key: string]: string;
     };
+    ticket: string;
 }
 export enum SecureFileActionFilter {
     None = 0,
@@ -6049,6 +6071,10 @@ export interface TaskAgent extends TaskAgentReference {
      * Gets or sets the maximum job parallelism allowed on this host.
      */
     maxParallelism: number;
+    /**
+     * Gets the pending update for this agent.
+     */
+    pendingUpdate: TaskAgentUpdate;
     properties: any;
     /**
      * Gets the date on which the last connectivity status change occurred.
@@ -6433,6 +6459,28 @@ export enum TaskAgentStatus {
     Offline = 1,
     Online = 2,
 }
+export interface TaskAgentUpdate {
+    /**
+     * The current state of this agent update
+     */
+    currentState: string;
+    /**
+     * The identity that request the agent update
+     */
+    requestedBy: VSS_Common_Contracts.IdentityRef;
+    /**
+     * Gets the date on which this agent update was requested.
+     */
+    requestTime: Date;
+    /**
+     * Gets or sets the source agent version of the agent update
+     */
+    sourceVersion: PackageVersion;
+    /**
+     * Gets or sets the target agent version of the agent update
+     */
+    targetVersion: PackageVersion;
+}
 export interface TaskAttachment {
     _links: any;
     createdOn: Date;
@@ -6578,6 +6626,8 @@ export interface TaskHubLicenseDetails {
     enterpriseUsersCount: number;
     freeLicenseCount: number;
     hasLicenseCountEverUpdated: boolean;
+    hostedAgentMinutesFreeCount: number;
+    hostedAgentMinutesUsedCount: number;
     msdnUsersCount: number;
     purchasedHostedLicenseCount: number;
     purchasedLicenseCount: number;
@@ -6587,6 +6637,7 @@ export interface TaskInputDefinition extends TFS_DistributedTask_Common_Contract
 }
 export interface TaskInstance extends TaskReference {
     alwaysRun: boolean;
+    condition: string;
     continueOnError: boolean;
     displayName: string;
     enabled: boolean;
@@ -6789,6 +6840,7 @@ export var TypeInfo: {
             "noOption": number;
             "login": number;
             "selectAccount": number;
+            "freshLogin": number;
         };
     };
     AgentChangeEvent: any;
@@ -6804,6 +6856,21 @@ export var TypeInfo: {
             "delete": number;
         };
     };
+    DeploymentGroup: any;
+    DeploymentGroupActionFilter: {
+        enumValues: {
+            "none": number;
+            "manage": number;
+            "use": number;
+        };
+    };
+    DeploymentGroupExpands: {
+        enumValues: {
+            "none": number;
+            "machines": number;
+        };
+    };
+    DeploymentGroupReference: any;
     DeploymentMachine: any;
     DeploymentMachineGroup: any;
     DeploymentMachineGroupReference: any;
@@ -6918,6 +6985,7 @@ export var TypeInfo: {
             "online": number;
         };
     };
+    TaskAgentUpdate: any;
     TaskAttachment: any;
     TaskDefinitionStatus: {
         enumValues: {
@@ -7437,9 +7505,10 @@ export class CommonMethods3To3_2 extends CommonMethods2_1To3_2 {
      *
      * @param {string} hubName
      * @param {boolean} includeEnterpriseUsersCount
+     * @param {boolean} includeHostedAgentMinutesCount
      * @return IPromise<Contracts.TaskHubLicenseDetails>
      */
-    getTaskHubLicenseDetails(hubName: string, includeEnterpriseUsersCount?: boolean): IPromise<Contracts.TaskHubLicenseDetails>;
+    getTaskHubLicenseDetails(hubName: string, includeEnterpriseUsersCount?: boolean, includeHostedAgentMinutesCount?: boolean): IPromise<Contracts.TaskHubLicenseDetails>;
 }
 export class CommonMethods3_1To3_2 extends CommonMethods3To3_2 {
     protected machinegroupaccesstokenApiVersion: string;
@@ -7547,7 +7616,7 @@ export class CommonMethods3_1To3_2 extends CommonMethods3To3_2 {
      * @param {number} machineGroupId
      * @return IPromise<Contracts.DeploymentMachine[]>
      */
-    updateDeploymentMachines(deploymentMachines: Contracts.DeploymentMachine[], project: string, machineGroupId: number): IPromise<Contracts.DeploymentMachine[]>;
+    updateDeploymentMachineGroupMachines(deploymentMachines: Contracts.DeploymentMachine[], project: string, machineGroupId: number): IPromise<Contracts.DeploymentMachine[]>;
     /**
      * [Preview API]
      *
@@ -7556,7 +7625,7 @@ export class CommonMethods3_1To3_2 extends CommonMethods3To3_2 {
      * @param {string[]} tagFilters
      * @return IPromise<Contracts.DeploymentMachine[]>
      */
-    getDeploymentMachines(project: string, machineGroupId: number, tagFilters?: string[]): IPromise<Contracts.DeploymentMachine[]>;
+    getDeploymentMachineGroupMachines(project: string, machineGroupId: number, tagFilters?: string[]): IPromise<Contracts.DeploymentMachine[]>;
     /**
      * [Preview API]
      *
@@ -7614,6 +7683,77 @@ export class CommonMethods3_1To3_2 extends CommonMethods3To3_2 {
  */
 export class TaskAgentHttpClient3_2 extends CommonMethods3_1To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} deploymentGroupId
+     * @return IPromise<string>
+     */
+    generateDeploymentGroupAccessToken(project: string, deploymentGroupId: number): IPromise<string>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DeploymentGroup} deploymentGroup
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.DeploymentGroup>
+     */
+    addDeploymentGroup(deploymentGroup: Contracts.DeploymentGroup, project: string): IPromise<Contracts.DeploymentGroup>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} deploymentGroupId
+     * @return IPromise<void>
+     */
+    deleteDeploymentGroup(project: string, deploymentGroupId: number): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} deploymentGroupId
+     * @param {Contracts.DeploymentGroupActionFilter} actionFilter
+     * @param {Contracts.DeploymentGroupExpands} expand
+     * @return IPromise<Contracts.DeploymentGroup>
+     */
+    getDeploymentGroup(project: string, deploymentGroupId: number, actionFilter?: Contracts.DeploymentGroupActionFilter, expand?: Contracts.DeploymentGroupExpands): IPromise<Contracts.DeploymentGroup>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} name
+     * @param {Contracts.DeploymentGroupActionFilter} actionFilter
+     * @param {Contracts.DeploymentGroupExpands} expand
+     * @return IPromise<Contracts.DeploymentGroup[]>
+     */
+    getDeploymentGroups(project: string, name?: string, actionFilter?: Contracts.DeploymentGroupActionFilter, expand?: Contracts.DeploymentGroupExpands): IPromise<Contracts.DeploymentGroup[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DeploymentGroup} deploymentGroup
+     * @param {string} project - Project ID or project name
+     * @param {number} deploymentGroupId
+     * @return IPromise<Contracts.DeploymentGroup>
+     */
+    updateDeploymentGroup(deploymentGroup: Contracts.DeploymentGroup, project: string, deploymentGroupId: number): IPromise<Contracts.DeploymentGroup>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} deploymentGroupId
+     * @param {string[]} tags
+     * @return IPromise<Contracts.DeploymentMachine[]>
+     */
+    getDeploymentMachines(project: string, deploymentGroupId: number, tags?: string[]): IPromise<Contracts.DeploymentMachine[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DeploymentMachine[]} deploymentMachines
+     * @param {string} project - Project ID or project name
+     * @param {number} deploymentGroupId
+     * @return IPromise<Contracts.DeploymentMachine[]>
+     */
+    updateDeploymentMachines(deploymentMachines: Contracts.DeploymentMachine[], project: string, deploymentGroupId: number): IPromise<Contracts.DeploymentMachine[]>;
     /**
      * [Preview API]
      *
@@ -7704,56 +7844,95 @@ export class TaskAgentHttpClient3_2 extends CommonMethods3_1To3_2 {
      */
     updateAgentPoolMaintenanceJob(job: Contracts.TaskAgentPoolMaintenanceJob, poolId: number, jobId: number): IPromise<Contracts.TaskAgentPoolMaintenanceJob>;
     /**
-     * [Preview API]
+     * [Preview API] Delete a secure file
      *
      * @param {string} project - Project ID or project name
-     * @param {number} secureFileId
+     * @param {number} secureFileId - The unique secure file Id
      * @return IPromise<void>
      */
     deleteSecureFile(project: string, secureFileId: number): IPromise<void>;
     /**
-     * [Preview API]
+     * [Preview API] Download a secure file by Id
      *
      * @param {string} project - Project ID or project name
-     * @param {number} secureFileId
+     * @param {number} secureFileId - The unique secure file Id
+     * @param {string} ticket - A valid download ticket
+     * @param {boolean} download - If download is true, the file is sent as attachement in the response body. If download is false, the response body contains the file stream.
+     * @return IPromise<ArrayBuffer>
+     */
+    downloadSecureFile(project: string, secureFileId: number, ticket: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API] Get a secure file
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} secureFileId - The unique secure file Id
+     * @param {boolean} includeDownloadTicket - If includeDownloadTicket is true and the caller has permissions, a download ticket is included in the response.
      * @return IPromise<Contracts.SecureFile>
      */
-    getSecureFile(project: string, secureFileId: number): IPromise<Contracts.SecureFile>;
+    getSecureFile(project: string, secureFileId: number, includeDownloadTicket?: boolean): IPromise<Contracts.SecureFile>;
     /**
-     * [Preview API]
+     * [Preview API] Get secure files
      *
      * @param {string} project - Project ID or project name
-     * @param {string} namePattern
-     * @param {Contracts.SecureFileActionFilter} actionFilter
+     * @param {string} namePattern - Name of the secure file to match. Can include wildcards to match multiple files.
+     * @param {boolean} includeDownloadTickets - If includeDownloadTickets is true and the caller has permissions, a download ticket for each secure file is included in the response.
+     * @param {Contracts.SecureFileActionFilter} actionFilter - Filter by secure file permissions for View, Manage or Use action. Defaults to View.
      * @return IPromise<Contracts.SecureFile[]>
      */
-    getSecureFiles(project: string, namePattern?: string, actionFilter?: Contracts.SecureFileActionFilter): IPromise<Contracts.SecureFile[]>;
+    getSecureFiles(project: string, namePattern?: string, includeDownloadTickets?: boolean, actionFilter?: Contracts.SecureFileActionFilter): IPromise<Contracts.SecureFile[]>;
     /**
-     * [Preview API]
+     * [Preview API] Get secure files
      *
      * @param {string} project - Project ID or project name
-     * @param {number[]} secureFileIds
+     * @param {number[]} secureFileIds - A list of secure file Ids
+     * @param {boolean} includeDownloadTickets - If includeDownloadTickets is true and the caller has permissions, a download ticket for each secure file is included in the response.
      * @return IPromise<Contracts.SecureFile[]>
      */
-    getSecureFilesByIds(project: string, secureFileIds: number[]): IPromise<Contracts.SecureFile[]>;
+    getSecureFilesByIds(project: string, secureFileIds: number[], includeDownloadTickets?: boolean): IPromise<Contracts.SecureFile[]>;
     /**
-     * [Preview API]
+     * [Preview API] Query secure files using a name pattern and a condition on file properties.
      *
-     * @param {Contracts.SecureFile} secureFile
+     * @param {string} condition - The main condition syntax is described [here](https://go.microsoft.com/fwlink/?linkid=842996). Use the *property('property-name')* function to access the value of the specified property of a secure file. It returns null if the property is not set. E.g. ``` and( eq( property('devices'), '2' ), in( property('provisioning profile type'), 'ad hoc', 'development' ) ) ```
      * @param {string} project - Project ID or project name
-     * @param {number} secureFileId
+     * @param {string} namePattern - Name of the secure file to match. Can include wildcards to match multiple files.
+     * @return IPromise<Contracts.SecureFile[]>
+     */
+    querySecureFilesByProperties(condition: string, project: string, namePattern?: string): IPromise<Contracts.SecureFile[]>;
+    /**
+     * [Preview API] Update the name or properties of an existing secure file
+     *
+     * @param {Contracts.SecureFile} secureFile - The secure file with updated name and/or properties
+     * @param {string} project - Project ID or project name
+     * @param {number} secureFileId - The unique secure file Id
      * @return IPromise<Contracts.SecureFile>
      */
     updateSecureFile(secureFile: Contracts.SecureFile, project: string, secureFileId: number): IPromise<Contracts.SecureFile>;
     /**
-     * [Preview API]
+     * [Preview API] Update properties and/or names of a set of secure files. Files are identified by their IDs. Properties provided override the existing one entirely, i.e. do not merge.
+     *
+     * @param {Contracts.SecureFile[]} secureFiles - A list of secure file objects. Only three field must be populated Id, Name, and Properties. The rest of fields in the object are ignored.
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.SecureFile[]>
+     */
+    updateSecureFiles(secureFiles: Contracts.SecureFile[], project: string): IPromise<Contracts.SecureFile[]>;
+    /**
+     * [Preview API] Upload a secure file, include the file stream in the request body
      *
      * @param {string} content - Content to upload
      * @param {string} project - Project ID or project name
-     * @param {string} name
+     * @param {string} name - Name of the file to upload
      * @return IPromise<Contracts.SecureFile>
      */
     uploadSecureFile(content: string, project: string, name: string): IPromise<Contracts.SecureFile>;
+    /**
+     * [Preview API]
+     *
+     * @param {number} poolId
+     * @param {number} agentId
+     * @param {string} currentState
+     * @return IPromise<Contracts.TaskAgent>
+     */
+    updateAgentUpdateState(poolId: number, agentId: number, currentState: string): IPromise<Contracts.TaskAgent>;
 }
 /**
  * @exemptedapi
@@ -9215,6 +9394,10 @@ export interface TestActionResultModel extends TestResultModelBase {
     actionPath: string;
     iterationId: number;
     sharedStepModel: SharedStepModel;
+    /**
+     * This is step Id of test case. For shared step, it is step Id of shared step in test case workitem; step Id in shared step. Example: TestCase workitem has two steps: 1) Normal step with Id = 1 2) Shared Step with Id = 2. Inside shared step: a) Normal Step with Id = 1 Value for StepIdentifier for First step: "1" Second step: "2;1"
+     */
+    stepIdentifier: string;
     url: string;
 }
 export interface TestAttachment {
@@ -9421,6 +9604,14 @@ export interface TestMethod {
     container: string;
     name: string;
 }
+/**
+ * Class representing a reference to an operation.
+ */
+export interface TestOperationReference {
+    id: string;
+    status: string;
+    url: string;
+}
 export enum TestOutcome {
     /**
      * Only used during an update to preserve the existing value.
@@ -9587,6 +9778,10 @@ export interface TestResultCreateModel {
     testCaseTitle: string;
     testPoint: ShallowReference;
 }
+export interface TestResultDocument {
+    operationReference: TestOperationReference;
+    payload: TestResultPayload;
+}
 export interface TestResultHistory {
     groupByField: string;
     resultsForGroup: TestResultHistoryDetailsForGroup[];
@@ -9607,8 +9802,17 @@ export interface TestResultParameterModel {
     actionPath: string;
     iterationId: number;
     parameterName: string;
+    /**
+     * This is step Id of test case. For shared step, it is step Id of shared step in test case workitem; step Id in shared step. Example: TestCase workitem has two steps: 1) Normal step with Id = 1 2) Shared Step with Id = 2. Inside shared step: a) Normal Step with Id = 1 Value for StepIdentifier for First step: "1" Second step: "2;1"
+     */
+    stepIdentifier: string;
     url: string;
     value: string;
+}
+export interface TestResultPayload {
+    comment: string;
+    name: string;
+    stream: string;
 }
 export interface TestResultsContext {
     build: BuildReference;
@@ -10984,6 +11188,7 @@ export class CommonMethods3To3_2 extends CommonMethods2To3_2 {
     protected historyApiVersion: string;
     protected resultDetailsByBuildApiVersion: string;
     protected resultDetailsByReleaseApiVersion: string;
+    protected resultDocumentApiVersion: string;
     protected resultsApiVersion_4637d869: string;
     protected resultsApiVersion_6711da49: string;
     protected resultSummaryByBuildApiVersion: string;
@@ -11131,6 +11336,16 @@ export class CommonMethods3To3_2 extends CommonMethods2To3_2 {
      * @return IPromise<Contracts.TestCaseResult[]>
      */
     addTestResultsToTestRun(results: Contracts.TestCaseResult[], project: string, runId: number): IPromise<Contracts.TestCaseResult[]>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.TestResultDocument} document
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @return IPromise<Contracts.TestResultDocument>
+     */
+    publishTestResultDocument(document: Contracts.TestResultDocument, project: string, runId: number): IPromise<Contracts.TestResultDocument>;
     /**
      * @exemptedapi
      * [Preview API]
@@ -11611,6 +11826,8 @@ export interface AsyncRefOperationGeneralFailureNotification extends AsyncGitOpe
 export interface AsyncRefOperationProgressNotification extends AsyncRefOperationCommitLevelEventNotification {
     progress: number;
 }
+export interface AsyncRefOperationTimeoutNotification extends AsyncGitOperationNotification {
+}
 /**
  * Meta data for a file attached to an artifact
  */
@@ -11903,6 +12120,27 @@ export interface FileContentMetadata {
     isImage: boolean;
     vsLink: string;
 }
+export interface GitAnnotatedTag {
+    /**
+     * Tagging Message
+     */
+    message: string;
+    name: string;
+    objectId: string;
+    /**
+     * User name, Email and date of tagging
+     */
+    taggedBy: GitUserDate;
+    /**
+     * Sha1Id of target object
+     */
+    taggedObjectId: string;
+    /**
+     * Type of object being tagged - commit, tag, blob...
+     */
+    taggedObjectType: GitObjectType;
+    url: string;
+}
 export enum GitAsyncOperationStatus {
     Queued = 1,
     InProgress = 2,
@@ -11921,6 +12159,7 @@ export interface GitAsyncRefOperationDetail {
     conflict: boolean;
     currentCommitId: string;
     progress: number;
+    timedout: boolean;
 }
 export interface GitAsyncRefOperationParameters {
     generatedRefName: string;
@@ -12232,14 +12471,6 @@ export interface GitFilePathsCollection {
     paths: string[];
     url: string;
 }
-export interface GitHistoryQueryResults extends HistoryQueryResults<GitItem> {
-    /**
-     * Seed commit used for querying history.  Used for skip feature.
-     */
-    startingCommitId: string;
-    unpopulatedCount: number;
-    unprocessedCount: number;
-}
 export interface GitImportFailedEvent {
     sourceRepositoryName: string;
     targetRepository: GitRepository;
@@ -12251,7 +12482,7 @@ export interface GitImportGitSource {
     /**
      * Tells if this is a sync request or not
      */
-    isSyncRequest: boolean;
+    overwrite: boolean;
     /**
      * Url for the source repo
      */
@@ -12389,6 +12620,10 @@ export interface GitLastChangeItem {
     path: string;
 }
 export interface GitLastChangeTreeItems {
+    /**
+     * The list of commits referenced by Items, if they were requested.
+     */
+    commits: GitCommitRef[];
     /**
      * The last change of items.
      */
@@ -13142,16 +13377,6 @@ export interface HistoryEntry<T> {
      */
     serverItem: string;
 }
-export interface HistoryQueryResults<T> {
-    /**
-     * True if there are more results available to fetch (we're returning the max # of items requested) A more RESTy solution would be to include a Link header
-     */
-    moreResultsAvailable: boolean;
-    /**
-     * The history entries (results) from this query
-     */
-    results: HistoryEntry<T>[];
-}
 export interface IdentityRefWithVote extends VSS_Common_Contracts.IdentityRef {
     isRequired: boolean;
     reviewerUrl: string;
@@ -13204,6 +13429,7 @@ export enum IterationReason {
     ForcePush = 1,
     Create = 2,
     Rebase = 4,
+    Unknown = 8,
 }
 export enum PullRequestAsyncStatus {
     NotSet = 0,
@@ -13625,6 +13851,7 @@ export var TypeInfo: {
             "system": number;
         };
     };
+    GitAnnotatedTag: any;
     GitAsyncOperationStatus: {
         enumValues: {
             "queued": number;
@@ -13680,7 +13907,6 @@ export var TypeInfo: {
         };
     };
     GitDeletedRepository: any;
-    GitHistoryQueryResults: any;
     GitImportRequest: any;
     GitItem: any;
     GitItemDescriptor: any;
@@ -13856,7 +14082,6 @@ export var TypeInfo: {
         };
     };
     HistoryEntry: any;
-    HistoryQueryResults: any;
     IncludedGitCommit: any;
     ItemContent: any;
     ItemContentType: {
@@ -13872,6 +14097,7 @@ export var TypeInfo: {
             "forcePush": number;
             "create": number;
             "rebase": number;
+            "unknown": number;
         };
     };
     PullRequestAsyncStatus: {
@@ -14294,7 +14520,7 @@ export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
      */
     getPullRequestReviewer(repositoryId: string, pullRequestId: number, reviewerId: string, project?: string): IPromise<Contracts.IdentityRefWithVote>;
     /**
-     * Adds reviewers to a git pull request
+     * Removes a reviewer from a git pull request
      *
      * @param {string} repositoryId
      * @param {number} pullRequestId
@@ -15056,6 +15282,7 @@ export class CommonMethods3To3_2 extends CommonMethods2_2To3_2 {
     createCherryPick(cherryPickToCreate: Contracts.GitAsyncRefOperationParameters, project: string, repositoryId: string): IPromise<Contracts.GitCherryPick>;
 }
 export class CommonMethods3_1To3_2 extends CommonMethods3To3_2 {
+    protected annotatedTagsApiVersion: string;
     protected pullRequestAttachmentsApiVersion: string;
     protected pullRequestShareApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -15119,6 +15346,24 @@ export class CommonMethods3_1To3_2 extends CommonMethods3To3_2 {
      * @return IPromise<Contracts.Attachment>
      */
     createAttachment(content: any, fileName: string, repositoryId: string, pullRequestId: number, project?: string): IPromise<Contracts.Attachment>;
+    /**
+     * [Preview API] Get an annotated tag
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} repositoryId
+     * @param {string} objectId - Sha1 of annotated tag to be returned
+     * @return IPromise<Contracts.GitAnnotatedTag>
+     */
+    getAnnotatedTag(project: string, repositoryId: string, objectId: string): IPromise<Contracts.GitAnnotatedTag>;
+    /**
+     * [Preview API] Create an annotated tag
+     *
+     * @param {Contracts.GitAnnotatedTag} tagObject - Object containing details of tag to be created
+     * @param {string} project - Project ID or project name
+     * @param {string} repositoryId - Friendly name or guid of repository
+     * @return IPromise<Contracts.GitAnnotatedTag>
+     */
+    createAnnotatedTag(tagObject: Contracts.GitAnnotatedTag, project: string, repositoryId: string): IPromise<Contracts.GitAnnotatedTag>;
 }
 /**
  * @exemptedapi
@@ -15279,7 +15524,7 @@ export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
      */
     getLabelItems(labelId: string, top?: number, skip?: number): IPromise<TFS_VersionControl_Contracts.TfvcItem[]>;
     /**
-     * Get Item Metadata and/or Content. The download parameter is to indicate whether the content should be available as a download or just sent as a stream in the response. Doesn't apply to zipped content which is always returned as a download.
+     * Get Item Metadata and/or Content for a single item. The download parameter is to indicate whether the content should be available as a download or just sent as a stream in the response. Doesn't apply to zipped content which is always returned as a download.
      *
      * @param {string} path
      * @param {string} project - Project ID or project name
@@ -15292,7 +15537,7 @@ export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
      */
     getItemZip(path: string, project?: string, fileName?: string, download?: boolean, scopePath?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.TfvcVersionDescriptor): IPromise<ArrayBuffer>;
     /**
-     * Get Item Metadata and/or Content. The download parameter is to indicate whether the content should be available as a download or just sent as a stream in the response. Doesn't apply to zipped content which is always returned as a download.
+     * Get Item Metadata and/or Content for a single item. The download parameter is to indicate whether the content should be available as a download or just sent as a stream in the response. Doesn't apply to zipped content which is always returned as a download.
      *
      * @param {string} path
      * @param {string} project - Project ID or project name
@@ -15316,7 +15561,7 @@ export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
      */
     getItems(project?: string, scopePath?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, includeLinks?: boolean, versionDescriptor?: TFS_VersionControl_Contracts.TfvcVersionDescriptor): IPromise<TFS_VersionControl_Contracts.TfvcItem[]>;
     /**
-     * Get Item Metadata and/or Content. The download parameter is to indicate whether the content should be available as a download or just sent as a stream in the response. Doesn't apply to zipped content which is always returned as a download.
+     * Get Item Metadata and/or Content for a single item. The download parameter is to indicate whether the content should be available as a download or just sent as a stream in the response. Doesn't apply to zipped content which is always returned as a download.
      *
      * @param {string} path
      * @param {string} project - Project ID or project name
@@ -15329,7 +15574,7 @@ export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
      */
     getItemContent(path: string, project?: string, fileName?: string, download?: boolean, scopePath?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.TfvcVersionDescriptor): IPromise<ArrayBuffer>;
     /**
-     * Get Item Metadata and/or Content. The download parameter is to indicate whether the content should be available as a download or just sent as a stream in the response. Doesn't apply to zipped content which is always returned as a download.
+     * Get Item Metadata and/or Content for a single item. The download parameter is to indicate whether the content should be available as a download or just sent as a stream in the response. Doesn't apply to zipped content which is always returned as a download.
      *
      * @param {string} path
      * @param {string} project - Project ID or project name
@@ -15367,18 +15612,6 @@ export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<TFS_VersionControl_Contracts.TfvcChangesetRef[]>
      */
     getBatchedChangesets(changesetsRequestData: TFS_VersionControl_Contracts.TfvcChangesetsRequestData): IPromise<TFS_VersionControl_Contracts.TfvcChangesetRef[]>;
-    /**
-     * Retrieve Tfvc changesets
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} maxCommentLength
-     * @param {number} skip
-     * @param {number} top
-     * @param {string} orderby
-     * @param {TFS_VersionControl_Contracts.TfvcChangesetSearchCriteria} searchCriteria
-     * @return IPromise<TFS_VersionControl_Contracts.TfvcChangesetRef[]>
-     */
-    getChangesets(project?: string, maxCommentLength?: number, skip?: number, top?: number, orderby?: string, searchCriteria?: TFS_VersionControl_Contracts.TfvcChangesetSearchCriteria): IPromise<TFS_VersionControl_Contracts.TfvcChangesetRef[]>;
     /**
      * Retrieve a Tfvc Changeset
      *
@@ -15443,36 +15676,78 @@ export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
      */
     getBranch(path: string, project?: string, includeParent?: boolean, includeChildren?: boolean): IPromise<TFS_VersionControl_Contracts.TfvcBranch>;
 }
+export class CommonMethods3To3_2 extends CommonMethods2To3_2 {
+    protected changesetsApiVersion: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * Retrieve Tfvc changesets Note: This is a new version of the GetChangesets API that doesn't expose the unneeded queryParams present in the 1.0 version of the API.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} maxCommentLength
+     * @param {number} skip
+     * @param {number} top
+     * @param {string} orderby
+     * @param {TFS_VersionControl_Contracts.TfvcChangesetSearchCriteria} searchCriteria
+     * @return IPromise<TFS_VersionControl_Contracts.TfvcChangesetRef[]>
+     */
+    getChangesets(project?: string, maxCommentLength?: number, skip?: number, top?: number, orderby?: string, searchCriteria?: TFS_VersionControl_Contracts.TfvcChangesetSearchCriteria): IPromise<TFS_VersionControl_Contracts.TfvcChangesetRef[]>;
+}
 /**
  * @exemptedapi
  */
-export class TfvcHttpClient3_2 extends CommonMethods2To3_2 {
+export class TfvcHttpClient3_2 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class TfvcHttpClient3_1 extends CommonMethods2To3_2 {
+export class TfvcHttpClient3_1 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class TfvcHttpClient3 extends CommonMethods2To3_2 {
+export class TfvcHttpClient3 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-/**
- * @exemptedapi
- */
 export class TfvcHttpClient2_3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * Retrieve Tfvc changesets
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} maxChangeCount
+     * @param {boolean} includeDetails
+     * @param {boolean} includeWorkItems
+     * @param {number} maxCommentLength
+     * @param {boolean} includeSourceRename
+     * @param {number} skip
+     * @param {number} top
+     * @param {string} orderby
+     * @param {TFS_VersionControl_Contracts.TfvcChangesetSearchCriteria} searchCriteria
+     * @return IPromise<TFS_VersionControl_Contracts.TfvcChangesetRef[]>
+     */
+    getChangesets(project?: string, maxChangeCount?: string, includeDetails?: boolean, includeWorkItems?: boolean, maxCommentLength?: number, includeSourceRename?: boolean, skip?: number, top?: number, orderby?: string, searchCriteria?: TFS_VersionControl_Contracts.TfvcChangesetSearchCriteria): IPromise<TFS_VersionControl_Contracts.TfvcChangesetRef[]>;
 }
-/**
- * @exemptedapi
- */
 export class TfvcHttpClient2_2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
+     * Retrieve Tfvc changesets
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} maxChangeCount
+     * @param {boolean} includeDetails
+     * @param {boolean} includeWorkItems
+     * @param {number} maxCommentLength
+     * @param {boolean} includeSourceRename
+     * @param {number} skip
+     * @param {number} top
+     * @param {string} orderby
+     * @param {TFS_VersionControl_Contracts.TfvcChangesetSearchCriteria} searchCriteria
+     * @return IPromise<TFS_VersionControl_Contracts.TfvcChangesetRef[]>
+     */
+    getChangesets(project?: string, maxChangeCount?: string, includeDetails?: boolean, includeWorkItems?: boolean, maxCommentLength?: number, includeSourceRename?: boolean, skip?: number, top?: number, orderby?: string, searchCriteria?: TFS_VersionControl_Contracts.TfvcChangesetSearchCriteria): IPromise<TFS_VersionControl_Contracts.TfvcChangesetRef[]>;
+    /**
      * [Obsolete - Use the Projects API instead] Retrieve the version control information for a given Team Project
      *
      * @param {string} projectId - The id (or name) of the team project
@@ -15488,12 +15763,25 @@ export class TfvcHttpClient2_2 extends CommonMethods2To3_2 {
      */
     getProjectInfos(project?: string): IPromise<TFS_VersionControl_Contracts.VersionControlProjectInfo[]>;
 }
-/**
- * @exemptedapi
- */
 export class TfvcHttpClient2_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
+     * Retrieve Tfvc changesets
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} maxChangeCount
+     * @param {boolean} includeDetails
+     * @param {boolean} includeWorkItems
+     * @param {number} maxCommentLength
+     * @param {boolean} includeSourceRename
+     * @param {number} skip
+     * @param {number} top
+     * @param {string} orderby
+     * @param {TFS_VersionControl_Contracts.TfvcChangesetSearchCriteria} searchCriteria
+     * @return IPromise<TFS_VersionControl_Contracts.TfvcChangesetRef[]>
+     */
+    getChangesets(project?: string, maxChangeCount?: string, includeDetails?: boolean, includeWorkItems?: boolean, maxCommentLength?: number, includeSourceRename?: boolean, skip?: number, top?: number, orderby?: string, searchCriteria?: TFS_VersionControl_Contracts.TfvcChangesetSearchCriteria): IPromise<TFS_VersionControl_Contracts.TfvcChangesetRef[]>;
+    /**
      * [Obsolete - Use the Projects API instead] Retrieve the version control information for a given Team Project
      *
      * @param {string} projectId - The id (or name) of the team project
@@ -15509,11 +15797,24 @@ export class TfvcHttpClient2_1 extends CommonMethods2To3_2 {
      */
     getProjectInfos(project?: string): IPromise<TFS_VersionControl_Contracts.VersionControlProjectInfo[]>;
 }
-/**
- * @exemptedapi
- */
 export class TfvcHttpClient2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * Retrieve Tfvc changesets
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} maxChangeCount
+     * @param {boolean} includeDetails
+     * @param {boolean} includeWorkItems
+     * @param {number} maxCommentLength
+     * @param {boolean} includeSourceRename
+     * @param {number} skip
+     * @param {number} top
+     * @param {string} orderby
+     * @param {TFS_VersionControl_Contracts.TfvcChangesetSearchCriteria} searchCriteria
+     * @return IPromise<TFS_VersionControl_Contracts.TfvcChangesetRef[]>
+     */
+    getChangesets(project?: string, maxChangeCount?: string, includeDetails?: boolean, includeWorkItems?: boolean, maxCommentLength?: number, includeSourceRename?: boolean, skip?: number, top?: number, orderby?: string, searchCriteria?: TFS_VersionControl_Contracts.TfvcChangesetSearchCriteria): IPromise<TFS_VersionControl_Contracts.TfvcChangesetRef[]>;
     /**
      * [Obsolete - Use the Projects API instead] Retrieve the version control information for a given Team Project
      *
@@ -15784,6 +16085,10 @@ export enum FieldType {
     Double = 7,
     Guid = 8,
     Boolean = 9,
+    Identity = 10,
+    PicklistString = 11,
+    PicklistInteger = 12,
+    PicklistDouble = 13,
 }
 export enum GetFieldsExpand {
     None = 0,
@@ -16012,6 +16317,7 @@ export enum WorkItemExpand {
     All = 4,
 }
 export interface WorkItemField extends WorkItemTrackingResource {
+    description: string;
     name: string;
     readOnly: boolean;
     referenceName: string;
@@ -16208,6 +16514,10 @@ export var TypeInfo: {
             "double": number;
             "guid": number;
             "boolean": number;
+            "identity": number;
+            "picklistString": number;
+            "picklistInteger": number;
+            "picklistDouble": number;
         };
     };
     GetFieldsExpand: {
@@ -16937,6 +17247,11 @@ export interface FieldModel {
     url: string;
 }
 export interface FieldRuleModel {
+    actions: RuleActionModel[];
+    conditions: RuleConditionModel[];
+    description: string;
+    id: string;
+    isDisabled: boolean;
     rule: string;
     value: string;
 }
@@ -17094,6 +17409,15 @@ export interface PickListMetadataModel {
 export interface PickListModel extends PickListMetadataModel {
     items: PickListItemModel[];
 }
+export interface RuleActionModel {
+    action: string;
+    value: string;
+}
+export interface RuleConditionModel {
+    condition: string;
+    field: string;
+    value: string;
+}
 export interface Section {
     groups: Group[];
     /**
@@ -17155,6 +17479,7 @@ export enum WorkItemTypeClass {
     Custom = 2,
 }
 export interface WorkItemTypeFieldModel {
+    allowGroups: boolean;
     defaultValue: string;
     id: string;
     readOnly: boolean;
@@ -18347,6 +18672,12 @@ export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
      */
     getField(fieldNameOrRefName: string, project?: string): IPromise<Contracts.WorkItemField>;
     /**
+     * @param {string} fieldNameOrRefName
+     * @param {string} project - Project ID or project name
+     * @return IPromise<void>
+     */
+    deleteField(fieldNameOrRefName: string, project?: string): IPromise<void>;
+    /**
      * @param {Contracts.WorkItemClassificationNode} postedNode
      * @param {string} project - Project ID or project name
      * @param {Contracts.TreeStructureGroup} structureGroup
@@ -18425,11 +18756,18 @@ export class CommonMethods2_1To3_2 extends CommonMethods2To3_2 {
     /**
      * [Preview API]
      *
-     * @param {string} project - Project ID or project name
      * @param {number[]} ids
+     * @param {string} project - Project ID or project name
      * @return IPromise<Contracts.WorkItemDeleteReference[]>
      */
-    getDeletedWorkItems(project?: string, ids?: number[]): IPromise<Contracts.WorkItemDeleteReference[]>;
+    getDeletedWorkItems(ids: number[], project?: string): IPromise<Contracts.WorkItemDeleteReference[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemDeleteShallowReference[]>
+     */
+    getDeletedWorkItemReferences(project?: string): IPromise<Contracts.WorkItemDeleteShallowReference[]>;
     /**
      * [Preview API]
      *
@@ -18957,6 +19295,7 @@ export interface WorkItemQueryContext {
 declare module "TFS/Work/Contracts" {
 import System_Contracts = require("VSS/Common/Contracts/System");
 import TFS_WorkItemTracking_Contracts = require("TFS/WorkItemTracking/Contracts");
+import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 export interface Activity {
     capacityPerDay: number;
     name: string;
@@ -19298,9 +19637,16 @@ export interface DeliveryViewData extends PlanViewData {
  */
 export interface DeliveryViewPropertyCollection extends PlanPropertyCollection {
     /**
-     * Filter Criteria
+     * Card settings
+     */
+    cardSettings: CardSettings;
+    /**
+     * Field criteria
      */
     criteria: FilterClause[];
+    /**
+     * Team backlog mappings
+     */
     teamBacklogMappings: TeamBacklogMapping[];
 }
 /**
@@ -19396,13 +19742,9 @@ export interface ParentChildWIMap {
  */
 export interface Plan {
     /**
-     * Card settings such as fields and rules
+     * Identity that created this plan. Defaults to null for records before upgrading to ScaledAgileViewComponent4.
      */
-    cardSettings: CardSettings;
-    /**
-     * Identity when the plan was created. Default to Empty Guid for the existing records before upgrading to ScaledAgileViewComponent4, which means we do not know the identity that created this resource.
-     */
-    createdBy: string;
+    createdByIdentity: VSS_Common_Contracts.IdentityRef;
     /**
      * Date when the plan was created
      */
@@ -19416,9 +19758,9 @@ export interface Plan {
      */
     id: string;
     /**
-     * Identity when the plan was last modified.  Default to Empty Guid for the existing records before upgrading to ScaledAgileViewComponent4, which means we do not know the identity that last modified this resource.
+     * Identity that last modified this plan. Defaults to null for records before upgrading to ScaledAgileViewComponent4.
      */
-    modifiedBy: string;
+    modifiedByIdentity: VSS_Common_Contracts.IdentityRef;
     /**
      * Date when the plan was last modified. Default to CreatedDate when the plan is first created.
      */
@@ -19431,10 +19773,6 @@ export interface Plan {
      * OwnerId of the plan, typically same as the TFID of the team under which this plan has been created
      */
     ownerId: string;
-    /**
-     * Permissions object bag with relevant plan permissions
-     */
-    permissions: PlanPermissions;
     /**
      * The PlanPropertyCollection instance associated with the plan. These are dependent on the type of the plan. For example, DeliveryTimelineView, it would be of type DeliveryViewPropertyCollection.
      */
@@ -19451,15 +19789,19 @@ export interface Plan {
      * The resource url to locate the plan via rest api
      */
     url: string;
+    /**
+     * Bit flag indicating set of permissions a user has to the plan.
+     */
+    userPermissions: PlanUserPermissions;
 }
 /**
  * Metadata about a plan definition that is stored in favorites service
  */
 export interface PlanMetadata {
     /**
-     * TFID of the creator of the plan
+     * Identity of the creator of the plan
      */
-    createdBy: string;
+    createdByIdentity: VSS_Common_Contracts.IdentityRef;
     /**
      * Description of plan
      */
@@ -19469,22 +19811,9 @@ export interface PlanMetadata {
      */
     modifiedDate: Date;
     /**
-     * Permissions object bag with relevant plan permissions
+     * Bit flag indicating set of permissions a user has to the plan.
      */
-    permissions: PlanPermissions;
-}
-/**
- * Object bag storing the set of permissions relevant to this plan
- */
-export interface PlanPermissions {
-    /**
-     * Whether the user has permission to delete this plan
-     */
-    delete: boolean;
-    /**
-     * Whether the user has permission to edit this plan
-     */
-    edit: boolean;
+    userPermissions: PlanUserPermissions;
 }
 /**
  * Base class for properties of a scaled agile plan
@@ -19493,6 +19822,32 @@ export interface PlanPropertyCollection {
 }
 export enum PlanType {
     DeliveryTimelineView = 0,
+}
+export enum PlanUserPermissions {
+    /**
+     * None
+     */
+    None = 0,
+    /**
+     * Permission to view this plan.
+     */
+    View = 1,
+    /**
+     * Permission to update this plan.
+     */
+    Edit = 2,
+    /**
+     * Permission to delete this plan.
+     */
+    Delete = 4,
+    /**
+     * Permission to manage this plan.
+     */
+    Manage = 8,
+    /**
+     * Full control permission for this plan.
+     */
+    AllPermissions = 15,
 }
 /**
  * Base class for plan view data contracts. Anything common goes here.
@@ -19835,10 +20190,6 @@ export enum TimelineTeamStatusCode {
 }
 export interface UpdatePlan {
     /**
-     * Card settings such as fields and rules
-     */
-    cardSettings: CardSettings;
-    /**
      * Description of the plan
      */
     description: string;
@@ -19902,6 +20253,7 @@ export var TypeInfo: {
     CreatePlan: any;
     DateRange: any;
     DeliveryViewData: any;
+    DeliveryViewPropertyCollection: any;
     FieldInfo: any;
     FieldType: {
         enumValues: {
@@ -19926,6 +20278,16 @@ export var TypeInfo: {
     PlanType: {
         enumValues: {
             "deliveryTimelineView": number;
+        };
+    };
+    PlanUserPermissions: {
+        enumValues: {
+            "none": number;
+            "view": number;
+            "edit": number;
+            "delete": number;
+            "manage": number;
+            "allPermissions": number;
         };
     };
     TeamIterationAttributes: any;

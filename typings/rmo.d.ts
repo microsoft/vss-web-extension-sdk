@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v113.20170227.1600
+// Type definitions for Microsoft Visual Studio Services v114.20170324.0813
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -78,6 +78,7 @@ export module RunOptionsConstants {
     var EnvironmentOwnerEmailNotificationTypeDefaultValue: string;
     var ReleaseCreator: string;
     var EnvironmentOwner: string;
+    var DeploymentAuthorizationDefaultOwner: number;
 }
 export module WellKnownExtendedReleaseVariables {
     var ReleaseArtifacts: string;
@@ -200,7 +201,8 @@ export enum AgentArtifactType {
     Custom = 9,
     Tfvc = 10,
     Svn = 11,
-    Pipeline = 12,
+    ExternalGit = 12,
+    Pipeline = 13,
 }
 export interface AgentBasedDeployPhase extends DeployPhase {
     deploymentInput: AgentDeploymentInput;
@@ -380,6 +382,7 @@ export interface ContinuousDeploymentAppServicePlanConfiguration {
 }
 export interface ContinuousDeploymentSetupData {
     branch: string;
+    environmentName: string;
     projectId: string;
     repoId: string;
     resourceGroup: string;
@@ -402,6 +405,7 @@ export interface ContinuousDeploymentSourceConfiguration {
 }
 export interface ContinuousDeploymentTestWebAppConfiguration {
     appServicePlanConfiguration: ContinuousDeploymentAppServicePlanConfiguration;
+    environmentName: string;
     testWebAppLocation: string;
     testWebAppName: string;
 }
@@ -432,6 +436,7 @@ export interface DefinitionEnvironmentReference {
     releaseDefinitionId: number;
 }
 export interface Deployment {
+    _links: any;
     attempt: number;
     conditions: Condition[];
     definitionEnvironmentId: number;
@@ -442,6 +447,7 @@ export interface Deployment {
     operationStatus: DeploymentOperationStatus;
     postDeployApprovals: ReleaseApproval[];
     preDeployApprovals: ReleaseApproval[];
+    queuedOn: Date;
     reason: DeploymentReason;
     release: ReleaseReference;
     releaseDefinition: ShallowReference;
@@ -457,6 +463,11 @@ export interface DeploymentApprovalCompletedEvent {
 }
 export interface DeploymentApprovalPendingEvent {
     approval: ReleaseApproval;
+    approvalOptions: ApprovalOptions;
+    completedApprovals: ReleaseApproval[];
+    deployment: Deployment;
+    isMultipleRankApproval: boolean;
+    pendingApprovals: ReleaseApproval[];
     project: ProjectReference;
     release: Release;
 }
@@ -484,7 +495,17 @@ export interface DeploymentAttempt {
     status: DeploymentStatus;
     tasks: ReleaseTask[];
 }
+export interface DeploymentAuthorizationInfo {
+    resources: string[];
+    tenantId: string;
+    vstsAccessTokenKey: string;
+}
+export enum DeploymentAuthorizationOwner {
+    DeploymentSubmitter = 0,
+    FirstPreDeploymentApprover = 1,
+}
 export interface DeploymentCompletedEvent {
+    deployment: Deployment;
     environment: ReleaseEnvironment;
     project: ProjectReference;
 }
@@ -502,6 +523,8 @@ export interface DeploymentJob {
     tasks: ReleaseTask[];
 }
 export interface DeploymentManualInterventionPendingEvent {
+    deployment: Deployment;
+    emailRecipients: string[];
     environmentOwner: VSS_Common_Contracts.IdentityRef;
     manualIntervention: ManualIntervention;
     project: ProjectReference;
@@ -547,6 +570,7 @@ export enum DeploymentReason {
 export interface DeploymentStartedEvent {
     environment: ReleaseEnvironment;
     project: ProjectReference;
+    release: Release;
 }
 export enum DeploymentStatus {
     Undefined = 0,
@@ -596,6 +620,7 @@ export interface EnvironmentExecutionPolicy {
     queueDepthCount: number;
 }
 export interface EnvironmentOptions {
+    deploymentAuthorizationOwner: DeploymentAuthorizationOwner;
     emailNotificationType: string;
     emailRecipients: string;
     enableAccessToken: boolean;
@@ -783,10 +808,12 @@ export interface Release {
     name: string;
     poolName: string;
     projectReference: ProjectReference;
+    properties: any;
     reason: ReleaseReason;
     releaseDefinition: ShallowReference;
     releaseNameFormat: string;
     status: ReleaseStatus;
+    tags: string[];
     url: string;
     variableGroups: VariableGroup[];
     variables: {
@@ -873,6 +900,7 @@ export interface ReleaseDefinition {
     retentionPolicy: RetentionPolicy;
     revision: number;
     source: ReleaseDefinitionSource;
+    tags: string[];
     triggers: ReleaseTriggerBase[];
     url: string;
     variableGroups: number[];
@@ -942,6 +970,7 @@ export enum ReleaseDefinitionExpands {
     Artifacts = 4,
     Triggers = 8,
     Variables = 16,
+    Tags = 32,
 }
 export enum ReleaseDefinitionQueryOrder {
     IdAscending = 0,
@@ -963,6 +992,7 @@ export enum ReleaseDefinitionSource {
     RestApi = 1,
     UserInterface = 2,
     Ibiza = 4,
+    PortalExtensionApi = 8,
 }
 export interface ReleaseDefinitionSummary {
     environments: ReleaseDefinitionEnvironmentSummary[];
@@ -1041,6 +1071,7 @@ export enum ReleaseExpands {
     Approvals = 8,
     ManualInterventions = 16,
     Variables = 32,
+    Tags = 64,
 }
 export enum ReleaseQueryOrder {
     Descending = 0,
@@ -1051,14 +1082,19 @@ export enum ReleaseReason {
     Manual = 1,
     ContinuousIntegration = 2,
     Schedule = 3,
+    IndividualCI = 4,
+    BatchedCI = 5,
 }
 export interface ReleaseReference {
+    _links: any;
     artifacts: Artifact[];
     createdBy: VSS_Common_Contracts.IdentityRef;
     createdOn: Date;
     description: string;
     id: number;
+    modifiedBy: VSS_Common_Contracts.IdentityRef;
     name: string;
+    reason: ReleaseReason;
     releaseDefinition: ShallowReference;
     url: string;
     webAccessUri: string;
@@ -1103,6 +1139,7 @@ export interface ReleaseStartMetadata {
     description: string;
     isDraft: boolean;
     manualEnvironments: string[];
+    properties: any;
     reason: ReleaseReason;
 }
 export enum ReleaseStatus {
@@ -1311,6 +1348,7 @@ export var TypeInfo: {
             "custom": number;
             "tfvc": number;
             "svn": number;
+            "externalGit": number;
             "pipeline": number;
         };
     };
@@ -1369,6 +1407,12 @@ export var TypeInfo: {
     DeploymentApprovalCompletedEvent: any;
     DeploymentApprovalPendingEvent: any;
     DeploymentAttempt: any;
+    DeploymentAuthorizationOwner: {
+        enumValues: {
+            "deploymentSubmitter": number;
+            "firstPreDeploymentApprover": number;
+        };
+    };
     DeploymentCompletedEvent: any;
     DeploymentInput: any;
     DeploymentJob: any;
@@ -1433,6 +1477,7 @@ export var TypeInfo: {
             "machineGroupBasedDeployment": number;
         };
     };
+    EnvironmentOptions: any;
     EnvironmentStatus: {
         enumValues: {
             "undefined": number;
@@ -1512,6 +1557,7 @@ export var TypeInfo: {
             "artifacts": number;
             "triggers": number;
             "variables": number;
+            "tags": number;
         };
     };
     ReleaseDefinitionQueryOrder: {
@@ -1529,6 +1575,7 @@ export var TypeInfo: {
             "restApi": number;
             "userInterface": number;
             "ibiza": number;
+            "portalExtensionApi": number;
         };
     };
     ReleaseDefinitionSummary: any;
@@ -1544,6 +1591,7 @@ export var TypeInfo: {
             "approvals": number;
             "manualInterventions": number;
             "variables": number;
+            "tags": number;
         };
     };
     ReleaseQueryOrder: {
@@ -1558,6 +1606,8 @@ export var TypeInfo: {
             "manual": number;
             "continuousIntegration": number;
             "schedule": number;
+            "individualCI": number;
+            "batchedCI": number;
         };
     };
     ReleaseReference: any;
@@ -1742,7 +1792,7 @@ declare module "ReleaseManagement/Core/RestClient" {
 import Contracts = require("ReleaseManagement/Core/Contracts");
 import VSS_FormInput_Contracts = require("VSS/Common/Contracts/FormInput");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected agentartifactsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -1755,7 +1805,7 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      */
     getAgentArtifactDefinitions(project: string, releaseId: number): IPromise<Contracts.AgentArtifactDefinition[]>;
 }
-export class CommonMethods2_2To3_1 extends CommonMethods2To3_1 {
+export class CommonMethods2_2To3_2 extends CommonMethods2To3_2 {
     protected approvalsApiVersion: string;
     protected approvalsApiVersion_250c7158: string;
     protected approvalsApiVersion_9328e074: string;
@@ -1766,7 +1816,7 @@ export class CommonMethods2_2To3_1 extends CommonMethods2To3_1 {
     protected historyApiVersion: string;
     protected inputvaluesqueryApiVersion: string;
     protected logsApiVersion: string;
-    protected logsApiVersion_e71ba1ed: string;
+    protected logsApiVersion_c37fbab5: string;
     protected releasesApiVersion: string;
     protected revisionsApiVersion: string;
     protected sendmailApiVersion: string;
@@ -1921,20 +1971,20 @@ export class CommonMethods2_2To3_1 extends CommonMethods2To3_1 {
      *
      * @param {string} project - Project ID or project name
      * @param {number} releaseId
-     * @return IPromise<ArrayBuffer>
-     */
-    getLogs(project: string, releaseId: number): IPromise<ArrayBuffer>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
      * @param {number} environmentId
      * @param {number} taskId
      * @param {number} attemptId
      * @return IPromise<string>
      */
     getLog(project: string, releaseId: number, environmentId: number, taskId: number, attemptId?: number): IPromise<string>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<ArrayBuffer>
+     */
+    getLogs(project: string, releaseId: number): IPromise<ArrayBuffer>;
     /**
      * [Preview API]
      *
@@ -2120,7 +2170,7 @@ export class CommonMethods2_2To3_1 extends CommonMethods2To3_1 {
      */
     getApprovalHistory(project: string, approvalStepId: number): IPromise<Contracts.ReleaseApproval>;
 }
-export class CommonMethods3To3_1 extends CommonMethods2_2To3_1 {
+export class CommonMethods3To3_2 extends CommonMethods2_2To3_2 {
     protected continuousDeploymentApiVersion: string;
     protected deploymentsApiVersion: string;
     protected logsApiVersion_17c91af7: string;
@@ -2129,16 +2179,7 @@ export class CommonMethods3To3_1 extends CommonMethods2_2To3_1 {
     protected releasesettingsApiVersion: string;
     protected sourcebranchesApiVersion: string;
     protected tasksApiVersion_4259191d: string;
-    protected throttlingQueueApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API] Returns throttled queue as per the task hub license of parallel releases
-     *
-     * @param {string} projectId
-     * @param {number} releaseId
-     * @return IPromise<Contracts.QueuedReleaseData[]>
-     */
-    getQueuedReleases(projectId?: string, releaseId?: number): IPromise<Contracts.QueuedReleaseData[]>;
     /**
      * [Preview API]
      *
@@ -2254,91 +2295,13 @@ export class CommonMethods3To3_1 extends CommonMethods2_2To3_1 {
      */
     setupContinuousDeployment(configData: Contracts.ContinuousDeploymentSetupData, project: string): IPromise<string>;
 }
-/**
- * @exemptedapi
- */
-export class ReleaseHttpClient3_1 extends CommonMethods3To3_1 {
+export class CommonMethods3_1To3_2 extends CommonMethods3To3_2 {
+    protected favoritesApiVersion: string;
+    protected foldersApiVersion: string;
+    protected metricsApiVersion: string;
+    protected projectsApiVersion: string;
+    protected releasesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.FavoriteItem[]} favoriteItems
-     * @param {string} project - Project ID or project name
-     * @param {string} scope
-     * @param {string} identityId
-     * @return IPromise<Contracts.FavoriteItem[]>
-     */
-    createFavorites(favoriteItems: Contracts.FavoriteItem[], project: string, scope: string, identityId?: string): IPromise<Contracts.FavoriteItem[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} scope
-     * @param {string} identityId
-     * @param {string} favoriteItemIds
-     * @return IPromise<void>
-     */
-    deleteFavorites(project: string, scope: string, identityId?: string, favoriteItemIds?: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} scope
-     * @param {string} identityId
-     * @return IPromise<Contracts.FavoriteItem[]>
-     */
-    getFavorites(project: string, scope: string, identityId?: string): IPromise<Contracts.FavoriteItem[]>;
-    /**
-     * [Preview API] Creates a new folder
-     *
-     * @param {Contracts.Folder} folder
-     * @param {string} project - Project ID or project name
-     * @param {string} path
-     * @return IPromise<Contracts.Folder>
-     */
-    createFolder(folder: Contracts.Folder, project: string, path: string): IPromise<Contracts.Folder>;
-    /**
-     * [Preview API] Deletes a definition folder for given folder name and path and all it's existing definitions
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} path
-     * @return IPromise<void>
-     */
-    deleteFolder(project: string, path: string): IPromise<void>;
-    /**
-     * [Preview API] Gets folders
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} path
-     * @param {Contracts.FolderPathQueryOrder} queryOrder
-     * @return IPromise<Contracts.Folder[]>
-     */
-    getFolders(project: string, path?: string, queryOrder?: Contracts.FolderPathQueryOrder): IPromise<Contracts.Folder[]>;
-    /**
-     * [Preview API] Updates an existing folder at given  existing path
-     *
-     * @param {Contracts.Folder} folder
-     * @param {string} project - Project ID or project name
-     * @param {string} path
-     * @return IPromise<Contracts.Folder>
-     */
-    updateFolder(folder: Contracts.Folder, project: string, path: string): IPromise<Contracts.Folder>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {Date} minMetricsTime
-     * @return IPromise<Contracts.Metric[]>
-     */
-    getMetrics(project: string, minMetricsTime?: Date): IPromise<Contracts.Metric[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} artifactType
-     * @param {string} artifactSourceId
-     * @return IPromise<Contracts.ProjectReference[]>
-     */
-    getReleaseProjects(artifactType: string, artifactSourceId: string): IPromise<Contracts.ProjectReference[]>;
     /**
      * [Preview API]
      *
@@ -2363,11 +2326,149 @@ export class ReleaseHttpClient3_1 extends CommonMethods3To3_1 {
      * @return IPromise<Contracts.Release[]>
      */
     getReleases(project?: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean): IPromise<Contracts.Release[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} artifactType
+     * @param {string} artifactSourceId
+     * @return IPromise<Contracts.ProjectReference[]>
+     */
+    getReleaseProjects(artifactType: string, artifactSourceId: string): IPromise<Contracts.ProjectReference[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {Date} minMetricsTime
+     * @return IPromise<Contracts.Metric[]>
+     */
+    getMetrics(project: string, minMetricsTime?: Date): IPromise<Contracts.Metric[]>;
+    /**
+     * [Preview API] Updates an existing folder at given  existing path
+     *
+     * @param {Contracts.Folder} folder
+     * @param {string} project - Project ID or project name
+     * @param {string} path
+     * @return IPromise<Contracts.Folder>
+     */
+    updateFolder(folder: Contracts.Folder, project: string, path: string): IPromise<Contracts.Folder>;
+    /**
+     * [Preview API] Gets folders
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} path
+     * @param {Contracts.FolderPathQueryOrder} queryOrder
+     * @return IPromise<Contracts.Folder[]>
+     */
+    getFolders(project: string, path?: string, queryOrder?: Contracts.FolderPathQueryOrder): IPromise<Contracts.Folder[]>;
+    /**
+     * [Preview API] Deletes a definition folder for given folder name and path and all it's existing definitions
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} path
+     * @return IPromise<void>
+     */
+    deleteFolder(project: string, path: string): IPromise<void>;
+    /**
+     * [Preview API] Creates a new folder
+     *
+     * @param {Contracts.Folder} folder
+     * @param {string} project - Project ID or project name
+     * @param {string} path
+     * @return IPromise<Contracts.Folder>
+     */
+    createFolder(folder: Contracts.Folder, project: string, path: string): IPromise<Contracts.Folder>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} scope
+     * @param {string} identityId
+     * @return IPromise<Contracts.FavoriteItem[]>
+     */
+    getFavorites(project: string, scope: string, identityId?: string): IPromise<Contracts.FavoriteItem[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} scope
+     * @param {string} identityId
+     * @param {string} favoriteItemIds
+     * @return IPromise<void>
+     */
+    deleteFavorites(project: string, scope: string, identityId?: string, favoriteItemIds?: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.FavoriteItem[]} favoriteItems
+     * @param {string} project - Project ID or project name
+     * @param {string} scope
+     * @param {string} identityId
+     * @return IPromise<Contracts.FavoriteItem[]>
+     */
+    createFavorites(favoriteItems: Contracts.FavoriteItem[], project: string, scope: string, identityId?: string): IPromise<Contracts.FavoriteItem[]>;
 }
 /**
  * @exemptedapi
  */
-export class ReleaseHttpClient3 extends CommonMethods3To3_1 {
+export class ReleaseHttpClient3_2 extends CommonMethods3_1To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class ReleaseHttpClient3_1 extends CommonMethods3_1To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Returns throttled queue as per the task hub license of parallel releases
+     *
+     * @param {string} projectId
+     * @param {number} releaseId
+     * @return IPromise<Contracts.QueuedReleaseData[]>
+     */
+    getQueuedReleases(projectId?: string, releaseId?: number): IPromise<Contracts.QueuedReleaseData[]>;
+}
+/**
+ * @exemptedapi
+ */
+export class ReleaseHttpClient3 extends CommonMethods3To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId
+     * @param {number} definitionEnvironmentId
+     * @param {string} searchText
+     * @param {string} createdBy
+     * @param {Contracts.ReleaseStatus} statusFilter
+     * @param {number} environmentStatusFilter
+     * @param {Date} minCreatedTime
+     * @param {Date} maxCreatedTime
+     * @param {Contracts.ReleaseQueryOrder} queryOrder
+     * @param {number} top
+     * @param {number} continuationToken
+     * @param {Contracts.ReleaseExpands} expand
+     * @param {string} artifactTypeId
+     * @param {string} sourceId
+     * @param {string} artifactVersionId
+     * @param {string} sourceBranchFilter
+     * @param {boolean} isDeleted
+     * @return IPromise<Contracts.Release[]>
+     */
+    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean): IPromise<Contracts.Release[]>;
+    /**
+     * [Preview API] Returns throttled queue as per the task hub license of parallel releases
+     *
+     * @param {string} projectId
+     * @param {number} releaseId
+     * @return IPromise<Contracts.QueuedReleaseData[]>
+     */
+    getQueuedReleases(projectId?: string, releaseId?: number): IPromise<Contracts.QueuedReleaseData[]>;
+}
+/**
+ * @exemptedapi
+ */
+export class ReleaseHttpClient2_3 extends CommonMethods2_2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
@@ -2397,7 +2498,7 @@ export class ReleaseHttpClient3 extends CommonMethods3To3_1 {
 /**
  * @exemptedapi
  */
-export class ReleaseHttpClient2_3 extends CommonMethods2_2To3_1 {
+export class ReleaseHttpClient2_2 extends CommonMethods2_2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
@@ -2427,54 +2528,24 @@ export class ReleaseHttpClient2_3 extends CommonMethods2_2To3_1 {
 /**
  * @exemptedapi
  */
-export class ReleaseHttpClient2_2 extends CommonMethods2_2To3_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} definitionId
-     * @param {number} definitionEnvironmentId
-     * @param {string} searchText
-     * @param {string} createdBy
-     * @param {Contracts.ReleaseStatus} statusFilter
-     * @param {number} environmentStatusFilter
-     * @param {Date} minCreatedTime
-     * @param {Date} maxCreatedTime
-     * @param {Contracts.ReleaseQueryOrder} queryOrder
-     * @param {number} top
-     * @param {number} continuationToken
-     * @param {Contracts.ReleaseExpands} expand
-     * @param {string} artifactTypeId
-     * @param {string} sourceId
-     * @param {string} artifactVersionId
-     * @param {string} sourceBranchFilter
-     * @param {boolean} isDeleted
-     * @return IPromise<Contracts.Release[]>
-     */
-    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean): IPromise<Contracts.Release[]>;
-}
-/**
- * @exemptedapi
- */
-export class ReleaseHttpClient2_1 extends CommonMethods2To3_1 {
+export class ReleaseHttpClient2_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ReleaseHttpClient2 extends CommonMethods2To3_1 {
+export class ReleaseHttpClient2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class ReleaseHttpClient extends ReleaseHttpClient3_1 {
+export class ReleaseHttpClient extends ReleaseHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return ReleaseHttpClient3
+ * @return ReleaseHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ReleaseHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ReleaseHttpClient3_1;
 }
 declare module "ReleaseManagement/Core/Utils" {
 import RMContracts = require("ReleaseManagement/Core/Contracts");
