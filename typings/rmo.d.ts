@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v114.20170324.0813
+// Type definitions for Microsoft Visual Studio Services v115.20170417.1217
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -48,7 +48,6 @@ export module ArtifactTypes {
     var GitArtifactType: string;
     var TfvcArtifactType: string;
     var ExternalTfsXamlBuildArtifactType: string;
-    var PipelineArtifactType: string;
 }
 export module DeploymentHealthOptionConstants {
     var AllTargetsInParallel: string;
@@ -78,7 +77,6 @@ export module RunOptionsConstants {
     var EnvironmentOwnerEmailNotificationTypeDefaultValue: string;
     var ReleaseCreator: string;
     var EnvironmentOwner: string;
-    var DeploymentAuthorizationDefaultOwner: number;
 }
 export module WellKnownExtendedReleaseVariables {
     var ReleaseArtifacts: string;
@@ -90,14 +88,12 @@ export module WellKnownMetrics {
     var PartiallySuccessfulDeployments: string;
 }
 export module WellKnownReleaseVariables {
-    var Build_RepoUri: string;
     var System: string;
     var Build: string;
     var HostTypeValue: string;
     var DeploymentHostType: string;
     var ReleaseArtifact: string;
     var ReleaseEnvironments: string;
-    var ContainerId: string;
     var AgentReleaseDirectory: string;
     var EnableAccessTokenVariableName: string;
     var HostType: string;
@@ -124,6 +120,7 @@ export module WellKnownReleaseVariables {
     var ReleaseDeployPhaseId: string;
     var RequestorId: string;
     var ReleaseRequestedForId: string;
+    var ReleaseRequestedForEmail: string;
     var AttemptNumber: string;
     var Status: string;
     var ArtifactType: string;
@@ -146,36 +143,6 @@ export module WellKnownReleaseVariables {
     var BuildRepositoryName: string;
     var BuildRepositoryProvider: string;
     var BuildDefinitionId: string;
-    var Build_System: string;
-    var Build_CollectionId: string;
-    var Build_TeamProject: string;
-    var Build_TeamProjectId: string;
-    var Build_DefinitionId: string;
-    var Build_HostType: string;
-    var Build_DefinitionName: string;
-    var Build_DefinitionVersion: string;
-    var Build_QueuedBy: string;
-    var Build_QueuedById: string;
-    var Build_RequestedFor: string;
-    var Build_RequestedForId: string;
-    var Build_RequestedForEmail: string;
-    var Build_SourceBranch: string;
-    var Build_SourceBranchName: string;
-    var Build_SourceVersion: string;
-    var Build_SourceVersionAuthor: string;
-    var Build_SourceVersionMessage: string;
-    var Build_SourceTfvcShelveset: string;
-    var Build_BuildId: string;
-    var Build_BuildUri: string;
-    var Build_BuildNumber: string;
-    var Build_ContainerId: string;
-    var Build_SyncSources: string;
-    var Build_JobAuthorizeAs: string;
-    var Build_JobAuthorizeAsId: string;
-    var Pipeline_DefinitionType: string;
-    var Pipeline_InstanceId: string;
-    var Pipeline_Artifact_Clean: string;
-    var Pipeline_Artifact_CleanOptions: string;
 }
 }
 declare module "ReleaseManagement/Core/Contracts" {
@@ -213,6 +180,7 @@ export interface AgentDeploymentInput extends DeploymentInput {
 }
 export interface ApprovalOptions {
     autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped: boolean;
+    enforceIdentityRevalidation: boolean;
     releaseCreatorCanBeApprover: boolean;
     requiredApproverCount: number;
 }
@@ -314,6 +282,10 @@ export enum AuditAction {
     Add = 1,
     Update = 2,
     Delete = 3,
+}
+export enum AuthorizationHeaderFor {
+    RevalidateApproverIdentity = 0,
+    OnBehalfOf = 1,
 }
 export interface BaseDeploymentInput {
     shareOutputVariables: boolean;
@@ -433,7 +405,9 @@ export interface DataSourceBinding {
 }
 export interface DefinitionEnvironmentReference {
     definitionEnvironmentId: number;
+    definitionEnvironmentName: string;
     releaseDefinitionId: number;
+    releaseDefinitionName: string;
 }
 export interface Deployment {
     _links: any;
@@ -453,6 +427,7 @@ export interface Deployment {
     releaseDefinition: ShallowReference;
     releaseEnvironment: ShallowReference;
     requestedBy: VSS_Common_Contracts.IdentityRef;
+    requestedFor: VSS_Common_Contracts.IdentityRef;
     scheduledDeploymentTime: Date;
     startedOn: Date;
 }
@@ -465,6 +440,9 @@ export interface DeploymentApprovalPendingEvent {
     approval: ReleaseApproval;
     approvalOptions: ApprovalOptions;
     completedApprovals: ReleaseApproval[];
+    data: {
+        [key: string]: any;
+    };
     deployment: Deployment;
     isMultipleRankApproval: boolean;
     pendingApprovals: ReleaseApproval[];
@@ -491,27 +469,32 @@ export interface DeploymentAttempt {
     reason: DeploymentReason;
     releaseDeployPhases: ReleaseDeployPhase[];
     requestedBy: VSS_Common_Contracts.IdentityRef;
+    requestedFor: VSS_Common_Contracts.IdentityRef;
     runPlanId: string;
     status: DeploymentStatus;
     tasks: ReleaseTask[];
 }
 export interface DeploymentAuthorizationInfo {
+    authorizationHeaderFor: AuthorizationHeaderFor;
     resources: string[];
     tenantId: string;
     vstsAccessTokenKey: string;
 }
 export enum DeploymentAuthorizationOwner {
-    DeploymentSubmitter = 0,
-    FirstPreDeploymentApprover = 1,
+    Automatic = 0,
+    DeploymentSubmitter = 1,
+    FirstPreDeploymentApprover = 2,
 }
 export interface DeploymentCompletedEvent {
+    comment: string;
+    data: {
+        [key: string]: any;
+    };
     deployment: Deployment;
     environment: ReleaseEnvironment;
     project: ProjectReference;
 }
 export interface DeploymentInput extends BaseDeploymentInput {
-    clean: boolean;
-    cleanOptions: RepositoryCleanOptions;
     demands: any[];
     enableAccessToken: boolean;
     queueId: number;
@@ -546,6 +529,7 @@ export enum DeploymentOperationStatus {
     Canceled = 2048,
     PhaseCanceled = 4096,
     ManualInterventionPending = 8192,
+    QueuedForPipeline = 16384,
 }
 export interface DeploymentQueryParameters {
     artifactSourceId: string;
@@ -620,7 +604,6 @@ export interface EnvironmentExecutionPolicy {
     queueDepthCount: number;
 }
 export interface EnvironmentOptions {
-    deploymentAuthorizationOwner: DeploymentAuthorizationOwner;
     emailNotificationType: string;
     emailRecipients: string;
     enableAccessToken: boolean;
@@ -896,6 +879,7 @@ export interface ReleaseDefinition {
     modifiedOn: Date;
     name: string;
     path: string;
+    properties: any;
     releaseNameFormat: string;
     retentionPolicy: RetentionPolicy;
     revision: number;
@@ -1197,18 +1181,6 @@ export interface ReleaseWorkItemRef {
     id: string;
     url: string;
 }
-export enum RepositoryCleanOptions {
-    Source = 0,
-    SourceAndOutputDir = 1,
-    /**
-     * Re-create $(build.sourcesDirectory)
-     */
-    SourceDir = 2,
-    /**
-     * Re-create $(agnet.buildDirectory) which contains $(build.sourcesDirectory), $(build.binariesDirectory) and any folders that left from previous build.
-     */
-    AllBuildDir = 3,
-}
 export interface RetentionPolicy {
     daysToKeep: number;
 }
@@ -1383,6 +1355,12 @@ export var TypeInfo: {
             "delete": number;
         };
     };
+    AuthorizationHeaderFor: {
+        enumValues: {
+            "revalidateApproverIdentity": number;
+            "onBehalfOf": number;
+        };
+    };
     Change: any;
     Condition: any;
     ConditionType: {
@@ -1407,14 +1385,15 @@ export var TypeInfo: {
     DeploymentApprovalCompletedEvent: any;
     DeploymentApprovalPendingEvent: any;
     DeploymentAttempt: any;
+    DeploymentAuthorizationInfo: any;
     DeploymentAuthorizationOwner: {
         enumValues: {
+            "automatic": number;
             "deploymentSubmitter": number;
             "firstPreDeploymentApprover": number;
         };
     };
     DeploymentCompletedEvent: any;
-    DeploymentInput: any;
     DeploymentJob: any;
     DeploymentManualInterventionPendingEvent: any;
     DeploymentOperationStatus: {
@@ -1434,6 +1413,7 @@ export var TypeInfo: {
             "canceled": number;
             "phaseCanceled": number;
             "manualInterventionPending": number;
+            "queuedForPipeline": number;
         };
     };
     DeploymentQueryParameters: any;
@@ -1477,7 +1457,6 @@ export var TypeInfo: {
             "machineGroupBasedDeployment": number;
         };
     };
-    EnvironmentOptions: any;
     EnvironmentStatus: {
         enumValues: {
             "undefined": number;
@@ -1501,7 +1480,6 @@ export var TypeInfo: {
         };
     };
     MachineGroupBasedDeployPhase: any;
-    MachineGroupDeploymentInput: any;
     MailMessage: any;
     MailSectionType: {
         enumValues: {
@@ -1634,14 +1612,6 @@ export var TypeInfo: {
     };
     ReleaseUpdatedEvent: any;
     ReleaseUpdateMetadata: any;
-    RepositoryCleanOptions: {
-        enumValues: {
-            "source": number;
-            "sourceAndOutputDir": number;
-            "sourceDir": number;
-            "allBuildDir": number;
-        };
-    };
     RunOnServerDeployPhase: any;
     ScheduleDays: {
         enumValues: {
@@ -1946,9 +1916,10 @@ export class CommonMethods2_2To3_2 extends CommonMethods2To3_2 {
      * @param {string} project - Project ID or project name
      * @param {number} releaseId
      * @param {boolean} includeAllApprovals
+     * @param {string[]} propertyFilters
      * @return IPromise<Contracts.Release>
      */
-    getRelease(project: string, releaseId: number, includeAllApprovals?: boolean): IPromise<Contracts.Release>;
+    getRelease(project: string, releaseId: number, includeAllApprovals?: boolean, propertyFilters?: string[]): IPromise<Contracts.Release>;
     /**
      * [Preview API]
      *
@@ -2082,9 +2053,11 @@ export class CommonMethods2_2To3_2 extends CommonMethods2To3_2 {
      * @param {Contracts.ReleaseDefinitionQueryOrder} queryOrder
      * @param {string} path
      * @param {boolean} isExactNameMatch
+     * @param {string[]} tagFilter
+     * @param {string[]} propertyFilters
      * @return IPromise<Contracts.ReleaseDefinition[]>
      */
-    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands, artifactType?: string, artifactSourceId?: string, top?: number, continuationToken?: string, queryOrder?: Contracts.ReleaseDefinitionQueryOrder, path?: string, isExactNameMatch?: boolean): IPromise<Contracts.ReleaseDefinition[]>;
+    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands, artifactType?: string, artifactSourceId?: string, top?: number, continuationToken?: string, queryOrder?: Contracts.ReleaseDefinitionQueryOrder, path?: string, isExactNameMatch?: boolean, tagFilter?: string[], propertyFilters?: string[]): IPromise<Contracts.ReleaseDefinition[]>;
     /**
      * [Preview API]
      *
@@ -2099,9 +2072,10 @@ export class CommonMethods2_2To3_2 extends CommonMethods2To3_2 {
      *
      * @param {string} project - Project ID or project name
      * @param {number} definitionId
+     * @param {string[]} propertyFilters
      * @return IPromise<Contracts.ReleaseDefinition>
      */
-    getReleaseDefinition(project: string, definitionId: number): IPromise<Contracts.ReleaseDefinition>;
+    getReleaseDefinition(project: string, definitionId: number, propertyFilters?: string[]): IPromise<Contracts.ReleaseDefinition>;
     /**
      * [Preview API]
      *
@@ -2323,9 +2297,11 @@ export class CommonMethods3_1To3_2 extends CommonMethods3To3_2 {
      * @param {string} artifactVersionId
      * @param {string} sourceBranchFilter
      * @param {boolean} isDeleted
+     * @param {string[]} tagFilter
+     * @param {string[]} propertyFilters
      * @return IPromise<Contracts.Release[]>
      */
-    getReleases(project?: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean): IPromise<Contracts.Release[]>;
+    getReleases(project?: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean, tagFilter?: string[], propertyFilters?: string[]): IPromise<Contracts.Release[]>;
     /**
      * [Preview API]
      *
@@ -2412,6 +2388,104 @@ export class CommonMethods3_1To3_2 extends CommonMethods3To3_2 {
  */
 export class ReleaseHttpClient3_2 extends CommonMethods3_1To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} taskGroupId
+     * @return IPromise<Contracts.DefinitionEnvironmentReference[]>
+     */
+    getDefinitionEnvironments(project: string, taskGroupId?: string): IPromise<Contracts.DefinitionEnvironmentReference[]>;
+    /**
+     * [Preview API]
+     *
+     * @return IPromise<string>
+     */
+    getIPAddress(): IPromise<string>;
+    /**
+     * [Preview API] Gets supported IP detection methods for request source
+     *
+     * @param {string} ipDetectionMethods
+     * @return IPromise<string[]>
+     */
+    getSupportedIPDetectionMethods(ipDetectionMethods: string): IPromise<string[]>;
+    /**
+     * [Preview API] Adds a tag to a definition
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseDefinitionId
+     * @param {string} tag
+     * @return IPromise<string[]>
+     */
+    addDefinitionTag(project: string, releaseDefinitionId: number, tag: string): IPromise<string[]>;
+    /**
+     * [Preview API] Adds multiple tags to a definition
+     *
+     * @param {string[]} tags
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseDefinitionId
+     * @return IPromise<string[]>
+     */
+    addDefinitionTags(tags: string[], project: string, releaseDefinitionId: number): IPromise<string[]>;
+    /**
+     * [Preview API] Deletes a tag from a definition
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseDefinitionId
+     * @param {string} tag
+     * @return IPromise<string[]>
+     */
+    deleteDefinitionTag(project: string, releaseDefinitionId: number, tag: string): IPromise<string[]>;
+    /**
+     * [Preview API] Gets the tags for a definition
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseDefinitionId
+     * @return IPromise<string[]>
+     */
+    getDefinitionTags(project: string, releaseDefinitionId: number): IPromise<string[]>;
+    /**
+     * [Preview API] Adds a tag to a releaseId
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {string} tag
+     * @return IPromise<string[]>
+     */
+    addReleaseTag(project: string, releaseId: number, tag: string): IPromise<string[]>;
+    /**
+     * [Preview API] Adds tag to a release
+     *
+     * @param {string[]} tags
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<string[]>
+     */
+    addReleaseTags(tags: string[], project: string, releaseId: number): IPromise<string[]>;
+    /**
+     * [Preview API] Deletes a tag from a release
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {string} tag
+     * @return IPromise<string[]>
+     */
+    deleteReleaseTag(project: string, releaseId: number, tag: string): IPromise<string[]>;
+    /**
+     * [Preview API] Gets the tags for a release
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @return IPromise<string[]>
+     */
+    getReleaseTags(project: string, releaseId: number): IPromise<string[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @return IPromise<string[]>
+     */
+    getTags(project: string): IPromise<string[]>;
 }
 /**
  * @exemptedapi
@@ -2453,9 +2527,11 @@ export class ReleaseHttpClient3 extends CommonMethods3To3_2 {
      * @param {string} artifactVersionId
      * @param {string} sourceBranchFilter
      * @param {boolean} isDeleted
+     * @param {string[]} tagFilter
+     * @param {string[]} propertyFilters
      * @return IPromise<Contracts.Release[]>
      */
-    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean): IPromise<Contracts.Release[]>;
+    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean, tagFilter?: string[], propertyFilters?: string[]): IPromise<Contracts.Release[]>;
     /**
      * [Preview API] Returns throttled queue as per the task hub license of parallel releases
      *
@@ -2491,9 +2567,11 @@ export class ReleaseHttpClient2_3 extends CommonMethods2_2To3_2 {
      * @param {string} artifactVersionId
      * @param {string} sourceBranchFilter
      * @param {boolean} isDeleted
+     * @param {string[]} tagFilter
+     * @param {string[]} propertyFilters
      * @return IPromise<Contracts.Release[]>
      */
-    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean): IPromise<Contracts.Release[]>;
+    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean, tagFilter?: string[], propertyFilters?: string[]): IPromise<Contracts.Release[]>;
 }
 /**
  * @exemptedapi
@@ -2521,9 +2599,11 @@ export class ReleaseHttpClient2_2 extends CommonMethods2_2To3_2 {
      * @param {string} artifactVersionId
      * @param {string} sourceBranchFilter
      * @param {boolean} isDeleted
+     * @param {string[]} tagFilter
+     * @param {string[]} propertyFilters
      * @return IPromise<Contracts.Release[]>
      */
-    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean): IPromise<Contracts.Release[]>;
+    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean, tagFilter?: string[], propertyFilters?: string[]): IPromise<Contracts.Release[]>;
 }
 /**
  * @exemptedapi

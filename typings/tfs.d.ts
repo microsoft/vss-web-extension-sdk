@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v114.20170324.0806
+// Type definitions for Microsoft Visual Studio Services v115.20170417.1158
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -7,12 +7,24 @@ declare module "TFS/Build/Contracts" {
 import TFS_Core_Contracts = require("TFS/Core/Contracts");
 import TFS_DistributedTask_Common_Contracts = require("TFS/DistributedTaskCommon/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
-export interface AgentPoolQueue extends ShallowReference {
+export interface AgentPoolQueue {
     _links: any;
+    /**
+     * Id of the resource
+     */
+    id: number;
+    /**
+     * Name of the linked resource (definition name, controller name, etc.)
+     */
+    name: string;
     /**
      * The pool used by this queue.
      */
     pool: TaskAgentPoolReference;
+    /**
+     * Full http link to the resource
+     */
+    url: string;
 }
 export enum AgentStatus {
     /**
@@ -220,7 +232,7 @@ export interface Build {
 }
 export interface BuildAgent {
     buildDirectory: string;
-    controller: ShallowReference;
+    controller: XamlBuildControllerReference;
     createdDate: Date;
     description: string;
     enabled: boolean;
@@ -228,11 +240,25 @@ export interface BuildAgent {
     messageQueueUrl: string;
     name: string;
     reservedForBuild: string;
-    server: ShallowReference;
+    server: XamlBuildServerReference;
     status: AgentStatus;
     statusMessage: string;
     updatedDate: Date;
     uri: string;
+    url: string;
+}
+export interface BuildAgentReference {
+    /**
+     * Id of the resource
+     */
+    id: number;
+    /**
+     * Name of the linked resource (definition name, controller name, etc.)
+     */
+    name: string;
+    /**
+     * Full http link to the resource
+     */
     url: string;
 }
 export interface BuildArtifact {
@@ -280,7 +306,7 @@ export interface BuildChangesCalculatedEvent extends BuildUpdatedEvent {
 }
 export interface BuildCompletedEvent extends BuildUpdatedEvent {
 }
-export interface BuildController extends ShallowReference {
+export interface BuildController extends XamlBuildControllerReference {
     _links: any;
     /**
      * The date the controller was created.
@@ -334,6 +360,10 @@ export interface BuildDefinition extends BuildDefinitionReference {
      * Gets or sets the job authorization scope for builds which are queued against this definition
      */
     jobAuthorizationScope: BuildAuthorizationScope;
+    /**
+     * Gets or sets the job cancel timeout in minutes for builds which are cancelled by user for this definition
+     */
+    jobCancelTimeoutInMinutes: number;
     /**
      * Gets or sets the job execution timeout in minutes for builds which are queued against this definition
      */
@@ -425,6 +455,7 @@ export interface BuildDefinitionSourceProvider {
 }
 export interface BuildDefinitionStep {
     alwaysRun: boolean;
+    condition: string;
     continueOnError: boolean;
     displayName: string;
     enabled: boolean;
@@ -456,7 +487,7 @@ export interface BuildDeletedEvent extends RealtimeBuildEvent {
 }
 export interface BuildDeployment {
     deployment: BuildSummary;
-    sourceBuild: ShallowReference;
+    sourceBuild: XamlBuildReference;
 }
 export interface BuildDestroyedEvent extends RealtimeBuildEvent {
     build: Build;
@@ -748,8 +779,8 @@ export enum BuildResult {
     Canceled = 32,
 }
 export interface BuildServer {
-    agents: ShallowReference[];
-    controller: ShallowReference;
+    agents: BuildAgentReference[];
+    controller: XamlBuildControllerReference;
     id: number;
     isVirtual: boolean;
     messageQueueUrl: string;
@@ -799,7 +830,7 @@ export enum BuildStatus {
     All = 47,
 }
 export interface BuildSummary {
-    build: ShallowReference;
+    build: XamlBuildReference;
     finishTime: Date;
     keepForever: boolean;
     quality: string;
@@ -867,7 +898,7 @@ export interface ContinuousDeploymentDefinition {
     /**
      * The definition associated with the continuous deployment
      */
-    definition: ShallowReference;
+    definition: XamlDefinitionReference;
     gitBranch: string;
     hostedServiceName: string;
     project: TFS_Core_Contracts.TeamProjectReference;
@@ -948,11 +979,19 @@ export enum DefinitionQueueStatus {
 /**
  * A reference to a definition.
  */
-export interface DefinitionReference extends ShallowReference {
+export interface DefinitionReference {
     /**
      * The date the definition was created
      */
     createdDate: Date;
+    /**
+     * Id of the resource
+     */
+    id: number;
+    /**
+     * Name of the linked resource (definition name, controller name, etc.)
+     */
+    name: string;
     /**
      * The path this definitions belongs to
      */
@@ -977,6 +1016,10 @@ export interface DefinitionReference extends ShallowReference {
      * The Uri of the definition
      */
     uri: string;
+    /**
+     * Full http link to the resource
+     */
+    url: string;
 }
 export enum DefinitionTriggerType {
     /**
@@ -1053,19 +1096,19 @@ export interface Deployment {
     type: string;
 }
 /**
- * Deployment iformation for type "Build"
+ * Deployment information for type "Build"
  */
 export interface DeploymentBuild extends Deployment {
     buildId: number;
 }
 /**
- * Deployment iformation for type "Deploy"
+ * Deployment information for type "Deploy"
  */
 export interface DeploymentDeploy extends Deployment {
     message: string;
 }
 /**
- * Deployment iformation for type "Test"
+ * Deployment information for type "Test"
  */
 export interface DeploymentTest extends Deployment {
     runId: number;
@@ -1195,24 +1238,6 @@ export enum ProcessTemplateType {
      */
     Upgrade = 2,
 }
-export interface PropertyValue {
-    /**
-     * Guid of identity that changed this property value
-     */
-    changedBy: string;
-    /**
-     * The date this property value was changed
-     */
-    changedDate: Date;
-    /**
-     * Name in the name value mapping
-     */
-    propertyName: string;
-    /**
-     * Value in the name value mapping
-     */
-    value: any;
-}
 export interface PullRequestTrigger extends BuildTrigger {
     branchFilters: string[];
 }
@@ -1276,20 +1301,6 @@ export enum RepositoryCleanOptions {
      * Re-create $(agnet.buildDirectory) which contains $(build.sourcesDirectory), $(build.binariesDirectory) and any folders that left from previous build.
      */
     AllBuildDir = 3,
-}
-export interface RequestReference {
-    /**
-     * Id of the resource
-     */
-    id: number;
-    /**
-     * Name of the requestor
-     */
-    requestedFor: VSS_Common_Contracts.IdentityRef;
-    /**
-     * Full http link to the resource
-     */
-    url: string;
 }
 export interface RetentionPolicy {
     artifacts: string[];
@@ -1373,23 +1384,6 @@ export enum ServiceHostStatus {
      * The service host is currently disconnected and not accepting commands.
      */
     Offline = 2,
-}
-/**
- * An abstracted reference to some other resource. This class is used to provide the build data contracts with a uniform way to reference other resources in a way that provides easy traversal through links.
- */
-export interface ShallowReference {
-    /**
-     * Id of the resource
-     */
-    id: number;
-    /**
-     * Name of the linked resource (definition name, controller name, etc.)
-     */
-    name: string;
-    /**
-     * Full http link to the resource
-     */
-    url: string;
 }
 export interface SvnMappingDetails {
     depth: number;
@@ -1554,6 +1548,20 @@ export interface WorkspaceTemplate {
      */
     workspaceId: number;
 }
+export interface XamlBuildControllerReference {
+    /**
+     * Id of the resource
+     */
+    id: number;
+    /**
+     * Name of the linked resource (definition name, controller name, etc.)
+     */
+    name: string;
+    /**
+     * Full http link to the resource
+     */
+    url: string;
+}
 export interface XamlBuildDefinition extends DefinitionReference {
     _links: any;
     /**
@@ -1584,7 +1592,7 @@ export interface XamlBuildDefinition extends DefinitionReference {
     /**
      * The last build on this definition
      */
-    lastBuild: ShallowReference;
+    lastBuild: XamlBuildReference;
     /**
      * The repository
      */
@@ -1597,6 +1605,48 @@ export interface XamlBuildDefinition extends DefinitionReference {
      * How builds are triggered from this definition
      */
     triggerType: DefinitionTriggerType;
+}
+export interface XamlBuildReference {
+    /**
+     * Id of the resource
+     */
+    id: number;
+    /**
+     * Name of the linked resource (definition name, controller name, etc.)
+     */
+    name: string;
+    /**
+     * Full http link to the resource
+     */
+    url: string;
+}
+export interface XamlBuildServerReference {
+    /**
+     * Id of the resource
+     */
+    id: number;
+    /**
+     * Name of the linked resource (definition name, controller name, etc.)
+     */
+    name: string;
+    /**
+     * Full http link to the resource
+     */
+    url: string;
+}
+export interface XamlDefinitionReference {
+    /**
+     * Id of the resource
+     */
+    id: number;
+    /**
+     * Name of the linked resource (definition name, controller name, etc.)
+     */
+    name: string;
+    /**
+     * Full http link to the resource
+     */
+    url: string;
 }
 export var TypeInfo: {
     AgentStatus: {
@@ -1798,7 +1848,6 @@ export var TypeInfo: {
             "upgrade": number;
         };
     };
-    PropertyValue: any;
     PullRequestTrigger: any;
     QueryDeletedOption: {
         enumValues: {
@@ -5198,6 +5247,12 @@ export interface IWidgetHostService {
     * If the widget doesnt have configuration experience this is a no-op
     */
     showConfiguration: () => void;
+    /**
+    * Requst the host to supply id of Widget, if available.
+    * Provides means for widget authors to track and understand usage/performance of at context of individual of widgets.
+    * Identification should not be relied upon to be present for all widgets. In particular, new unsaved widgets in preview mode do not have an identity yet.
+    */
+    getWidgetId: () => string;
 }
 export module WidgetHostService {
     /**
@@ -5752,8 +5807,13 @@ export interface DeploymentGroupReference {
     project: ProjectReference;
 }
 export interface DeploymentMachine {
-    agent: TaskAgentReference;
+    agent: TaskAgent;
     tags: string[];
+}
+export enum DeploymentMachineExpands {
+    None = 0,
+    Capabilities = 2,
+    AssignedRequest = 4,
 }
 export interface DeploymentMachineGroup extends DeploymentMachineGroupReference {
     machines: DeploymentMachine[];
@@ -5785,6 +5845,17 @@ export interface EndpointUrl {
 export interface HelpLink {
     text: string;
     url: string;
+}
+export interface InputValidationItem {
+    isValid: boolean;
+    reason: string;
+    type: string;
+    value: string;
+}
+export interface InputValidationRequest {
+    inputs: {
+        [key: string]: InputValidationItem;
+    };
 }
 export interface Issue {
     category: string;
@@ -5943,7 +6014,7 @@ export interface ResultTransformationDetails {
 export interface SecureFile {
     createdBy: VSS_Common_Contracts.IdentityRef;
     createdOn: Date;
-    id: number;
+    id: string;
     modifiedBy: VSS_Common_Contracts.IdentityRef;
     modifiedOn: Date;
     name: string;
@@ -6872,6 +6943,13 @@ export var TypeInfo: {
     };
     DeploymentGroupReference: any;
     DeploymentMachine: any;
+    DeploymentMachineExpands: {
+        enumValues: {
+            "none": number;
+            "capabilities": number;
+            "assignedRequest": number;
+        };
+    };
     DeploymentMachineGroup: any;
     DeploymentMachineGroupReference: any;
     DeploymentMachinesChangeEvent: any;
@@ -7413,6 +7491,15 @@ export class CommonMethods3To3_2 extends CommonMethods2_1To3_2 {
      * @exemptedapi
      * [Preview API]
      *
+     * @param {Contracts.ServiceEndpoint[]} endpoints
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.ServiceEndpoint[]>
+     */
+    updateServiceEndpoints(endpoints: Contracts.ServiceEndpoint[], project: string): IPromise<Contracts.ServiceEndpoint[]>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
      * @param {Contracts.ServiceEndpoint} endpoint
      * @param {string} project - Project ID or project name
      * @param {string} endpointId
@@ -7741,19 +7828,96 @@ export class TaskAgentHttpClient3_2 extends CommonMethods3_1To3_2 {
      *
      * @param {string} project - Project ID or project name
      * @param {number} deploymentGroupId
-     * @param {string[]} tags
-     * @return IPromise<Contracts.DeploymentMachine[]>
+     * @param {number} machineId
+     * @param {number} completedRequestCount
+     * @return IPromise<Contracts.TaskAgentJobRequest[]>
      */
-    getDeploymentMachines(project: string, deploymentGroupId: number, tags?: string[]): IPromise<Contracts.DeploymentMachine[]>;
+    getAgentRequestsForDeploymentMachine(project: string, deploymentGroupId: number, machineId: number, completedRequestCount?: number): IPromise<Contracts.TaskAgentJobRequest[]>;
     /**
      * [Preview API]
      *
-     * @param {Contracts.DeploymentMachine[]} deploymentMachines
+     * @param {string} project - Project ID or project name
+     * @param {number} deploymentGroupId
+     * @param {number[]} machineIds
+     * @param {number} completedRequestCount
+     * @return IPromise<Contracts.TaskAgentJobRequest[]>
+     */
+    getAgentRequestsForDeploymentMachines(project: string, deploymentGroupId: number, machineIds?: number[], completedRequestCount?: number): IPromise<Contracts.TaskAgentJobRequest[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.InputValidationRequest} inputValidationRequest
+     * @return IPromise<Contracts.InputValidationRequest>
+     */
+    validateInputs(inputValidationRequest: Contracts.InputValidationRequest): IPromise<Contracts.InputValidationRequest>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DeploymentMachine} machine
+     * @param {string} project - Project ID or project name
+     * @param {number} deploymentGroupId
+     * @return IPromise<Contracts.DeploymentMachine>
+     */
+    addDeploymentMachine(machine: Contracts.DeploymentMachine, project: string, deploymentGroupId: number): IPromise<Contracts.DeploymentMachine>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} deploymentGroupId
+     * @param {number} machineId
+     * @return IPromise<void>
+     */
+    deleteDeploymentMachine(project: string, deploymentGroupId: number, machineId: number): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} deploymentGroupId
+     * @param {number} machineId
+     * @param {Contracts.DeploymentMachineExpands} expand
+     * @return IPromise<Contracts.DeploymentMachine>
+     */
+    getDeploymentMachine(project: string, deploymentGroupId: number, machineId: number, expand?: Contracts.DeploymentMachineExpands): IPromise<Contracts.DeploymentMachine>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} deploymentGroupId
+     * @param {string[]} tags
+     * @param {string} name
+     * @param {Contracts.DeploymentMachineExpands} expand
+     * @return IPromise<Contracts.DeploymentMachine[]>
+     */
+    getDeploymentMachines(project: string, deploymentGroupId: number, tags?: string[], name?: string, expand?: Contracts.DeploymentMachineExpands): IPromise<Contracts.DeploymentMachine[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DeploymentMachine} machine
+     * @param {string} project - Project ID or project name
+     * @param {number} deploymentGroupId
+     * @param {number} machineId
+     * @return IPromise<Contracts.DeploymentMachine>
+     */
+    replaceDeploymentMachine(machine: Contracts.DeploymentMachine, project: string, deploymentGroupId: number, machineId: number): IPromise<Contracts.DeploymentMachine>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DeploymentMachine} machine
+     * @param {string} project - Project ID or project name
+     * @param {number} deploymentGroupId
+     * @param {number} machineId
+     * @return IPromise<Contracts.DeploymentMachine>
+     */
+    updateDeploymentMachine(machine: Contracts.DeploymentMachine, project: string, deploymentGroupId: number, machineId: number): IPromise<Contracts.DeploymentMachine>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DeploymentMachine[]} machines
      * @param {string} project - Project ID or project name
      * @param {number} deploymentGroupId
      * @return IPromise<Contracts.DeploymentMachine[]>
      */
-    updateDeploymentMachines(deploymentMachines: Contracts.DeploymentMachine[], project: string, deploymentGroupId: number): IPromise<Contracts.DeploymentMachine[]>;
+    updateDeploymentMachines(machines: Contracts.DeploymentMachine[], project: string, deploymentGroupId: number): IPromise<Contracts.DeploymentMachine[]>;
     /**
      * [Preview API]
      *
@@ -7847,29 +8011,29 @@ export class TaskAgentHttpClient3_2 extends CommonMethods3_1To3_2 {
      * [Preview API] Delete a secure file
      *
      * @param {string} project - Project ID or project name
-     * @param {number} secureFileId - The unique secure file Id
+     * @param {string} secureFileId - The unique secure file Id
      * @return IPromise<void>
      */
-    deleteSecureFile(project: string, secureFileId: number): IPromise<void>;
+    deleteSecureFile(project: string, secureFileId: string): IPromise<void>;
     /**
      * [Preview API] Download a secure file by Id
      *
      * @param {string} project - Project ID or project name
-     * @param {number} secureFileId - The unique secure file Id
+     * @param {string} secureFileId - The unique secure file Id
      * @param {string} ticket - A valid download ticket
      * @param {boolean} download - If download is true, the file is sent as attachement in the response body. If download is false, the response body contains the file stream.
      * @return IPromise<ArrayBuffer>
      */
-    downloadSecureFile(project: string, secureFileId: number, ticket: string, download?: boolean): IPromise<ArrayBuffer>;
+    downloadSecureFile(project: string, secureFileId: string, ticket: string, download?: boolean): IPromise<ArrayBuffer>;
     /**
      * [Preview API] Get a secure file
      *
      * @param {string} project - Project ID or project name
-     * @param {number} secureFileId - The unique secure file Id
+     * @param {string} secureFileId - The unique secure file Id
      * @param {boolean} includeDownloadTicket - If includeDownloadTicket is true and the caller has permissions, a download ticket is included in the response.
      * @return IPromise<Contracts.SecureFile>
      */
-    getSecureFile(project: string, secureFileId: number, includeDownloadTicket?: boolean): IPromise<Contracts.SecureFile>;
+    getSecureFile(project: string, secureFileId: string, includeDownloadTicket?: boolean): IPromise<Contracts.SecureFile>;
     /**
      * [Preview API] Get secure files
      *
@@ -7884,11 +8048,11 @@ export class TaskAgentHttpClient3_2 extends CommonMethods3_1To3_2 {
      * [Preview API] Get secure files
      *
      * @param {string} project - Project ID or project name
-     * @param {number[]} secureFileIds - A list of secure file Ids
+     * @param {string[]} secureFileIds - A list of secure file Ids
      * @param {boolean} includeDownloadTickets - If includeDownloadTickets is true and the caller has permissions, a download ticket for each secure file is included in the response.
      * @return IPromise<Contracts.SecureFile[]>
      */
-    getSecureFilesByIds(project: string, secureFileIds: number[], includeDownloadTickets?: boolean): IPromise<Contracts.SecureFile[]>;
+    getSecureFilesByIds(project: string, secureFileIds: string[], includeDownloadTickets?: boolean): IPromise<Contracts.SecureFile[]>;
     /**
      * [Preview API] Query secure files using a name pattern and a condition on file properties.
      *
@@ -7903,10 +8067,10 @@ export class TaskAgentHttpClient3_2 extends CommonMethods3_1To3_2 {
      *
      * @param {Contracts.SecureFile} secureFile - The secure file with updated name and/or properties
      * @param {string} project - Project ID or project name
-     * @param {number} secureFileId - The unique secure file Id
+     * @param {string} secureFileId - The unique secure file Id
      * @return IPromise<Contracts.SecureFile>
      */
-    updateSecureFile(secureFile: Contracts.SecureFile, project: string, secureFileId: number): IPromise<Contracts.SecureFile>;
+    updateSecureFile(secureFile: Contracts.SecureFile, project: string, secureFileId: string): IPromise<Contracts.SecureFile>;
     /**
      * [Preview API] Update properties and/or names of a set of secure files. Files are identified by their IDs. Properties provided override the existing one entirely, i.e. do not merge.
      *
@@ -9137,6 +9301,22 @@ export interface LastResultDetails {
     duration: number;
     runBy: VSS_Common_Contracts.IdentityRef;
 }
+export interface LinkedWorkItemsQuery {
+    automatedTestNames: string[];
+    planId: number;
+    pointIds: number[];
+    suiteIds: number[];
+    testCaseIds: number[];
+    workItemCategory: string;
+}
+export interface LinkedWorkItemsQueryResult {
+    automatedTestName: string;
+    planId: number;
+    pointId: number;
+    suiteId: number;
+    testCaseId: number;
+    workItems: WorkItemReference[];
+}
 export interface ModuleCoverage {
     blockCount: number;
     blockData: number[];
@@ -9458,6 +9638,7 @@ export interface TestCaseResult {
     startedDate: Date;
     state: string;
     testCase: ShallowReference;
+    testCaseReferenceId: number;
     testCaseTitle: string;
     testPlan: ShallowReference;
     testPoint: ShallowReference;
@@ -11186,6 +11367,7 @@ export class CommonMethods3To3_2 extends CommonMethods2To3_2 {
     protected attachmentsApiVersion_2bffebe9: string;
     protected attachmentsApiVersion_4f004af4: string;
     protected historyApiVersion: string;
+    protected linkedWorkItemsQueryApiVersion: string;
     protected resultDetailsByBuildApiVersion: string;
     protected resultDetailsByReleaseApiVersion: string;
     protected resultDocumentApiVersion: string;
@@ -11373,6 +11555,15 @@ export class CommonMethods3To3_2 extends CommonMethods2To3_2 {
      * @return IPromise<Contracts.TestResultsDetails>
      */
     getTestResultDetailsForBuild(project: string, buildId: number, publishContext?: string, groupBy?: string, filter?: string, orderby?: string): IPromise<Contracts.TestResultsDetails>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {Contracts.LinkedWorkItemsQuery} workItemQuery
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.LinkedWorkItemsQueryResult[]>
+     */
+    getLinkedWorkItemsByQuery(workItemQuery: Contracts.LinkedWorkItemsQuery, project: string): IPromise<Contracts.LinkedWorkItemsQueryResult[]>;
     /**
      * @exemptedapi
      * [Preview API]
@@ -12726,6 +12917,7 @@ export interface GitPullRequestCommentThreadContext {
 }
 export interface GitPullRequestCompletionOptions {
     bypassPolicy: boolean;
+    bypassReason: string;
     deleteSourceBranch: boolean;
     mergeCommitMessage: string;
     squashMerge: boolean;
@@ -13000,16 +13192,6 @@ export interface GitRefUpdateResult {
      * Status of the update from the TFS server.
      */
     updateStatus: GitRefUpdateStatus;
-}
-export interface GitRefUpdateResultSet {
-    countFailed: number;
-    countSucceeded: number;
-    pushCorrelationId: string;
-    pushIds: {
-        [key: string]: number;
-    };
-    pushTime: Date;
-    results: GitRefUpdateResult[];
 }
 export enum GitRefUpdateStatus {
     /**
@@ -13972,7 +14154,6 @@ export var TypeInfo: {
         };
     };
     GitRefUpdateResult: any;
-    GitRefUpdateResultSet: any;
     GitRefUpdateStatus: {
         enumValues: {
             "succeeded": number;
@@ -14236,6 +14417,37 @@ export module HistoryList {
     * @param webContext Optional web context to scope the control to
     */
     function create($container: JQuery, options?: any, webContext?: Contracts_Platform.WebContext): IPromise<IHistoryList>;
+}
+/**
+* Configuration options when creating the GitHistoryList extension control.
+*/
+export interface IGitHistoryListOptions {
+    /** From commit id for control to search history */
+    fromVersion?: string;
+    /** Displays header above the list */
+    isHeaderVisible?: boolean;
+    /** ItemPath for control to search history */
+    itemPath?: string;
+    /** Callback to be invoked when the scenario is completed */
+    onScenarioComplete?: () => void;
+    /** Optional repository Id for control to search history */
+    repositoryId?: string;
+    /** To commit id for control to search history */
+    toVersion?: string;
+}
+/**
+* Control showing the Git history list
+*/
+export module GitHistoryList {
+    var contributionId: string;
+    /**
+    * Create an instance of the new history list control
+    *
+    * @param $container Container element to create the history list control in
+    * @param options GitHistoryList control options
+    * @param webContext Optional web context to scope the control to
+    */
+    function create($container: JQuery, options?: IGitHistoryListOptions, webContext?: Contracts_Platform.WebContext): IPromise<void>;
 }
 /**
 * Configuration options when creating the IGitVersionSelector extension control.
@@ -15870,6 +16082,103 @@ export interface ChangeListSourceItemContext {
     change: VCContracts.GitChange | VCContracts.TfvcChange;
     changeList: VCContracts.ChangeList<VCContracts.GitItem> | VCContracts.ChangeList<VCContracts.TfvcItem>;
 }
+}
+declare module "TFS/Wiki/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *
+ * Configuration file:
+ *   Tfs\Client\Wiki\ClientGeneratorConfigs\genclient.json
+ */
+export interface WikiPage {
+    /**
+     * Child pages under this page's path
+     */
+    childPages: WikiPage[];
+    /**
+     * The depth in terms of level in the hierarchy
+     */
+    depth: number;
+    /**
+     * Returns true if this page has child pages under its path
+     */
+    isParentPage: boolean;
+    /**
+     * Order associated with the page with respect to other pages in the same hierarchy level
+     */
+    order: number;
+    /**
+     * Path of the wiki page
+     */
+    path: string;
+}
+}
+declare module "TFS/Wiki/WikiRestClient" {
+import Contracts = require("TFS/Wiki/Contracts");
+import TFS_VersionControl_Contracts = require("TFS/VersionControl/Contracts");
+import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
+export class WikiHttpClient3_2 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Gets the wiki pages metadata/content under the provided page path
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} wikiId - ID of the Wiki from which the page is to be retrieved
+     * @param {string} path - Path from which the pages are to retrieved
+     * @param {TFS_VersionControl_Contracts.VersionControlRecursionType} recursionLevel - Recusion level for the page retrieval. Defaults to None (Optional)
+     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} versionDescriptor - WikiPage retreived for the given parameters
+     * @return IPromise<Contracts.WikiPage[]>
+     */
+    getPages(project: string, wikiId: string, path?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.GitVersionDescriptor): IPromise<Contracts.WikiPage[]>;
+    /**
+     * [Preview API] Gets the wiki pages metadata/content under the provided page path
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} wikiId - ID of the Wiki from which the page is to be retrieved
+     * @param {string} path - Path from which the pages are to retrieved
+     * @param {TFS_VersionControl_Contracts.VersionControlRecursionType} recursionLevel - Recusion level for the page retrieval. Defaults to None (Optional)
+     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} versionDescriptor - WikiPage retreived for the given parameters
+     * @return IPromise<string>
+     */
+    getPageText(project: string, wikiId: string, path?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.GitVersionDescriptor): IPromise<string>;
+    /**
+     * [Preview API] Gets the wiki pages metadata/content under the provided page path
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} wikiId - ID of the Wiki from which the page is to be retrieved
+     * @param {string} path - Path from which the pages are to retrieved
+     * @param {TFS_VersionControl_Contracts.VersionControlRecursionType} recursionLevel - Recusion level for the page retrieval. Defaults to None (Optional)
+     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} versionDescriptor - WikiPage retreived for the given parameters
+     * @return IPromise<ArrayBuffer>
+     */
+    getPageZip(project: string, wikiId: string, path?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.GitVersionDescriptor): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API] Creates a backing git repository and does the intiailization of the wiki for the given project
+     *
+     * @param {TFS_VersionControl_Contracts.GitRepository} wikiToCreate - Name and projectId for wiki. The provided name will also be the name of the backing repository as. If this is empty, the name is auto generated.
+     * @param {string} project - Project ID or project name
+     * @return IPromise<TFS_VersionControl_Contracts.GitRepository>
+     */
+    createWiki(wikiToCreate: TFS_VersionControl_Contracts.GitRepository, project: string): IPromise<TFS_VersionControl_Contracts.GitRepository>;
+}
+export class WikiHttpClient extends WikiHttpClient3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * Gets an http client targeting the latest released version of the APIs.
+ *
+ * @return WikiHttpClient3_2
+ */
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WikiHttpClient3_2;
 }
 declare module "TFS/WorkItemTracking/BatchRestClient" {
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -17962,14 +18271,6 @@ export class CommonMethods2_1To3_2 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
-     * @param {string} processId
-     * @param {string} field
-     * @return IPromise<void>
-     */
-    deleteField(processId: string, field: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
      * @param {ProcessDefinitionsContracts.FieldModel} field
      * @param {string} processId
      * @return IPromise<ProcessDefinitionsContracts.FieldModel>
@@ -19645,6 +19946,10 @@ export interface DeliveryViewPropertyCollection extends PlanPropertyCollection {
      */
     criteria: FilterClause[];
     /**
+     * Markers. Will be missing/null if there are no markers.
+     */
+    markers: Marker[];
+    /**
      * Team backlog mappings
      */
     teamBacklogMappings: TeamBacklogMapping[];
@@ -19725,6 +20030,23 @@ export enum IdentityDisplayFormat {
      */
     AvatarAndFullName = 2,
 }
+/**
+ * Client serialization contract for Delivery Timeline Markers.
+ */
+export interface Marker {
+    /**
+     * Color associated with the marker.
+     */
+    color: string;
+    /**
+     * Where the marker should be displayed on the timeline.
+     */
+    date: Date;
+    /**
+     * Label/title for the marker.
+     */
+    label: string;
+}
 export interface Member {
     displayName: string;
     id: string;
@@ -19769,10 +20091,6 @@ export interface Plan {
      * Name of the plan
      */
     name: string;
-    /**
-     * OwnerId of the plan, typically same as the TFID of the team under which this plan has been created
-     */
-    ownerId: string;
     /**
      * The PlanPropertyCollection instance associated with the plan. These are dependent on the type of the plan. For example, DeliveryTimelineView, it would be of type DeliveryViewPropertyCollection.
      */
@@ -20273,6 +20591,7 @@ export var TypeInfo: {
             "avatarAndFullName": number;
         };
     };
+    Marker: any;
     Plan: any;
     PlanMetadata: any;
     PlanType: {
@@ -20591,53 +20910,53 @@ export class CommonMethods3To3_2 extends CommonMethods2To3_2 {
      * [Preview API] Update the information for the specified plan
      *
      * @param {Contracts.UpdatePlan} updatedPlan - Plan definition to be updated
-     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} project - Project ID or project name
      * @param {string} id - Identifier of the plan
      * @return IPromise<Contracts.Plan>
      */
-    updatePlan(updatedPlan: Contracts.UpdatePlan, teamContext: TFS_Core_Contracts.TeamContext, id: string): IPromise<Contracts.Plan>;
+    updatePlan(updatedPlan: Contracts.UpdatePlan, project: string, id: string): IPromise<Contracts.Plan>;
     /**
      * [Preview API]
      *
-     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} project - Project ID or project name
      * @return IPromise<Contracts.Plan[]>
      */
-    getPlans(teamContext: TFS_Core_Contracts.TeamContext): IPromise<Contracts.Plan[]>;
+    getPlans(project: string): IPromise<Contracts.Plan[]>;
     /**
      * [Preview API] Get the information for the specified plan
      *
-     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} project - Project ID or project name
      * @param {string} id - Identifier of the plan
      * @return IPromise<Contracts.Plan>
      */
-    getPlan(teamContext: TFS_Core_Contracts.TeamContext, id: string): IPromise<Contracts.Plan>;
+    getPlan(project: string, id: string): IPromise<Contracts.Plan>;
     /**
      * [Preview API] Delete the specified plan
      *
-     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} project - Project ID or project name
      * @param {string} id - Identifier of the plan
      * @return IPromise<void>
      */
-    deletePlan(teamContext: TFS_Core_Contracts.TeamContext, id: string): IPromise<void>;
+    deletePlan(project: string, id: string): IPromise<void>;
     /**
      * [Preview API] Add a new plan for the team
      *
      * @param {Contracts.CreatePlan} postedPlan - Plan definition
-     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} project - Project ID or project name
      * @return IPromise<Contracts.Plan>
      */
-    createPlan(postedPlan: Contracts.CreatePlan, teamContext: TFS_Core_Contracts.TeamContext): IPromise<Contracts.Plan>;
+    createPlan(postedPlan: Contracts.CreatePlan, project: string): IPromise<Contracts.Plan>;
     /**
      * [Preview API] Get Delivery View Data
      *
-     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} project - Project ID or project name
      * @param {string} id - Identifier for delivery view
      * @param {number} revision - Revision of the plan for which you want data. If the current plan is a different revision you will get an ViewRevisionMismatchException exception. If you do not supply a revision you will get data for the latest revision.
      * @param {Date} startDate - The start date of timeline
      * @param {Date} endDate - The end date of timeline
      * @return IPromise<Contracts.DeliveryViewData>
      */
-    getDeliveryTimelineData(teamContext: TFS_Core_Contracts.TeamContext, id: string, revision?: number, startDate?: Date, endDate?: Date): IPromise<Contracts.DeliveryViewData>;
+    getDeliveryTimelineData(project: string, id: string, revision?: number, startDate?: Date, endDate?: Date): IPromise<Contracts.DeliveryViewData>;
     /**
      * [Preview API] Update board user settings for the board id
      *
