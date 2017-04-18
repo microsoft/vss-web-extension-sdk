@@ -222,7 +222,7 @@ Learn more about the [extension manifest](https://www.visualstudio.com/docs/inte
    <script src="../lib/VSS.SDK.min.js"></script>
    <!-- 
         Alternatively, if the packagePath attribute is not set for this file in your extension manifest (see above), do this:
-         <script src="node_modules/vss-web-extension-sdk/lib/VSS.SDK.min.js"></script>
+         <script src="../node_modules/vss-web-extension-sdk/lib/VSS.SDK.min.js"></script>
    -->
 </head>
 
