@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v115.20170417.1217
+// Type definitions for Microsoft Visual Studio Services v116.20170509.1601
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -143,6 +143,9 @@ export module WellKnownReleaseVariables {
     var BuildRepositoryName: string;
     var BuildRepositoryProvider: string;
     var BuildDefinitionId: string;
+    var ReleaseDeploymentRequestedForId: string;
+    var ReleaseDeploymentRequestedForEmail: string;
+    var ReleaseDeploymentRequestedFor: string;
 }
 }
 declare module "ReleaseManagement/Core/Contracts" {
@@ -167,9 +170,6 @@ export enum AgentArtifactType {
     ExternalTfsBuild = 8,
     Custom = 9,
     Tfvc = 10,
-    Svn = 11,
-    ExternalGit = 12,
-    Pipeline = 13,
 }
 export interface AgentBasedDeployPhase extends DeployPhase {
     deploymentInput: AgentDeploymentInput;
@@ -286,6 +286,11 @@ export enum AuditAction {
 export enum AuthorizationHeaderFor {
     RevalidateApproverIdentity = 0,
     OnBehalfOf = 1,
+}
+export interface AutoTriggerIssue extends ReleaseIssue {
+    buildId: number;
+    issueSource: IssueSource;
+    releaseDefinitionReference: ReleaseDefinitionShallowReference;
 }
 export interface BaseDeploymentInput {
     shareOutputVariables: boolean;
@@ -424,8 +429,8 @@ export interface Deployment {
     queuedOn: Date;
     reason: DeploymentReason;
     release: ReleaseReference;
-    releaseDefinition: ShallowReference;
-    releaseEnvironment: ShallowReference;
+    releaseDefinition: ReleaseDefinitionShallowReference;
+    releaseEnvironment: ReleaseEnvironmentShallowReference;
     requestedBy: VSS_Common_Contracts.IdentityRef;
     requestedFor: VSS_Common_Contracts.IdentityRef;
     scheduledDeploymentTime: Date;
@@ -676,6 +681,11 @@ export interface Issue {
     issueType: string;
     message: string;
 }
+export enum IssueSource {
+    None = 0,
+    User = 1,
+    System = 2,
+}
 export interface MachineGroupBasedDeployPhase extends DeployPhase {
     deploymentInput: MachineGroupDeploymentInput;
 }
@@ -712,9 +722,9 @@ export interface ManualIntervention {
     instructions: string;
     modifiedOn: Date;
     name: string;
-    release: ShallowReference;
-    releaseDefinition: ShallowReference;
-    releaseEnvironment: ShallowReference;
+    release: ReleaseShallowReference;
+    releaseDefinition: ReleaseDefinitionShallowReference;
+    releaseEnvironment: ReleaseEnvironmentShallowReference;
     status: ManualInterventionStatus;
     taskInstanceId: string;
     url: string;
@@ -793,7 +803,7 @@ export interface Release {
     projectReference: ProjectReference;
     properties: any;
     reason: ReleaseReason;
-    releaseDefinition: ShallowReference;
+    releaseDefinition: ReleaseDefinitionShallowReference;
     releaseNameFormat: string;
     status: ReleaseStatus;
     tags: string[];
@@ -820,9 +830,9 @@ export interface ReleaseApproval {
     isNotificationOn: boolean;
     modifiedOn: Date;
     rank: number;
-    release: ShallowReference;
-    releaseDefinition: ShallowReference;
-    releaseEnvironment: ShallowReference;
+    release: ReleaseShallowReference;
+    releaseDefinition: ReleaseDefinitionShallowReference;
+    releaseEnvironment: ReleaseEnvironmentShallowReference;
     revision: number;
     status: ApprovalStatus;
     trialNumber: number;
@@ -936,7 +946,7 @@ export interface ReleaseDefinitionEnvironmentStep {
 }
 export interface ReleaseDefinitionEnvironmentSummary {
     id: number;
-    lastReleases: ShallowReference[];
+    lastReleases: ReleaseShallowReference[];
     name: string;
 }
 export interface ReleaseDefinitionEnvironmentTemplate {
@@ -945,6 +955,7 @@ export interface ReleaseDefinitionEnvironmentTemplate {
     description: string;
     environment: ReleaseDefinitionEnvironment;
     iconTaskId: string;
+    iconUri: string;
     id: string;
     name: string;
 }
@@ -971,6 +982,12 @@ export interface ReleaseDefinitionRevision {
     definitionUrl: string;
     revision: number;
 }
+export interface ReleaseDefinitionShallowReference {
+    _links: any;
+    id: number;
+    name: string;
+    url: string;
+}
 export enum ReleaseDefinitionSource {
     Undefined = 0,
     RestApi = 1,
@@ -980,7 +997,7 @@ export enum ReleaseDefinitionSource {
 }
 export interface ReleaseDefinitionSummary {
     environments: ReleaseDefinitionEnvironmentSummary[];
-    releaseDefinition: ShallowReference;
+    releaseDefinition: ReleaseDefinitionShallowReference;
     releases: Release[];
 }
 export interface ReleaseDeployPhase {
@@ -1012,9 +1029,9 @@ export interface ReleaseEnvironment {
     preDeployApprovals: ReleaseApproval[];
     queueId: number;
     rank: number;
-    release: ShallowReference;
+    release: ReleaseShallowReference;
     releaseCreatedBy: VSS_Common_Contracts.IdentityRef;
-    releaseDefinition: ShallowReference;
+    releaseDefinition: ReleaseDefinitionShallowReference;
     releaseDescription: string;
     releaseId: number;
     scheduledDeploymentTime: Date;
@@ -1043,6 +1060,12 @@ export interface ReleaseEnvironmentCompletedEvent {
     title: string;
     webAccessUri: string;
 }
+export interface ReleaseEnvironmentShallowReference {
+    _links: any;
+    id: number;
+    name: string;
+    url: string;
+}
 export interface ReleaseEnvironmentUpdateMetadata {
     comment: string;
     scheduledDeploymentTime: Date;
@@ -1056,6 +1079,14 @@ export enum ReleaseExpands {
     ManualInterventions = 16,
     Variables = 32,
     Tags = 64,
+}
+export interface ReleaseIssue {
+    issue: Issue;
+    issueType: ReleaseIssueType;
+}
+export enum ReleaseIssueType {
+    None = 0,
+    AutoTrigger = 1,
 }
 export enum ReleaseQueryOrder {
     Descending = 0,
@@ -1079,7 +1110,7 @@ export interface ReleaseReference {
     modifiedBy: VSS_Common_Contracts.IdentityRef;
     name: string;
     reason: ReleaseReason;
-    releaseDefinition: ShallowReference;
+    releaseDefinition: ReleaseDefinitionShallowReference;
     url: string;
     webAccessUri: string;
 }
@@ -1116,6 +1147,12 @@ export interface ReleaseSchedule {
 }
 export interface ReleaseSettings {
     retentionSettings: RetentionSettings;
+}
+export interface ReleaseShallowReference {
+    _links: any;
+    id: number;
+    name: string;
+    url: string;
 }
 export interface ReleaseStartMetadata {
     artifacts: ArtifactMetadata[];
@@ -1211,12 +1248,6 @@ export interface ScheduledReleaseTrigger extends ReleaseTriggerBase {
 export enum SenderType {
     ServiceAccount = 1,
     RequestingUser = 2,
-}
-export interface ShallowReference {
-    _links: any;
-    id: number;
-    name: string;
-    url: string;
 }
 export interface SourceIdInput {
     id: string;
@@ -1319,9 +1350,6 @@ export var TypeInfo: {
             "externalTfsBuild": number;
             "custom": number;
             "tfvc": number;
-            "svn": number;
-            "externalGit": number;
-            "pipeline": number;
         };
     };
     AgentBasedDeployPhase: any;
@@ -1361,6 +1389,7 @@ export var TypeInfo: {
             "onBehalfOf": number;
         };
     };
+    AutoTriggerIssue: any;
     Change: any;
     Condition: any;
     ConditionType: {
@@ -1479,6 +1508,13 @@ export var TypeInfo: {
             "descending": number;
         };
     };
+    IssueSource: {
+        enumValues: {
+            "none": number;
+            "user": number;
+            "system": number;
+        };
+    };
     MachineGroupBasedDeployPhase: any;
     MailMessage: any;
     MailSectionType: {
@@ -1570,6 +1606,13 @@ export var TypeInfo: {
             "manualInterventions": number;
             "variables": number;
             "tags": number;
+        };
+    };
+    ReleaseIssue: any;
+    ReleaseIssueType: {
+        enumValues: {
+            "none": number;
+            "autoTrigger": number;
         };
     };
     ReleaseQueryOrder: {
@@ -2257,9 +2300,10 @@ export class CommonMethods3To3_2 extends CommonMethods2_2To3_2 {
      * @param {Contracts.ReleaseQueryOrder} queryOrder
      * @param {number} top
      * @param {number} continuationToken
+     * @param {string} createdFor
      * @return IPromise<Contracts.Deployment[]>
      */
-    getDeployments(project: string, definitionId?: number, definitionEnvironmentId?: number, createdBy?: string, minModifiedTime?: Date, maxModifiedTime?: Date, deploymentStatus?: Contracts.DeploymentStatus, operationStatus?: Contracts.DeploymentOperationStatus, latestAttemptsOnly?: boolean, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number): IPromise<Contracts.Deployment[]>;
+    getDeployments(project: string, definitionId?: number, definitionEnvironmentId?: number, createdBy?: string, minModifiedTime?: Date, maxModifiedTime?: Date, deploymentStatus?: Contracts.DeploymentStatus, operationStatus?: Contracts.DeploymentOperationStatus, latestAttemptsOnly?: boolean, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, createdFor?: string): IPromise<Contracts.Deployment[]>;
     /**
      * [Preview API]
      *
@@ -2399,16 +2443,11 @@ export class ReleaseHttpClient3_2 extends CommonMethods3_1To3_2 {
     /**
      * [Preview API]
      *
-     * @return IPromise<string>
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId
+     * @return IPromise<Contracts.ReleaseIssue[]>
      */
-    getIPAddress(): IPromise<string>;
-    /**
-     * [Preview API] Gets supported IP detection methods for request source
-     *
-     * @param {string} ipDetectionMethods
-     * @return IPromise<string[]>
-     */
-    getSupportedIPDetectionMethods(ipDetectionMethods: string): IPromise<string[]>;
+    getIssues(project: string, buildId: number): IPromise<Contracts.ReleaseIssue[]>;
     /**
      * [Preview API] Adds a tag to a definition
      *

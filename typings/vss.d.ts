@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v115.20170417.1158
+// Type definitions for Microsoft Visual Studio Services v116.20170509.1547
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -300,6 +300,13 @@ interface IXDMObjectRegistry {
     * @param instance Either: (1) an object instance, or (2) a function that takes optional context data and returns an object instance.
     */
     register(instanceId: string, instance: Object | { (contextData?: any): Object; }): void;
+
+    /**
+    * Unregister an object (instance or factory method) that was previously registered by this frame
+    *
+    * @param instanceId unique id of the registered object
+    */
+    unregister(instanceId: string): void;
 
     /**
     * Get an instance of an object registered with the given id
@@ -903,6 +910,11 @@ interface IContributedMenuItem {
     * @param actionContext Menu-specific context information
     */
     action?: (actionContext: any) => void;
+
+    /**
+     * If specified, aria-label attribute will be added to menu item
+     */
+    ariaLabel?: string;
 }
 interface IContributedTab {
     /**
@@ -2235,6 +2247,7 @@ interface Hub {
     order: any;
     supportsXHRNavigate: boolean;
     uri: string;
+    ariaLabel?: string;
 }
 
 /**
@@ -2894,6 +2907,12 @@ declare module XDM {
             (contextData?: any): Object;
         }): void;
         /**
+        * Unregister an object (instance or factory method) that was previously registered by this frame
+        *
+        * @param instanceId unique id of the registered object
+        */
+        unregister(instanceId: string): void;
+        /**
         * Get an instance of an object registered with the given id
         *
         * @param instanceId unique id of the registered object
@@ -3088,6 +3107,12 @@ declare module VSS {
     function register(instanceId: string, instance: Object | {
         (contextData?: any): Object;
     }): void;
+    /**
+    * Removes an object that this extension exposed to the host frame.
+    *
+    * @param instanceId unique id of the registered object
+    */
+    function unregister(instanceId: string): void;
     /**
     * Get an instance of an object registered with the given id
     *
@@ -3949,6 +3974,11 @@ export function getBundleSize(bundleUrl: string): number;
  * @returns {string[]}
  */
 export function compressPaths(paths: string[]): string[];
+export interface IDynamicBundleRequestLocation {
+    url?: string;
+    pathPrefix?: string;
+}
+export function getDynamicBundleRequestLocation(scripts: string[], serviceInstanceId: string, excludeOptions: VSS.DynamicModuleExcludeOptions): IDynamicBundleRequestLocation;
 /**
  * Inject all the CSS and Scripts specified in the bundle collection into the page
  *
@@ -4050,11 +4080,11 @@ export enum BillingProvider {
 }
 export interface ConnectedServer {
     /**
-     * Hosted AccountId associated with the connected server
+     * Hosted AccountId associated with the connected server NOTE: As of S112, this is now the CollectionId. Not changed as this is exposed to client code.
      */
     accountId: string;
     /**
-     * Hosted AccountName associated with the connected server
+     * Hosted AccountName associated with the connected server NOTE: As of S112, this is now the collection name. Not changed as this is exposed to client code.
      */
     accountName: string;
     /**
@@ -4117,6 +4147,10 @@ export interface ICommercePackage {
  * Information about a resource associated with a subscription.
  */
 export interface IOfferSubscription {
+    /**
+     * Indicates whether users get auto assigned this license type duing first access.
+     */
+    autoAssignOnAccess: boolean;
     /**
      * The azure subscription id
      */
@@ -4399,6 +4433,10 @@ export interface OfferMeter {
      */
     assignmentModel: OfferMeterAssignmentModel;
     /**
+     * Indicates whether users get auto assigned this license type duing first access.
+     */
+    autoAssignOnAccess: boolean;
+    /**
      * Gets or sets the responsible entity/method for billing. Determines how this meter is handled in the backend.
      */
     billingEntity: BillingProvider;
@@ -4541,6 +4579,10 @@ export enum OfferScope {
  */
 export interface OfferSubscription {
     /**
+     * Indicates whether users get auto assigned this license type duing first access.
+     */
+    autoAssignOnAccess: boolean;
+    /**
      * The azure subscription id
      */
     azureSubscriptionId: string;
@@ -4657,6 +4699,10 @@ export enum PurchaseErrorReason {
     InvalidRegionPurchase = 4,
     PaymentInstrumentNotCreditCard = 5,
     InvalidOfferRegion = 6,
+    UnsupportedSubscription = 7,
+    DisabledSubscription = 8,
+    InvalidUser = 9,
+    NotSubscriptionUser = 10,
 }
 export enum ResourceBillingMode {
     Committment = 0,
@@ -4886,6 +4932,10 @@ export var TypeInfo: {
             "invalidRegionPurchase": number;
             "paymentInstrumentNotCreditCard": number;
             "invalidOfferRegion": number;
+            "unsupportedSubscription": number;
+            "disabledSubscription": number;
+            "invalidUser": number;
+            "notSubscriptionUser": number;
         };
     };
     ResourceBillingMode: {
@@ -4949,7 +4999,7 @@ export var TypeInfo: {
 declare module "VSS/Commerce/RestClient" {
 import Contracts = require("VSS/Commerce/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected metersApiVersion: string;
     protected offerMeterApiVersion: string;
@@ -5017,7 +5067,7 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      *
      * @param {string} subscriptionId - Azure Subscription Id
      * @param {string} galleryItemId - Fully qualified gallery id
-     * @param {string} accountId - Account id
+     * @param {string} accountId - Collection id
      * @return IPromise<Contracts.ISubscriptionAccount>
      */
     getAzureSubscriptionForPurchase(subscriptionId: string, galleryItemId: string, accountId?: string): IPromise<Contracts.ISubscriptionAccount>;
@@ -5056,6 +5106,16 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.ISubscriptionAccount[]>
      */
     getAccounts(subscriptionId: string, providerNamespaceId: Contracts.AccountProviderNamespace): IPromise<Contracts.ISubscriptionAccount[]>;
+    /**
+     * [Preview API] Swaps the subscriptions for an account
+     *
+     * @param {string} subscriptionId - The subscription identifier.
+     * @param {Contracts.AccountProviderNamespace} providerNamespaceId - The provider namespace identifier.
+     * @param {string} accountId - The account identifier.
+     * @param {boolean} hydrate - Whether or not the hydrate the account into ARM.
+     * @return IPromise<void>
+     */
+    changeSubscriptionAccount(subscriptionId: string, providerNamespaceId: Contracts.AccountProviderNamespace, accountId: string, hydrate?: boolean): IPromise<void>;
     /**
      * [Preview API]
      *
@@ -5109,6 +5169,15 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<void>
      */
     enableTrialOrPreviewOfferSubscription(offerMeterName: string, renewalGroup: Contracts.ResourceRenewalGroup): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} offerMeterName
+     * @param {Contracts.ResourceRenewalGroup} renewalGroup
+     * @param {Date} endDate
+     * @return IPromise<void>
+     */
+    enableTrialOfferSubscriptionExtension(offerMeterName: string, renewalGroup: Contracts.ResourceRenewalGroup, endDate: Date): IPromise<void>;
     /**
      * [Preview API]
      *
@@ -5193,7 +5262,7 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      */
     getResourceStatus(nextBillingPeriod?: boolean): IPromise<Contracts.ISubscriptionResource[]>;
 }
-export class CommonMethods3To3_1 extends CommonMethods2To3_1 {
+export class CommonMethods3To3_2 extends CommonMethods2To3_2 {
     protected commercePackageApiVersion: string;
     protected connectedServerApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -5207,55 +5276,62 @@ export class CommonMethods3To3_1 extends CommonMethods2To3_1 {
     /**
      * [Preview API]
      *
+     * @param {string} version
      * @return IPromise<Contracts.ICommercePackage>
      */
-    getCommercePackage(): IPromise<Contracts.ICommercePackage>;
+    getCommercePackage(version?: string): IPromise<Contracts.ICommercePackage>;
 }
 /**
  * @exemptedapi
  */
-export class CommerceHttpClient3_1 extends CommonMethods3To3_1 {
+export class CommerceHttpClient3_2 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CommerceHttpClient3 extends CommonMethods3To3_1 {
+export class CommerceHttpClient3_1 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CommerceHttpClient2_3 extends CommonMethods2To3_1 {
+export class CommerceHttpClient3 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CommerceHttpClient2_2 extends CommonMethods2To3_1 {
+export class CommerceHttpClient2_3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CommerceHttpClient2_1 extends CommonMethods2To3_1 {
+export class CommerceHttpClient2_2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CommerceHttpClient2 extends CommonMethods2To3_1 {
+export class CommerceHttpClient2_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class CommerceHttpClient extends CommerceHttpClient3_1 {
+/**
+ * @exemptedapi
+ */
+export class CommerceHttpClient2 extends CommonMethods2To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class CommerceHttpClient extends CommerceHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return CommerceHttpClient3
+ * @return CommerceHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CommerceHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CommerceHttpClient3_1;
 }
 declare module "VSS/Common/Constants/Platform" {
 export module ContributedServiceContextData {
@@ -9122,6 +9198,7 @@ export class BaseComboBehavior {
     protected _options: any;
     protected _dataSource: Controls.BaseDataSource;
     private _onForceHideDropPopupDelegate;
+    private _onWheelDelegate;
     private _dropPopup;
     constructor(combo: any, options?: any);
     initialize(): void;
@@ -9388,6 +9465,10 @@ export interface IComboOptions {
      */
     dropHide?: (dropPopup: BaseComboDropPopup) => boolean;
     /**
+     * Error message for accessibility purpose, i.e. for screen reader to recognize the error message
+     */
+    errorMessage?: string;
+    /**
      * Obsolete. No effect.
      */
     setTitleOnlyOnOverflow?: boolean;
@@ -9493,6 +9574,7 @@ export class ComboO<TOptions extends IComboOptions> extends Controls.Control<TOp
     private _dropButton;
     private _behavior;
     private _ariaDescription;
+    private _errorAriaDescription;
     private _tooltip;
     private _onInputFocusInProgress;
     /**
@@ -9500,6 +9582,7 @@ export class ComboO<TOptions extends IComboOptions> extends Controls.Control<TOp
      */
     initializeOptions(options?: any): void;
     _dispose(): void;
+    private _disposeBehavior();
     _createIn(container: any): void;
     /**
      * @param element
@@ -9668,7 +9751,7 @@ export class ComboO<TOptions extends IComboOptions> extends Controls.Control<TOp
      * @return
      */
     private _onInputKeyUp(e?);
-    protected updateAriaAttributes(isDropVisible?: boolean): void;
+    updateAriaAttributes(isDropVisible?: boolean): void;
     protected updateAriaActiveDescendant(): void;
 }
 export class Combo extends ComboO<IComboOptions> {
@@ -9889,6 +9972,11 @@ export class ComboDateBehavior extends BaseComboBehavior {
      * @return
      */
     upKey(e?: JQueryEventObject): any;
+    /**
+     * @param e
+     * @return
+     */
+    keyDown(e?: JQueryEventObject): any;
     /**
      * @param e
      * @return
@@ -10148,6 +10236,7 @@ export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<
     private _progressElement;
     private _dialogResult;
     private _onWindowResizeDelegate;
+    private _onHubNavigateDelegate;
     private _secondOverlay;
     private static RESIZE_STEP;
     /**
@@ -10696,6 +10785,7 @@ export class EditableGrid extends Grids.GridO<any> {
         focusElement: JQuery;
     };
     _getClickedColumnIndex(e?: JQueryEventObject): number;
+    protected _onHeaderKeyDown(e?: JQueryEventObject): void;
     _shouldAttachContextMenuEvents(): boolean;
     onContextMenu(eventArgs: any): any;
     /**
@@ -10720,6 +10810,7 @@ export class EditableGrid extends Grids.GridO<any> {
     _applyColumnSizing(columnIndex: number, initialWidth?: number, finish?: boolean): void;
     _invalidateRowHeights(): void;
     ensureRowSelectionWhenLayoutComplete(command: any, indicesToSelect?: number[]): void;
+    protected _onDeleteHeader(e: JQueryEventObject): void;
     private _focusGrid();
     whenLayoutComplete(command: any, indicesToSelect?: number[]): void;
     private _setSelection(indicesToSelect);
@@ -10759,7 +10850,6 @@ export class EditableGrid extends Grids.GridO<any> {
     _isHyperLinkCell(cellInfo: CellInfo): boolean;
     _onBackSpaceKey(e?: JQueryEventObject): void;
     _onDeleteKey(e?: JQueryEventObject): any;
-    _onTabKey(e?: JQueryEventObject): void;
     cacheRows(aboveRange: any, visibleRange: any, belowRange: any): void;
     _drawRows(visibleRange: any, includeNonDirtyRows: any): void;
     setHeightForLowerContentSpacer(height: number): void;
@@ -11729,6 +11819,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
     static EVENT_SELECTED_INDEX_CHANGED: string;
     static DATA_DRAGGING_ROWINFO: string;
     static DATA_DROPPING_ROWINFO: string;
+    private static TOOLTIP_TARGET_SELECTOR;
     private _selectionStart;
     private _header;
     private _gutterHeader;
@@ -11778,12 +11869,12 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
     _contentSize: any;
     _rows: any;
     _scroller: any;
-    _canvasDroppable: any;
-    _canvas: any;
+    _canvasDroppable: JQuery;
+    _canvas: JQuery;
     _canvasHeight: number;
     _canvasWidth: number;
-    _headerCanvas: any;
-    _gutter: any;
+    _headerCanvas: JQuery;
+    _gutter: JQuery;
     _popupMenu: Menus.PopupMenu;
     _resetScroll: boolean;
     _ignoreScroll: boolean;
@@ -11796,6 +11887,11 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
     _active: boolean;
     _cellMinWidth: number;
     private _draggableOverGrid;
+    private _tooltip;
+    private _tooltipMouseOverHandler;
+    private _tooltipMouseOutHandler;
+    private _focusStateData;
+    private _focusedElement;
     /**
      * Deprecated.  Please use _canvas instead.
      */
@@ -12176,7 +12272,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      * @param elemB
      * @return
      */
-    private _getComparableAncestors(zippedArray, elemA, elemB);
+    private _getComparableAncestors(elemA, elemB);
     /**
      * @param e
      * @param selector
@@ -12253,6 +12349,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
     _onDownKey(e?: JQueryKeyEventObject, bounds?: any): void;
     _onRightKey(e?: JQueryKeyEventObject): void;
     _onLeftKey(e?: JQueryKeyEventObject): void;
+    private _onHorizontalArrowKey(direction, e?);
     _onPageUpPageDownKey(e?: JQueryKeyEventObject, bounds?: any): void;
     _getRowsPerPage(e?: BaseJQueryEventObject): number;
     _onHomeKey(e?: JQueryKeyEventObject, bounds?: any): void;
@@ -12264,6 +12361,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      * @return
      */
     _onKeyUp(e?: JQueryKeyEventObject): any;
+    private _focusHeader();
     /**
      * Enables raising the custom event with the provided event name.
      *
@@ -12400,6 +12498,8 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      *     - toggle: Toggles the row in the selection
      */
     _addSelection(rowIndex: number, dataIndex?: number, options?: any): void;
+    private _updateRowActionList(dataIndex);
+    private _setFocusedGridElement(elem);
     /**
      * Highlights the rows beginning from the selection start until the row at the specified rowIndex
      *
@@ -12452,12 +12552,14 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      * @param e
      * @return
      */
-    _onHeaderClick(e?: JQueryEventObject): any;
+    _onHeaderClick(e?: JQueryEventObject, clickedWithKeyboard?: boolean): any;
     /**
      * @param e
      * @return
      */
     _onHeaderDblClick(e?: JQueryEventObject): any;
+    protected _onHeaderKeyDown(e?: JQueryEventObject): void;
+    protected _onHeaderScroll(e?: JQueryEventObject): void;
     private _moveSizingElement(columnIndex);
     /**
      *     Given a column index will provide the visible index of this column. That is, it will take in to consideration any
@@ -12547,6 +12649,8 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
     private _raiseToggleEvent(rowInfo, isExpanded);
     copySelectedItems(formatterType?: new (grid: GridO<TOptions>, options?: any) => ITableFormatter, copyAsHtml?: boolean, options?: any): void;
     _ensureRowDrawn(dataIndex: any): boolean;
+    private _onMouseOver(e);
+    private _onMouseOut(e);
     /**
      * Ensures that all data objects in the selection have been downloaded and are available to process.
      *
@@ -13091,6 +13195,10 @@ export interface IMenuItemSpec extends IContributedMenuItem {
      * default to the item's id.
      */
     idIsAction?: boolean;
+    /**
+     * Text to be used by screen reader
+     */
+    ariaLabel?: string;
 }
 export interface ISplitDropMenuItemSpec extends IMenuItemSpec {
 }
@@ -13192,6 +13300,9 @@ export class MenuBase<TOptions extends MenuBaseOptions> extends Controls.Control
      * @param options
      */
     constructor(options?: any);
+    /**
+     * Get the root menu of this object. (Not the immediate parent)
+     */
     getOwner(): MenuOwner<MenuOwnerOptions>;
     getParent(): MenuBase<TOptions>;
     /**
@@ -13363,6 +13474,7 @@ export class MenuItem extends MenuBase<MenuItemOptions> {
     showSubMenu(options?: any): void;
     hideSubMenu(options?: any): void;
     hideSiblings(options?: any): void;
+    getAriaRole(): string;
     private _attachMenuEvents();
     private _createIconElement();
     private _createTextElement();
@@ -13893,6 +14005,7 @@ export interface ToolbarOptions extends MenuBarOptions {
  */
 export class Toolbar extends MenuBar {
     constructor(options: ToolbarOptions);
+    _getMenuItemType(): any;
 }
 export interface PopupMenuOptions extends MenuOwnerOptions {
     hidden?: boolean;
@@ -14471,8 +14584,9 @@ export module FullScreenHelper {
      * @param addHistoryPoint  If true, update url with full screen tag.
      * @param showLeftLane  If true, the left tab in split panes will be shown during full screen mode.
      * @param suppressNavigate  If true, the setting of full screen will not cause a navigation event, and instead will simply set to fullscreen without updating navigation tabs, etc.
+     * @param replaceHistoryPoint If true, update the url with the full screen tag w/o adding to the back history.  addHistoryPoint and replaceHistoryPoint are exclusive operations.
      */
-    function setFullScreen(value: boolean, addHistoryPoint?: boolean, showLeftLane?: boolean, suppressNavigate?: boolean): void;
+    function setFullScreen(value: boolean, addHistoryPoint?: boolean, showLeftLane?: boolean, suppressNavigate?: boolean, replaceHistoryPoint?: boolean): void;
     /**
      * Get state object for the current full screen mode state.
      *
@@ -14816,7 +14930,6 @@ declare module "VSS/Controls/PopupContent" {
 import Controls = require("VSS/Controls");
 import Utils_UI = require("VSS/Utils/UI");
 export interface IPopupContentControlOptions extends Controls.EnhancementOptions {
-    content?: number;
     /**
      * Text to display. HTML content will be escaped.
      */
@@ -14880,9 +14993,17 @@ export interface IPopupContentControlOptions extends Controls.EnhancementOptions
      */
     menuContainer?: JQuery;
     /**
+     * If false, position the popup on hover based on the drop element’s location, not the mouse position
+     */
+    useMousePosition?: boolean;
+    /**
      * Whether the hover target must be _$dropElement strictly, if false then children that are inside of the _$dropElement will cause tooltipping
      */
     useStrictTarget?: boolean;
+    /**
+     * When a mouseover event is received, call this function. If it returns false, ignore the event.
+     */
+    mouseEventFilter?: (e: JQueryEventObject) => boolean;
 }
 export interface IPositionOptions {
     useMousePosition: boolean;
@@ -14893,11 +15014,14 @@ export class PopupContentControlO<TOptions extends IPopupContentControlOptions> 
     private _contentSet;
     protected _visible: boolean;
     private _hasFocus;
+    /** don't respond to focus events until this time */
+    private _blockFocusUntil;
     private _hasMouse;
     private _enabled;
     private _documentEventDelegate;
     private _onForceHideDropPopupDelegate;
     private _mouseMoveDelegate;
+    private _mouseupHideDelegate;
     private _delayedShow;
     private _delayedHide;
     protected _mousePosition: Utils_UI.Positioning.ILocation;
@@ -14918,21 +15042,24 @@ export class PopupContentControlO<TOptions extends IPopupContentControlOptions> 
      * Set the content to display (in HTML)
      *
      * This method displays raw HTML. Do not use to display user-provided content without properly
-     * escaping.
+     * escaping. Prefer to use setTextContent(), which escapes HTML content, or setHtmlContent(),
+     * which does not.
      *
-     * This method has been deprecated. Use setTextContent() or setHtmlContent() instead.
+     * This method has been deprecated and remains for back compatability only. Replace existing
+     * uses.
      */
-    setContent(content: string | JQuery): void;
+    private setContent(content);
     resetContent(): void;
     show(): void;
     toggle(): void;
     _enhance($dropElement: any): void;
     private _decorate();
+    private _onInteract(e);
     private _onFocus(e);
     private _onBlur(e);
     private _onMouseMove(e);
-    onMouseEnter(e: JQueryEventObject | MouseEvent): void;
-    private _onMouseLeave(e);
+    onMouseOver(e: JQueryEventObject): void;
+    private _onMouseOut(e);
     showDelayed(): void;
     /**
      * Show the popup, after a delay if the openDelay option is set.
@@ -14988,7 +15115,8 @@ export class RichContentTooltipO<TOptions extends IRichContentTooltipOptions> ex
     /**
      * Add a tooltip to the target with common default settings.
      *
-     * This function has been deprecated. Use add() instead.
+     * This function has been deprecated and remains for back compatability only. Use add()
+     * instead and replace existing uses.
      *
      * This method displays raw HTML. Do not use to display user-provided content without properly
      * escaping. Prefer to use add(), which escapes HTML for you.
@@ -14997,7 +15125,7 @@ export class RichContentTooltipO<TOptions extends IRichContentTooltipOptions> ex
      * @param target
      * @param options
      */
-    static addTooltip(content: string, target: HTMLElement | JQuery, options?: IRichContentTooltipOptions): RichContentTooltip;
+    private static addTooltip(content, target, options?);
     /**
      * Add a tooltip to the target with common default settings. Only display the tooltip if the
      * content in target is overflowing.
@@ -15011,7 +15139,8 @@ export class RichContentTooltipO<TOptions extends IRichContentTooltipOptions> ex
      * Add a tooltip to the target with common default settings. Only display the tooltip if the
      * content in overflowingElement is overflowing.
      *
-     * This function has been deprecated. Use addIfOverflow() instead.
+     * This function has been deprecated and remains for back compatability only. Use
+     * addIfOverflow() instead and replace existing uses.
      *
      * This method displays raw HTML. Do not use to display user-provided content without properly
      * escaping. Prefer to use addIfOverflow(), which escapes HTML for you.
@@ -15020,12 +15149,9 @@ export class RichContentTooltipO<TOptions extends IRichContentTooltipOptions> ex
      * @param overflowingElement
      * @param options
      */
-    static addTooltipIfOverflow(content: string, overflowingElement: HTMLElement | JQuery, options?: IRichContentTooltipOptions): RichContentTooltip;
+    private static addTooltipIfOverflow(content, overflowingElement, options?);
 }
 export class RichContentTooltip extends RichContentTooltipO<any> {
-}
-export class DefaultRichContentTooltip extends RichContentTooltipO<IRichContentTooltipOptions> {
-    initializeOptions(options?: IRichContentTooltipOptions): void;
 }
 }
 declare module "VSS/Controls/RichEditor" {
@@ -15870,11 +15996,11 @@ export interface IStatusIndicatorOptions {
     announceProgress?: boolean;
 }
 export class StatusIndicatorO<TOptions extends IStatusIndicatorOptions> extends Controls.Control<TOptions> {
+    static getActiveCount(): number;
     static enhancementTypeName: string;
     /** list of all StatusIndicatorO objects */
     private static _allIndicators;
     private static _announcer;
-    static getActiveCount(): number;
     private _statusDiv;
     private _image;
     private _throttleMinTime;
@@ -16871,6 +16997,7 @@ export class TreeViewO<TOptions extends ITreeOptions> extends Controls.Control<T
     _focusedNode: JQuery;
     private _popupMenu;
     private _nodeHasTabindex;
+    private _ariaDescribedById;
     rootNode: TreeNode;
     _selectedNode: TreeNode;
     /**
@@ -16978,6 +17105,11 @@ export class TreeViewO<TOptions extends ITreeOptions> extends Controls.Control<T
      */
     private _click(e?);
     /**
+     * Set UI Focus on the node (Does not change selected node state)
+     * @param node Tree node to navigate to
+     */
+    focusOnNode(node: TreeNode): void;
+    /**
      * Handle key down events (node selection & expansion)
      *
      * @param e
@@ -17026,7 +17158,7 @@ export class TreeViewO<TOptions extends ITreeOptions> extends Controls.Control<T
     setDroppable(droppable: any): void;
     private _getFirstTabbableChild(nodeElement);
     private _setNodeElementExpandState(nodeElement, expand, hasChildren?);
-    private _restoreTabindexAndFocus(fallbackNode);
+    private _restoreTabindexAndFocus(fallbackNode, setFocus);
     private _setNodeHasTabindex(node);
 }
 export class TreeView extends TreeViewO<ITreeOptions> {
@@ -17472,6 +17604,10 @@ export class VirtualizingListView extends Controls.BaseControl {
      * @param accept
      */
     private _fireSelectionChanged(accept?);
+    /**
+     * Optional delegate. This is fired when items in the list are updated.
+     */
+    private _fireItemsUpdated();
 }
 }
 declare module "VSS/DelegatedAuthorization/Contracts" {
@@ -18573,6 +18709,10 @@ export interface IPageEventService {
      * @param eventArgs Optional event arguments.
      */
     fire(eventName: string, eventArgs?: any): void;
+    /**
+     * Resets the specified event like it is not fired yet.
+     */
+    reset(eventName: string): void;
     /**
      * Clears all the subscriptions.
      */
@@ -19860,6 +20000,10 @@ export interface ContributedFeature {
      * The scopes/levels at which settings can set the enabled/disabled state of this feature
      */
     scopes: ContributedFeatureSettingScope[];
+    /**
+     * The service instance id of the service that owns this feature
+     */
+    serviceInstanceType: string;
 }
 export enum ContributedFeatureEnabledValue {
     /**
@@ -21264,6 +21408,41 @@ export interface MetadataItem {
      */
     name: string;
 }
+/**
+ * Information needed for sending mail notification
+ */
+export interface NotificationsData {
+    /**
+     * Notification data needed
+     */
+    data: {
+        [key: string]: any;
+    };
+    /**
+     * List of users who should get the notification
+     */
+    identities: {
+        [key: string]: any;
+    };
+    /**
+     * Type of Mail Notification.Can be Qna , review or CustomerContact
+     */
+    type: NotificationTemplateType;
+}
+export enum NotificationTemplateType {
+    /**
+     * Template type for Review Notification.
+     */
+    ReviewNotification = 1,
+    /**
+     * Template type for Qna Notification.
+     */
+    QnaNotification = 2,
+    /**
+     * Template type for Customer Contact Notification.
+     */
+    CustomerContactNotification = 3,
+}
 export enum PagingDirection {
     /**
      * Backward will return results from earlier in the resultset.
@@ -21814,6 +21993,14 @@ export enum ReviewPatchOperation {
      * Submit an admin response
      */
     AdminResponseForReview = 4,
+    /**
+     * Delete an Admin Reply
+     */
+    DeleteAdminReply = 5,
+    /**
+     * Delete Publisher Reply
+     */
+    DeletePublisherReply = 6,
 }
 export interface ReviewReply {
     /**
@@ -22136,6 +22323,14 @@ export var TypeInfo: {
             "validated": number;
         };
     };
+    NotificationsData: any;
+    NotificationTemplateType: {
+        enumValues: {
+            "reviewNotification": number;
+            "qnaNotification": number;
+            "customerContactNotification": number;
+        };
+    };
     PagingDirection: {
         enumValues: {
             "backward": number;
@@ -22240,6 +22435,8 @@ export var TypeInfo: {
             "updateReview": number;
             "replyToReview": number;
             "adminResponseForReview": number;
+            "deleteAdminReply": number;
+            "deletePublisherReply": number;
         };
     };
     ReviewReply: any;
@@ -22788,6 +22985,13 @@ export class GalleryHttpClient3_2 extends CommonMethods3_1To3_2 {
      */
     updateExtension(content: any, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
     /**
+     * [Preview API] Send Notification
+     *
+     * @param {Contracts.NotificationsData} notificationData - Denoting the data needed to send notification
+     * @return IPromise<void>
+     */
+    sendNotifications(notificationData: Contracts.NotificationsData): IPromise<void>;
+    /**
      * [Preview API] Returns a list of questions with their responses associated with an extension.
      *
      * @param {string} publisherName - Name of the publisher who published the extension.
@@ -23117,6 +23321,12 @@ export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): GalleryHt
 }
 declare module "VSS/Graph/Contracts" {
 import VSS_Identities_Contracts = require("VSS/Identities/Contracts");
+export interface GraphCachePolicies {
+    /**
+     * Size of the cache
+     */
+    cacheSize: number;
+}
 export enum GraphDisabledFilter {
     Unknown = 0,
     IncludeOnlyEnabled = 1,
@@ -23143,7 +23353,7 @@ export interface GraphGroupCreationContext {
  */
 export interface GraphGroupMailAddressCreationContext extends GraphGroupCreationContext {
     /**
-     * This should be the mail address or the group in the source AD or AAD provider. Vsts will comunicate with the source provider to fill all other fields on creation.
+     * This should be the mail address or the group in the source AD or AAD provider. Vsts will communicate with the source provider to fill all other fields on creation.
      */
     mailAddress: string;
 }
@@ -23152,7 +23362,7 @@ export interface GraphGroupMailAddressCreationContext extends GraphGroupCreation
  */
 export interface GraphGroupOriginIdCreationContext extends GraphGroupCreationContext {
     /**
-     * This should be the object id or sid of the group from the source AD or AAD provider. Vsts will comunicate with the source provider to fill all other fields on creation.
+     * This should be the object id or sid of the group from the source AD or AAD provider. Vsts will communicate with the source provider to fill all other fields on creation.
      */
     originId: string;
 }
@@ -23204,7 +23414,7 @@ export enum GraphMemberSearchFactor {
     /**
      * Domain qualified account name (domain\alias)
      */
-    AccountName = 0,
+    PrincipalName = 0,
     /**
      * Display name
      */
@@ -23222,7 +23432,7 @@ export enum GraphMemberSearchFactor {
      */
     General = 5,
     /**
-     * Alternate login username (Baisc Auth Alias)
+     * Alternate login username (Basic Auth Alias)
      */
     Alias = 6,
 }
@@ -23257,15 +23467,15 @@ export interface GraphScope extends GraphSubject {
  */
 export interface GraphScopeCreationContext {
     /**
-     * Set this field to override the default decription of this scope's admin group.
+     * Set this field to override the default description of this scope's admin group.
      */
     adminGroupDescription: string;
     /**
-     * All scopes have an Adminstrator Group that controls access to the contents of the scope. Set this field to use a non-default group name for that administrators group.
+     * All scopes have an Administrator Group that controls access to the contents of the scope. Set this field to use a non-default group name for that administrators group.
      */
     adminGroupName: string;
     /**
-     * Set this optional field if this scope is created on behalf of a user other than the user making the request. This should be the Id of the user that is not the requestor.
+     * Set this optional field if this scope is created on behalf of a user other than the user making the request. This should be the Id of the user that is not the requester.
      */
     creatorId: string;
     /**
@@ -23283,7 +23493,7 @@ export interface GraphScopeCreationContext {
 }
 export interface GraphSubject {
     /**
-     * This field contains zero or more iteresting links about the the graph subject. These links may be invoked to obtain additional relationships or more detailed information about this graph subject.
+     * This field contains zero or more interesting links about the graph subject. These links may be invoked to obtain additional relationships or more detailed information about this graph subject.
      */
     _links: any;
     /**
@@ -23299,7 +23509,7 @@ export interface GraphSubject {
      */
     displayName: string;
     /**
-     * The unique identifier within the subject's scope. This identifier will not change for the lifetime of the subject. If you must perisist a reference to a graph subject within your system, only persist this field. All other fields can change over time.
+     * The unique identifier within the subject's scope. This identifier will not change for the lifetime of the subject. If you must persist a reference to a graph subject within your system, only persist this field. All other fields can change over time.
      */
     id: string;
     /**
@@ -23396,7 +23606,7 @@ export var TypeInfo: {
     };
     GraphMemberSearchFactor: {
         enumValues: {
-            "accountName": number;
+            "principalName": number;
             "displayName": number;
             "identifier": number;
             "mailAddress": number;
@@ -23437,7 +23647,13 @@ export class CommonMethods3_1To3_2 extends VSS_WebApi.VssHttpClient {
 export class GraphHttpClient3_2 extends CommonMethods3_1To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
-     * [Preview API] The body of the request must be a derived type of GraphGroupCreationContext which contains a group reference. A group reference must either:  1. uniquely identify a group that exists in the graph of the instance's identity provider , such as Azure Active Directory (AAD) or Microsoft account (MSA), for a hosted VS Team Services account, or Active Directory (AD), for a TFS server. Use one of these supported creation contexts: - originId(e.g.the AAD object ID) [GraphGroupOriginIdCreationContext] - principalName(e.g.the AAD group principal name or the Microsoft account name) [GraphGroupPrincipalNameCreationContext]  2. Uniquely identify a group that exists in a hosted VS Team Services account and you want to restore that group. Use GraphGroupVstsCreationContext and fill only one of the following peroperties: - id (to reference a specific VS Team Services group in the restore case only) - descriptors (to reference a specific VS Team Services group in the restore case only)  3. Specify properties that should be used to create a new Team Foundation group. Use the GraphGroupVstsCreationContext  - displayName [required] - description - optional test to help understand the pupose of the group - id - optionally specify the internal Guid - descriptor - optionally specify the sid at creation time
+     * [Preview API]
+     *
+     * @return IPromise<Contracts.GraphCachePolicies>
+     */
+    getCachePolicies(): IPromise<Contracts.GraphCachePolicies>;
+    /**
+     * [Preview API] The body of the request must be a derived type of GraphGroupCreationContext which contains a group reference. A group reference must either:  1. uniquely identify a group that exists in the graph of the instance's identity provider , such as Azure Active Directory (AAD) or Microsoft account (MSA), for a hosted VS Team Services account, or Active Directory (AD), for a TFS server. Use one of these supported creation contexts: - originId(e.g.the AAD object ID) [GraphGroupOriginIdCreationContext] - principalName(e.g.the AAD group principal name or the Microsoft account name) [GraphGroupPrincipalNameCreationContext]  2. Uniquely identify a group that exists in a hosted VS Team Services account and you want to restore that group. Use GraphGroupVstsCreationContext and fill only one of the following properties: - id (to reference a specific VS Team Services group in the restore case only) - descriptors (to reference a specific VS Team Services group in the restore case only)  3. Specify properties that should be used to create a new Team Foundation group. Use the GraphGroupVstsCreationContext  - displayName [required] - description - optional test to help understand the purpose of the group - id - optionally specify the internal Guid - descriptor - optionally specify the sid at creation time
      *
      * @param {Contracts.GraphGroupCreationContext} creationContext - The subset of the full graph group used to uniquely find the graph subject in an external provider.
      * @param {string} scopeDescriptor
@@ -23476,6 +23692,37 @@ export class GraphHttpClient3_2 extends CommonMethods3_1To3_2 {
      * @return IPromise<Contracts.GraphGroup>
      */
     updateGroup(groupDescriptor: string, patchDocument: VSS_Common_Contracts.JsonPatchDocument): IPromise<Contracts.GraphGroup>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.GraphSubjectLookup} memberLookup
+     * @return IPromise<{ [key: string] : Contracts.GraphMember; }>
+     */
+    lookupMembers(memberLookup: Contracts.GraphSubjectLookup): IPromise<{
+        [key: string]: Contracts.GraphMember;
+    }>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.GraphMemberSearchFactor} searchFactor
+     * @param {string} searchValue
+     * @return IPromise<Contracts.GraphMember[]>
+     */
+    findMembersBySearchFactor(searchFactor: Contracts.GraphMemberSearchFactor, searchValue: string): IPromise<Contracts.GraphMember[]>;
+    /**
+     * [Preview API] This endpoint returns a result for any member that has ever been valid in the system, even if the member has since been deleted or has had all their memberships deleted. The current validity of the member is indicated through its disabled property, which is omitted when false.
+     *
+     * @param {string} memberCuid - The Consistently Unique IDentifier of the desired member.
+     * @return IPromise<Contracts.GraphMember>
+     */
+    getMemberByCuid(memberCuid: string): IPromise<Contracts.GraphMember>;
+    /**
+     * [Preview API] This endpoint returns a result for any member that has ever been valid in the system, even if the member has since been deleted or has had all their memberships deleted. The current validity of the member is indicated through its disabled property, which is omitted when false.
+     *
+     * @param {string} memberDescriptor - The descriptor of the desired member.
+     * @return IPromise<Contracts.GraphMember>
+     */
+    getMemberByDescriptor(memberDescriptor: string): IPromise<Contracts.GraphMember>;
     /**
      * [Preview API] Create a new membership between two eligible members
      *
@@ -23550,9 +23797,11 @@ export class GraphHttpClient3_2 extends CommonMethods3_1To3_2 {
      * [Preview API]
      *
      * @param {Contracts.GraphSubjectLookup} subjectLookup
-     * @return IPromise<Contracts.GraphSubject[]>
+     * @return IPromise<{ [key: string] : Contracts.GraphSubject; }>
      */
-    lookupSubjects(subjectLookup: Contracts.GraphSubjectLookup): IPromise<Contracts.GraphSubject[]>;
+    lookupSubjects(subjectLookup: Contracts.GraphSubjectLookup): IPromise<{
+        [key: string]: Contracts.GraphSubject;
+    }>;
     /**
      * [Preview API] This endpoint returns a result for any subject that has ever been valid in the system, even if the subject has since been deleted or has had all their memberships deleted. The current validity of the subject is indicated through its disabled property, which is omitted when false.
      *
@@ -23586,7 +23835,7 @@ export class GraphHttpClient3_2 extends CommonMethods3_1To3_2 {
      * [Preview API] Gets all users in the current scope (usually organization or account). The optional parameters are used to filter down the returned results. May truncate exceptionally large result sets. Returned results are in no guaranteed order.
      *
      * @param {string[]} subjectTypes - A comma separated list of user subject subtypes to reduce the retrieved results, e.g. Microsoft.IdentityModel.Claims.ClaimsIdentity>
-     * @param {string} continuationToken - An opaque data blog that allows the next page of data to resume immedately after where the previous page ended. The only reliable way to know if there is more data left is the presence of a continuation token.
+     * @param {string} continuationToken - An opaque data blog that allows the next page of data to resume immediately after where the previous page ended. The only reliable way to know if there is more data left is the presence of a continuation token.
      * @return IPromise<Contracts.PagedGraphUsers>
      */
     getUsers(subjectTypes?: string[], continuationToken?: string): IPromise<Contracts.PagedGraphUsers>;
@@ -24220,26 +24469,16 @@ export interface IIdentityPickerDropdownOptions extends Identities_Picker_Servic
     *   text information suitable for small screens.
     */
     smallScreenRender?: boolean;
+    /**
+    *   Event callback options (making sure the events from the correct instance of the dropdown are listened to)
+    **/
+    eventOptions?: IIdentityPickerDropdownEventOptions;
 }
-/**
- * @exemptedapi
- * For internal / unit testing use only
- */
 export interface IIdentityPickerDropdownEventOptions {
     /**
     *   Unique identifier that will be sent as data in events generated by this instance to distinguish it from other instances of this control
     **/
     uniqueId: string;
-}
-/**
- * @exemptedapi
- * For internal / unit testing use only
- */
-export interface IIdentityPickerDropdownInternalOptions extends IIdentityPickerDropdownOptions {
-    /**
-    * Event callback options
-    **/
-    eventOptions?: IIdentityPickerDropdownEventOptions;
 }
 export class IdentityPickerDropdownControl extends Controls.Control<IIdentityPickerDropdownOptions> {
     /**
@@ -24248,14 +24487,13 @@ export class IdentityPickerDropdownControl extends Controls.Control<IIdentityPic
     static SHOW_DROPDOWN_EVENT_INTERNAL: string;
     static HIDE_DROPDOWN_EVENT_INTERNAL: string;
     static UPDATE_ACTIVE_DESCENDANT_ID: string;
-    static CSS_DROPDOWN_BASE: string;
+    static DROPDOWN_BASE_CLASS: string;
     static IMAGE_MARGINS_PX: number;
     private static MIN_WIDTH;
     private static MAX_HEIGHT;
     private static DROPDOWN_BORDER_PX;
     private static IP_AUTHORIZATION_EXCEPTION_DETAILS_LINK;
-    private static CSS_AVATAR;
-    private static EVENT_MOUSEDOWN;
+    private static AVATAR_CLASS;
     private _displayedEntities;
     private _mruEntities;
     private _isSearchActive;
@@ -24288,9 +24526,10 @@ export class IdentityPickerDropdownControl extends Controls.Control<IIdentityPic
     /**
     *   For internal / unit testing use only
     **/
-    initializeOptionsInternal(options?: IIdentityPickerDropdownInternalOptions): void;
+    initializeOptionsInternal(options?: IIdentityPickerDropdownOptions): void;
     initializeOptions(options?: IIdentityPickerDropdownOptions): void;
     initialize(): void;
+    getItemsListId(): string;
     load(): IPromise<boolean>;
     /**
     * Adds the identity to the querying identity's MRU
@@ -24349,7 +24588,7 @@ export class IdentityPickerDropdownControl extends Controls.Control<IIdentityPic
     *   keepIndex: Keep the index of the selected identity at the current location
     **/
     private _alterStateAndRender(showDropDown?, keepIndex?, selectFirstByDefault?);
-    private _getUniqueIdForActiveDescendant();
+    private _fireActiveDescendantUpdate(id);
     /**
     * Scroll to selected item
     **/
@@ -24372,6 +24611,8 @@ export class IdentityPickerDropdownControl extends Controls.Control<IIdentityPic
     private _prevPage();
     private _nextItem();
     private _prevItem();
+    private _selectItem(item);
+    private _clearItemsSelection(items);
     /**
     * Create the li that shall represent an user item
     **/
@@ -24422,8 +24663,8 @@ export class IdCardDialog extends Controls.Control<IIdentityPickerIdCardDialogOp
     private static MAX_HEIGHT;
     private static IMAGE_MARGINS_PX;
     private static MEMBERS_TAB_LEFT_PADDING_PX;
-    private static CSS_ID_CARD_LIST;
-    private static CSS_ID_CARD_MEMBERS_DROPDOWN;
+    private static ID_CARD_LIST_CLASS;
+    private static ID_CARD_MEMBERS_DROPDOWN_CLASS;
     private static JQUERY_UI_DIALOG_CLASS;
     private static ID_CARD_DIALOG_ID;
     private _identityType;
@@ -24438,7 +24679,6 @@ export class IdCardDialog extends Controls.Control<IIdentityPickerIdCardDialogOp
     private _entityOperationsFacade;
     private _previousFocusedElement;
     private _selectedIndex;
-    private _onIdCardBlurDelegate;
     constructor(options?: IIdentityPickerIdCardDialogOptions);
     initializeOptions(options?: IIdentityPickerIdCardDialogOptions): void;
     initialize(): void;
@@ -24536,9 +24776,15 @@ export interface IIdentityPickerSearchOptions extends Identities_Picker_Services
     **/
     dropdownSize?: IdentityPickerControlSize;
     /**
-    *   the value of the placeholder attribute for the search text box.
+    *   custom value for the placeholder attribute of the input element.
+    *   Defaults to "Search {identity type(s)}", where {identity type(s)} can be "users", "groups" or "users and groups".
     **/
     placeholderText?: string;
+    /**
+    *   custom value for the aria-label attribute of the input element.
+    *   Defaults to the placeholder value if not set (see option placeholderText for details)
+    **/
+    ariaLabel?: string;
     /**
     *   a custom id for the input element
     **/
@@ -24605,7 +24851,7 @@ export class IdentityPickerSearchControl extends Controls.Control<IIdentityPicke
     static SEARCH_STARTED_EVENT: string;
     static SEARCH_FINISHED_EVENT: string;
     static DIALOG_MOVE_EVENT: string;
-    static CSS_SEARCH_MRU_TRIANGLE: string;
+    static SEARCH_MRU_TRIANGLE_CLASS: string;
     private static DEFAULT_WIDTH;
     private static OUTER_PADDING_PX;
     private static TRIANGLE_WIDTH_PX;
@@ -25129,7 +25375,6 @@ export class ServiceHelpers {
     static ExtensionData_CollectionScopeNameKey: string;
     static ExtensionData_ConstraintListKey: string;
     static ExtensionData_NoServiceIdentities: string;
-    static ExtensionData_MaterializedAadGroupsOnlyItem: string;
     static GetIdentities_Prefix_Separator: string;
     /**
     *   Currently supports only AAD, IMS, Source, AD and WMD (AAD for AAD-backed accounts, IMS for MSA accounts/on-premise TFS and AD and WMD for on-premise TFS)
@@ -26863,8 +27108,9 @@ export class HistoryService implements Service.ILocalService {
     * @param data The new full set of navigation/history entries. This set completely replaces the current set.
     * @param windowTitle The new window title. A null or empty value indicates to leave the title unchanged.
     * @param suppressNavigate If true, don't trigger any of the attached navigate event handlers due to this update.
+    * @param mergeCurrentState If true, the supplied data just modify the existing/current state. If false, they replace all existing key/value pairs.
     */
-    replaceHistoryPoint(action: string, data: any, windowTitle?: string, suppressNavigate?: boolean): void;
+    replaceHistoryPoint(action: string, data: any, windowTitle?: string, suppressNavigate?: boolean, mergeCurrentState?: boolean): void;
     /**
     * Add a new history entry with the given state. Merges data with the current navigation data.
     *
@@ -26872,6 +27118,7 @@ export class HistoryService implements Service.ILocalService {
     * @param data New history entries to merge into the current navigation data. Set keys to null/undefined to remove them from the current state.
     * @param windowTitle The new window title. A null or empty value indicates to leave the title unchanged.
     * @param suppressNavigate If true, don't trigger any of the attached navigate event handlers due to this update.
+    * @param mergeCurrentState If true, the supplied data just modify the existing/current state. If false, they replace all existing key/value pairs.
     */
     addHistoryPoint(action: string, data?: any, windowTitle?: string, suppressNavigate?: boolean, mergeCurrentState?: boolean): void;
     /**
@@ -30279,6 +30526,15 @@ export function first<T>(array: T[], predicate?: (value: T) => boolean): T;
 export function arrayContains<S, T>(value: S, target: T[], comparer?: (s: S, t: T) => boolean): boolean;
 export function arrayEquals<S, T>(source: S[], target: T[], comparer?: (s: S, t: T) => boolean, nullResult?: boolean, sorted?: boolean): boolean;
 /**
+* Compares two arrays for member-wise equality.
+*
+* @param arrayA First array to compare.
+* @param arrayB Other array to compare.
+* @return True if both arrays are the same length, and every index has the same value in both arrays. "Same value" in this
+*         case means "===" equality. Also true if both arrays are null. Otherwise, returns false.
+*/
+export function shallowEquals(arrayA: any[], arrayB: any[]): boolean;
+/**
     * Take an array of values and convert it to a dictionary/lookup table.
     * @param array Values to convert
     * @param getKey Function to get the key for a given item
@@ -31561,6 +31817,7 @@ export interface IFilterResult {
 export function filterTree<TNode>(root: TNode, predicate: (node: TNode) => boolean, getKey: (node: TNode) => string, getChildren: (node: TNode) => TNode[], preFilter?: IFilterResult): IFilterResult;
 }
 declare module "VSS/Utils/UI" {
+import "jQueryUI/core";
 export function getWheelDelta(e?: any): number;
 /**
  * @param element
@@ -31894,9 +32151,17 @@ export interface ITooltipIfOverflowOptions {
  *
  */
 export function tooltipIfOverflow(element: HTMLElement | HTMLInputElement, options?: ITooltipIfOverflowOptions): void;
+/**
+ * Gets the overflow element using the specified element or its children and grandchildren (optionally).
+ *
+ * @param elem DOM element to check the overflow.
+ * @param recursive Determines whether to go deeper with children and grandchildren or not.
+ */
+export function getOverflowElement(elem: HTMLElement, recursive?: boolean): HTMLElement;
 export function Watermark(element: JQuery, ...args: any[]): JQuery;
 }
 declare module "VSS/Utils/Url" {
+export const MAX_URL_PATH_LENGTH = 2000;
 /**
  * Check if specified URL is safe - i.e. part of an approved list of URL schemes.
  *
@@ -32067,6 +32332,12 @@ export function isSameOrigin(url1: string, url2: string): boolean;
  * @param url If a relative url, it is appended to baseUrl (with a "/" separator). If absolute, it is returned as-is.
  */
 export function combineUrl(baseUrl: string, url: string): string;
+/**
+ * Checks if specified URL is an external URL to the current window.
+ * If relative URL is provided - returns false.
+ * @param url Url to check
+ */
+export function isExternalUrl(url: string): boolean;
 }
 declare module "VSS/VSS" {
 import Q = require("q");

@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v115.20170417.1158
+// Type definitions for Microsoft Visual Studio Services v116.20170509.1548
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -588,6 +588,7 @@ export enum BuildOptionInputType {
     Radio = 3,
     PickList = 4,
     MultiLine = 5,
+    BranchFilter = 6,
 }
 export enum BuildPhaseStatus {
     /**
@@ -1697,6 +1698,7 @@ export var TypeInfo: {
             "radio": number;
             "pickList": number;
             "multiLine": number;
+            "branchFilter": number;
         };
     };
     BuildPhaseStatus: {
@@ -2559,6 +2561,42 @@ export class CommonMethods3_1To3_2 extends CommonMethods3To3_2 {
  */
 export class BuildHttpClient3_2 extends CommonMethods3_1To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Gets properties for a build.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId - The build id.
+     * @param {string[]} filter - Filter to specific properties. Defaults to all properties.
+     * @return IPromise<any>
+     */
+    getBuildProperties(project: string, buildId: number, filter?: string[]): IPromise<any>;
+    /**
+     * [Preview API] Updates properties for a build.
+     *
+     * @param {VSS_Common_Contracts.JsonPatchDocument} document
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId - The build id.
+     * @return IPromise<any>
+     */
+    updateBuildProperties(document: VSS_Common_Contracts.JsonPatchDocument, project: string, buildId: number): IPromise<any>;
+    /**
+     * [Preview API] Gets properties for a definition.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId - The definition id.
+     * @param {string[]} filter - Filter to specific properties. Defaults to all properties.
+     * @return IPromise<any>
+     */
+    getDefinitionProperties(project: string, definitionId: number, filter?: string[]): IPromise<any>;
+    /**
+     * [Preview API] Updates properties for a definition.
+     *
+     * @param {VSS_Common_Contracts.JsonPatchDocument} document
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId - The definition id.
+     * @return IPromise<any>
+     */
+    updateDefinitionProperties(document: VSS_Common_Contracts.JsonPatchDocument, project: string, definitionId: number): IPromise<any>;
 }
 /**
  * @exemptedapi
@@ -3887,7 +3925,7 @@ export interface ProjectMessage {
 }
 export interface ProjectProperty {
     name: string;
-    value: string;
+    value: any;
 }
 export interface Proxy {
     authorization: ProxyAuthorization;
@@ -4230,7 +4268,7 @@ import Contracts = require("TFS/Core/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_Operations_Contracts = require("VSS/Operations/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected connectedServicesApiVersion: string;
     protected identityMruApiVersion: string;
@@ -4435,18 +4473,9 @@ export class CommonMethods2To3_1 extends VSS_WebApi.VssHttpClient {
      */
     createConnectedService(connectedServiceCreationData: Contracts.WebApiConnectedServiceDetails, projectId: string): IPromise<Contracts.WebApiConnectedService>;
 }
-/**
- * @exemptedapi
- */
-export class CoreHttpClient3_1 extends CommonMethods2To3_1 {
+export class CommonMethods3_1To3_2 extends CommonMethods2To3_2 {
+    protected proxiesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.Proxy} proxy
-     * @return IPromise<Contracts.Proxy>
-     */
-    createOrUpdateProxy(proxy: Contracts.Proxy): IPromise<Contracts.Proxy>;
     /**
      * [Preview API]
      *
@@ -4455,46 +4484,81 @@ export class CoreHttpClient3_1 extends CommonMethods2To3_1 {
      * @return IPromise<void>
      */
     deleteProxy(proxyUrl: string, site?: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.Proxy} proxy
+     * @return IPromise<Contracts.Proxy>
+     */
+    createOrUpdateProxy(proxy: Contracts.Proxy): IPromise<Contracts.Proxy>;
 }
 /**
  * @exemptedapi
  */
-export class CoreHttpClient3 extends CommonMethods2To3_1 {
+export class CoreHttpClient3_2 extends CommonMethods3_1To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Get project properties.
+     *
+     * @param {string} projectId - The project ID.
+     * @param {string[]} keys - A comma-delimited string of project property names. If unspecified, all properties will be returned.
+     * @return IPromise<Contracts.ProjectProperty[]>
+     */
+    getProjectProperties(projectId: string, keys?: string[]): IPromise<Contracts.ProjectProperty[]>;
+    /**
+     * [Preview API] Create, update, and delete project properties.
+     *
+     * @param {string} projectId - The project ID.
+     * @param {VSS_Common_Contracts.JsonPatchDocument} patchDocument - A JSON Patch document that represents an array of property operations. See RFC 6902 for more details on JSON Patch. The accepted operation verbs are Add and Remove, where Add is used for both creating and updating properties. The path consists of a forward slash and a property name.
+     * @return IPromise<void>
+     */
+    setProjectProperties(projectId: string, patchDocument: VSS_Common_Contracts.JsonPatchDocument): IPromise<void>;
+}
+/**
+ * @exemptedapi
+ */
+export class CoreHttpClient3_1 extends CommonMethods3_1To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CoreHttpClient2_3 extends CommonMethods2To3_1 {
+export class CoreHttpClient3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CoreHttpClient2_2 extends CommonMethods2To3_1 {
+export class CoreHttpClient2_3 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CoreHttpClient2_1 extends CommonMethods2To3_1 {
+export class CoreHttpClient2_2 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CoreHttpClient2 extends CommonMethods2To3_1 {
+export class CoreHttpClient2_1 extends CommonMethods2To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class CoreHttpClient extends CoreHttpClient3_1 {
+/**
+ * @exemptedapi
+ */
+export class CoreHttpClient2 extends CommonMethods2To3_2 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class CoreHttpClient extends CoreHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return CoreHttpClient3
+ * @return CoreHttpClient3_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CoreHttpClient3;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CoreHttpClient3_1;
 }
 declare module "TFS/Dashboards/Contracts" {
 export interface Dashboard {
@@ -5788,6 +5852,7 @@ export interface DependsOn {
     map: DependencyBinding[];
 }
 export interface DeploymentGroup extends DeploymentGroupReference {
+    description: string;
     machineCount: number;
     machines: DeploymentMachine[];
 }
@@ -5808,6 +5873,7 @@ export interface DeploymentGroupReference {
 }
 export interface DeploymentMachine {
     agent: TaskAgent;
+    id: number;
     tags: string[];
 }
 export enum DeploymentMachineExpands {
@@ -5841,6 +5907,12 @@ export interface EndpointUrl {
     helpText: string;
     isVisible: string;
     value: string;
+}
+export interface EventsConfig {
+}
+export interface ExecuteTaskResponse {
+    taskEvents: TaskEventsConfig;
+    waitForLocalExecutionComplete: boolean;
 }
 export interface HelpLink {
     text: string;
@@ -5908,7 +5980,7 @@ export interface JobEvent {
 export interface JobEventConfig {
     timeout: string;
 }
-export interface JobEventsConfig {
+export interface JobEventsConfig extends EventsConfig {
     jobAssigned: JobEventConfig;
     jobCompleted: JobEventConfig;
     jobStarted: JobEventConfig;
@@ -6035,9 +6107,10 @@ export interface SendJobResponse {
     };
 }
 export interface ServerExecutionDefinition {
-    events: JobEventsConfig;
+    events: EventsConfig;
+    handlerName: string;
 }
-export interface ServerJobRequestMessage extends JobRequestMessage {
+export interface ServerTaskRequestMessage extends JobRequestMessage {
     taskDefinition: TaskDefinition;
     taskInstance: TaskInstance;
 }
@@ -6334,7 +6407,7 @@ export interface TaskAgentPoolMaintenanceJob {
      * Status of the maintenance job
      */
     status: TaskAgentPoolMaintenanceJobStatus;
-    targetAgents: TaskAgentReference[];
+    targetAgents: TaskAgentPoolMaintenanceJobTargetAgent[];
     /**
      * The total warning counts during the maintenance job
      */
@@ -6350,6 +6423,12 @@ export enum TaskAgentPoolMaintenanceJobStatus {
     Completed = 2,
     Cancelling = 4,
     Queued = 8,
+}
+export interface TaskAgentPoolMaintenanceJobTargetAgent {
+    agent: TaskAgentReference;
+    jobId: number;
+    result: TaskAgentPoolMaintenanceJobResult;
+    status: TaskAgentPoolMaintenanceJobStatus;
 }
 export interface TaskAgentPoolMaintenanceOptions {
     /**
@@ -6552,6 +6631,8 @@ export interface TaskAgentUpdate {
      */
     targetVersion: PackageVersion;
 }
+export interface TaskAssignedEvent extends TaskEvent {
+}
 export interface TaskAttachment {
     _links: any;
     createdOn: Date;
@@ -6563,6 +6644,9 @@ export interface TaskAttachment {
     type: string;
 }
 export interface TaskChangeEvent {
+}
+export interface TaskCompletedEvent extends TaskEvent {
+    result: TaskResult;
 }
 export interface TaskDefinition {
     agentExecution: TaskExecution;
@@ -6594,6 +6678,7 @@ export interface TaskDefinition {
     preview: boolean;
     releaseNotes: string;
     runsOn: string[];
+    satisfies: string[];
     serverOwned: boolean;
     sourceDefinitions: TaskSourceDefinition[];
     sourceLocation: string;
@@ -6641,6 +6726,18 @@ export enum TaskDefinitionStatus {
     Updated = 7,
     AlreadyUpToDate = 8,
     InlineUpdateReceived = 9,
+}
+export interface TaskEvent extends JobEvent {
+    taskId: string;
+}
+export interface TaskEventConfig {
+    enabled: boolean;
+    timeout: string;
+}
+export interface TaskEventsConfig extends EventsConfig {
+    taskAssigned: TaskEventConfig;
+    taskCompleted: TaskEventConfig;
+    taskStarted: TaskEventConfig;
 }
 export interface TaskExecution {
     /**
@@ -6773,6 +6870,10 @@ export interface TaskOrchestrationPlan extends TaskOrchestrationPlanReference {
     state: TaskOrchestrationPlanState;
     timeline: TimelineReference;
 }
+export interface TaskOrchestrationPlanGroupsQueueMetrics {
+    count: number;
+    status: PlanGroupStatusFilter;
+}
 export interface TaskOrchestrationPlanReference {
     artifactLocation: string;
     artifactUri: string;
@@ -6838,6 +6939,8 @@ export enum TaskResult {
     Abandoned = 5,
 }
 export interface TaskSourceDefinition extends TFS_DistributedTask_Common_Contracts.TaskSourceDefinitionBase {
+}
+export interface TaskStartedEvent extends TaskEvent {
 }
 export interface TaskVersion {
     isTest: boolean;
@@ -6995,7 +7098,7 @@ export var TypeInfo: {
             "use": number;
         };
     };
-    ServerJobRequestMessage: any;
+    ServerTaskRequestMessage: any;
     ServiceEndpointAuthenticationScheme: any;
     ServiceEndpointRequestResult: any;
     ServiceEndpointType: any;
@@ -7026,6 +7129,7 @@ export var TypeInfo: {
             "queued": number;
         };
     };
+    TaskAgentPoolMaintenanceJobTargetAgent: any;
     TaskAgentPoolMaintenanceSchedule: any;
     TaskAgentPoolMaintenanceScheduleDays: {
         enumValues: {
@@ -7065,6 +7169,7 @@ export var TypeInfo: {
     };
     TaskAgentUpdate: any;
     TaskAttachment: any;
+    TaskCompletedEvent: any;
     TaskDefinitionStatus: {
         enumValues: {
             "preinstalled": number;
@@ -7091,6 +7196,7 @@ export var TypeInfo: {
     };
     TaskOrchestrationJob: any;
     TaskOrchestrationPlan: any;
+    TaskOrchestrationPlanGroupsQueueMetrics: any;
     TaskOrchestrationPlanState: {
         enumValues: {
             "inProgress": number;
@@ -8672,6 +8778,23 @@ export class CommonMethods3_1To3_2 extends CommonMethods2_1To3_2 {
  */
 export class TaskHttpClient3_2 extends CommonMethods3_1To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} hubName - The name of the server hub: "build" for the Build server or "rm" for the Release Management server
+     * @return IPromise<TFS_DistributedTask_Contracts.TaskOrchestrationPlanGroupsQueueMetrics[]>
+     */
+    getPlanGroupsQueueMetrics(scopeIdentifier: string, hubName: string): IPromise<TFS_DistributedTask_Contracts.TaskOrchestrationPlanGroupsQueueMetrics[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} scopeIdentifier - The project GUID to scope the request
+     * @param {string} hubName - The name of the server hub: "build" for the Build server or "rm" for the Release Management server
+     * @param {string} planGroup
+     * @return IPromise<TFS_DistributedTask_Contracts.TaskOrchestrationQueuedPlanGroup>
+     */
+    getQueuedPlanGroup(scopeIdentifier: string, hubName: string, planGroup: string): IPromise<TFS_DistributedTask_Contracts.TaskOrchestrationQueuedPlanGroup>;
 }
 /**
  * @exemptedapi
@@ -10737,7 +10860,6 @@ export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
     protected suitesApiVersion: string;
     protected suitesApiVersion_7b7619a0: string;
     protected suitesApiVersion_a4a1ec1c: string;
-    protected testCaseApiVersion: string;
     protected testSettingsApiVersion: string;
     protected variablesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -10806,15 +10928,6 @@ export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<number>
      */
     createTestSettings(testSettings: Contracts.TestSettings, project: string): IPromise<number>;
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} testCaseId
-     * @return IPromise<void>
-     */
-    deleteTestCase(project: string, testCaseId: number): IPromise<void>;
     /**
      * @param {number} testCaseId
      * @return IPromise<Contracts.TestSuite[]>
@@ -11378,6 +11491,7 @@ export class CommonMethods3To3_2 extends CommonMethods2To3_2 {
     protected resultSummaryByRequirementApiVersion: string;
     protected resultTrendByBuildApiVersion: string;
     protected resultTrendByReleaseApiVersion: string;
+    protected testCasesApiVersion: string;
     protected workItemsApiVersion: string;
     protected workItemsApiVersion_371b1655: string;
     protected workItemsApiVersion_7b0bdee3: string;
@@ -11424,6 +11538,15 @@ export class CommonMethods3To3_2 extends CommonMethods2To3_2 {
      * @return IPromise<Contracts.WorkItemToTestLinks>
      */
     addWorkItemToTestLinks(workItemToTestLinks: Contracts.WorkItemToTestLinks, project: string): IPromise<Contracts.WorkItemToTestLinks>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} testCaseId
+     * @return IPromise<void>
+     */
+    deleteTestCase(project: string, testCaseId: number): IPromise<void>;
     /**
      * @exemptedapi
      * [Preview API]
@@ -12662,6 +12785,24 @@ export interface GitFilePathsCollection {
     paths: string[];
     url: string;
 }
+export enum GitHistoryMode {
+    /**
+     * The history mode used by `git log`. This is the default.
+     */
+    SimplifiedHistory = 0,
+    /**
+     * The history mode used by `git log --first-parent`
+     */
+    FirstParent = 1,
+    /**
+     * The history mode used by `git log --full-history`
+     */
+    FullHistory = 2,
+    /**
+     * The history mode used by `git log --full-history --simplify-merges`
+     */
+    FullHistorySimplifyMerges = 3,
+}
 export interface GitImportFailedEvent {
     sourceRepositoryName: string;
     targetRepository: GitRepository;
@@ -13083,6 +13224,10 @@ export interface GitQueryCommitsCriteria {
      */
     fromDate: string;
     /**
+     * What Git history mode should be used. This only applies to the search criteria when Ids = null.
+     */
+    historyMode: GitHistoryMode;
+    /**
      * If provided, specifies the exact commit ids of the commits to fetch. May not be combined with other parameters.
      */
     ids: string[];
@@ -13115,6 +13260,20 @@ export interface GitQueryCommitsCriteria {
      */
     user: string;
 }
+export interface GitQueryRefsCriteria {
+    /**
+     * List of commit Ids to be searched
+     */
+    commitIds: string[];
+    /**
+     * List of complete or partial names for refs to be searched
+     */
+    refNames: string[];
+    /**
+     * Type of search on refNames, if provided
+     */
+    searchType: GitRefSearchType;
+}
 export interface GitRef {
     _links: any;
     isLocked: boolean;
@@ -13134,9 +13293,10 @@ export interface GitRefFavorite {
     type: RefFavoriteType;
     url: string;
 }
-export interface GitRefLockRequest {
-    lock: boolean;
-    name: string;
+export enum GitRefSearchType {
+    Exact = 0,
+    StartsWith = 1,
+    Contains = 2,
 }
 export interface GitRefUpdate {
     isLocked: boolean;
@@ -14089,6 +14249,14 @@ export var TypeInfo: {
         };
     };
     GitDeletedRepository: any;
+    GitHistoryMode: {
+        enumValues: {
+            "simplifiedHistory": number;
+            "firstParent": number;
+            "fullHistory": number;
+            "fullHistorySimplifyMerges": number;
+        };
+    };
     GitImportRequest: any;
     GitItem: any;
     GitItemDescriptor: any;
@@ -14145,8 +14313,16 @@ export var TypeInfo: {
     GitPushSearchCriteria: any;
     GitQueryBranchStatsCriteria: any;
     GitQueryCommitsCriteria: any;
+    GitQueryRefsCriteria: any;
     GitRef: any;
     GitRefFavorite: any;
+    GitRefSearchType: {
+        enumValues: {
+            "exact": number;
+            "startsWith": number;
+            "contains": number;
+        };
+    };
     GitRefUpdateMode: {
         enumValues: {
             "bestEffort": number;
@@ -15054,7 +15230,6 @@ export class CommonMethods3To3_2 extends CommonMethods2_2To3_2 {
     protected pullRequestStatusesApiVersion_75cf11c5: string;
     protected pullRequestThreadCommentsApiVersion: string;
     protected pullRequestThreadsApiVersion: string;
-    protected refLockRequestApiVersion: string;
     protected refsFavoritesApiVersion: string;
     protected repositoryStatsApiVersion: string;
     protected revertsApiVersion: string;
@@ -16084,17 +16259,40 @@ export interface ChangeListSourceItemContext {
 }
 }
 declare module "TFS/Wiki/Contracts" {
-/**
- * ---------------------------------------------------------
- * Generated file, DO NOT EDIT
- * ---------------------------------------------------------
- *
- * See following wiki page for instructions on how to regenerate:
- *   https://vsowiki.com/index.php?title=Rest_Client_Generation
- *
- * Configuration file:
- *   Tfs\Client\Wiki\ClientGeneratorConfigs\genclient.json
- */
+import TFS_VersionControl_Contracts = require("TFS/VersionControl/Contracts");
+export interface WikiAttachment {
+    /**
+     * Name of the attachment file
+     */
+    name: string;
+}
+export interface WikiAttachmentChange extends WikiChange<WikiAttachment> {
+    /**
+     * If true, the content of the attachment is overwritten on an existing attachment. If attachment non-existing, new attachment is created. If false, exception is thrown if an attachment with same name exists
+     */
+    overwriteContentIfExisting: boolean;
+}
+export interface WikiChange<T> {
+    /**
+     * ChangeType associated with the item in this change
+     */
+    changeType: WikiChangeType;
+    /**
+     * Content of the item
+     */
+    content: string;
+    /**
+     * Item that is subject to this change
+     */
+    item: T;
+}
+export enum WikiChangeType {
+    Add = 0,
+    Delete = 1,
+    Edit = 2,
+    Rename = 3,
+    Reorder = 4,
+}
 export interface WikiPage {
     /**
      * Child pages under this page's path
@@ -16117,6 +16315,53 @@ export interface WikiPage {
      */
     path: string;
 }
+export interface WikiPageChange extends WikiChange<WikiPage> {
+    /**
+     * Original order of the page to be provided in case of reorder
+     */
+    originalOrder: number;
+    /**
+     * Original path of the page to be provided in case of rename
+     */
+    originalPath: string;
+}
+export interface WikiRepository {
+    headCommit: string;
+    repository: TFS_VersionControl_Contracts.GitRepository;
+}
+export interface WikiUpdate {
+    /**
+     * List of attachment change objects that is to be associated with this update
+     */
+    attachmentChanges: WikiAttachmentChange[];
+    /**
+     * Comment to be associated with the update
+     */
+    comment: string;
+    /**
+     * Headcommit of the of the repo
+     */
+    headCommit: string;
+    /**
+     * Page change object associated with this update
+     */
+    pageChange: WikiPageChange;
+}
+export var TypeInfo: {
+    WikiAttachmentChange: any;
+    WikiChange: any;
+    WikiChangeType: {
+        enumValues: {
+            "add": number;
+            "delete": number;
+            "edit": number;
+            "rename": number;
+            "reorder": number;
+        };
+    };
+    WikiPageChange: any;
+    WikiUpdate: any;
+};
 }
 declare module "TFS/Wiki/WikiRestClient" {
 import Contracts = require("TFS/Wiki/Contracts");
@@ -16135,7 +16380,7 @@ export class WikiHttpClient3_2 extends VSS_WebApi.VssHttpClient {
      * @param {string} wikiId - ID of the Wiki from which the page is to be retrieved
      * @param {string} path - Path from which the pages are to retrieved
      * @param {TFS_VersionControl_Contracts.VersionControlRecursionType} recursionLevel - Recusion level for the page retrieval. Defaults to None (Optional)
-     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} versionDescriptor - WikiPage retreived for the given parameters
+     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} versionDescriptor - Version descriptor for the page. Defaults to deafult branch (Optional)
      * @return IPromise<Contracts.WikiPage[]>
      */
     getPages(project: string, wikiId: string, path?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.GitVersionDescriptor): IPromise<Contracts.WikiPage[]>;
@@ -16146,7 +16391,7 @@ export class WikiHttpClient3_2 extends VSS_WebApi.VssHttpClient {
      * @param {string} wikiId - ID of the Wiki from which the page is to be retrieved
      * @param {string} path - Path from which the pages are to retrieved
      * @param {TFS_VersionControl_Contracts.VersionControlRecursionType} recursionLevel - Recusion level for the page retrieval. Defaults to None (Optional)
-     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} versionDescriptor - WikiPage retreived for the given parameters
+     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} versionDescriptor - Version descriptor for the page. Defaults to deafult branch (Optional)
      * @return IPromise<string>
      */
     getPageText(project: string, wikiId: string, path?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.GitVersionDescriptor): IPromise<string>;
@@ -16157,18 +16402,28 @@ export class WikiHttpClient3_2 extends VSS_WebApi.VssHttpClient {
      * @param {string} wikiId - ID of the Wiki from which the page is to be retrieved
      * @param {string} path - Path from which the pages are to retrieved
      * @param {TFS_VersionControl_Contracts.VersionControlRecursionType} recursionLevel - Recusion level for the page retrieval. Defaults to None (Optional)
-     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} versionDescriptor - WikiPage retreived for the given parameters
+     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} versionDescriptor - Version descriptor for the page. Defaults to deafult branch (Optional)
      * @return IPromise<ArrayBuffer>
      */
     getPageZip(project: string, wikiId: string, path?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.GitVersionDescriptor): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API] Creates the wiki page and attachments update on the given version
+     *
+     * @param {Contracts.WikiUpdate} update
+     * @param {string} project - Project ID or project name
+     * @param {string} wikiId - ID of the Wiki from which the update is to be made
+     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} versionDescriptor - Version descriptor for the version on which the update is to be made. Defaults to deafult branch (Optional)
+     * @return IPromise<Contracts.WikiUpdate>
+     */
+    createUpdate(update: Contracts.WikiUpdate, project: string, wikiId: string, versionDescriptor?: TFS_VersionControl_Contracts.GitVersionDescriptor): IPromise<Contracts.WikiUpdate>;
     /**
      * [Preview API] Creates a backing git repository and does the intiailization of the wiki for the given project
      *
      * @param {TFS_VersionControl_Contracts.GitRepository} wikiToCreate - Name and projectId for wiki. The provided name will also be the name of the backing repository as. If this is empty, the name is auto generated.
      * @param {string} project - Project ID or project name
-     * @return IPromise<TFS_VersionControl_Contracts.GitRepository>
+     * @return IPromise<Contracts.WikiRepository>
      */
-    createWiki(wikiToCreate: TFS_VersionControl_Contracts.GitRepository, project: string): IPromise<TFS_VersionControl_Contracts.GitRepository>;
+    createWiki(wikiToCreate: TFS_VersionControl_Contracts.GitRepository, project: string): IPromise<Contracts.WikiRepository>;
 }
 export class WikiHttpClient extends WikiHttpClient3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -16483,6 +16738,11 @@ export interface QueryHierarchyItem extends WorkItemTrackingResource {
     targetClauses: WorkItemQueryClause;
     wiql: string;
 }
+export interface QueryHierarchyItemsResult {
+    count: number;
+    hasMore: boolean;
+    value: QueryHierarchyItem[];
+}
 export enum QueryOption {
     Doing = 1,
     Done = 2,
@@ -16627,6 +16887,7 @@ export enum WorkItemExpand {
 }
 export interface WorkItemField extends WorkItemTrackingResource {
     description: string;
+    isIdentity: boolean;
     name: string;
     readOnly: boolean;
     referenceName: string;
@@ -16760,6 +17021,11 @@ export interface WorkItemTypeColor {
     secondaryColor: string;
     workItemTypeName: string;
 }
+export interface WorkItemTypeColorAndIcon {
+    color: string;
+    icon: string;
+    workItemTypeName: string;
+}
 export interface WorkItemTypeFieldInstance extends WorkItemFieldReference {
     alwaysRequired: boolean;
     field: WorkItemFieldReference;
@@ -16874,6 +17140,7 @@ export var TypeInfo: {
         };
     };
     QueryHierarchyItem: any;
+    QueryHierarchyItemsResult: any;
     QueryOption: {
         enumValues: {
             "doing": number;
@@ -17099,6 +17366,15 @@ export interface FieldModel {
     type: FieldType;
     url: string;
 }
+export interface FieldRuleModel {
+    action: RuleActionModel;
+    conditions: RuleConditionModel[];
+    description: string;
+    friendlyName: string;
+    id: string;
+    isDisabled: boolean;
+    isInherited: boolean;
+}
 export enum FieldType {
     String = 1,
     Integer = 2,
@@ -17264,6 +17540,16 @@ export interface ProjectReference {
     id: string;
     name: string;
     url: string;
+}
+export interface RuleActionModel {
+    actionType: string;
+    targetField: string;
+    value: string;
+}
+export interface RuleConditionModel {
+    conditionType: string;
+    field: string;
+    value: string;
 }
 export interface Section {
     groups: Group[];
@@ -17556,13 +17842,13 @@ export interface FieldModel {
     url: string;
 }
 export interface FieldRuleModel {
-    actions: RuleActionModel[];
+    action: RuleActionModel;
     conditions: RuleConditionModel[];
     description: string;
+    friendlyName: string;
     id: string;
     isDisabled: boolean;
-    rule: string;
-    value: string;
+    isInherited: boolean;
 }
 export enum FieldType {
     String = 1,
@@ -17719,11 +18005,12 @@ export interface PickListModel extends PickListMetadataModel {
     items: PickListItemModel[];
 }
 export interface RuleActionModel {
-    action: string;
+    actionType: string;
+    targetField: string;
     value: string;
 }
 export interface RuleConditionModel {
-    condition: string;
+    conditionType: string;
     field: string;
     value: string;
 }
@@ -17790,10 +18077,12 @@ export enum WorkItemTypeClass {
 export interface WorkItemTypeFieldModel {
     allowGroups: boolean;
     defaultValue: string;
-    id: string;
+    name: string;
+    pickList: PickListMetadataModel;
     readOnly: boolean;
+    referenceName: string;
     required: boolean;
-    rules: FieldRuleModel[];
+    type: FieldType;
     url: string;
 }
 export interface WorkItemTypeModel {
@@ -17862,6 +18151,7 @@ export var TypeInfo: {
             "custom": number;
         };
     };
+    WorkItemTypeFieldModel: any;
     WorkItemTypeModel: any;
 };
 }
@@ -18415,6 +18705,7 @@ export class CommonMethods2_1To3_2 extends VSS_WebApi.VssHttpClient {
     protected fieldsApiVersion: string;
     protected fieldsApiVersion_7a0e7a1a: string;
     protected processesApiVersion: string;
+    protected rulesApiVersion: string;
     protected workItemTypesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -18434,6 +18725,14 @@ export class CommonMethods2_1To3_2 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<ProcessContracts.WorkItemTypeModel>
      */
     getWorkItemType(processId: string, witRefName: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} processId
+     * @param {string} witRefName
+     * @return IPromise<ProcessContracts.FieldRuleModel[]>
+     */
+    getWorkItemTypeRules(processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel[]>;
     /**
      * [Preview API]
      *
@@ -18715,6 +19014,7 @@ export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
     protected workItemsApiVersion_72c7ddf8: string;
     protected workitemStateColorApiVersion: string;
     protected workItemTypeCategoriesApiVersion: string;
+    protected workItemTypeColorAndIconApiVersion: string;
     protected workitemTypeColorApiVersion: string;
     protected workItemTypesApiVersion: string;
     protected workItemTypesFieldApiVersion: string;
@@ -18920,6 +19220,17 @@ export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.QueryHierarchyItem>
      */
     updateQuery(queryUpdate: Contracts.QueryHierarchyItem, project: string, query: string, undeleteDescendants?: boolean): IPromise<Contracts.QueryHierarchyItem>;
+    /**
+     * Searches all queries the user has access to in the current project
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} filter
+     * @param {number} top
+     * @param {Contracts.QueryExpand} expand
+     * @param {boolean} includeDeleted
+     * @return IPromise<Contracts.QueryHierarchyItemsResult>
+     */
+    searchQueries(project: string, filter: string, top?: number, expand?: Contracts.QueryExpand, includeDeleted?: boolean): IPromise<Contracts.QueryHierarchyItemsResult>;
     /**
      * Retrieves a single query by project and either id or path
      *
@@ -19400,18 +19711,18 @@ export interface IWorkItemFormNavigationService {
     *
     * @param {number} workItemId The id of the work item to open
     * @param {boolean} openInNewTab (Optional) If true, opens the work item in a new tab. Default is false
-    * @returns {IPromise<void>} An empty promise.
+    * @returns {IPromise<WorkItem>} A promise that returns a work item when the work item dialog is closed. If openInNewTab is true, the promise will return null
     */
-    openWorkItem(workItemId: number, openInNewTab?: boolean): IPromise<void>;
+    openWorkItem(workItemId: number, openInNewTab?: boolean): IPromise<WitContracts.WorkItem>;
     /**
     * Opens a new work item of the specified type. The host page will display the new work item in a dialog,
     * or it may update the current page view, depending on the current page.
     *
     * @param {string} workItemTypeName The name of the work item type to open
     * @param {IDictionaryStringTo<Object>} initialValues (Optional) A dictionary of any initial field values to set after opening the new work item.
-    * @returns {IPromise<void>} An empty promise.
+    * @returns {IPromise<WorkItem>} A promise that returns a work item when the work item dialog is closed. If the workitem was not saved before closing the dialog, the promise will return null
     */
-    openNewWorkItem(workItemTypeName: string, initialValues?: IDictionaryStringTo<Object>): IPromise<void>;
+    openNewWorkItem(workItemTypeName: string, initialValues?: IDictionaryStringTo<Object>): IPromise<WitContracts.WorkItem>;
 }
 /**
 * Host service for opening the work item form
@@ -20529,9 +20840,10 @@ export interface UpdatePlan {
     type: PlanType;
 }
 /**
- * Work item color.
+ * Work item color and icon.
  */
 export interface WorkItemColor {
+    icon: string;
     primaryColor: string;
     workItemTypeName: string;
 }
