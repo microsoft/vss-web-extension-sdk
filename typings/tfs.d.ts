@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v116.20170509.1548
+// Type definitions for Microsoft Visual Studio Services v117.20170531.1430
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -1759,6 +1759,7 @@ export var TypeInfo: {
     BuildTrigger: any;
     BuildUpdatedEvent: any;
     Change: any;
+    ContinuousDeploymentDefinition: any;
     ContinuousIntegrationTrigger: any;
     ControllerStatus: {
         enumValues: {
@@ -3918,6 +3919,7 @@ export interface ProjectInfo {
     state: any;
     uri: string;
     version: number;
+    visibility: ProjectVisibility;
 }
 export interface ProjectMessage {
     project: ProjectInfo;
@@ -3926,6 +3928,12 @@ export interface ProjectMessage {
 export interface ProjectProperty {
     name: string;
     value: any;
+}
+export enum ProjectVisibility {
+    Unchanged = -1,
+    Private = 0,
+    Organization = 1,
+    Public = 2,
 }
 export interface Proxy {
     authorization: ProxyAuthorization;
@@ -4078,6 +4086,10 @@ export interface TeamProjectReference {
      * Url to the full version of the object.
      */
     url: string;
+    /**
+     * Project visibility.
+     */
+    visibility: ProjectVisibility;
 }
 /**
  * A data transfer object that stores the metadata associated with the creation of temporary data.
@@ -4254,13 +4266,26 @@ export var TypeInfo: {
     };
     ProjectInfo: any;
     ProjectMessage: any;
+    ProjectVisibility: {
+        enumValues: {
+            "unchanged": number;
+            "private": number;
+            "organization": number;
+            "public": number;
+        };
+    };
     SourceControlTypes: {
         enumValues: {
             "tfvc": number;
             "git": number;
         };
     };
+    TeamProject: any;
+    TeamProjectReference: any;
     TemporaryDataCreatedDTO: any;
+    WebApiConnectedService: any;
+    WebApiConnectedServiceDetails: any;
+    WebApiProject: any;
 };
 }
 declare module "TFS/Core/RestClient" {
@@ -5316,7 +5341,7 @@ export interface IWidgetHostService {
     * Provides means for widget authors to track and understand usage/performance of at context of individual of widgets.
     * Identification should not be relied upon to be present for all widgets. In particular, new unsaved widgets in preview mode do not have an identity yet.
     */
-    getWidgetId: () => string;
+    getWidgetId: () => IPromise<string>;
 }
 export module WidgetHostService {
     /**
@@ -5580,11 +5605,11 @@ export class WidgetStatusHelper {
      * method to encapsulate a failed result for a widget loading operation (load, reload, openLightbox etc)
      * @param message message to display as part within the widget error experience.
      * @param isUserVisible indicates whether the message should be displayed to the user or a generic error message displayed. Defaults to true.
-     * @param isRichtText indicates whether the message is an html that can be rendered as a rich experience. Defaults to false. Only trusted extensions are
+     * @param isRichText indicates whether the message is an html that can be rendered as a rich experience. Defaults to false. Only trusted extensions are
      * allowed to set this to true. For any 3rd party widgets passing this value as true, it will be ignored.
      * @returns promise encapsulating the status of the widget loading operations.
      */
-    static Failure(message: string, isUserVisible?: boolean, isRichtText?: boolean): IPromise<TFS_Dashboards_WidgetContracts.WidgetStatus>;
+    static Failure(message: string, isUserVisible?: boolean, isRichText?: boolean): IPromise<TFS_Dashboards_WidgetContracts.WidgetStatus>;
     /**
      * method to encapsulate a result for a widget loading operation that results in the widget being in an unconfigured state.
      * @returns promise encapsulating the status of the widget loading operations.
@@ -6070,6 +6095,11 @@ export interface PlanEnvironment {
     variables: {
         [key: string]: string;
     };
+}
+export enum PlanGroupStatus {
+    Running = 1,
+    Queued = 2,
+    All = 3,
 }
 export enum PlanGroupStatusFilter {
     Running = 1,
@@ -6872,7 +6902,7 @@ export interface TaskOrchestrationPlan extends TaskOrchestrationPlanReference {
 }
 export interface TaskOrchestrationPlanGroupsQueueMetrics {
     count: number;
-    status: PlanGroupStatusFilter;
+    status: PlanGroupStatus;
 }
 export interface TaskOrchestrationPlanReference {
     artifactLocation: string;
@@ -7083,6 +7113,13 @@ export var TypeInfo: {
     };
     PackageMetadata: any;
     PlanEnvironment: any;
+    PlanGroupStatus: {
+        enumValues: {
+            "running": number;
+            "queued": number;
+            "all": number;
+        };
+    };
     PlanGroupStatusFilter: {
         enumValues: {
             "running": number;
@@ -7597,15 +7634,6 @@ export class CommonMethods3To3_2 extends CommonMethods2_1To3_2 {
      * @exemptedapi
      * [Preview API]
      *
-     * @param {Contracts.ServiceEndpoint[]} endpoints
-     * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.ServiceEndpoint[]>
-     */
-    updateServiceEndpoints(endpoints: Contracts.ServiceEndpoint[], project: string): IPromise<Contracts.ServiceEndpoint[]>;
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
      * @param {Contracts.ServiceEndpoint} endpoint
      * @param {string} project - Project ID or project name
      * @param {string} endpointId
@@ -7952,6 +7980,14 @@ export class TaskAgentHttpClient3_2 extends CommonMethods3_1To3_2 {
     /**
      * [Preview API]
      *
+     * @param {string} project - Project ID or project name
+     * @param {number} deploymentGroupId
+     * @return IPromise<void>
+     */
+    refreshDeploymentMachines(project: string, deploymentGroupId: number): IPromise<void>;
+    /**
+     * [Preview API]
+     *
      * @param {Contracts.InputValidationRequest} inputValidationRequest
      * @return IPromise<Contracts.InputValidationRequest>
      */
@@ -8188,12 +8224,20 @@ export class TaskAgentHttpClient3_2 extends CommonMethods3_1To3_2 {
     /**
      * [Preview API] Upload a secure file, include the file stream in the request body
      *
-     * @param {string} content - Content to upload
+     * @param {any} content - Content to upload
      * @param {string} project - Project ID or project name
      * @param {string} name - Name of the file to upload
      * @return IPromise<Contracts.SecureFile>
      */
-    uploadSecureFile(content: string, project: string, name: string): IPromise<Contracts.SecureFile>;
+    uploadSecureFile(content: any, project: string, name: string): IPromise<Contracts.SecureFile>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ServiceEndpoint[]} endpoints
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.ServiceEndpoint[]>
+     */
+    updateServiceEndpoints(endpoints: Contracts.ServiceEndpoint[], project: string): IPromise<Contracts.ServiceEndpoint[]>;
     /**
      * [Preview API]
      *
@@ -8767,11 +8811,11 @@ export class CommonMethods3_1To3_2 extends CommonMethods2_1To3_2 {
      *
      * @param {string} scopeIdentifier - The project GUID to scope the request
      * @param {string} hubName - The name of the server hub: "build" for the Build server or "rm" for the Release Management server
-     * @param {TFS_DistributedTask_Contracts.PlanGroupStatusFilter} statusFilter
+     * @param {TFS_DistributedTask_Contracts.PlanGroupStatus} statusFilter
      * @param {number} count
      * @return IPromise<TFS_DistributedTask_Contracts.TaskOrchestrationQueuedPlanGroup[]>
      */
-    getQueuedPlanGroups(scopeIdentifier: string, hubName: string, statusFilter?: TFS_DistributedTask_Contracts.PlanGroupStatusFilter, count?: number): IPromise<TFS_DistributedTask_Contracts.TaskOrchestrationQueuedPlanGroup[]>;
+    getQueuedPlanGroups(scopeIdentifier: string, hubName: string, statusFilter?: TFS_DistributedTask_Contracts.PlanGroupStatus, count?: number): IPromise<TFS_DistributedTask_Contracts.TaskOrchestrationQueuedPlanGroup[]>;
 }
 /**
  * @exemptedapi
@@ -9458,6 +9502,7 @@ export interface PlanUpdateModel {
     automatedTestEnvironment: TestEnvironment;
     automatedTestSettings: TestSettings;
     build: ShallowReference;
+    buildDefinition: ShallowReference;
     configurationIds: number[];
     description: string;
     endDate: string;
@@ -9466,6 +9511,7 @@ export interface PlanUpdateModel {
     manualTestSettings: TestSettings;
     name: string;
     owner: VSS_Common_Contracts.IdentityRef;
+    releaseEnvironmentDefinition: ReleaseEnvironmentDefinitionReference;
     startDate: string;
     state: string;
     status: string;
@@ -9500,6 +9546,10 @@ export interface PropertyBag {
 }
 export interface QueryModel {
     query: string;
+}
+export interface ReleaseEnvironmentDefinitionReference {
+    definitionId: number;
+    environmentDefinitionId: number;
 }
 export interface ReleaseReference {
     definitionId: number;
@@ -9984,6 +10034,7 @@ export interface TestPlan {
     automatedTestEnvironment: TestEnvironment;
     automatedTestSettings: TestSettings;
     build: ShallowReference;
+    buildDefinition: ShallowReference;
     clientUrl: string;
     description: string;
     endDate: Date;
@@ -9995,6 +10046,7 @@ export interface TestPlan {
     owner: VSS_Common_Contracts.IdentityRef;
     previousBuild: ShallowReference;
     project: ShallowReference;
+    releaseEnvironmentDefinition: ReleaseEnvironmentDefinitionReference;
     revision: number;
     rootSuite: ShallowReference;
     startDate: Date;
@@ -12472,8 +12524,52 @@ export interface GitAsyncRefOperation {
 export interface GitAsyncRefOperationDetail {
     conflict: boolean;
     currentCommitId: string;
+    failureMessage: string;
     progress: number;
+    status: GitAsyncRefOperationFailureStatus;
     timedout: boolean;
+}
+export enum GitAsyncRefOperationFailureStatus {
+    /**
+     * No status
+     */
+    None = 0,
+    /**
+     * Indicates that the ref update request could not be completed because the ref name presented in the request was not valid.
+     */
+    InvalidRefName = 1,
+    /**
+     * The ref update could not be completed because, in case-insensitive mode, the ref name conflicts with an existing, differently-cased ref name.
+     */
+    RefNameConflict = 2,
+    /**
+     * The ref update request could not be completed because the user lacks the permission to create a branch
+     */
+    CreateBranchPermissionRequired = 3,
+    /**
+     * The ref update request could not be completed because the user lacks write permissions required to write this ref
+     */
+    WritePermissionRequired = 4,
+    /**
+     * Target branch was deleted after Git async operation started
+     */
+    TargetBranchDeleted = 5,
+    /**
+     * Git object is too large to materialize into memory
+     */
+    GitObjectTooLarge = 6,
+    /**
+     * Identity who authorized the operation was not found
+     */
+    OperationIndentityNotFound = 7,
+    /**
+     * Async operation was not found
+     */
+    AsyncOperationNotFound = 8,
+    /**
+     * Unexpected failure
+     */
+    Other = 9,
 }
 export interface GitAsyncRefOperationParameters {
     generatedRefName: string;
@@ -14204,6 +14300,21 @@ export var TypeInfo: {
         };
     };
     GitAsyncRefOperation: any;
+    GitAsyncRefOperationDetail: any;
+    GitAsyncRefOperationFailureStatus: {
+        enumValues: {
+            "none": number;
+            "invalidRefName": number;
+            "refNameConflict": number;
+            "createBranchPermissionRequired": number;
+            "writePermissionRequired": number;
+            "targetBranchDeleted": number;
+            "gitObjectTooLarge": number;
+            "operationIndentityNotFound": number;
+            "asyncOperationNotFound": number;
+            "other": number;
+        };
+    };
     GitAsyncRefOperationParameters: any;
     GitAsyncRefOperationSource: any;
     GitBaseVersionDescriptor: any;
@@ -14257,7 +14368,9 @@ export var TypeInfo: {
             "fullHistorySimplifyMerges": number;
         };
     };
+    GitImportFailedEvent: any;
     GitImportRequest: any;
+    GitImportSucceededEvent: any;
     GitItem: any;
     GitItemDescriptor: any;
     GitItemRequestData: any;
@@ -14350,6 +14463,7 @@ export var TypeInfo: {
             "succeededCorruptRef": number;
         };
     };
+    GitRepository: any;
     GitResolutionError: {
         enumValues: {
             "none": number;
@@ -14593,6 +14707,33 @@ export module HistoryList {
     * @param webContext Optional web context to scope the control to
     */
     function create($container: JQuery, options?: any, webContext?: Contracts_Platform.WebContext): IPromise<IHistoryList>;
+}
+/**
+* Configuration options when creating the GitHistoryList extension control.
+*/
+export interface ITfvcHistoryListOptions {
+    /** ItemPath for control to search history */
+    itemPaths?: string[];
+    /** Callback to be invoked when the scenario is completed */
+    onScenarioComplete?: () => void;
+    /** From commit id for control to search history */
+    fromVersion?: string;
+    /** To commit id for control to search history */
+    toVersion?: string;
+}
+/**
+* Control showing the Git history list
+*/
+export module TfvcHistoryList {
+    var contributionId: string;
+    /**
+    * Create an instance of the new history list control
+    *
+    * @param $container Container element to create the history list control in
+    * @param options GitHistoryList control options
+    * @param webContext Optional web context to scope the control to
+    */
+    function create($container: JQuery, options?: ITfvcHistoryListOptions, webContext?: Contracts_Platform.WebContext): IPromise<void>;
 }
 /**
 * Configuration options when creating the GitHistoryList extension control.
@@ -16360,6 +16501,7 @@ export var TypeInfo: {
         };
     };
     WikiPageChange: any;
+    WikiRepository: any;
     WikiUpdate: any;
 };
 }
@@ -16617,6 +16759,14 @@ export interface AccountWorkWorkItemModel {
     title: string;
     workItemType: string;
 }
+export interface ArtifactUriQuery {
+    artifactUris: string[];
+}
+export interface ArtifactUriQueryResult {
+    artifactUrisQueryResult: {
+        [key: string]: WorkItemReference[];
+    };
+}
 export interface AttachmentReference {
     id: string;
     url: string;
@@ -16822,6 +16972,11 @@ export enum TreeStructureGroup {
 }
 export interface Wiql {
     query: string;
+}
+export interface WorkArtifactLink {
+    artifactType: string;
+    linkType: string;
+    toolType: string;
 }
 export interface WorkItem extends WorkItemTrackingResource {
     fields: {
@@ -17369,11 +17524,9 @@ export interface FieldModel {
 export interface FieldRuleModel {
     action: RuleActionModel;
     conditions: RuleConditionModel[];
-    description: string;
-    friendlyName: string;
     id: string;
     isDisabled: boolean;
-    isInherited: boolean;
+    isSystem: boolean;
 }
 export enum FieldType {
     String = 1,
@@ -17841,15 +17994,6 @@ export interface FieldModel {
     type: FieldType;
     url: string;
 }
-export interface FieldRuleModel {
-    action: RuleActionModel;
-    conditions: RuleConditionModel[];
-    description: string;
-    friendlyName: string;
-    id: string;
-    isDisabled: boolean;
-    isInherited: boolean;
-}
 export enum FieldType {
     String = 1,
     Integer = 2,
@@ -18003,16 +18147,6 @@ export interface PickListMetadataModel {
 }
 export interface PickListModel extends PickListMetadataModel {
     items: PickListItemModel[];
-}
-export interface RuleActionModel {
-    actionType: string;
-    targetField: string;
-    value: string;
-}
-export interface RuleConditionModel {
-    conditionType: string;
-    field: string;
-    value: string;
 }
 export interface Section {
     groups: Group[];
@@ -18170,9 +18304,7 @@ export class CommonMethods2_1To3_2 extends VSS_WebApi.VssHttpClient {
     protected pagesApiVersion: string;
     protected statesApiVersion: string;
     protected workItemTypesApiVersion: string;
-    protected workItemTypesApiVersion_8b13e121: string;
     protected workItemTypesApiVersion_921dfb88: string;
-    protected workItemTypesApiVersion_afd8a636: string;
     protected workItemTypesFieldsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -18252,74 +18384,6 @@ export class CommonMethods2_1To3_2 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeModel>
      */
     createWorkItemType(workitemType: ProcessDefinitionsContracts.WorkItemTypeModel, processId: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeModel>;
-    /**
-     * [Preview API]
-     *
-     * @param {ProcessDefinitionsContracts.FieldRuleModel} fieldRule
-     * @param {string} processId
-     * @param {string} witRefNameForRules
-     * @param {string} fieldRefName
-     * @param {string} ruleId
-     * @return IPromise<ProcessDefinitionsContracts.FieldRuleModel>
-     */
-    updateWorkItemTypeFieldRule(fieldRule: ProcessDefinitionsContracts.FieldRuleModel, processId: string, witRefNameForRules: string, fieldRefName: string, ruleId: string): IPromise<ProcessDefinitionsContracts.FieldRuleModel>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} processId
-     * @param {string} witRefNameForRules
-     * @param {string} fieldRefName
-     * @return IPromise<ProcessDefinitionsContracts.FieldRuleModel[]>
-     */
-    getWorkItemTypeFieldRules(processId: string, witRefNameForRules: string, fieldRefName: string): IPromise<ProcessDefinitionsContracts.FieldRuleModel[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} processId
-     * @param {string} witRefNameForRules
-     * @param {string} fieldRefName
-     * @param {string} ruleId
-     * @return IPromise<ProcessDefinitionsContracts.FieldRuleModel>
-     */
-    getWorkItemTypeFieldRule(processId: string, witRefNameForRules: string, fieldRefName: string, ruleId: string): IPromise<ProcessDefinitionsContracts.FieldRuleModel>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} processId
-     * @param {string} witRefNameForRules
-     * @param {string} fieldRefName
-     * @param {string} ruleId
-     * @return IPromise<void>
-     */
-    deleteWorkItemTypeFieldRule(processId: string, witRefNameForRules: string, fieldRefName: string, ruleId: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {ProcessDefinitionsContracts.FieldRuleModel} fieldRule
-     * @param {string} processId
-     * @param {string} witRefNameForRules
-     * @param {string} fieldRefName
-     * @return IPromise<ProcessDefinitionsContracts.FieldRuleModel>
-     */
-    addWorkItemTypeFieldRule(fieldRule: ProcessDefinitionsContracts.FieldRuleModel, processId: string, witRefNameForRules: string, fieldRefName: string): IPromise<ProcessDefinitionsContracts.FieldRuleModel>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} processId
-     * @param {string} witRefName
-     * @param {string} field
-     * @return IPromise<void>
-     */
-    removeWorkItemTypeField(processId: string, witRefName: string, field: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {ProcessDefinitionsContracts.WorkItemTypeFieldModel} field
-     * @param {string} processId
-     * @param {string} witRefName
-     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
-     */
-    addWorkItemTypeField(field: ProcessDefinitionsContracts.WorkItemTypeFieldModel, processId: string, witRefName: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
     /**
      * [Preview API]
      *
@@ -18706,6 +18770,7 @@ export class CommonMethods2_1To3_2 extends VSS_WebApi.VssHttpClient {
     protected fieldsApiVersion_7a0e7a1a: string;
     protected processesApiVersion: string;
     protected rulesApiVersion: string;
+    protected rulesApiVersion_76fe3432: string;
     protected workItemTypesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -18730,9 +18795,55 @@ export class CommonMethods2_1To3_2 extends VSS_WebApi.VssHttpClient {
      *
      * @param {string} processId
      * @param {string} witRefName
+     * @param {string} fieldRefName
+     * @return IPromise<ProcessContracts.FieldRuleModel[]>
+     */
+    getWorkItemTypeFieldRules(processId: string, witRefName: string, fieldRefName: string): IPromise<ProcessContracts.FieldRuleModel[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId
+     * @param {string} witRefName
+     * @param {string} ruleId
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    updateWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} processId
+     * @param {string} witRefName
      * @return IPromise<ProcessContracts.FieldRuleModel[]>
      */
     getWorkItemTypeRules(processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} processId
+     * @param {string} witRefName
+     * @param {string} ruleId
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    getWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} processId
+     * @param {string} witRefName
+     * @param {string} ruleId
+     * @return IPromise<void>
+     */
+    deleteWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId
+     * @param {string} witRefName
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    addWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel>;
     /**
      * [Preview API]
      *
@@ -19094,22 +19205,28 @@ export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
      */
     getWorkItemTemplate(project: string, type: string, fields?: string, asOf?: Date, expand?: Contracts.WorkItemExpand): IPromise<Contracts.WorkItem>;
     /**
-     * @param {VSS_Common_Contracts.JsonPatchDocument} document
+     * Creates a single work item
+     *
+     * @param {VSS_Common_Contracts.JsonPatchDocument} document - The JSON Patch document representing the work item
      * @param {string} project - Project ID or project name
-     * @param {string} type
-     * @param {boolean} validateOnly
-     * @param {boolean} bypassRules
+     * @param {string} type - The work item type of the work item to create
+     * @param {boolean} validateOnly - Indicate if you only want to validate the changes without saving the work item
+     * @param {boolean} bypassRules - Do not enforce the work item type rules on this update
+     * @param {boolean} suppressNotifications - Do not fire any notifications for this change
      * @return IPromise<Contracts.WorkItem>
      */
-    createWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, project: string, type: string, validateOnly?: boolean, bypassRules?: boolean): IPromise<Contracts.WorkItem>;
+    createWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, project: string, type: string, validateOnly?: boolean, bypassRules?: boolean, suppressNotifications?: boolean): IPromise<Contracts.WorkItem>;
     /**
-     * @param {VSS_Common_Contracts.JsonPatchDocument} document
-     * @param {number} id
-     * @param {boolean} validateOnly
-     * @param {boolean} bypassRules
+     * Updates a single work item
+     *
+     * @param {VSS_Common_Contracts.JsonPatchDocument} document - The JSON Patch document representing the update
+     * @param {number} id - The id of the work item to update
+     * @param {boolean} validateOnly - Indicate if you only want to validate the changes without saving the work item
+     * @param {boolean} bypassRules - Do not enforce the work item type rules on this update
+     * @param {boolean} suppressNotifications - Do not fire any notifications for this change
      * @return IPromise<Contracts.WorkItem>
      */
-    updateWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, id: number, validateOnly?: boolean, bypassRules?: boolean): IPromise<Contracts.WorkItem>;
+    updateWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, id: number, validateOnly?: boolean, bypassRules?: boolean, suppressNotifications?: boolean): IPromise<Contracts.WorkItem>;
     /**
      * Returns a list of work items
      *
@@ -19349,9 +19466,10 @@ export class CommonMethods2To3_2 extends VSS_WebApi.VssHttpClient {
      * @param {any} content - Content to upload
      * @param {string} fileName
      * @param {string} uploadType
+     * @param {string} areaPath
      * @return IPromise<Contracts.AttachmentReference>
      */
-    createAttachment(content: any, fileName?: string, uploadType?: string): IPromise<Contracts.AttachmentReference>;
+    createAttachment(content: any, fileName?: string, uploadType?: string, areaPath?: string): IPromise<Contracts.AttachmentReference>;
 }
 export class CommonMethods2_1To3_2 extends CommonMethods2To3_2 {
     protected recyclebinApiVersion: string;
@@ -19515,6 +19633,19 @@ export class CommonMethods3To3_2 extends CommonMethods2_2To3_2 {
  */
 export class WorkItemTrackingHttpClient3_2 extends CommonMethods3To3_2 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @return IPromise<Contracts.WorkArtifactLink[]>
+     */
+    getWorkArtifactLinkTypes(): IPromise<Contracts.WorkArtifactLink[]>;
+    /**
+     * [Preview API] Gets the results of the work item ids linked to the artifact uri
+     *
+     * @param {Contracts.ArtifactUriQuery} artifactUriQuery - List of artifact uris.
+     * @return IPromise<Contracts.ArtifactUriQueryResult>
+     */
+    getWorkItemIdsForArtifactUris(artifactUriQuery: Contracts.ArtifactUriQuery): IPromise<Contracts.ArtifactUriQueryResult>;
 }
 /**
  * @exemptedapi

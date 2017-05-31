@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v116.20170509.1601
+// Type definitions for Microsoft Visual Studio Services v117.20170531.1430
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 

@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v116.20170509.1547
+// Type definitions for Microsoft Visual Studio Services v117.20170531.1429
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -5392,6 +5392,12 @@ export module WebAccessCustomerIntelligenceConstants {
     var InvalidLicenseExceptionFeature: string;
 }
 /**
+* Constants used for mobile
+*/
+export module WebAccessMobileConstants {
+    var BypassMobileCookieName: string;
+}
+/**
 * Constants used for VSSF\WebPlatform Feature Availability flags Note: This should only be flags consumed in platform-level typescript code or controllers.
 */
 export module WebPlatformFeatureFlags {
@@ -8081,6 +8087,11 @@ export interface IContributionHostBehavior {
     */
     slowWarningDurationMs?: number;
     /**
+    * Time to wait in milliseconds (ms) before erroring when waiting for loaded event handshake
+    * If unspecified, the default timeout period is used.
+    */
+    maxHandshakeDurationMs?: number;
+    /**
      * The resize options for the host. By default both height and width and be resized but this can be changed to only allow one direction of resizing
      */
     resizeOptions?: ResizeOptions;
@@ -8696,6 +8707,8 @@ export class ExtensionHelper {
 }
 }
 declare module "VSS/Controls" {
+import "jQueryUI/core";
+import "jQueryUI/widget";
 export function getId(): number;
 export type TrueOrFalse = "true" | "false" | boolean;
 export interface AriaAttributes {
@@ -9141,6 +9154,9 @@ export interface ICheckboxListItem {
     cssClass?: string;
 }
 export interface ICheckboxListOptions extends Controls.EnhancementOptions {
+    /**
+     * List of items to be displayed.
+     */
     items?: ICheckboxListItem[];
     /**
      * Css class applied to all items.
@@ -9161,7 +9177,6 @@ export class CheckboxListO<TOptions extends ICheckboxListOptions> extends Contro
     private _checkedItems;
     private _idMap;
     private _inputHasTabIndex;
-    constructor(options?: any);
     /**
      * @param options
      */
@@ -9169,12 +9184,13 @@ export class CheckboxListO<TOptions extends ICheckboxListOptions> extends Contro
     initialize(): void;
     enableElement(enabled: boolean): void;
     setItems(items: any[]): void;
-    getCheckedValues(): any[];
     getCheckedItems(): any[];
-    getUncheckedValues(): any[];
     getUncheckedItems(): any[];
+    getCheckedValues(): any[];
+    getUncheckedValues(): any[];
     setCheckedValues(values: any[]): void;
     _initializeElement(): void;
+    private _getItemValue(item);
     private _checkItemState(item, state);
     private _draw();
     /**
@@ -9472,6 +9488,10 @@ export interface IComboOptions {
      * Obsolete. No effect.
      */
     setTitleOnlyOnOverflow?: boolean;
+    /**
+    * Aria attributes
+    */
+    ariaAttributes?: Controls.AriaAttributes;
 }
 /**
 * Constant for Combo type options
@@ -10238,6 +10258,7 @@ export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<
     private _onWindowResizeDelegate;
     private _onHubNavigateDelegate;
     private _secondOverlay;
+    private _closeTooltip;
     private static RESIZE_STEP;
     /**
      * Creates a new dialog with the provided options
@@ -10370,6 +10391,7 @@ export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<
      * @param ui
      */
     private _onDialogMove(e?, ui?);
+    private _onDialogResizeStart(e?, ui?);
     private _ensureDialogContentHeight();
     /**
      * Set the css maximum height of the dialog.
@@ -10379,6 +10401,7 @@ export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<
      * Set the maximum size jQueryUI will allow the dialog to be.
      */
     private _setMaxSize();
+    private _hideCloseButtonTooltip();
 }
 export class Dialog extends DialogO<IDialogOptions> {
 }
@@ -11271,6 +11294,8 @@ export class FilterControlO<TOptions extends IFilterControlOptions> extends Cont
      * @return
      */
     private _ungroupClick(e?, clauseInfo?);
+    private _createTableAndFocus(focusRow, focusColumn);
+    private _createTableAndFocusDelete(focusRow);
     private _handleFilterModified();
     private _onControlBlurred();
 }
@@ -11376,6 +11401,7 @@ export class FormInputControl extends Controls.Control<FormInputControlOptions> 
     getInputFieldById(id: string): JQuery;
     createRowBeforeInput(id: string): JQuery;
     createRowAfterInput(id: string): JQuery;
+    private _addDescriptionIcon(description, $target);
     private _createInputField(inputViewModel, $parent, comboControlMap);
     private _textInputValueChanged(combo, inputViewModel);
     private _radioInputValueChanged($radio, radioValue, inputViewModel);
@@ -12552,7 +12578,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      * @param e
      * @return
      */
-    _onHeaderClick(e?: JQueryEventObject, clickedWithKeyboard?: boolean): any;
+    _onHeaderClick(e?: JQueryEventObject): any;
     /**
      * @param e
      * @return
@@ -12722,7 +12748,14 @@ export class GridSearchAdapter extends Search.SearchAdapter<any> {
     private getSearchableColumns();
 }
 export interface ITableFormatter {
+    /**
+     * Gets the formatted items as string.
+     */
     getTableFromSelectedItems(): string;
+    /**
+     * Determines whether the formatted string includes html or not.
+     */
+    includesHtml?: boolean;
 }
 export class TabDelimitedTableFormatter implements ITableFormatter {
     _options: any;
@@ -12749,6 +12782,7 @@ export class HtmlTableFormatter implements ITableFormatter {
     private static ROW_ALT_BACKGROUND_COLOR;
     _options: any;
     _grid: Grid;
+    includesHtml: boolean;
     constructor(grid: Grid, options?: any);
     processColumns(columns: any[]): any[];
     getTableFromSelectedItems(): string;
@@ -13065,11 +13099,28 @@ export enum MenuItemState {
     Hidden = 2,
     Toggled = 4,
 }
+export enum MenuSelectionMode {
+    /**
+     * No selection available.
+     */
+    None = 0,
+    /**
+     * Single item can be selected.
+     */
+    SingleSelect = 1,
+    /**
+     * Multiple items can be selected.
+     */
+    MultiSelect = 2,
+}
 export interface IMenuItemSpec extends IContributedMenuItem {
     /**
      * Id of the menu item. Used to distinguish the menu item when action is executed or when changing command state of a menu item
      */
     id?: string;
+    /**
+     * The id of the contribution that defines the menu item.
+     */
     contributionId?: string;
     rank?: number;
     /**
@@ -13289,6 +13340,11 @@ export interface MenuBaseOptions {
     useBowtieStyle?: boolean;
     cssClass?: string;
     cssCoreClass?: string;
+    /**
+     * Determines the selection mode of the menu.
+     * @default None
+     */
+    selectionMode?: MenuSelectionMode | ((item: IMenuItemSpec) => MenuSelectionMode);
 }
 export class MenuBase<TOptions extends MenuBaseOptions> extends Controls.Control<TOptions> {
     _type: any;
@@ -13299,7 +13355,7 @@ export class MenuBase<TOptions extends MenuBaseOptions> extends Controls.Control
     /**
      * @param options
      */
-    constructor(options?: any);
+    constructor(options?: TOptions);
     /**
      * Get the root menu of this object. (Not the immediate parent)
      */
@@ -13346,7 +13402,11 @@ export class MenuItem extends MenuBase<MenuItemOptions> {
     private _isPinned;
     private _pinElement;
     private _isPinFocused;
+    /**
+     * The <li> that represents this MenuItem or the <a> tag inside of it.
+     */
     private _$menuItemElement;
+    private _tooltip;
     private _closeSubmenuOnMouseLeave;
     /**
      * ID of pointer event that was handled by the pointer down event.
@@ -13378,6 +13438,8 @@ export class MenuItem extends MenuBase<MenuItemOptions> {
     _align: any;
     private static PinnedIconClass;
     private static UnpinnedIconClass;
+    private static _pinDescribedById;
+    private static _unpinDescribedById;
     /**
      * @param options
      */
@@ -13422,6 +13484,7 @@ export class MenuItem extends MenuBase<MenuItemOptions> {
     isToggled(): boolean;
     isPinnable(): any;
     isPinned(): boolean;
+    private getSelectionMode();
     initialize(): void;
     update(item: any): void;
     updateItems(items: any): void;
@@ -13434,7 +13497,10 @@ export class MenuItem extends MenuBase<MenuItemOptions> {
     /**
      * @param options
      */
-    execute(options?: any): any;
+    execute(options?: {
+        e: JQueryEventObject;
+        keepHighlight?: boolean;
+    }): any;
     executeAction(args?: any, e?: JQueryEventObject): any;
     collapse(options?: any): void;
     setFocus(setKeyboardFocus?: boolean): void;
@@ -13461,7 +13527,8 @@ export class MenuItem extends MenuBase<MenuItemOptions> {
      *
      * @param text New title to be displayed
      */
-    updateTitle(text: string): void;
+    updateTitle(title: string): void;
+    private _setTooltip(title, tooltipOptions?);
     /**
      * Updates the text of a menu item using either the specified text or
      * the function provided in the options
@@ -13469,7 +13536,7 @@ export class MenuItem extends MenuBase<MenuItemOptions> {
      * @param text New text to be displayed
      */
     updateText(text: string): void;
-    getSubMenu(): Menu<MenuOptions>;
+    getSubMenu(create?: boolean): Menu<MenuOptions>;
     tryShowSubMenu(options?: any): boolean;
     showSubMenu(options?: any): void;
     hideSubMenu(options?: any): void;
@@ -13508,7 +13575,7 @@ export interface MenuContributionProviderOptions {
 export class MenuContributionProvider {
     private static readonly ACTION_TYPE;
     private static readonly HYPERLINK_ACTION_TYPE;
-    private static _contributionSourceTimeout;
+    private static DEFAULT_CONTRIBUTION_SOURCE_TIMEOUT;
     private static _contributionGetItemsTimeout;
     private _webContext;
     private _contributionIds;
@@ -13542,12 +13609,20 @@ export class MenuContributionProvider {
      */
     private _updateContributedMenuItems(items, contributionWithSource);
     getContributedMenuItems(context: any): IPromise<IContributedMenuItem[]>;
+    /**
+     * Gets the time in ms to wait to get actions from action provider or for the actions to run
+     */
+    getContributionSourceTimeout(): number;
 }
 export interface MenuOptions extends MenuBaseOptions {
     suppressInitContributions?: boolean;
     contributionIds?: string[];
     contributionType?: string;
     contributionQueryOptions?: Contributions_Services.ContributionQueryOptions;
+    /**
+     * Time to wait in milliseconds for contribution iframes to be loaded.
+     */
+    contributionSourceTimeoutMs?: number;
     /**
      * Items to be displayed in the menu
      */
@@ -13604,7 +13679,6 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
     _selectedItem: MenuItem;
     _visible: boolean;
     _active: boolean;
-    _blockBlur: boolean;
     _focusItem: MenuItem;
     openSubMenuOnHover: boolean;
     /**
@@ -13819,7 +13893,6 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
     _onParentScroll(e: Event): void;
     private _onMouseDown(e);
     private _onMenuKeyDown(e);
-    private _blockBlurUntilTimeout();
     /**
      * Change the contribution options for this menu and reload the contributed menu items
      *
@@ -13920,7 +13993,6 @@ export class MenuOwner<TOptions extends MenuOwnerOptions> extends Menu<TOptions>
     private _isOwned(element);
     private _onChildFocus(e?);
     private _onChildBlur(e?);
-    private _startBlurTimeout();
     private _clearBlurTimeout();
     _onParentScroll(e?: any): void;
     private _onResize(e?);
@@ -14806,6 +14878,10 @@ export interface ICollapsiblePanelOptions extends Controls.EnhancementOptions {
     iconExpandCss?: string;
     onToggleCallback?: Function;
     customToggleIcon?: JQuery;
+    /**
+     * Set headerNotFocusable to true if you need multiple focusable element in headers, screen reader does not work well with nested focusable element.
+     */
+    headerNotFocusable?: boolean;
 }
 export class CollapsiblePanel extends Controls.Control<ICollapsiblePanelOptions> {
     static EVENT_CONTENT_EXPANDED: string;
@@ -15010,7 +15086,7 @@ export interface IPositionOptions {
 }
 export class PopupContentControlO<TOptions extends IPopupContentControlOptions> extends Controls.Control<TOptions> {
     private _$dropElement;
-    private _$contentContainer;
+    protected _$contentContainer: JQuery;
     private _contentSet;
     protected _visible: boolean;
     private _hasFocus;
@@ -15020,8 +15096,7 @@ export class PopupContentControlO<TOptions extends IPopupContentControlOptions> 
     private _enabled;
     private _documentEventDelegate;
     private _onForceHideDropPopupDelegate;
-    private _mouseMoveDelegate;
-    private _mouseupHideDelegate;
+    private _handlers;
     private _delayedShow;
     private _delayedHide;
     protected _mousePosition: Utils_UI.Positioning.ILocation;
@@ -15044,16 +15119,26 @@ export class PopupContentControlO<TOptions extends IPopupContentControlOptions> 
      * This method displays raw HTML. Do not use to display user-provided content without properly
      * escaping. Prefer to use setTextContent(), which escapes HTML content, or setHtmlContent(),
      * which does not.
-     *
-     * This method has been deprecated and remains for back compatability only. Replace existing
-     * uses.
      */
-    private setContent(content);
+    private _setContent(content);
     resetContent(): void;
     show(): void;
     toggle(): void;
     _enhance($dropElement: any): void;
     private _decorate();
+    /**
+     * Add an event listener on the drop element.
+     *
+     * Doing it this way is faster than through JQuery and still makes it convenient to clean up event listeners.
+     * @param event
+     * @param handler
+     */
+    private _listen(event, handler);
+    /**
+     * Remove an event listener on the drop element.
+     * @param event
+     */
+    private _stopListening(event);
     private _onInteract(e);
     private _onFocus(e);
     private _onBlur(e);
@@ -15113,20 +15198,6 @@ export class RichContentTooltipO<TOptions extends IRichContentTooltipOptions> ex
      */
     static add(content: string | JQuery, target: HTMLElement | JQuery, options?: IRichContentTooltipOptions): RichContentTooltip;
     /**
-     * Add a tooltip to the target with common default settings.
-     *
-     * This function has been deprecated and remains for back compatability only. Use add()
-     * instead and replace existing uses.
-     *
-     * This method displays raw HTML. Do not use to display user-provided content without properly
-     * escaping. Prefer to use add(), which escapes HTML for you.
-     *
-     * @param content Content to place in the tooltip (UNESCAPED HTML)
-     * @param target
-     * @param options
-     */
-    private static addTooltip(content, target, options?);
-    /**
      * Add a tooltip to the target with common default settings. Only display the tooltip if the
      * content in target is overflowing.
      *
@@ -15135,21 +15206,6 @@ export class RichContentTooltipO<TOptions extends IRichContentTooltipOptions> ex
      * @param options
      */
     static addIfOverflow(content: string | JQuery, target: HTMLElement | JQuery, options?: IRichContentTooltipOptions): RichContentTooltip;
-    /**
-     * Add a tooltip to the target with common default settings. Only display the tooltip if the
-     * content in overflowingElement is overflowing.
-     *
-     * This function has been deprecated and remains for back compatability only. Use
-     * addIfOverflow() instead and replace existing uses.
-     *
-     * This method displays raw HTML. Do not use to display user-provided content without properly
-     * escaping. Prefer to use addIfOverflow(), which escapes HTML for you.
-     *
-     * @param content Content to place in the tooltip (UNESCAPED HTML)
-     * @param overflowingElement
-     * @param options
-     */
-    private static addTooltipIfOverflow(content, overflowingElement, options?);
 }
 export class RichContentTooltip extends RichContentTooltipO<any> {
 }
@@ -15388,7 +15444,13 @@ export class RichEditor extends Controls.Control<IRichEditorOptions> {
      * @return
      */
     private _onMouseDown(e?);
-    private _reTriggerEvent(e?);
+    private _reTriggerKeyboardEvent(e?);
+    /**
+     * Create a synthetic keyboard event. This is needed to dispatch
+     * an event in IE11 since it doesn't allow re-dispatching of existing events
+     * @param domEvent A dom keyboard event
+     */
+    private _buildSyntheticKeyboardEvent(domEvent);
     /**
      * @param e
      * @return
@@ -16869,6 +16931,11 @@ export interface ITreeOptions {
      */
     showIcons?: boolean;
     /**
+    * Optional custom icon render, overriding node's icon
+    * @defaultvalue undefined
+    */
+    onRenderIcon?: (node: TreeNode) => Element;
+    /**
      * Determines whether clicking a node expands/collapses the node or not (if the node has children).
      * @defaultvalue false
      */
@@ -18006,6 +18073,26 @@ export class DelegatedAuthorizationHttpClient extends DelegatedAuthorizationHttp
  */
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): DelegatedAuthorizationHttpClient3;
 }
+declare module "VSS/DeviceTypeService" {
+import Service = require("VSS/Service");
+/**
+ * This is a client side wrapper for server side data provider contribution, device-type-data.
+ */
+export class DeviceTypeService extends Service.VssService {
+    /**
+     * Return true if the current device is mobile. Return false otherwise.
+     */
+    isMobileDevice(): boolean;
+    /**
+     * Return true if the current device is tablet. Return false otherwise.
+     */
+    isTabletDevice(): boolean;
+    /**
+     * Return true if the current device is mobile and not tablet. Return false otherwise.
+     */
+    isMobile(): boolean;
+}
+}
 declare module "VSS/Diag" {
 export var perfCollector: PerfTracePointCollector;
 export var logLevel: number;
@@ -18740,8 +18827,8 @@ export interface IPageEventCallback {
 export function getService(): IPageEventService;
 }
 declare module "VSS/Events/Services" {
-import Service = require("VSS/Service");
-export class EventService implements Service.ILocalService {
+import { ILocalService } from "VSS/Service";
+export class EventService implements ILocalService {
     private _events;
     fire(eventName: string, sender?: any, eventArgs?: any): boolean;
     /**
@@ -20875,6 +20962,19 @@ export enum ConcernCategory {
     Abusive = 2,
     Spam = 4,
 }
+/**
+ * Stores Last Contact Date
+ */
+export interface CustomerLastContact {
+    /**
+     * account for which customer was last contacted
+     */
+    account: string;
+    /**
+     * Date on which the custoemr was last contacted
+     */
+    lastContactDate: Date;
+}
 export interface EventCounts {
     /**
      * Average rating on the day for extension
@@ -22225,6 +22325,7 @@ export var TypeInfo: {
             "spam": number;
         };
     };
+    CustomerLastContact: any;
     ExtensionAcquisitionRequest: any;
     ExtensionDailyStat: any;
     ExtensionDailyStats: any;
@@ -22870,9 +22971,10 @@ export class CommonMethods3_1To3_2 extends CommonMethods3To3_2 {
      * @param {string} extensionName
      * @param {number} days
      * @param {Contracts.ExtensionStatsAggregateType} aggregate
+     * @param {Date} afterDate
      * @return IPromise<Contracts.ExtensionDailyStats>
      */
-    getExtensionDailyStats(publisherName: string, extensionName: string, days?: number, aggregate?: Contracts.ExtensionStatsAggregateType): IPromise<Contracts.ExtensionDailyStats>;
+    getExtensionDailyStats(publisherName: string, extensionName: string, days?: number, aggregate?: Contracts.ExtensionStatsAggregateType, afterDate?: Date): IPromise<Contracts.ExtensionDailyStats>;
     /**
      * [Preview API] Set all setting entries for the given user/all-users scope
      *
@@ -22898,7 +23000,7 @@ export class CommonMethods3_1To3_2 extends CommonMethods3To3_2 {
      *
      * @param {string} publisherName - Name of the publisher who published the extension
      * @param {string} extensionName - Name of the extension
-     * @param {number} days - Last n days report
+     * @param {number} days - Last n days report. If afterDate and days are specified, days will take priority
      * @param {number} count - Number of events to be returned
      * @param {Date} afterDate - Use if you want to fetch events newer than the specified date
      * @return IPromise<any>
@@ -22919,9 +23021,10 @@ export class CommonMethods3_1To3_2 extends CommonMethods3To3_2 {
      * @param {number} count - Count of events to fetch, applies to each event type.
      * @param {Date} afterDate - Fetch events that occured on or after this value
      * @param {string} include - Filter options. Supported values: includeInstall, includeUninstall. Default is to fetch all types of events
+     * @param {string} includeProperty
      * @return IPromise<Contracts.ExtensionEvents>
      */
-    getExtensionEvents(publisherName: string, extensionName: string, count?: number, afterDate?: Date, include?: string): IPromise<Contracts.ExtensionEvents>;
+    getExtensionEvents(publisherName: string, extensionName: string, count?: number, afterDate?: Date, include?: string, includeProperty?: string): IPromise<Contracts.ExtensionEvents>;
     /**
      * [Preview API]
      *
@@ -22998,9 +23101,10 @@ export class GalleryHttpClient3_2 extends CommonMethods3_1To3_2 {
      * @param {string} extensionName - Name of the extension.
      * @param {number} count - Number of questions to retrieve (defaults to 10).
      * @param {number} page - Page number from which set of questions are to be retrieved.
+     * @param {Date} afterDate - If provided, results questions are returned which were posted after this date
      * @return IPromise<Contracts.QuestionsResult>
      */
-    getQuestions(publisherName: string, extensionName: string, count?: number, page?: number): IPromise<Contracts.QuestionsResult>;
+    getQuestions(publisherName: string, extensionName: string, count?: number, page?: number, afterDate?: Date): IPromise<Contracts.QuestionsResult>;
     /**
      * [Preview API] Flags a concern with an existing question for an extension.
      *
@@ -23435,6 +23539,10 @@ export enum GraphMemberSearchFactor {
      * Alternate login username (Basic Auth Alias)
      */
     Alias = 6,
+    /**
+     * Find identity using DirectoryAlias
+     */
+    DirectoryAlias = 8,
 }
 export interface GraphMembership {
     containerDescriptor: string;
@@ -23500,10 +23608,6 @@ export interface GraphSubject {
      * The descriptor is the primary way to reference the graph subject while the system is running. This field will uniquely identify the same graph subject across both Accounts and Organizations.
      */
     descriptor: string;
-    /**
-     * If this value is true, the graph subject is not active within the current Vsts scope. This graph subject can be used reliably for presenting historical data but may not be valid for other operations.
-     */
-    disabled: boolean;
     /**
      * This is the non-unique display name of the graph subject. To change this field, you must alter its value in the source provider.
      */
@@ -23571,6 +23675,11 @@ export interface GraphUserOriginIdCreationContext extends GraphUserCreationConte
 export interface GraphUserPrincipalNameCreationContext extends GraphUserCreationContext {
     principalName: string;
 }
+export enum IdentityShardingState {
+    Undefined = 0,
+    Enabled = 1,
+    Disabled = 2,
+}
 export interface PagedGraphGroups {
     /**
      * This will be non-null if there is another page of data. There will never be more than one continuation token returned by a request.
@@ -23612,6 +23721,7 @@ export var TypeInfo: {
             "mailAddress": number;
             "general": number;
             "alias": number;
+            "directoryAlias": number;
         };
     };
     GraphScope: any;
@@ -23621,6 +23731,13 @@ export var TypeInfo: {
             "unknown": number;
             "down": number;
             "up": number;
+        };
+    };
+    IdentityShardingState: {
+        enumValues: {
+            "undefined": number;
+            "enabled": number;
+            "disabled": number;
         };
     };
 };
@@ -23669,7 +23786,16 @@ export class GraphHttpClient3_2 extends CommonMethods3_1To3_2 {
      */
     deleteGroup(groupDescriptor: string): IPromise<void>;
     /**
-     * [Preview API] This endpoint returns a result for any descriptor that has ever been valid in the system, even if the group has since been deleted or has had all their memberships deleted. The current validity of the group is indicated through its disabled property, which is omitted when false.
+     * [Preview API] This endpoint returns a result for any group that has ever been valid in the system, even if the group has since been deleted or has had all their memberships deleted. The current validity of the group is indicated through its disabled property, which is omitted when false.
+     *
+     * @param {Contracts.GraphMemberSearchFactor} searchFactor - The search factor for what it is that you are searching for
+     * @param {string} searchValue - The value of the search factor
+     * @param {boolean} forceDomainQualification - In cases that you are searching for principle name, this parameter will specify that system should force the principle name being domain qualified
+     * @return IPromise<Contracts.GraphGroup[]>
+     */
+    findGroupsBySearchFactor(searchFactor: Contracts.GraphMemberSearchFactor, searchValue?: string, forceDomainQualification?: boolean): IPromise<Contracts.GraphGroup[]>;
+    /**
+     * [Preview API] This endpoint returns a result for any group that has ever been valid in the system, even if the group has since been deleted or has had all their memberships deleted. The current validity of the group is indicated through its disabled property, which is omitted when false.
      *
      * @param {string} groupDescriptor - The descriptor of the desired graph group.
      * @return IPromise<Contracts.GraphGroup>
@@ -23695,6 +23821,14 @@ export class GraphHttpClient3_2 extends CommonMethods3_1To3_2 {
     /**
      * [Preview API]
      *
+     * @param {string} id
+     * @param {boolean} isCuid
+     * @return IPromise<string>
+     */
+    getIds(id: string, isCuid: boolean): IPromise<string>;
+    /**
+     * [Preview API]
+     *
      * @param {Contracts.GraphSubjectLookup} memberLookup
      * @return IPromise<{ [key: string] : Contracts.GraphMember; }>
      */
@@ -23702,13 +23836,14 @@ export class GraphHttpClient3_2 extends CommonMethods3_1To3_2 {
         [key: string]: Contracts.GraphMember;
     }>;
     /**
-     * [Preview API]
+     * [Preview API] This endpoint returns a result for any member that has ever been valid in the system, even if the member has since been deleted or has had all their memberships deleted. The current validity of the member is indicated through its disabled property, which is omitted when false.
      *
-     * @param {Contracts.GraphMemberSearchFactor} searchFactor
-     * @param {string} searchValue
+     * @param {Contracts.GraphMemberSearchFactor} searchFactor - The search factor for what it is that you are searching for
+     * @param {string} searchValue - The value of the search factor
+     * @param {boolean} forceDomainQualification - In cases that you are searching for principle name, this parameter will specify that system should force the principle name being domain qualified
      * @return IPromise<Contracts.GraphMember[]>
      */
-    findMembersBySearchFactor(searchFactor: Contracts.GraphMemberSearchFactor, searchValue: string): IPromise<Contracts.GraphMember[]>;
+    findMembersBySearchFactor(searchFactor: Contracts.GraphMemberSearchFactor, searchValue?: string, forceDomainQualification?: boolean): IPromise<Contracts.GraphMember[]>;
     /**
      * [Preview API] This endpoint returns a result for any member that has ever been valid in the system, even if the member has since been deleted or has had all their memberships deleted. The current validity of the member is indicated through its disabled property, which is omitted when false.
      *
@@ -23736,9 +23871,9 @@ export class GraphHttpClient3_2 extends CommonMethods3_1To3_2 {
      *
      * @param {string} subjectDescriptor - The group or user that is a child of the relationship.
      * @param {string} containerDescriptor - The group that is the parent in the relationship.
-     * @return IPromise<void>
+     * @return IPromise<boolean>
      */
-    checkMembership(subjectDescriptor: string, containerDescriptor: string): IPromise<void>;
+    checkMembershipExistence(subjectDescriptor: string, containerDescriptor: string): IPromise<boolean>;
     /**
      * [Preview API] This method will search for a requested membership and return the membership if found.
      *
@@ -23796,6 +23931,12 @@ export class GraphHttpClient3_2 extends CommonMethods3_1To3_2 {
     /**
      * [Preview API]
      *
+     * @return IPromise<Contracts.IdentityShardingState>
+     */
+    getIdentityShardingState(): IPromise<Contracts.IdentityShardingState>;
+    /**
+     * [Preview API]
+     *
      * @param {Contracts.GraphSubjectLookup} subjectLookup
      * @return IPromise<{ [key: string] : Contracts.GraphSubject; }>
      */
@@ -23824,6 +23965,15 @@ export class GraphHttpClient3_2 extends CommonMethods3_1To3_2 {
      * @return IPromise<void>
      */
     deleteUser(userDescriptor: string): IPromise<void>;
+    /**
+     * [Preview API] This endpoint returns a result for any user that has ever been valid in the system, even if the user has since been deleted or has had all their memberships deleted. The current validity of the user is indicated through its disabled property, which is omitted when false.
+     *
+     * @param {Contracts.GraphMemberSearchFactor} searchFactor - The search factor for what it is that you are searching for
+     * @param {string} searchValue - The value of the search factor
+     * @param {boolean} forceDomainQualification - In cases that you are searching for principle name, this parameter will specify that system should force the principle name being domain qualified
+     * @return IPromise<Contracts.GraphUser[]>
+     */
+    findUsersBySearchFactor(searchFactor: Contracts.GraphMemberSearchFactor, searchValue?: string, forceDomainQualification?: boolean): IPromise<Contracts.GraphUser[]>;
     /**
      * [Preview API] This endpoint returns a result for any user that has ever been valid in the system, even if the user has since been deleted or has had all their memberships deleted. The current validity of the user is indicated through its disabled property, which is omitted when false.
      *
@@ -24502,6 +24652,7 @@ export class IdentityPickerDropdownControl extends Controls.Control<IIdentityPic
     private _$suggestedPeople;
     private _$itemsContainer;
     private _$searchResultStatus;
+    private _$liveStatus;
     private _selectedIndex;
     private _numItemsDisplayed;
     private _scrollTimeout;
@@ -24676,6 +24827,7 @@ export class IdCardDialog extends Controls.Control<IIdentityPickerIdCardDialogOp
     private _$groupMembersContainer;
     private _pageSize;
     private _$loading;
+    private _$liveStatus;
     private _entityOperationsFacade;
     private _previousFocusedElement;
     private _selectedIndex;
@@ -24702,7 +24854,6 @@ export class IdCardDialog extends Controls.Control<IIdentityPickerIdCardDialogOp
     private _prevItem();
     private _nextPage();
     private _prevPage();
-    private _setMemberActiveDescendant(id);
     private _setSelectedIndex(newSelectedIndex, position?);
 }
 export interface ISearchControlCallbackOptions {
@@ -31823,7 +31974,7 @@ export function getWheelDelta(e?: any): number;
  * @param element
  * @param enable
  */
-export function enableElement(element: any, enable: boolean): void;
+export function enableElement(element: Element | JQuery, enable: boolean): void;
 export function makeElementUnselectable(element: any): void;
 /**
  * Best-effort attempt to set focus on the specified element. Exceptions will be caught and logged to console.
@@ -32159,6 +32310,15 @@ export function tooltipIfOverflow(element: HTMLElement | HTMLInputElement, optio
  */
 export function getOverflowElement(elem: HTMLElement, recursive?: boolean): HTMLElement;
 export function Watermark(element: JQuery, ...args: any[]): JQuery;
+export function getFocusRing(): HTMLElement;
+export function hideFocusRing(): void;
+/**
+ * Gets a handler that is intended to be executed on a focus event. This handler
+ * draws a box around the focused element if it is focused via the keyboard.
+ * @param keyCodes List of keycodes that could lead to this focus event being called.
+ * @param ringSize Size of the ring to draw around the focused element.
+ */
+export function getFocusRingFocusHandler(keyCodes?: number[], ringSize?: number): (event: FocusEvent) => void;
 }
 declare module "VSS/Utils/Url" {
 export const MAX_URL_PATH_LENGTH = 2000;
@@ -32523,8 +32683,12 @@ export class GlobalProgressIndicator {
     getPendingActions(): string[];
 }
 export function hasUnloadRequest(): boolean;
+export enum GlobalMessagePosition {
+    default = 0,
+    top = 1,
+}
 export class GlobalMessageIndicator {
-    updateGlobalMessageIfEmpty(message: string, messageLevel?: string, customIcon?: string, onDismiss?: () => void): HTMLElement;
+    updateGlobalMessageIfEmpty(message: string, messageLevel?: string, customIcon?: string, onDismiss?: () => void, position?: GlobalMessagePosition): HTMLElement;
     clearGlobalMessages(): void;
 }
 export function classExtend(ctor: any, members: any): any;
@@ -32849,6 +33013,7 @@ export interface EventScope {
     type: string;
 }
 export interface IdentityRef {
+    directoryAlias: string;
     displayName: string;
     id: string;
     imageUrl: string;
