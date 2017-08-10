@@ -28,7 +28,7 @@ To ensure the SDK script is packaged with your extension, update your extension 
 ```
 {       
 	"files": [{
-		"path": "node_modules/vss-web-extension-sdk/lib"",
+		"path": "node_modules/vss-web-extension-sdk/lib",
 		"addressable": true,
 		"packagePath": "lib"
 	}]
