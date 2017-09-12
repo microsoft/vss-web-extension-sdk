@@ -77,7 +77,7 @@ Dependency graph:
 
 From a [TypeScript](https://www.typescriptlang.org) 2.0 or later project:
 
-* Set `"moduleResolution": "node"` in your `tfsconfig.json` project file
+* Set `"moduleResolution": "node"` in your `tsconfig.json` project file
 
 See [TypeScript Module Resolution](https://www.typescriptlang.org/docs/handbook/module-resolution.html) for more details.
 
