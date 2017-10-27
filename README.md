@@ -19,13 +19,13 @@ This will place `VSS.SDK.js` and `VSS.SDK.min.js` in `node_modules/vss-web-exten
 
 If you are developing a web extension, you will need to reference the SDK script from your HTML pages. For example:
 
-```
+```html
 <script src="lib/VSS.SDK.min.js"></script>
 ```
 
 To ensure the SDK script is packaged with your extension, update your extension manifest (typically `vss-extension.json`) and add a new entry to `files`:
 
-```
+```json
 {       
 	"files": [{
 		"path": "node_modules/vss-web-extension-sdk/lib",
@@ -42,18 +42,18 @@ Note: setting `packagePath` is optional, but results in a simpler path for refer
 
 From your web extension's HTML page, include and initialize the VSS SDK like this:
 
-```javascript
+```html
 <script>
 
   // Initialize
   VSS.init({
-	  usePlatformScripts: true, 
-	  usePlatformStyles: true
+    usePlatformScripts: true, 
+    usePlatformStyles: true
   });
 
   // Register callback to get called when initial handshake completed
   VSS.ready(function() {
-	  // Start using VSS
+    // Start using VSS
   });
 
 </script>
@@ -77,13 +77,13 @@ Dependency graph:
 
 From a [TypeScript](https://www.typescriptlang.org) 2.0 or later project:
 
-* Set ```"moduleResolution": "node"``` in your `tfsconfig.json` project file
+* Set `"moduleResolution": "node"` in your `tsconfig.json` project file
 
 See [TypeScript Module Resolution](https://www.typescriptlang.org/docs/handbook/module-resolution.html) for more details.
 
 Alternatively, you can explicitly reference the types at the top of your TypeScript file(s):
 
-```
+```ts
     /// <reference types="vss-web-extension-sdk" />
 ```
 
@@ -143,7 +143,7 @@ Learn more about [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsc
 
 Declares the libraries (like the vss-web-extension-sdk) required to compile, package, and use your extension.
 
-```
+```js
 {
   /* other details like ID, version, etc are omitted */
   
@@ -177,7 +177,7 @@ Learn more about [package.json](https://docs.npmjs.com/files/package.json)
 
 ### Extension manifest (`vss-extension.json`)
 
-```
+```js
 {
     /* details omitted */
     "files": [
@@ -217,7 +217,6 @@ Learn more about the [extension manifest](https://www.visualstudio.com/docs/inte
 ### HTML page
 
 ```html
-
 <head>
    <script src="../lib/VSS.SDK.min.js"></script>
    <!-- 
@@ -230,15 +229,15 @@ Learn more about the [extension manifest](https://www.visualstudio.com/docs/inte
 
  <script type="text/javascript">
 
-        // Initialize the VSS sdk
-        VSS.init({
-            usePlatformScripts: true,
-            usePlatformStyles: true
-        });
-	
-	VSS.require(["dist/app"], function (app) { 
-	    ...
-	});
+  // Initialize the VSS sdk
+  VSS.init({
+      usePlatformScripts: true,
+      usePlatformStyles: true
+  });
+
+  VSS.require(["dist/app"], function (app) { 
+      ...
+  });
 
  </script>
 
