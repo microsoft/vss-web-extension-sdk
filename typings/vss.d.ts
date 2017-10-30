@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v125.20171027.1856
+// Type definitions for Microsoft Visual Studio Services v125.20171030.1928
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -10,12 +10,6 @@
 /// <reference types='react' />
 /// <reference types='mousetrap' />
 
-/************* WARNING *************
-
-    ANY CHANGES TO THIS FILE MUST BE
-    DUPLICATED IN XDM.ts.
-
-***********************************/
 declare module XDM {
     interface IDeferred<T> {
         resolve: (result: T) => void;
@@ -281,11 +275,9 @@ declare module VSS {
     function resize(width?: number, height?: number): void;
 }
 
-
 //----------------------------------------------------------
 // Common interfaces specific to WebPlatform area
 //----------------------------------------------------------
-
 interface EventTarget {
     checked: boolean;
     nodeType: number;
@@ -31159,6 +31151,267 @@ export var TypeInfo: {
         };
     };
 };
+}
+declare module "VSS/SDK/Services/Dialogs" {
+import Contracts_Platform = require("VSS/Common/Contracts/Platform");
+import Dialogs = require("VSS/Controls/Dialogs");
+/**
+* Class which manages showing dialogs in the parent frame
+* @serviceId "vss.dialogs"
+*/
+export class HostDialogService implements IHostDialogService {
+    /**
+    * Open a modal dialog in the host frame which will get its content from a contributed control.
+    *
+    * @param contributionId The id of the control contribution to host in the dialog
+    * @param dialogOptions options.title - title of dialog
+    * @param contributionConfig Initial configuration to pass to the contribution control.
+    * @param postContent Optional data to post to the contribution endpoint. If not specified, a GET request will be performed.
+    */
+    openDialog(contributionId: string, dialogOptions: IHostDialogOptions, contributionConfig?: Object, postContent?: Object): IPromise<IExternalDialog>;
+    /**
+     * Open a modal dialog in the host frame which will display the supplied message.
+     * @param message the message to display in the dialog. If it's a string, the message is displayed as plain text (no html). For HTML display, pass in a jQuery object.
+     * @param methodOptions options affecting the dialog
+     * @returns a promise that is resolved when the user accepts the dialog (Ok, Yes, any button with Button.reject===false), or rejected if the user does not (Cancel, No, any button with Button.reject===true).
+     */
+    openMessageDialog(message: string | JQuery, options?: IOpenMessageDialogOptions): IPromise<IMessageDialogResult>;
+    buttons: {
+        ok: Dialogs.IMessageDialogButton;
+        cancel: Dialogs.IMessageDialogButton;
+        yes: Dialogs.IMessageDialogButton;
+        no: Dialogs.IMessageDialogButton;
+    };
+}
+export interface ExternalDialogOptions extends Dialogs.IModalDialogOptions {
+    contributionId: string;
+    webContext?: Contracts_Platform.WebContext;
+    urlReplacementObject?: any;
+    contributionConfig?: any;
+    getDialogResult: () => IPromise<any>;
+    postContent?: any;
+}
+/**
+* Represents a dialog which hosts an ExternalPart.
+*/
+export class ExternalDialog extends Dialogs.ModalDialogO<ExternalDialogOptions> implements IExternalDialog {
+    private _loadingPromise;
+    initializeOptions(options?: any): void;
+    initialize(): void;
+    /**
+    * Gets an object registered in the dialog's contribution control.
+    *
+    * @param instanceId Id of the instance to get
+    * @param contextData Optional data to pass to the extension for it to use when creating the instance
+    * @return Promise that is resolved to the instance (a proxy object that talks to the instance)
+    */
+    getContributionInstance<T>(instanceId: string, contextData?: any): IPromise<T>;
+    onOkClick(e?: JQueryEventObject): any;
+}
+}
+declare module "VSS/SDK/Services/ExtensionData" {
+import Contracts_Platform = require("VSS/Common/Contracts/Platform");
+import Contributions_Contracts = require("VSS/Contributions/Contracts");
+/**
+* Provides a wrapper around the REST client for getting and saving extension setting values
+* @serviceId "vss.extensionSettings"
+*/
+export class ExtensionDataService implements IExtensionDataService {
+    private _extensionManagementPromise;
+    private _publisherName;
+    private _extensionName;
+    private static DEFAULT_SCOPE_TYPE;
+    private static CURRENT_DEFAULT_SCOPE_VALUE;
+    private static USER_SCOPE_TYPE;
+    private static CURRENT_USER_SCOPE_VALUE;
+    private static SETTINGS_COLLECTION_NAME;
+    private static _serviceInstances;
+    constructor(publisherName: string, extensionName: string, registrationId: string, webContext: Contracts_Platform.WebContext);
+    /**
+    * Factory method for creating/getting an instance of the extension settings service.
+    *
+    * @param extensionId The extension id to get or save settings for
+    */
+    static getServiceInstance(publisherName: string, extensionName: string, registrationId: string, webContext?: Contracts_Platform.WebContext): ExtensionDataService;
+    /**
+    * Returns a promise for retrieving a setting at the provided key and scope
+    *
+    * @param key The key to retrieve a value for
+    * @param documentOptions The scope in which the value is stored - default value is account-wide
+    */
+    getValue<T>(key: string, documentOptions?: IDocumentOptions): IPromise<T>;
+    /**
+    * Returns a promise for retrieving a list of settings at the provided keys and scope
+    *
+    * @param keys The keys to retrieve values for
+    * @param documentOptions The scope in which the values are stored - default value is collection-wide
+    */
+    getValues(keys: string[], documentOptions?: IDocumentOptions): IPromise<{
+        [key: string]: any;
+    }>;
+    /**
+    * Returns a promise for saving a setting at the provided key and scope
+    *
+    * @param key The key to save a value for
+    * @param value The value to save
+    * @param documentOptions The scope in which the value is stored - default value is account-wide
+    */
+    setValue<T>(key: string, value: T, documentOptions?: IDocumentOptions): IPromise<T>;
+    /**
+    * Returns a promise for saving a collection of settings at the provided keys and scope
+    *
+    * @param keyValuePairs A set of key/value pairs to set values for
+    * @param documentOptions The scope in which the values are stored - default value is collection-wide
+    */
+    setValues(keyValuePairs: {
+        [key: string]: any;
+    }, documentOptions?: IDocumentOptions): IPromise<any[]>;
+    /**
+    * Returns a promise for getting a document with the provided id in the provided collection
+    *
+    * @param collectionName The name of the collection where the document lives
+    * @param id The id of the document in the collection
+    * @param documentOptions The scope in which the value is stored - default value is account-wide
+    */
+    getDocument(collectionName: string, id: string, documentOptions?: IDocumentOptions): IPromise<any>;
+    /**
+    * Returns a promise for getting all of the documents in the provided collection
+    *
+    * @param collectionName The name of the collection where the document lives
+    * @param documentOptions The scope in which the value is stored - default value is account-wide
+    */
+    getDocuments(collectionName: string, documentOptions?: IDocumentOptions): IPromise<any[]>;
+    /**
+    * Returns a promise for creating a document in the provided collection
+    *
+    * @param collectionName The name of the collection where the document lives
+    * @param doc The document to store
+    * @param documentOptions The scope in which the value is stored - default value is account-wide
+    */
+    createDocument(collectionName: string, doc: any, documentOptions?: IDocumentOptions): IPromise<any>;
+    /**
+    * Returns a promise for setting a document in the provided collection
+    * Creates the document if it does not exist, otherwise updates the existing document with the id provided
+    *
+    * @param collectionName The name of the collection where the document lives
+    * @param doc The document to store
+    * @param documentOptions The scope in which the value is stored - default value is account-wide
+    */
+    setDocument(collectionName: string, doc: any, documentOptions?: IDocumentOptions): IPromise<any>;
+    /**
+    * Returns a promise for updating a document in the provided collection
+    * A document with the id provided must exist
+    *
+    * @param collectionName The name of the collection where the document lives
+    * @param doc The document to store
+    * @param documentOptions The scope in which the value is stored - default value is account-wide
+    */
+    updateDocument(collectionName: string, doc: any, documentOptions?: IDocumentOptions): IPromise<any>;
+    /**
+    * Returns a promise for deleting the document at the provided scope, collection and id
+    *
+    * @param collectionName The name of the collection where the document lives
+    * @param id The id of the document in the collection
+    * @param documentOptions The scope in which the value is stored - default value is account-wide
+    */
+    deleteDocument(collectionName: string, id: string, documentOptions?: IDocumentOptions): IPromise<void>;
+    /**
+    * Returns a promise for querying a set of collections
+    *
+    * @param collections The list of collections to query. Assumes Default Scope Type and Current Scope Value
+    */
+    queryCollectionNames(collectionNames: string[]): IPromise<Contributions_Contracts.ExtensionDataCollection[]>;
+    /**
+    * Returns a promise for querying a set of collections
+    *
+    * @param collections The list of collections to query. Each collection will contain its collectionName, scopeType, and scopeValue
+    */
+    queryCollections(collections: Contributions_Contracts.ExtensionDataCollection[]): IPromise<Contributions_Contracts.ExtensionDataCollection[]>;
+    private _checkDocument(document);
+    private _checkDocumentOptions(documentOptions);
+    private _createDictionaryForArray(docs);
+}
+}
+declare module "VSS/SDK/Services/Navigation" {
+import Q = require("q");
+/**
+* Service which allows interaction with the browser location and navigation of the host frame
+* @serviceId "ms.vss-web.navigation-service"
+*/
+export class HostNavigationService implements IHostNavigationService {
+    /**
+    * Update the current history entry
+    *
+    * @param action The "action" state parameter. This is the _a key in the url or "action" in the current state dictionary
+    * @param data The history entry's new state key/value pairs
+    * @param replaceHistoryEntry If true, replace the current history entry. Otherwise, add a new history entry.
+    * @param mergeWithCurrentState If true, the supplied data just modify the existing/current state. If false, they replace all existing key/value pairs.
+    * @param windowTitle The new window title. A null or empty value indicates to leave the title unchanged.
+    * @param suppressNavigate If true, don't trigger any of the attached navigate event handlers due to this update.
+    */
+    updateHistoryEntry(action: string, data?: IDictionaryStringTo<any>, replaceHistoryEntry?: boolean, mergeWithCurrentState?: boolean, windowTitle?: string, suppressNavigate?: boolean): void;
+    /**
+    * Get the current navigation state dictionary. Uses query parameters and hash parameters.
+    */
+    getCurrentState(): any;
+    /**
+    * Attach a new navigate handler
+    *
+    * @param action The action that the handler applies to (or null to listen for all events)
+    * @param handler The method called whenever a navigation event occurs with the matching action value
+    * @param checkCurrentState If true, immediately invoke the handler if the current state is appropriate (has the matching action value)
+    */
+    attachNavigate(action: string, handler: IFunctionPPR<any, any, void>, checkCurrentState?: boolean): void;
+    /**
+    * Remove a navigate handler
+    *
+    * @param action The action that the handler applies to (or null for global handlers)
+    * @param handler The method called whenever a navigation event occurs with the matching action value
+    */
+    detachNavigate(action: string, handler?: IFunctionPPR<any, any, void>): void;
+    /**
+    * Add a callback to be invoked each time the hash navigation has changed
+    *
+    * @param callback Method invoked on each navigation hash change
+    */
+    onHashChanged(callback: (hash: string) => void): void;
+    private _getHash();
+    /**
+    * Gets the current hash.
+    */
+    getHash(): IPromise<string>;
+    /**
+     * Reloads the parent frame
+     */
+    reload(): void;
+    /**
+    * Sets the provided hash from the hosted content.
+    */
+    setHash(hash: string): void;
+    /**
+    * Replace existing hash with the provided hash from the hosted content.
+    */
+    replaceHash(hash: string): void;
+    /**
+    * Update the host document's title (appears as the browser tab title).
+    *
+    * @param title The new title of the window
+    */
+    setWindowTitle(title: string): void;
+    /**
+     * Open a new window to the specified url
+     *
+     * @param url Url of the new window
+     * @param features Comma-separated list of features/specs sent as the 3rd parameter to window.open. For example: "height=400,width=400".
+     */
+    openNewWindow(url: string, features: string): void;
+    /**
+     * Navigate the parent page to the specified url
+     *
+     * @param url Url to navigate to
+     */
+    navigate(url: string): void;
+}
 }
 declare module "VSS/Search" {
 export class SearchCore<T> {
