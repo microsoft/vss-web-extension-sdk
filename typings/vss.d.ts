@@ -963,30 +963,87 @@ interface IHostDialogService {
 interface IHostNavigationService {
     
     /**
-     * Reloads the parent frame
-     */
-    reload();
+    * Update the current history entry
+    *
+    * @param action The "action" state parameter. This is the _a key in the url or "action" in the current state dictionary
+    * @param data The history entry's new state key/value pairs
+    * @param replaceHistoryEntry If true, replace the current history entry. Otherwise, add a new history entry.
+    * @param mergeWithCurrentState If true, the supplied data just modify the existing/current state. If false, they replace all existing key/value pairs.
+    * @param windowTitle The new window title. A null or empty value indicates to leave the title unchanged.
+    * @param suppressNavigate If true, don't trigger any of the attached navigate event handlers due to this update.
+    */
+    updateHistoryEntry(action: string, data?: IDictionaryStringTo<any>, replaceHistoryEntry?: boolean, mergeWithCurrentState?: boolean, windowTitle?: string, suppressNavigate?: boolean): void;
+
+    /**
+    * Get the current navigation state dictionary. Uses query parameters and hash parameters.
+    */
+    getCurrentState(): any;
+
+    /**
+    * Attach a new navigate handler
+    *
+    * @param action The action that the handler applies to (or null to listen for all events)
+    * @param handler The method called whenever a navigation event occurs with the matching action value
+    * @param checkCurrentState If true, immediately invoke the handler if the current state is appropriate (has the matching action value)
+    */
+    attachNavigate(action: string, handler: IFunctionPPR<any, any, void>, checkCurrentState?: boolean): void;
+
+    /**
+    * Remove a navigate handler
+    *
+    * @param action The action that the handler applies to (or null for global handlers)
+    * @param handler The method called whenever a navigation event occurs with the matching action value
+    */
+    detachNavigate(action: string, handler?: IFunctionPPR<any, any, void>): void;
 
     /**
     * Add a callback to be invoked each time the hash navigation has changed
     *
     * @param callback Method invoked on each navigation hash change
     */
-    onHashChanged(callback: (hash: string) => void);
-
+    onHashChanged(callback: (hash: string) => void): void;
+    
     /**
     * Gets the current hash.
-    *
-    * @return Hash part of the host page's url (url following #)
     */
     getHash(): IPromise<string>;
 
     /**
+     * Reloads the parent frame
+     */
+    reload(): void;
+
+    /**
     * Sets the provided hash from the hosted content.
-    *
-    * @param hash The new hash string to 
     */
-    setHash(hash: string);
+    setHash(hash: string): void;
+
+    /**
+    * Replace existing hash with the provided hash from the hosted content.
+    */
+    replaceHash(hash: string): void;
+
+    /**
+    * Update the host document's title (appears as the browser tab title).
+    *
+    * @param title The new title of the window
+    */
+    setWindowTitle(title: string): void;
+
+    /**
+     * Open a new window to the specified url
+     *
+     * @param url Url of the new window
+     * @param features Comma-separated list of features/specs sent as the 3rd parameter to window.open. For example: "height=400,width=400".
+     */
+    openNewWindow(url: string, features: string): void;
+
+    /**
+     * Navigate the parent page to the specified url
+     *
+     * @param url Url to navigate to
+     */
+    navigate(url: string): void;
 }
 
 /**
