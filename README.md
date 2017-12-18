@@ -162,7 +162,7 @@ Declares the libraries (like the vss-web-extension-sdk) required to compile, pac
   "dependencies": {
     "@types/jquery": "^2.0.34",
     "@types/q": "0.0.32",
-    "vss-web-extension-sdk": "^4.127.0"
+    "vss-web-extension-sdk": "^5.127.0"
   }
 }
 ```
