@@ -1007,7 +1007,7 @@ interface IHostNavigationService {
     /**
     * Gets the current hash.
     */
-    getHash(): Q.Promise<string>;
+    getHash(): IPromise<string>;
 
     /**
      * Reloads the parent frame
@@ -31623,7 +31623,7 @@ export class HostNavigationService implements IHostNavigationService {
     /**
     * Gets the current hash.
     */
-    getHash(): Q.Promise<string>;
+    getHash(): IPromise<string>;
     /**
      * Reloads the parent frame
      */
