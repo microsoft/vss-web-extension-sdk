@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v125.20171027.1858
+// Type definitions for Microsoft Visual Studio Services v127.20171208.1646
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -10,7 +10,6 @@
 /// <reference types='react' />
 /// <reference types='mousetrap' />
 /// <reference path='vss.d.ts' />
-
 declare module "Charts/Contracts" {
 /** Options for a chart, which can be auto-regulated by a chart Host. */
 export interface ChartHostOptions {
@@ -18,6 +17,11 @@ export interface ChartHostOptions {
     width: number;
     /** Control Height, expressed in pixels */
     height: number;
+}
+/** Control API for charts, after creation. Dispose is the only supported capability at this time. */
+export interface ChartControl {
+    /** Allows the caller to request disposal on the control. */
+    dispose(): void;
 }
 /** Placeholder for the Host to transport user-customizable coloring options. */
 export interface ColorCustomizationOptions {

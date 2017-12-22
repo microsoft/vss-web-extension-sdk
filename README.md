@@ -75,7 +75,7 @@ Dependency graph:
  
 ### Consuming the types
 
-From a [TypeScript](https://www.typescriptlang.org) 2.0 or later project:
+From a [TypeScript](https://www.typescriptlang.org) 2.5 or later project:
 
 * Set `"moduleResolution": "node"` in your `tsconfig.json` project file
 
@@ -162,7 +162,7 @@ Declares the libraries (like the vss-web-extension-sdk) required to compile, pac
   "dependencies": {
     "@types/jquery": "^2.0.34",
     "@types/q": "0.0.32",
-    "vss-web-extension-sdk": "^2.109.0"
+    "vss-web-extension-sdk": "^5.127.0"
   }
 }
 ```

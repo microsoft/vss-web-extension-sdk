@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v125.20171027.1858
+// Type definitions for Microsoft Visual Studio Services v127.20171208.1643
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -28,6 +28,7 @@ export module ArtifactDefinitionConstants {
     var LatestType: string;
     var LatestFromBranchType: string;
     var LatestWithBranchAndTagsType: string;
+    var LatestWithBuildDefinitionBranchAndTagsType: string;
     var SpecificVersionType: string;
     var SelectDuringReleaseCreationType: string;
     var RepositoryId: string;
@@ -52,6 +53,8 @@ export module ArtifactDefinitionConstants {
     var BranchesId: string;
     var VisibleRule: string;
     var JenkinsJobTypeId: string;
+    var Feed: string;
+    var RegistryUrl: string;
 }
 export module ArtifactTypes {
     var BuildArtifactType: string;
@@ -67,6 +70,7 @@ export module ArtifactTypes {
     var ExternalTfsXamlBuildArtifactType: string;
     var PackageManagementArtifactType: string;
     var DockerHubArtifactType: string;
+    var AzureContainerRepositoryArtifactType: string;
 }
 export module BuildVersionConstants {
     var SourceBranchKey: string;
@@ -183,9 +187,15 @@ export interface AgentDeploymentInput extends DeploymentInput {
     imageId: number;
     parallelExecution: ExecutionInput;
 }
+export enum ApprovalExecutionOrder {
+    BeforeGates = 1,
+    AfterSuccessfulGates = 2,
+    AfterGatesAlways = 4,
+}
 export interface ApprovalOptions {
     autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped: boolean;
     enforceIdentityRevalidation: boolean;
+    executionOrder: ApprovalExecutionOrder;
     releaseCreatorCanBeApprover: boolean;
     requiredApproverCount: number;
     timeoutInMinutes: number;
@@ -250,6 +260,7 @@ export interface ArtifactDownloadInputBase {
 export interface ArtifactFilter {
     sourceBranch: string;
     tags: string[];
+    useBuildDefinitionBranch: boolean;
 }
 export interface ArtifactInstanceData {
     accountName: string;
@@ -441,6 +452,9 @@ export interface Consumer {
     consumerId: number;
     consumerName: string;
 }
+export interface ContainerImageTrigger extends ReleaseTriggerBase {
+    alias: string;
+}
 export interface ContinuousDeploymentTriggerIssue extends AutoTriggerIssue {
     artifactType: string;
     artifactVersionId: string;
@@ -586,6 +600,8 @@ export interface DeploymentAttempt {
     lastModifiedBy: VSS_Common_Contracts.IdentityRef;
     lastModifiedOn: Date;
     operationStatus: DeploymentOperationStatus;
+    postDeploymentGates: ReleaseGates;
+    preDeploymentGates: ReleaseGates;
     queuedOn: Date;
     reason: DeploymentReason;
     releaseDeployPhases: ReleaseDeployPhase[];
@@ -710,9 +726,17 @@ export enum DeploymentOperationStatus {
      */
     Cancelling = 32768,
     /**
+     * The deployment operation status is EvaluatingGates.
+     */
+    EvaluatingGates = 65536,
+    /**
+     * The deployment operation status is GateFailed.
+     */
+    GateFailed = 131072,
+    /**
      * The deployment operation status is all.
      */
-    All = 61439,
+    All = 258047,
 }
 export interface DeploymentQueryParameters {
     artifactSourceId: string;
@@ -899,6 +923,13 @@ export enum FolderPathQueryOrder {
      */
     Descending = 2,
 }
+export enum GateStatus {
+    None = 0,
+    Pending = 1,
+    InProgress = 2,
+    Succeeded = 4,
+    Failed = 8,
+}
 export interface GitArtifactDownloadInput extends ArtifactDownloadInputBase {
 }
 export interface GitHubArtifactDownloadInput extends ArtifactDownloadInputBase {
@@ -1045,6 +1076,9 @@ export interface MultiConfigInput extends ParallelExecutionInputBase {
     multipliers: string;
 }
 export interface MultiMachineInput extends ParallelExecutionInputBase {
+}
+export interface PackageTrigger extends ReleaseTriggerBase {
+    alias: string;
 }
 export interface ParallelExecutionInputBase extends ExecutionInput {
     continueOnError: boolean;
@@ -1421,7 +1455,9 @@ export interface ReleaseDefinitionEnvironment {
     name: string;
     owner: VSS_Common_Contracts.IdentityRef;
     postDeployApprovals: ReleaseDefinitionApprovals;
+    postDeploymentGates: ReleaseDefinitionGatesStep;
     preDeployApprovals: ReleaseDefinitionApprovals;
+    preDeploymentGates: ReleaseDefinitionGatesStep;
     processParameters: TFS_DistributedTask_Common_Contracts.ProcessParameters;
     properties: any;
     queueId: number;
@@ -1431,6 +1467,7 @@ export interface ReleaseDefinitionEnvironment {
         [key: string]: string;
     };
     schedules: ReleaseSchedule[];
+    variableGroups: number[];
     variables: {
         [key: string]: ConfigurationVariableValue;
     };
@@ -1451,6 +1488,7 @@ export interface ReleaseDefinitionEnvironmentTemplate {
     iconTaskId: string;
     iconUri: string;
     id: string;
+    isDeleted: boolean;
     name: string;
 }
 export enum ReleaseDefinitionExpands {
@@ -1461,6 +1499,20 @@ export enum ReleaseDefinitionExpands {
     Variables = 16,
     Tags = 32,
     LastRelease = 64,
+}
+export interface ReleaseDefinitionGate {
+    tasks: WorkflowTask[];
+}
+export interface ReleaseDefinitionGatesOptions {
+    isEnabled: boolean;
+    samplingInterval: number;
+    stabilizationTime: number;
+    timeout: number;
+}
+export interface ReleaseDefinitionGatesStep {
+    gates: ReleaseDefinitionGate[];
+    gatesOptions: ReleaseDefinitionGatesOptions;
+    id: number;
 }
 export enum ReleaseDefinitionQueryOrder {
     IdAscending = 0,
@@ -1537,10 +1589,6 @@ export interface ReleaseDefinitionUndeleteParameter {
      * Gets or sets comment.
      */
     comment: string;
-    /**
-     * Gets the unique identifier of this field.
-     */
-    id: number;
 }
 export interface ReleaseDeployPhase {
     deploymentJobs: DeploymentJob[];
@@ -1609,6 +1657,7 @@ export interface ReleaseEnvironment {
      * Gets list of post deploy approvals.
      */
     postDeployApprovals: ReleaseApproval[];
+    postDeploymentGatesSnapshot: ReleaseDefinitionGatesStep;
     /**
      * Gets list of pre deploy approvals snapshot.
      */
@@ -1617,6 +1666,7 @@ export interface ReleaseEnvironment {
      * Gets list of pre deploy approvals.
      */
     preDeployApprovals: ReleaseApproval[];
+    preDeploymentGatesSnapshot: ReleaseDefinitionGatesStep;
     /**
      * Gets process parameters.
      */
@@ -1669,6 +1719,10 @@ export interface ReleaseEnvironment {
      * Gets trigger reason.
      */
     triggerReason: string;
+    /**
+     * Gets the list of variable groups.
+     */
+    variableGroups: VariableGroup[];
     /**
      * Gets the dictionary of variables.
      */
@@ -1735,6 +1789,15 @@ export enum ReleaseExpands {
     ManualInterventions = 16,
     Variables = 32,
     Tags = 64,
+}
+export interface ReleaseGates {
+    deploymentJobs: DeploymentJob[];
+    id: number;
+    lastModifiedOn: Date;
+    runPlanId: string;
+    stabilizationCompletedOn: Date;
+    startedOn: Date;
+    status: GateStatus;
 }
 export enum ReleaseQueryOrder {
     Descending = 0,
@@ -1912,6 +1975,8 @@ export enum ReleaseTriggerType {
     ArtifactSource = 1,
     Schedule = 2,
     SourceRepo = 3,
+    ContainerImage = 4,
+    Package = 5,
 }
 export interface ReleaseUpdatedEvent extends RealtimeReleaseEvent {
     release: Release;
@@ -2114,6 +2179,14 @@ export var TypeInfo: {
     };
     AgentBasedDeployPhase: any;
     AgentDeploymentInput: any;
+    ApprovalExecutionOrder: {
+        enumValues: {
+            "beforeGates": number;
+            "afterSuccessfulGates": number;
+            "afterGatesAlways": number;
+        };
+    };
+    ApprovalOptions: any;
     ApprovalStatus: {
         enumValues: {
             "undefined": number;
@@ -2163,6 +2236,7 @@ export var TypeInfo: {
             "artifact": number;
         };
     };
+    ContainerImageTrigger: any;
     ContinuousDeploymentTriggerIssue: any;
     Deployment: any;
     DeploymentApprovalCompletedEvent: any;
@@ -2206,6 +2280,8 @@ export var TypeInfo: {
             "manualInterventionPending": number;
             "queuedForPipeline": number;
             "cancelling": number;
+            "evaluatingGates": number;
+            "gateFailed": number;
             "all": number;
         };
     };
@@ -2280,6 +2356,15 @@ export var TypeInfo: {
             "descending": number;
         };
     };
+    GateStatus: {
+        enumValues: {
+            "none": number;
+            "pending": number;
+            "inProgress": number;
+            "succeeded": number;
+            "failed": number;
+        };
+    };
     IssueSource: {
         enumValues: {
             "none": number;
@@ -2312,6 +2397,7 @@ export var TypeInfo: {
     ManualInterventionUpdateMetadata: any;
     MultiConfigInput: any;
     MultiMachineInput: any;
+    PackageTrigger: any;
     ParallelExecutionInputBase: any;
     ParallelExecutionTypes: {
         enumValues: {
@@ -2335,6 +2421,7 @@ export var TypeInfo: {
     ReleaseCondition: any;
     ReleaseCreatedEvent: any;
     ReleaseDefinition: any;
+    ReleaseDefinitionApprovals: any;
     ReleaseDefinitionEnvironment: any;
     ReleaseDefinitionEnvironmentTemplate: any;
     ReleaseDefinitionExpands: {
@@ -2382,6 +2469,7 @@ export var TypeInfo: {
             "tags": number;
         };
     };
+    ReleaseGates: any;
     ReleaseQueryOrder: {
         enumValues: {
             "descending": number;
@@ -2417,6 +2505,8 @@ export var TypeInfo: {
             "artifactSource": number;
             "schedule": number;
             "sourceRepo": number;
+            "containerImage": number;
+            "package": number;
         };
     };
     ReleaseUpdatedEvent: any;
@@ -2667,11 +2757,11 @@ export class CommonMethods2_2To4_1 extends CommonMethods2To4_1 {
      */
     getReleaseDefinitionHistory(project: string, definitionId: number): IPromise<Contracts.ReleaseDefinitionRevision[]>;
     /**
-     * [Preview API]
+     * [Preview API] Get release definition for a given definitionId and revision
      *
      * @param {string} project - Project ID or project name
-     * @param {number} definitionId
-     * @param {number} revision
+     * @param {number} definitionId - Id of the definition.
+     * @param {number} revision - Id of the revision.
      * @return IPromise<string>
      */
     getDefinitionRevision(project: string, definitionId: number, revision: number): IPromise<string>;
@@ -2766,32 +2856,33 @@ export class CommonMethods2_2To4_1 extends CommonMethods2To4_1 {
      */
     getReleaseHistory(project: string, releaseId: number): IPromise<Contracts.ReleaseRevision[]>;
     /**
-     * [Preview API]
+     * [Preview API] Gets a list of definition environment templates
      *
      * @param {string} project - Project ID or project name
+     * @param {boolean} isDeleted - 'true' to get definition environment templates that have been deleted. Default is 'false'
      * @return IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate[]>
      */
-    listDefinitionEnvironmentTemplates(project: string): IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate[]>;
+    listDefinitionEnvironmentTemplates(project: string, isDeleted?: boolean): IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate[]>;
     /**
-     * [Preview API]
+     * [Preview API] Gets a definition environment template
      *
      * @param {string} project - Project ID or project name
-     * @param {string} templateId
+     * @param {string} templateId - Id of the definition environment template
      * @return IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>
      */
     getDefinitionEnvironmentTemplate(project: string, templateId: string): IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>;
     /**
-     * [Preview API]
+     * [Preview API] Delete a definition environment template
      *
      * @param {string} project - Project ID or project name
-     * @param {string} templateId
+     * @param {string} templateId - Id of the definition environment template
      * @return IPromise<void>
      */
     deleteDefinitionEnvironmentTemplate(project: string, templateId: string): IPromise<void>;
     /**
-     * [Preview API]
+     * [Preview API] Creates a definition environment template
      *
-     * @param {Contracts.ReleaseDefinitionEnvironmentTemplate} template
+     * @param {Contracts.ReleaseDefinitionEnvironmentTemplate} template - Definition environment template to create
      * @param {string} project - Project ID or project name
      * @return IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>
      */
@@ -2839,9 +2930,10 @@ export class CommonMethods2_2To4_1 extends CommonMethods2To4_1 {
      * @param {string[]} tagFilter - A comma-delimited list of tags. Only release definitions with these tags will be returned.
      * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
      * @param {string[]} definitionIdFilter - A comma-delimited list of release definitions to retrieve.
+     * @param {boolean} isDeleted - 'true' to get release definitions that has been deleted. Default is 'false'
      * @return IPromise<Contracts.ReleaseDefinition[]>
      */
-    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands, artifactType?: string, artifactSourceId?: string, top?: number, continuationToken?: string, queryOrder?: Contracts.ReleaseDefinitionQueryOrder, path?: string, isExactNameMatch?: boolean, tagFilter?: string[], propertyFilters?: string[], definitionIdFilter?: string[]): IPromise<Contracts.ReleaseDefinition[]>;
+    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands, artifactType?: string, artifactSourceId?: string, top?: number, continuationToken?: string, queryOrder?: Contracts.ReleaseDefinitionQueryOrder, path?: string, isExactNameMatch?: boolean, tagFilter?: string[], propertyFilters?: string[], definitionIdFilter?: string[], isDeleted?: boolean): IPromise<Contracts.ReleaseDefinition[]>;
     /**
      * [Preview API] Get release definition of a given revision.
      *
@@ -2933,6 +3025,7 @@ export class CommonMethods2_2To4_1 extends CommonMethods2To4_1 {
 export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
     protected deploymentsApiVersion: string;
     protected logsApiVersion_17c91af7: string;
+    protected logsApiVersion_dec7ca5a: string;
     protected manualInterventionsApiVersion: string;
     protected releasesApiVersion: string;
     protected releasesettingsApiVersion: string;
@@ -3030,6 +3123,17 @@ export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
      */
     getTaskLog(project: string, releaseId: number, environmentId: number, releaseDeployPhaseId: number, taskId: number): IPromise<string>;
     /**
+     * [Preview API] Gets gate logs
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId - Id of the release.
+     * @param {number} environmentId - Id of release environment.
+     * @param {number} gateId - Id of the gate.
+     * @param {number} taskId - ReleaseTask Id for the log.
+     * @return IPromise<string>
+     */
+    getGateLog(project: string, releaseId: number, environmentId: number, gateId: number, taskId: number): IPromise<string>;
+    /**
      * [Preview API]
      *
      * @param {Contracts.DeploymentQueryParameters} queryParameters
@@ -3087,9 +3191,10 @@ export class CommonMethods3_1To4_1 extends CommonMethods3To4_1 {
      * @param {boolean} isDeleted - Gets the soft deleted releases, if true.
      * @param {string[]} tagFilter - A comma-delimited list of tags. Only releases with these tags will be returned.
      * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
+     * @param {number[]} releaseIdFilter - A comma-delimited list of releases Ids. Only releases with these Ids will be returned.
      * @return IPromise<Contracts.Release[]>
      */
-    getReleases(project?: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean, tagFilter?: string[], propertyFilters?: string[]): IPromise<Contracts.Release[]>;
+    getReleases(project?: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean, tagFilter?: string[], propertyFilters?: string[], releaseIdFilter?: number[]): IPromise<Contracts.Release[]>;
     /**
      * [Preview API]
      *
@@ -3278,15 +3383,25 @@ export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
     protected approvalsApiVersion_c957584a: string;
     protected autotriggerissuesApiVersion: string;
     protected definitionsApiVersion: string;
+    protected environmenttemplatesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Undelete a release definition environment template.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} templateId - Id of the definition environment template to be undeleted
+     * @return IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>
+     */
+    undeleteReleaseDefinitionEnvironmentTemplate(project: string, templateId: string): IPromise<Contracts.ReleaseDefinitionEnvironmentTemplate>;
     /**
      * [Preview API] Undelete a release definition.
      *
      * @param {Contracts.ReleaseDefinitionUndeleteParameter} releaseDefinitionUndeleteParameter - Object for undelete release definition.
      * @param {string} project - Project ID or project name
+     * @param {number} definitionId - Id of the release definition to be undeleted
      * @return IPromise<Contracts.ReleaseDefinition>
      */
-    undeleteReleaseDefinition(releaseDefinitionUndeleteParameter: Contracts.ReleaseDefinitionUndeleteParameter, project: string): IPromise<Contracts.ReleaseDefinition>;
+    undeleteReleaseDefinition(releaseDefinitionUndeleteParameter: Contracts.ReleaseDefinitionUndeleteParameter, project: string, definitionId: number): IPromise<Contracts.ReleaseDefinition>;
     /**
      * [Preview API]
      *
@@ -3365,9 +3480,10 @@ export class ReleaseHttpClient3 extends CommonMethods3To4_1 {
      * @param {boolean} isDeleted - Gets the soft deleted releases, if true.
      * @param {string[]} tagFilter - A comma-delimited list of tags. Only releases with these tags will be returned.
      * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
+     * @param {number[]} releaseIdFilter - A comma-delimited list of releases Ids. Only releases with these Ids will be returned.
      * @return IPromise<Contracts.Release[]>
      */
-    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean, tagFilter?: string[], propertyFilters?: string[]): IPromise<Contracts.Release[]>;
+    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean, tagFilter?: string[], propertyFilters?: string[], releaseIdFilter?: number[]): IPromise<Contracts.Release[]>;
     /**
      * [Preview API] Returns throttled queue as per the task hub license of parallel releases
      *
@@ -3415,9 +3531,10 @@ export class ReleaseHttpClient2_3 extends CommonMethods2_2To4_1 {
      * @param {boolean} isDeleted - Gets the soft deleted releases, if true.
      * @param {string[]} tagFilter - A comma-delimited list of tags. Only releases with these tags will be returned.
      * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
+     * @param {number[]} releaseIdFilter - A comma-delimited list of releases Ids. Only releases with these Ids will be returned.
      * @return IPromise<Contracts.Release[]>
      */
-    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean, tagFilter?: string[], propertyFilters?: string[]): IPromise<Contracts.Release[]>;
+    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean, tagFilter?: string[], propertyFilters?: string[], releaseIdFilter?: number[]): IPromise<Contracts.Release[]>;
 }
 /**
  * @exemptedapi
@@ -3457,9 +3574,10 @@ export class ReleaseHttpClient2_2 extends CommonMethods2_2To4_1 {
      * @param {boolean} isDeleted - Gets the soft deleted releases, if true.
      * @param {string[]} tagFilter - A comma-delimited list of tags. Only releases with these tags will be returned.
      * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
+     * @param {number[]} releaseIdFilter - A comma-delimited list of releases Ids. Only releases with these Ids will be returned.
      * @return IPromise<Contracts.Release[]>
      */
-    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean, tagFilter?: string[], propertyFilters?: string[]): IPromise<Contracts.Release[]>;
+    getReleases(project: string, definitionId?: number, definitionEnvironmentId?: number, searchText?: string, createdBy?: string, statusFilter?: Contracts.ReleaseStatus, environmentStatusFilter?: number, minCreatedTime?: Date, maxCreatedTime?: Date, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, expand?: Contracts.ReleaseExpands, artifactTypeId?: string, sourceId?: string, artifactVersionId?: string, sourceBranchFilter?: string, isDeleted?: boolean, tagFilter?: string[], propertyFilters?: string[], releaseIdFilter?: number[]): IPromise<Contracts.Release[]>;
 }
 /**
  * @exemptedapi
