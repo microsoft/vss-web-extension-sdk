@@ -2,9 +2,7 @@
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
-/// <reference types='vss-common' />
 /// <reference types='knockout' />
-/// <reference types='knockoutSecureBinding' />
 /// <reference types='jquery' />
 /// <reference types='jqueryui' />
 /// <reference types='q' />

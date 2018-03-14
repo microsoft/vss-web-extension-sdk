@@ -2,9 +2,8 @@
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
-/// <reference types='vss-common' />
+
 /// <reference types='knockout' />
-/// <reference types='knockoutSecureBinding' />
 /// <reference types='jquery' />
 /// <reference types='jqueryui' />
 /// <reference types='q' />
@@ -12,7 +11,6 @@
 /// <reference types='react' />
 /// <reference types='mousetrap' />
 /// <reference path='vss.d.ts' />
-/// <reference path='Contracts.d.ts' />
 /// <reference path='tfs.d.ts' />
 declare module "ReleaseManagement/Core/Constants" {
 export module ApprovalOptions {
