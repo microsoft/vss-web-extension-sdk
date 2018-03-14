@@ -1,8 +1,10 @@
-// Type definitions for Microsoft Visual Studio Services v127.20171208.1643
+// Type definitions for Microsoft Visual Studio Services v131.20180312.1914
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
+/// <reference types='vss-common' />
 /// <reference types='knockout' />
+/// <reference types='knockoutSecureBinding' />
 /// <reference types='jquery' />
 /// <reference types='jqueryui' />
 /// <reference types='q' />
@@ -10,6 +12,7 @@
 /// <reference types='react' />
 /// <reference types='mousetrap' />
 /// <reference path='vss.d.ts' />
+/// <reference path='Contracts.d.ts' />
 /// <reference path='tfs.d.ts' />
 declare module "ReleaseManagement/Core/Constants" {
 export module ApprovalOptions {
@@ -31,6 +34,7 @@ export module ArtifactDefinitionConstants {
     var LatestWithBuildDefinitionBranchAndTagsType: string;
     var SpecificVersionType: string;
     var SelectDuringReleaseCreationType: string;
+    var CreateReleaseOnTaggingExistingBuild: string;
     var RepositoryId: string;
     var BranchId: string;
     var MappingsId: string;
@@ -55,6 +59,12 @@ export module ArtifactDefinitionConstants {
     var JenkinsJobTypeId: string;
     var Feed: string;
     var RegistryUrl: string;
+    var IsTriggeringArtifact: string;
+}
+export module ArtifactDownloadInputConstants {
+    var All: string;
+    var Selective: string;
+    var Skip: string;
 }
 export module ArtifactTypes {
     var BuildArtifactType: string;
@@ -120,8 +130,13 @@ export module WellKnownMetrics {
     var FailedDeployments: string;
     var PartiallySuccessfulDeployments: string;
 }
+export module WellKnownPullRequestVariables {
+    var PullRequestSystemType: string;
+    var PullRequestId: string;
+}
 export module WellKnownReleaseVariables {
     var AgentReleaseDirectory: string;
+    var DeploymentGroupId: string;
     var EnableAccessTokenVariableName: string;
     var HostType: string;
     var ArtifactsDirectory: string;
@@ -154,6 +169,7 @@ export module WellKnownReleaseVariables {
     var ReleaseDeploymentRequestedForId: string;
     var ReleaseDeploymentRequestedForEmail: string;
     var ReleaseDeploymentRequestedFor: string;
+    var ReleaseDeploymentStartTime: string;
 }
 }
 declare module "ReleaseManagement/Core/Contracts" {
@@ -191,6 +207,28 @@ export enum ApprovalExecutionOrder {
     BeforeGates = 1,
     AfterSuccessfulGates = 2,
     AfterGatesAlways = 4,
+}
+export enum ApprovalFilters {
+    /**
+     * No approvals or approval snapshots
+     */
+    None = 0,
+    /**
+     * Manual approval steps but no approval snapshots (Use with ApprovalSnapshots for snapshots)
+     */
+    ManualApprovals = 1,
+    /**
+     * Automated approval steps but no approval snapshots (Use with ApprovalSnapshots for snapshots)
+     */
+    AutomatedApprovals = 2,
+    /**
+     * No approval steps, but approval snapshots (Use with either ManualApprovals or AutomatedApprovals for approval steps)
+     */
+    ApprovalSnapshots = 4,
+    /**
+     * All approval steps and approval snapshots
+     */
+    All = 7,
 }
 export interface ApprovalOptions {
     autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped: boolean;
@@ -369,6 +407,10 @@ export interface BuildVersion {
     id: string;
     name: string;
     sourceBranch: string;
+    /**
+     * PullRequestId or Commit Id for the Pull Request for which the release will publish status
+     */
+    sourcePullRequestId: string;
     sourceRepositoryId: string;
     sourceRepositoryType: string;
     sourceVersion: string;
@@ -401,6 +443,10 @@ export interface Change {
      * A description of the change. This might be a commit message or changeset description.
      */
     message: string;
+    /**
+     * The person or process that pushed the change.
+     */
+    pusher: string;
     /**
      * A timestamp for the change.
      */
@@ -493,6 +539,10 @@ export interface Deployment {
      * Gets attempt number.
      */
     attempt: number;
+    /**
+     * Gets the date on which deployment is complete.
+     */
+    completedOn: Date;
     /**
      * Gets the list of condition associated with deployment.
      */
@@ -854,6 +904,7 @@ export interface EnvironmentExecutionPolicy {
     queueDepthCount: number;
 }
 export interface EnvironmentOptions {
+    autoLinkWorkItems: boolean;
     emailNotificationType: string;
     emailRecipients: string;
     enableAccessToken: boolean;
@@ -1089,6 +1140,13 @@ export enum ParallelExecutionTypes {
     MultiConfiguration = 1,
     MultiMachine = 2,
 }
+export interface PipelineProcess {
+    type: PipelineProcessTypes;
+}
+export enum PipelineProcessTypes {
+    Designer = 1,
+    Yaml = 2,
+}
 export interface ProjectReference {
     /**
      * Gets the unique identifier of this field.
@@ -1202,6 +1260,7 @@ export interface Release {
      * Gets or sets list of tags.
      */
     tags: string[];
+    triggeringArtifactAlias: string;
     url: string;
     /**
      * Gets the list of variable groups.
@@ -1388,6 +1447,10 @@ export interface ReleaseDefinition {
      * Gets or sets the path.
      */
     path: string;
+    /**
+     * Gets or sets pipeline process.
+     */
+    pipelineProcess: PipelineProcess;
     /**
      * Gets or sets properties.
      */
@@ -1963,6 +2026,7 @@ export interface ReleaseTaskLogUpdatedEvent extends RealtimeReleaseEvent {
 export interface ReleaseTasksUpdatedEvent extends RealtimeReleaseEvent {
     environmentId: number;
     job: ReleaseTask;
+    planId: string;
     releaseDeployPhaseId: number;
     releaseStepId: number;
     tasks: ReleaseTask[];
@@ -1977,6 +2041,7 @@ export enum ReleaseTriggerType {
     SourceRepo = 3,
     ContainerImage = 4,
     Package = 5,
+    PullRequest = 6,
 }
 export interface ReleaseUpdatedEvent extends RealtimeReleaseEvent {
     release: Release;
@@ -2184,6 +2249,15 @@ export var TypeInfo: {
             "beforeGates": number;
             "afterSuccessfulGates": number;
             "afterGatesAlways": number;
+        };
+    };
+    ApprovalFilters: {
+        enumValues: {
+            "none": number;
+            "manualApprovals": number;
+            "automatedApprovals": number;
+            "approvalSnapshots": number;
+            "all": number;
         };
     };
     ApprovalOptions: any;
@@ -2406,6 +2480,13 @@ export var TypeInfo: {
             "multiMachine": number;
         };
     };
+    PipelineProcess: any;
+    PipelineProcessTypes: {
+        enumValues: {
+            "designer": number;
+            "yaml": number;
+        };
+    };
     PropertySelector: any;
     PropertySelectorType: {
         enumValues: {
@@ -2507,6 +2588,7 @@ export var TypeInfo: {
             "sourceRepo": number;
             "containerImage": number;
             "package": number;
+            "pullRequest": number;
         };
     };
     ReleaseUpdatedEvent: any;
@@ -2598,6 +2680,34 @@ export interface IReleaseViewExtensionConfig {
     * the corresponding tab is selected if the tab is visible.
     */
     selectTab: (tabId: string) => void;
+    /**
+    * Optional, isReleaseV2 i.e. new UI. This property can be used by extensions to decide weather to show up in new UI or not.
+    */
+    isReleaseV2?: boolean;
+}
+/**
+* Base extension context,
+* place holder for base properties to all types of extension for release/definition extensions.
+*/
+export interface IExtensionContext {
+}
+/**
+* Context for release extensions.
+*/
+export interface IReleaseExtensionContext extends IExtensionContext {
+    /**
+    * Selected release, update notification is driven thru registeredObject.
+    */
+    release: RMContracts.Release;
+}
+/**
+* Context for release environment extensions.
+*/
+export interface IReleaseEnvironmentExtensionContext extends IExtensionContext {
+    /**
+    * Selected release environment, update notification is driven thru registeredObject.
+    */
+    releaseEnvironment: RMContracts.ReleaseEnvironment;
 }
 export interface IReleaseEnvironmentsSummaryDataExtension {
     /**
@@ -2671,7 +2781,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
 export class CommonMethods2_2To4_1 extends CommonMethods2To4_1 {
     protected approvalsApiVersion: string;
     protected approvalsApiVersion_250c7158: string;
-    protected approvalsApiVersion_9328e074: string;
+    protected approvalsApiVersion_b47c6458: string;
     protected changesApiVersion: string;
     protected definitionsApiVersion: string;
     protected environmentsApiVersion: string;
@@ -2981,21 +3091,6 @@ export class CommonMethods2_2To4_1 extends CommonMethods2To4_1 {
      */
     getReleaseChanges(project: string, releaseId: number, baseReleaseId?: number, top?: number): IPromise<Contracts.Change[]>;
     /**
-     * [Preview API] Get a list of approvals
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} assignedToFilter - Approvals assigned to this user.
-     * @param {Contracts.ApprovalStatus} statusFilter - Approvals with this status. Default is 'pending'.
-     * @param {number[]} releaseIdsFilter - Approvals for release id(s) mentioned in the filter. Multiple releases can be mentioned by separating them with ',' e.g. releaseIdsFilter=1,2,3,4.
-     * @param {Contracts.ApprovalType} typeFilter - Approval with this type.
-     * @param {number} top - Number of approvals to get. Default is 50.
-     * @param {number} continuationToken - Gets the approvals after the continuation token provided.
-     * @param {Contracts.ReleaseQueryOrder} queryOrder - Gets the results in the defined order of created approvals. Default is 'descending'.
-     * @param {boolean} includeMyGroupApprovals - 'true' to include my group approvals. Default is 'false'.
-     * @return IPromise<Contracts.ReleaseApproval[]>
-     */
-    getApprovals(project: string, assignedToFilter?: string, statusFilter?: Contracts.ApprovalStatus, releaseIdsFilter?: number[], typeFilter?: Contracts.ApprovalType, top?: number, continuationToken?: number, queryOrder?: Contracts.ReleaseQueryOrder, includeMyGroupApprovals?: boolean): IPromise<Contracts.ReleaseApproval[]>;
-    /**
      * [Preview API] Update status of an approval
      *
      * @param {Contracts.ReleaseApproval} approval - ReleaseApproval object having status, approver and comments.
@@ -3021,6 +3116,21 @@ export class CommonMethods2_2To4_1 extends CommonMethods2To4_1 {
      * @return IPromise<Contracts.ReleaseApproval>
      */
     getApprovalHistory(project: string, approvalStepId: number): IPromise<Contracts.ReleaseApproval>;
+    /**
+     * [Preview API] Get a list of approvals
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} assignedToFilter - Approvals assigned to this user.
+     * @param {Contracts.ApprovalStatus} statusFilter - Approvals with this status. Default is 'pending'.
+     * @param {number[]} releaseIdsFilter - Approvals for release id(s) mentioned in the filter. Multiple releases can be mentioned by separating them with ',' e.g. releaseIdsFilter=1,2,3,4.
+     * @param {Contracts.ApprovalType} typeFilter - Approval with this type.
+     * @param {number} top - Number of approvals to get. Default is 50.
+     * @param {number} continuationToken - Gets the approvals after the continuation token provided.
+     * @param {Contracts.ReleaseQueryOrder} queryOrder - Gets the results in the defined order of created approvals. Default is 'descending'.
+     * @param {boolean} includeMyGroupApprovals - 'true' to include my group approvals. Default is 'false'.
+     * @return IPromise<Contracts.ReleaseApproval[]>
+     */
+    getApprovals(project: string, assignedToFilter?: string, statusFilter?: Contracts.ApprovalStatus, releaseIdsFilter?: number[], typeFilter?: Contracts.ApprovalType, top?: number, continuationToken?: number, queryOrder?: Contracts.ReleaseQueryOrder, includeMyGroupApprovals?: boolean): IPromise<Contracts.ReleaseApproval[]>;
 }
 export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
     protected deploymentsApiVersion: string;
@@ -3079,11 +3189,11 @@ export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
      *
      * @param {string} project - Project ID or project name
      * @param {number} releaseId - Id of the release.
-     * @param {boolean} includeAllApprovals - Include all approvals in the result. Default is 'true'.
+     * @param {Contracts.ApprovalFilters} approvalFilters - A filter which would allow fetching approval steps selectively based on whether it is automated, or manual. This would also decide whether we should fetch pre and post approval snapshots. Assumes All by default
      * @param {string[]} propertyFilters - A comma-delimited list of properties to include in the results.
      * @return IPromise<Contracts.Release>
      */
-    getRelease(project: string, releaseId: number, includeAllApprovals?: boolean, propertyFilters?: string[]): IPromise<Contracts.Release>;
+    getRelease(project: string, releaseId: number, approvalFilters?: Contracts.ApprovalFilters, propertyFilters?: string[]): IPromise<Contracts.Release>;
     /**
      * [Preview API] Update manual intervention.
      *
@@ -3503,11 +3613,11 @@ export class ReleaseHttpClient2_3 extends CommonMethods2_2To4_1 {
      *
      * @param {string} project - Project ID or project name
      * @param {number} releaseId - Id of the release.
-     * @param {boolean} includeAllApprovals - Include all approvals in the result. Default is 'true'.
+     * @param {Contracts.ApprovalFilters} approvalFilters - A filter which would allow fetching approval steps selectively based on whether it is automated, or manual. This would also decide whether we should fetch pre and post approval snapshots. Assumes All by default
      * @param {string[]} propertyFilters - A comma-delimited list of properties to include in the results.
      * @return IPromise<Contracts.Release>
      */
-    getRelease(project: string, releaseId: number, includeAllApprovals?: boolean, propertyFilters?: string[]): IPromise<Contracts.Release>;
+    getRelease(project: string, releaseId: number, approvalFilters?: Contracts.ApprovalFilters, propertyFilters?: string[]): IPromise<Contracts.Release>;
     /**
      * [Preview API] Get a list of releases
      *
@@ -3546,11 +3656,11 @@ export class ReleaseHttpClient2_2 extends CommonMethods2_2To4_1 {
      *
      * @param {string} project - Project ID or project name
      * @param {number} releaseId - Id of the release.
-     * @param {boolean} includeAllApprovals - Include all approvals in the result. Default is 'true'.
+     * @param {Contracts.ApprovalFilters} approvalFilters - A filter which would allow fetching approval steps selectively based on whether it is automated, or manual. This would also decide whether we should fetch pre and post approval snapshots. Assumes All by default
      * @param {string[]} propertyFilters - A comma-delimited list of properties to include in the results.
      * @return IPromise<Contracts.Release>
      */
-    getRelease(project: string, releaseId: number, includeAllApprovals?: boolean, propertyFilters?: string[]): IPromise<Contracts.Release>;
+    getRelease(project: string, releaseId: number, approvalFilters?: Contracts.ApprovalFilters, propertyFilters?: string[]): IPromise<Contracts.Release>;
     /**
      * [Preview API] Get a list of releases
      *
@@ -3605,5 +3715,10 @@ declare module "ReleaseManagement/Core/Utils" {
 import RMContracts = require("ReleaseManagement/Core/Contracts");
 export class ReleaseEnvironmentStatusHelper {
     static isEnvironmentCompleted(environment: RMContracts.ReleaseEnvironment): boolean;
+}
+}
+declare module "ReleaseManagement/Core/WebUIConstants" {
+export namespace WebUIConstants {
+    const CreateDefinitionSourceTest = "Test";
 }
 }

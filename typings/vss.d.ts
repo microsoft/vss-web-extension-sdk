@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v127.20171208.1642
+// Type definitions for Microsoft Visual Studio Services v131.20180314.1425
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -9,381 +9,9 @@
 /// <reference types='requirejs' />
 /// <reference types='react' />
 /// <reference types='mousetrap' />
-
-declare module XDM {
-    interface IDeferred<T> {
-        resolve: (result: T) => void;
-        reject: (reason: any) => void;
-        promise: IPromise<T>;
-    }
-    /**
-    * Create a new deferred object
-    */
-    function createDeferred<T>(): IDeferred<T>;
-    /**
-    * Settings related to the serialization of data across iframe boundaries.
-    */
-    interface ISerializationSettings {
-        /**
-        * By default, properties that begin with an underscore are not serialized across
-        * the iframe boundary. Set this option to true to serialize such properties.
-        */
-        includeUnderscoreProperties: boolean;
-    }
-    /**
-     * Catalog of objects exposed for XDM
-     */
-    class XDMObjectRegistry implements IXDMObjectRegistry {
-        private _registeredObjects;
-        /**
-        * Register an object (instance or factory method) exposed by this frame to callers in a remote frame
-        *
-        * @param instanceId unique id of the registered object
-        * @param instance Either: (1) an object instance, or (2) a function that takes optional context data and returns an object instance.
-        */
-        register(instanceId: string, instance: Object | {
-            (contextData?: any): Object;
-        }): void;
-        /**
-        * Unregister an object (instance or factory method) that was previously registered by this frame
-        *
-        * @param instanceId unique id of the registered object
-        */
-        unregister(instanceId: string): void;
-        /**
-        * Get an instance of an object registered with the given id
-        *
-        * @param instanceId unique id of the registered object
-        * @param contextData Optional context data to pass to a registered object's factory method
-        */
-        getInstance<T>(instanceId: string, contextData?: Object): T;
-    }
-    /**
-    * The registry of global XDM handlers
-    */
-    var globalObjectRegistry: XDMObjectRegistry;
-    /**
-     * Represents a channel of communication between frames\document
-     * Stays "alive" across multiple funtion\method calls
-     */
-    class XDMChannel implements IXDMChannel {
-        private static _nextChannelId;
-        private static MAX_XDM_DEPTH;
-        private static WINDOW_TYPES_TO_SKIP_SERIALIZATION;
-        private static JQUERY_TYPES_TO_SKIP_SERIALIZATION;
-        private _nextMessageId;
-        private _deferreds;
-        private _postToWindow;
-        private _targetOrigin;
-        private _handshakeToken;
-        private _channelObjectRegistry;
-        private _channelId;
-        private _nextProxyFunctionId;
-        private _proxyFunctions;
-        constructor(postToWindow: Window, targetOrigin?: string);
-        /**
-        * Get the object registry to handle messages from this specific channel.
-        * Upon receiving a message, this channel registry will be used first, then
-        * the global registry will be used if no handler is found here.
-        */
-        getObjectRegistry(): IXDMObjectRegistry;
-        /**
-        * Invoke a method via RPC. Lookup the registered object on the remote end of the channel and invoke the specified method.
-        *
-        * @param method Name of the method to invoke
-        * @param instanceId unique id of the registered object
-        * @param params Arguments to the method to invoke
-        * @param instanceContextData Optional context data to pass to a registered object's factory method
-        * @param serializationSettings Optional serialization settings
-        */
-        invokeRemoteMethod<T>(methodName: string, instanceId: string, params?: any[], instanceContextData?: Object, serializationSettings?: ISerializationSettings): IPromise<T>;
-        /**
-        * Get a proxied object that represents the object registered with the given instance id on the remote side of this channel.
-        *
-        * @param instanceId unique id of the registered object
-        * @param contextData Optional context data to pass to a registered object's factory method
-        */
-        getRemoteObjectProxy<T>(instanceId: string, contextData?: Object): IPromise<T>;
-        private invokeMethod(registeredInstance, rpcMessage);
-        private getRegisteredObject(instanceId, instanceContext?);
-        /**
-        * Handle a received message on this channel. Dispatch to the appropriate object found via object registry
-        *
-        * @param data Message data
-        * @param origin Origin of the frame that sent the message
-        * @return True if the message was handled by this channel. Otherwise false.
-        */
-        onMessage(data: any, origin: string): boolean;
-        owns(source: Window, origin: string, data: any): boolean;
-        error(data: any, errorObj: any): void;
-        private _error(messageObj, errorObj, handshakeToken);
-        private _success(messageObj, result, handshakeToken);
-        private _sendRpcMessage(message);
-        private _shouldSkipSerialization(obj);
-        private _customSerializeObject(obj, settings, parentObjects?, nextCircularRefId?, depth?);
-        private _registerProxyFunction(func, context);
-        private _customDeserializeObject(obj, circularRefs?);
-    }
-    /**
-    * Registry of XDM channels kept per target frame/window
-    */
-    class XDMChannelManager implements IXDMChannelManager {
-        private static _default;
-        private _channels;
-        constructor();
-        static get(): XDMChannelManager;
-        /**
-        * Add an XDM channel for the given target window/iframe
-        *
-        * @param window Target iframe window to communicate with
-        * @param targetOrigin Url of the target iframe (if known)
-        */
-        addChannel(window: Window, targetOrigin?: string): IXDMChannel;
-        removeChannel(channel: IXDMChannel): void;
-        private _handleMessageReceived(event);
-        private _subscribe(windowObj);
-    }
-}
-declare module VSS {
-    var VssSDKVersion: number;
-    var VssSDKRestVersion: string;
-    /**
-    * Service Ids for core services (to be used in VSS.getService)
-    */
-    module ServiceIds {
-        /**
-        * Service for showing dialogs in the host frame
-        * Use: <IHostDialogService>
-        */
-        var Dialog: string;
-        /**
-        * Service for interacting with the host frame's navigation (getting/updating the address/hash, reloading the page, etc.)
-        * Use: <IHostNavigationService>
-        */
-        var Navigation: string;
-        /**
-        * Service for interacting with extension data (setting/setting documents and collections)
-        * Use: <IExtensionDataService>
-        */
-        var ExtensionData: string;
-    }
-    /**
-     * Initiates the handshake with the host window.
-     *
-     * @param options Initialization options for the extension.
-     */
-    function init(options: IExtensionInitializationOptions): void;
-    /**
-     * Ensures that the AMD loader from the host is configured and fetches a script (AMD) module
-     * (and its dependencies). If no callback is supplied, this will still perform an asynchronous
-     * fetch of the module (unlike AMD require which returns synchronously). This method has no return value.
-     *
-     * Usage:
-     *
-     * VSS.require(["VSS/Controls", "VSS/Controls/Grids"], function(Controls, Grids) {
-     *    ...
-     * });
-     *
-     * @param modules A single module path (string) or array of paths (string[])
-     * @param callback Method called once the modules have been loaded.
-     */
-    function require(modules: string[] | string, callback?: Function): void;
-    /**
-    * Register a callback that gets called once the initial setup/handshake has completed.
-    * If the initial setup is already completed, the callback is invoked at the end of the current call stack.
-    */
-    function ready(callback: () => void): void;
-    /**
-    * Notifies the host that the extension successfully loaded (stop showing the loading indicator)
-    */
-    function notifyLoadSucceeded(): void;
-    /**
-    * Notifies the host that the extension failed to load
-    */
-    function notifyLoadFailed(e: any): void;
-    /**
-    * Get the web context from the parent host
-    */
-    function getWebContext(): WebContext;
-    /**
-    * Get the configuration data passed in the initial handshake from the parent frame
-    */
-    function getConfiguration(): any;
-    /**
-    * Get the context about the extension that owns the content that is being hosted
-    */
-    function getExtensionContext(): IExtensionContext;
-    /**
-    * Gets the information about the contribution that first caused this extension to load.
-    */
-    function getContribution(): Contribution;
-    /**
-    * Get a contributed service from the parent host.
-    *
-    * @param contributionId Full Id of the service contribution to get the instance of
-    * @param context Optional context information to use when obtaining the service instance
-    */
-    function getService<T>(contributionId: string, context?: Object): IPromise<T>;
-    /**
-    * Get the contribution with the given contribution id. The returned contribution has a method to get a registered object within that contribution.
-    *
-    * @param contributionId Id of the contribution to get
-    */
-    function getServiceContribution(contributionId: string): IPromise<IServiceContribution>;
-    /**
-    * Get contributions that target a given contribution id. The returned contributions have a method to get a registered object within that contribution.
-    *
-    * @param targetContributionId Contributions that target the contribution with this id will be returned
-    */
-    function getServiceContributions(targetContributionId: string): IPromise<IServiceContribution[]>;
-    /**
-    * Register an object (instance or factory method) that this extension exposes to the host frame.
-    *
-    * @param instanceId unique id of the registered object
-    * @param instance Either: (1) an object instance, or (2) a function that takes optional context data and returns an object instance.
-    */
-    function register(instanceId: string, instance: Object | {
-        (contextData?: any): Object;
-    }): void;
-    /**
-    * Removes an object that this extension exposed to the host frame.
-    *
-    * @param instanceId unique id of the registered object
-    */
-    function unregister(instanceId: string): void;
-    /**
-    * Get an instance of an object registered with the given id
-    *
-    * @param instanceId unique id of the registered object
-    * @param contextData Optional context data to pass to the contructor of an object factory method
-    */
-    function getRegisteredObject(instanceId: string, contextData?: Object): Object;
-    /**
-    * Fetch an access token which will allow calls to be made to other VSTS services
-    */
-    function getAccessToken(): IPromise<ISessionToken>;
-    /**
-    * Fetch an token which can be used to identify the current user
-    */
-    function getAppToken(): IPromise<ISessionToken>;
-    /**
-    * Requests the parent window to resize the container for this extension based on the current extension size.
-    *
-    * @param width Optional width, defaults to scrollWidth
-    * @param height Optional height, defaults to scrollHeight
-    */
-    function resize(width?: number, height?: number): void;
-}
-
-
 //----------------------------------------------------------
 // Common interfaces specific to WebPlatform area
 //----------------------------------------------------------
-interface EventTarget {
-    checked: boolean;
-    nodeType: number;
-}
-
-interface Date {
-    toGMTString(): string;
-}
-
-interface IErrorCallback {
-    (error: any): void;
-}
-
-interface IResultCallback extends Function {
-}
-
-interface IArgsFunctionR<TResult> {
-    (...args: any[]): TResult;
-}
-
-interface IFunctionPR<TParam, TResult> {
-    (param: TParam): TResult;
-}
-
-interface IFunctionPPR<TParam1, TParam2, TResult> {
-    (param1: TParam1, param2: TParam2): TResult;
-}
-
-interface IFunctionPPPR<TParam1, TParam2, TParam3, TResult> {
-    (param1: TParam1, param2: TParam2, param3: TParam3): TResult;
-}
-
-interface IComparer<T> extends IFunctionPPR<T, T, number> {
-}
-
-interface IDictionaryStringTo<T> {
-    [key: string]: T;
-}
-
-interface IDictionaryNumberTo<T> {
-    [key: number]: T;
-}
-
-interface IEventHandler extends Function {
-}
-
-interface JQueryEventHandler {
-    (eventObject: JQueryEventObject, args?: any): any;
-}
-
-interface IWebApiArrayResult {
-    count: number;
-    value: any[];
-}
-
-interface Window {
-    ActiveXObject: any;
-    DOMParser: any;
-    XSLTProcessor: any;
-    vsSdkOnLoad:() => void;
-}
-
-interface ServerError {
-    typeKey?: string;
-}
-
-interface TfsError extends Error {
-    status?: string;
-    stack?: string;
-    serverError?: ServerError;
-    [key: string]: any;
-}
-
-//These variables defined by server.
-declare var exports: any;
-
-declare var _disabledPlugins: string[];
-
-interface IWebAccessPlugin {
-    namespace: string;
-    loadAfter: string;
-}
-
-declare var _plugins: IWebAccessPlugin[];
-declare var _builtinPlugins: IWebAccessPlugin[];
-
-interface IWebAccessPluginBase {
-    namespace: string;
-    base: string;
-}
-
-declare var _builtInBases: IWebAccessPluginBase[];
-declare var _bases: IWebAccessPluginBase[];
-
-interface IDisposable {
-    dispose(): void;
-}
-
-interface IKeyValuePair<TKey, TValue> {
-    key: TKey;
-    value: TValue;
-}
-
-declare var require: Require;
-declare var define: RequireDefine;
 
 /**
 * VSS-specific options for VSS ajax requests
@@ -463,8 +91,9 @@ interface IAuthTokenManager<TToken> {
     * Get the auth token to use for this request.
     *
     * @param refresh If true refresh the token (i.e. request a new one - don't use a cached token)
+    * @param webContext WebContext to use when getting auth token. If not specified, default page context is used.
     */
-    getAuthToken(refresh?: boolean): IPromise<TToken>;
+    getAuthToken(refresh?: boolean, webContext?: any): IPromise<TToken>;
     
     /**
      * Gets the authorization header to use in a request from the given token
@@ -1007,7 +636,7 @@ interface IHostNavigationService {
     /**
     * Gets the current hash.
     */
-    getHash(): IPromise<string>;
+    getHash(): Q.Promise<string>;
 
     /**
      * Reloads the parent frame
@@ -1270,6 +899,13 @@ interface IContributedTab {
     title?: string | IPromise<string> | ((context?: any) => string | IPromise<string>);
 
     /**
+     * Optional group key for the tab
+     * @param context Context information
+     * @return string The group key
+     */
+    groupKey?: string | IPromise<string> | ((context?: any) => string | IPromise<string>);
+
+    /**
      * URI to the page that this tab will display (i.e. in a frame)
      */
     uri: string;
@@ -1442,9 +1078,21 @@ interface AppInsightsConfiguration {
 */
 interface AppInsightsCustomTrackPageData {
     alias: string;
-    metrics: { [key: string]: number; };
+    metrics: { [key: string]: any; };
     pageName: string;
     properties: { [key: string]: string; };
+}
+
+/**
+* A client data provider are the details needed to make the data provider request from the client.
+*/
+interface ClientDataProviderQuery {
+    context: DataProviderContext;
+    contributionIds: string[];
+    /**
+    * The Id of the service instance type that should be communicated with in order to resolve the data providers from the client given the query values.
+    */
+    queryServiceInstanceType: string;
 }
 
 /**
@@ -1500,6 +1148,10 @@ interface ConfigurationContextPaths {
     * Relative path to the root of the web application
     */
     rootPath: string;
+    /**
+    * Absolute path to build static content URLs from. May be relative or fully-qualified.
+    */
+    staticContentRootPath: string;
     /**
     * Static content version stamp
     */
@@ -1575,6 +1227,10 @@ interface ContributedFeature {
     * The scopes/levels at which settings can set the enabled/disabled state of this feature
     */
     scopes: ContributedFeatureSettingScope[];
+    /**
+    * The service instance id of the service that owns this feature
+    */
+    serviceInstanceType: string;
 }
 
 /**
@@ -1618,6 +1274,14 @@ interface ContributedFeatureState {
     */
     featureId: string;
     /**
+    * True if the effective state was set by an override rule (indicating that the state cannot be managed by the end user)
+    */
+    overridden: boolean;
+    /**
+    * Reason that the state was set (by a plugin/rule).
+    */
+    reason: string;
+    /**
     * The scope at which this state applies
     */
     scope: ContributedFeatureSettingScope;
@@ -1659,18 +1323,6 @@ interface ContributedFeatureValueRule {
     properties: any;
 }
 
-interface ContributedNavElement {
-    children: string[];
-    componentProperties: number;
-    componentType: string;
-    flags: number;
-    icon: string;
-    id: string;
-    name: string;
-    navGroup: string;
-    order: any;
-}
-
 /**
 * Page context configuration that can be contributed by remote services (different VSTS services delivering content to the page)
 */
@@ -1709,10 +1361,6 @@ interface ContributedServiceContext {
     serviceTypeId: string;
 }
 
-interface ContributedTheme {
-    id: string;
-}
-
 /**
 * An individual contribution made by an extension
 */
@@ -1731,6 +1379,10 @@ interface Contribution {
     * Properties/attributes of this contribution
     */
     properties: any;
+    /**
+    * List of demanded claims in order for the user to see this contribution (like anonymous, public, member...).
+    */
+    restrictedTo: string[];
     /**
     * The ids of the contribution(s) that this contribution targets. (parent contributions)
     */
@@ -1769,11 +1421,15 @@ interface ContributionConstraint {
     */
     group: number;
     /**
+    * Fully qualified identifier of a shared constraint
+    */
+    id: string;
+    /**
     * If true, negate the result of the filter (include the contribution if the applied filter returns false instead of true)
     */
     inverse: boolean;
     /**
-    * Name of the IContributionFilter class
+    * Name of the IContributionFilter plugin
     */
     name: string;
     /**
@@ -1951,8 +1607,8 @@ interface ContributionProviderDetails {
 }
 
 interface ContributionsPageData {
-    contributions: Contribution[];
-    providerDetails: { [key: string]: ContributionProviderDetails; };
+    contributions: PageContribution[];
+    providerDetails: { [key: string]: PageContributionProviderDetails; };
     queriedContributionIds: string[];
 }
 
@@ -2043,13 +1699,25 @@ interface DataProviderQuery {
 */
 interface DataProviderResult {
     /**
+    * This is the set of data providers that were requested, but either they were defined as client providers, or as remote providers that failed and may be retried by the client.
+    */
+    clientProviders: { [key: string]: ClientDataProviderQuery; };
+    /**
     * Property bag of data keyed off of the data provider contribution id
     */
-    data: { [key: string]: number; };
+    data: { [key: string]: any; };
+    /**
+    * Set of exceptions that occurred resolving the data providers.
+    */
+    exceptions: { [key: string]: DataProviderExceptionDetails; };
     /**
     * List of data providers resolved in the data-provider query
     */
     resolvedProviders: ResolvedDataProvider[];
+    /**
+    * Property bag of shared data that was contributed to by any of the individual data providers
+    */
+    sharedData: { [key: string]: any; };
 }
 
 interface DaylightSavingsAdjustmentEntry {
@@ -2114,8 +1782,8 @@ interface DynamicCSSBundle {
 
 interface DynamicScriptBundle {
     contentLength: number;
-    uri: string;
     integrity: string;
+    uri: string;
 }
 
 interface ExtendedHostContext {
@@ -2324,6 +1992,10 @@ interface ExtensionManifest {
     */
     baseUri: string;
     /**
+    * List of shared constraints defined by this extension
+    */
+    constraints: ContributionConstraint[];
+    /**
     * List of contributions made by this extension
     */
     contributions: Contribution[];
@@ -2355,6 +2027,10 @@ interface ExtensionManifest {
     * Version of the extension manifest format/content
     */
     manifestVersion: any;
+    /**
+    * Default user claims applied to all contributions (except the ones which have been speficied restrictedTo explicitly) to control the visibility of a contribution.
+    */
+    restrictedTo: string[];
     /**
     * List of all oauth scopes required by this extension
     */
@@ -2420,6 +2096,29 @@ interface ExtensionRequestEvent {
     * The extension request object
     */
     request: ExtensionRequest;
+    /**
+    * The type of update that was made
+    */
+    updateType: ExtensionRequestUpdateType;
+}
+
+interface ExtensionRequestsEvent {
+    /**
+    * The extension which has been requested
+    */
+    extension: any;
+    /**
+    * Information about the host for which this extension is requested
+    */
+    host: ExtensionHost;
+    /**
+    * Gallery host url
+    */
+    links: ExtensionRequestUrls;
+    /**
+    * The extension request object
+    */
+    requests: ExtensionRequest[];
     /**
     * The type of update that was made
     */
@@ -2560,6 +2259,7 @@ interface GlobalizationContext {
     theme: string;
     timeZoneId: string;
     timezoneOffset: number;
+    typeAheadDisabled: boolean;
 }
 
 interface HostContext {
@@ -2573,6 +2273,7 @@ interface HostContext {
 * Model representing a hub in VSTS pages' navigation menu
 */
 interface Hub {
+    ariaLabel: string;
     builtIn: boolean;
     groupId: string;
     hidden: boolean;
@@ -2583,7 +2284,6 @@ interface Hub {
     order: any;
     supportsXHRNavigate: boolean;
     uri: string;
-    ariaLabel?: string;
 }
 
 /**
@@ -2612,6 +2312,7 @@ interface HubsContext {
     pinningPreferences: PinningPreferences;
     selectedHubGroupId: string;
     selectedHubId: string;
+    selectedNavigationIds: string[];
 }
 
 /**
@@ -2657,6 +2358,7 @@ interface IdentityModel {
 */
 interface InstalledExtension {
     baseUri: string;
+    constraints: ContributionConstraint[];
     contributions: Contribution[];
     contributionTypes: ContributionType[];
     demands: string[];
@@ -2701,6 +2403,7 @@ interface InstalledExtension {
     * Unique id for this extension (the same id is used for all versions of a single extension)
     */
     registrationId: string;
+    restrictedTo: string[];
     scopes: string[];
     serviceInstanceType: string;
     /**
@@ -2841,6 +2544,10 @@ interface NavigationContext {
     */
     area: string;
     /**
+    * Command name for the current request's route. Used in telemetry and reporting.
+    */
+    commandName: string;
+    /**
     * Current action route value
     */
     currentAction: string;
@@ -2852,6 +2559,18 @@ interface NavigationContext {
     * Current parameters route value (the path after the controller and action in the url)
     */
     currentParameters: string;
+    /**
+    * The id of the matched route
+    */
+    routeId: string;
+    /**
+    * The templates for the matched route
+    */
+    routeTemplates: string[];
+    /**
+    * The set of route values for this request
+    */
+    routeValues: { [key: string]: string; };
     /**
     * Flag to show top most navigation context. For example the URL http://server:port/collection/project/_controller/action sets the Project bit while the URL http://server:port/collection/project/_admin/_controller/action sets also sets the area property to Admin.
     */
@@ -2956,6 +2675,20 @@ interface PageContext {
     webContext: WebContext;
 }
 
+interface PageContribution {
+    id: string;
+    includes: string[];
+    properties: any;
+    targets: string[];
+    type: string;
+}
+
+interface PageContributionProviderDetails {
+    displayName: string;
+    name: string;
+    properties: { [key: string]: string; };
+}
+
 interface PageXHRData {
     activityId: string;
     bundles: DynamicBundlesCollection;
@@ -2973,10 +2706,6 @@ interface PinningPreferences {
     pinnedHubs: { [key: string]: string[]; };
     unpinnedHubGroupIds: string[];
     unpinnedHubs: { [key: string]: string[]; };
-}
-
-interface RelatableContribution {
-    id: string;
 }
 
 /**
@@ -3117,7 +2846,6 @@ interface TeamFoundationServiceHostModel {
 
 interface TfsMailSettings {
     enabled: boolean;
-    from: string;
 }
 
 /**
@@ -3140,6 +2868,8 @@ interface UserContext {
     id: string;
     limitedAccess: boolean;
     name: string;
+    subjectId: string;
+    subjectType: string;
     uniqueName: string;
 }
 
@@ -3183,6 +2913,10 @@ interface WebPageDataProviderPageSource {
     */
     diagnostics: DiagnosticsContext;
     /**
+    * Globalization context (theme, time zone, etc.) of the source page
+    */
+    globalization: WebPageGlobalizationContext;
+    /**
     * The navigation context for the host page that is loading the data provider
     */
     navigation: NavigationContext;
@@ -3208,6 +2942,125 @@ interface WebPageDataProviderPageSource {
     url: string;
 }
 
+/**
+* Lightweight globalization context for web-page-related data providers
+*/
+interface WebPageGlobalizationContext {
+    /**
+    * UI Culture of the host page
+    */
+    culture: string;
+    /**
+    * Theme of the host page
+    */
+    theme: string;
+}
+
+interface EventTarget {
+    checked: boolean;
+    nodeType: number;
+}
+
+interface Date {
+    toGMTString(): string;
+}
+
+interface IErrorCallback {
+    (error: any): void;
+}
+
+interface IResultCallback extends Function {
+}
+
+interface IArgsFunctionR<TResult> {
+    (...args: any[]): TResult;
+}
+
+interface IFunctionPR<TParam, TResult> {
+    (param: TParam): TResult;
+}
+
+interface IFunctionPPR<TParam1, TParam2, TResult> {
+    (param1: TParam1, param2: TParam2): TResult;
+}
+
+interface IFunctionPPPR<TParam1, TParam2, TParam3, TResult> {
+    (param1: TParam1, param2: TParam2, param3: TParam3): TResult;
+}
+
+interface IComparer<T> extends IFunctionPPR<T, T, number> {
+}
+
+interface IDictionaryStringTo<T> {
+    [key: string]: T;
+}
+
+interface IDictionaryNumberTo<T> {
+    [key: number]: T;
+}
+
+interface IEventHandler extends Function {
+}
+
+interface JQueryEventHandler {
+    (eventObject: JQueryEventObject, args?: any): any;
+}
+
+interface IWebApiArrayResult {
+    count: number;
+    value: any[];
+}
+
+interface Window {
+    ActiveXObject: any;
+    DOMParser: any;
+    XSLTProcessor: any;
+    vsSdkOnLoad:() => void;
+}
+
+interface ServerError {
+    typeKey?: string;
+}
+
+interface TfsError extends Error {
+    status?: string;
+    stack?: string;
+    serverError?: ServerError;
+    [key: string]: any;
+}
+
+//These variables defined by server.
+declare var exports: any;
+
+declare var _disabledPlugins: string[];
+
+interface IWebAccessPlugin {
+    namespace: string;
+    loadAfter: string;
+}
+
+declare var _plugins: IWebAccessPlugin[];
+declare var _builtinPlugins: IWebAccessPlugin[];
+
+interface IWebAccessPluginBase {
+    namespace: string;
+    base: string;
+}
+
+declare var _builtInBases: IWebAccessPluginBase[];
+declare var _bases: IWebAccessPluginBase[];
+
+interface IDisposable {
+    dispose(): void;
+}
+
+interface IKeyValuePair<TKey, TValue> {
+    key: TKey;
+    value: TValue;
+}
+
+declare var require: Require;
+declare var define: RequireDefine;
 declare module "VSS/Accounts/Contracts" {
 export interface Account {
     /**
@@ -3491,9 +3344,9 @@ export class AccountsHttpClient extends AccountsHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return AccountsHttpClient4
+ * @return AccountsHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): AccountsHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): AccountsHttpClient4_1;
 }
 declare module "VSS/Adapters/Knockout" {
 import Controls = require("VSS/Controls");
@@ -3873,6 +3726,7 @@ export class AuthenticationHttpClient extends AuthenticationHttpClient4_1 {
 }
 }
 declare module "VSS/Authentication/Services" {
+import Contracts_Platform = require("VSS/Common/Contracts/Platform");
 import Authentication_Contracts_Async = require("VSS/Authentication/Contracts");
 export module CoreNamedWebSessionTokenIds {
     var Profile: string;
@@ -3918,7 +3772,7 @@ export class NamedWebSessionTokenManager implements IAuthTokenManager<Authentica
     /**
     * Get the auth token to use for this request.
     */
-    getAuthToken(refresh?: boolean): IPromise<Authentication_Contracts_Async.WebSessionToken>;
+    getAuthToken(refresh?: boolean, webContext?: Contracts_Platform.WebContext): IPromise<Authentication_Contracts_Async.WebSessionToken>;
     /**
      * Gets the authorization header to use in a request from the given token
      *
@@ -3937,7 +3791,7 @@ export class BasicAuthTokenManager implements IAuthTokenManager<string> {
     /**
     * Get the auth token to use for this request.
     */
-    getAuthToken(refresh?: boolean): IPromise<string>;
+    getAuthToken(refresh?: boolean, webContext?: Contracts_Platform.WebContext): IPromise<string>;
     /**
      * Gets the authorization header to use in a request from the given token
      *
@@ -3952,7 +3806,7 @@ export class BearerAuthTokenManager implements IAuthTokenManager<string> {
     /**
     * Get the auth token to use for this request.
     */
-    getAuthToken(refresh?: boolean): IPromise<string>;
+    getAuthToken(refresh?: boolean, webContext?: Contracts_Platform.WebContext): IPromise<string>;
     /**
      * Gets the authorization header to use in a request from the given token
      *
@@ -3969,7 +3823,7 @@ export class WebSessionTokenManager extends BearerAuthTokenManager {
     /**
     * Get the auth token to use for this request.
     */
-    getAuthToken(refresh?: boolean): IPromise<string>;
+    getAuthToken(refresh?: boolean, webContext?: Contracts_Platform.WebContext): IPromise<string>;
 }
 /**
 * Exposes the default auth token manager for collection-level tokens
@@ -3981,9 +3835,11 @@ export var authTokenManager: IAuthTokenManager<any>;
 * @param appId Id of the application.
 * @param name Metadata info to identify the token.
 * @param force Enables skipping cache and issue a brand new token.
+* @param scoped
+* @param webContext WebContext to use when getting auth token. If not specified, default page context is used.
 * @return Session token.
 */
-export function getToken(appId?: string, name?: string, force?: boolean, scoped?: boolean): IPromise<Authentication_Contracts_Async.WebSessionToken>;
+export function getToken(appId?: string, name?: string, force?: boolean, scoped?: boolean, webContext?: Contracts_Platform.WebContext): IPromise<Authentication_Contracts_Async.WebSessionToken>;
 /**
 * Fetch an app token to use for the current user for the given application.  This can be used to authenticate
 * with an external application.
@@ -3991,9 +3847,10 @@ export function getToken(appId?: string, name?: string, force?: boolean, scoped?
 * @param appId Id of the application.
 * @param name Metadata info to identify the token.
 * @param force Enables skipping cache and issue a brand new token.
+* @param webContext WebContext to use when getting auth token. If not specified, default page context is used.
 * @return Session token.
 */
-export function getAppToken(appId: string, name?: string, force?: boolean): IPromise<Authentication_Contracts_Async.WebSessionToken>;
+export function getAppToken(appId: string, name?: string, force?: boolean, webContext?: Contracts_Platform.WebContext): IPromise<Authentication_Contracts_Async.WebSessionToken>;
 /**
 * Get an auth token manager - either the default manager or the manager for a registered/named token
 *
@@ -4059,6 +3916,79 @@ export function requireModules(moduleNames: string[], options?: VSS.IModuleLoadO
 * @param callback Method to invoke once the modules have been resolved.
 */
 export function loadModules(moduleNames: string[], options?: VSS.IModuleLoadOptions): Q.Promise<void>;
+}
+declare module "VSS/ClientTrace/Contracts" {
+export interface ClientTraceEvent {
+    area: string;
+    component: string;
+    exceptionType: string;
+    feature: string;
+    level: Level;
+    message: string;
+    method: string;
+    properties: {
+        [key: string]: any;
+    };
+}
+export enum Level {
+    Off = 0,
+    Error = 1,
+    Warning = 2,
+    Info = 3,
+    Verbose = 4,
+}
+export var TypeInfo: {
+    ClientTraceEvent: any;
+    Level: {
+        enumValues: {
+            "off": number;
+            "error": number;
+            "warning": number;
+            "info": number;
+            "verbose": number;
+        };
+    };
+};
+}
+declare module "VSS/ClientTrace/RestClient" {
+import Contracts = require("VSS/ClientTrace/Contracts");
+import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
+export class ClientTraceHttpClient4_1 extends VSS_WebApi.VssHttpClient {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ClientTraceEvent[]} events
+     * @return IPromise<void>
+     */
+    publishEvents(events: Contracts.ClientTraceEvent[]): IPromise<void>;
+}
+export class ClientTraceHttpClient extends ClientTraceHttpClient4_1 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * Gets an http client targeting the latest released version of the APIs.
+ *
+ * @return ClientTraceHttpClient4_1
+ */
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ClientTraceHttpClient4_1;
+}
+declare module "VSS/ClientTrace/Services" {
+import { ClientTraceEvent } from "VSS/ClientTrace/Contracts";
+/**
+ * Trace the given event to the CI client trace channel
+ * (events are queued and sent in delayed batches)
+ *
+ * @param eventData {ClientTraceEvent} event to publish
+ */
+export function trace(event: ClientTraceEvent): void;
+/**
+ * Flush queued event data to be sent to client trace
+ */
+export function flush(): IPromise<void>;
 }
 declare module "VSS/Commerce/Contracts" {
 /**
@@ -4934,6 +4864,101 @@ export enum ResourceStatusReason {
     MaximumQuantityReached = 16,
 }
 /**
+ * The subscription account. Add Sub Type and Owner email later.
+ */
+export interface SubscriptionAccount {
+    /**
+     * Gets or sets the account host type.
+     */
+    accountHostType: number;
+    /**
+     * Gets or sets the account identifier. Usually a guid.
+     */
+    accountId: string;
+    /**
+     * Gets or sets the name of the account.
+     */
+    accountName: string;
+    /**
+     * Gets or sets the account tenantId.
+     */
+    accountTenantId: string;
+    /**
+     * Purchase Error Reason
+     */
+    failedPurchaseReason: PurchaseErrorReason;
+    /**
+     * Gets or sets the geo location.
+     */
+    geoLocation: string;
+    /**
+     * Gets or sets a value indicating whether the calling user identity owns or is a PCA of the account.
+     */
+    isAccountOwner: boolean;
+    /**
+     * Gets or set the flag to enable purchase via subscription.
+     */
+    isEligibleForPurchase: boolean;
+    /**
+     * get or set IsPrepaidFundSubscription
+     */
+    isPrepaidFundSubscription: boolean;
+    /**
+     * get or set IsPricingPricingAvailable
+     */
+    isPricingAvailable: boolean;
+    /**
+     * Gets or sets the subscription address country code
+     */
+    locale: string;
+    /**
+     * Gets or sets the Offer Type of this subscription.
+     */
+    offerType: AzureOfferType;
+    /**
+     * Gets or sets the subscription address country display name
+     */
+    regionDisplayName: string;
+    /**
+     * Gets or sets the resource group.
+     */
+    resourceGroupName: string;
+    /**
+     * Gets or sets the azure resource name.
+     */
+    resourceName: string;
+    /**
+     * A dictionary of service urls, mapping the service owner to the service owner url
+     */
+    serviceUrls: {
+        [key: string]: string;
+    };
+    /**
+     * Gets or sets the subscription identifier.
+     */
+    subscriptionId: string;
+    /**
+     * Gets or sets the azure subscription name
+     */
+    subscriptionName: string;
+    /**
+     * object id of subscruption admin
+     */
+    subscriptionObjectId: string;
+    /**
+     * get or set subscription offer code
+     */
+    subscriptionOfferCode: string;
+    /**
+     * Gets or sets the subscription status.
+     */
+    subscriptionStatus: SubscriptionStatus;
+    /**
+     * tenant id of subscription
+     */
+    subscriptionTenantId: string;
+}
+/**
  * Information about a resource associated with a subscription.
  */
 export interface SubscriptionResource {
@@ -5208,6 +5233,7 @@ export var TypeInfo: {
             "maximumQuantityReached": number;
         };
     };
+    SubscriptionAccount: any;
     SubscriptionResource: any;
     SubscriptionSource: {
         enumValues: {
@@ -5285,17 +5311,17 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      *
      * @param {Contracts.AccountProviderNamespace} providerNamespaceId
      * @param {string} accountId
-     * @return IPromise<Contracts.ISubscriptionAccount>
+     * @return IPromise<Contracts.SubscriptionAccount>
      */
-    getSubscriptionAccount(providerNamespaceId: Contracts.AccountProviderNamespace, accountId: string): IPromise<Contracts.ISubscriptionAccount>;
+    getSubscriptionAccount(providerNamespaceId: Contracts.AccountProviderNamespace, accountId: string): IPromise<Contracts.SubscriptionAccount>;
     /**
      * [Preview API]
      *
-     * @param {string[]} subscriptionIds
+     * @param {string[]} ids
      * @param {Contracts.AccountProviderNamespace} providerNamespaceId
      * @return IPromise<Contracts.IAzureSubscription[]>
      */
-    getAzureSubscriptions(subscriptionIds: string[], providerNamespaceId: Contracts.AccountProviderNamespace): IPromise<Contracts.IAzureSubscription[]>;
+    getAzureSubscriptions(ids: string[], providerNamespaceId: Contracts.AccountProviderNamespace): IPromise<Contracts.IAzureSubscription[]>;
     /**
      * [Preview API]
      *
@@ -5655,9 +5681,9 @@ export class CommerceHttpClient extends CommerceHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return CommerceHttpClient4
+ * @return CommerceHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CommerceHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CommerceHttpClient4_1;
 }
 declare module "VSS/Common/Constants/Platform" {
 export module ContributedServiceContextData {
@@ -5745,7 +5771,6 @@ export module WebPlatformFeatureFlags {
     var MarkdownRendering: string;
     var SubresourceIntegrity: string;
     var ReactProfileCard: string;
-    var UseMustacheJs: string;
 }
 }
 declare module "VSS/Common/Contracts/FormInput" {
@@ -6094,7 +6119,7 @@ export interface AppInsightsConfiguration {
 export interface AppInsightsCustomTrackPageData {
     alias: string;
     metrics: {
-        [key: string]: number;
+        [key: string]: any;
     };
     pageName: string;
     properties: {
@@ -6145,6 +6170,10 @@ export interface ConfigurationContextApis {
 */
 export interface ConfigurationContextPaths {
     /**
+    * Path (no CDN) to versioned static content
+    */
+    cdnFallbackStaticRootTfs: string;
+    /**
     * Relative path to the _content path of the web application
     */
     resourcesPath: string;
@@ -6152,6 +6181,10 @@ export interface ConfigurationContextPaths {
     * Relative path to the root of the web application
     */
     rootPath: string;
+    /**
+    * Absolute path to build static content URLs from. May be relative or fully-qualified.
+    */
+    staticContentRootPath: string;
     /**
     * Static content version stamp
     */
@@ -6187,46 +6220,6 @@ export enum ContextHostType {
 export interface ContextIdentifier {
     id: string;
     name: string;
-}
-export interface ContributedHub {
-    attributes: number;
-    builtIn: boolean;
-    disabled: boolean;
-    icon: string;
-    id: string;
-    name: string;
-    order: any;
-}
-export interface ContributedHubGroup {
-    attributes: number;
-    builtIn: boolean;
-    hidden: boolean;
-    hubs: {
-        [key: string]: ContributedHub;
-    };
-    icon: string;
-    id: string;
-    name: string;
-    navGroup: string;
-    order: any;
-}
-export interface ContributedHubGroupCollection {
-    attributes: number;
-    hubGroups: {
-        [key: string]: ContributedHubGroup;
-    };
-    id: string;
-}
-export interface ContributedNavElement {
-    attributes: number;
-    id: string;
-}
-export interface ContributedPage {
-    attributes: number;
-    hubGroupCollections: {
-        [key: string]: ContributedHubGroupCollection;
-    };
-    id: string;
 }
 /**
 * Page context configuration that can be contributed by remote services (different VSTS services delivering content to the page)
@@ -6287,9 +6280,9 @@ export enum ContributionPathType {
     ThirdParty = 2,
 }
 export interface ContributionsPageData {
-    contributions: VSS_Contributions_Contracts.Contribution[];
+    contributions: PageContribution[];
     providerDetails: {
-        [key: string]: VSS_Contributions_Contracts.ContributionProviderDetails;
+        [key: string]: PageContributionProviderDetails;
     };
     queriedContributionIds: string[];
 }
@@ -6372,8 +6365,8 @@ export interface DynamicCSSBundle {
 }
 export interface DynamicScriptBundle {
     contentLength: number;
-    uri: string;
     integrity: string;
+    uri: string;
 }
 export interface ExtendedHostContext {
     authority: string;
@@ -6392,19 +6385,14 @@ export interface FeatureAvailabilityContext {
 }
 export interface GlobalizationContext {
     culture: string;
+    /**
+    * Gets the explicitly-set theme, or the empty string if a theme was not explicitly set. An explicitly-set theme is set either in the query string (?theme=[themename]) or in the user's profile. However, the default theme set in the profile is not considered to be an explicitly-set theme.
+    */
     explicitTheme: string;
     theme: string;
     timeZoneId: string;
     timezoneOffset: number;
-}
-export interface HeaderModel {
-    brandIcon: string;
-    brandName: string;
-    context: any;
-    contributionId: string;
-    elementContributionType: string;
-    supportsContribution: boolean;
-    userDisplayName: string;
+    typeAheadDisabled: boolean;
 }
 export interface HostContext {
     id: string;
@@ -6416,6 +6404,7 @@ export interface HostContext {
 * Model representing a hub in VSTS pages' navigation menu
 */
 export interface Hub {
+    ariaLabel: string;
     builtIn: boolean;
     groupId: string;
     hidden: boolean;
@@ -6452,6 +6441,7 @@ export interface HubsContext {
     pinningPreferences: PinningPreferences;
     selectedHubGroupId: string;
     selectedHubId: string;
+    selectedNavigationIds: string[];
 }
 /**
 * Model to represent a TeamFoundationIdentity
@@ -6559,6 +6549,10 @@ export interface NavigationContext {
     */
     area: string;
     /**
+    * Command name for the current request's route. Used in telemetry and reporting.
+    */
+    commandName: string;
+    /**
     * Current action route value
     */
     currentAction: string;
@@ -6571,27 +6565,23 @@ export interface NavigationContext {
     */
     currentParameters: string;
     /**
-    * Command name for the current request's route. Used in telemetry and reporting.
+    * The id of the matched route
     */
-    commandName: string;
+    routeId: string;
+    /**
+    * The templates for the matched route
+    */
+    routeTemplates: string[];
+    /**
+    * The set of route values for this request
+    */
+    routeValues: {
+        [key: string]: string;
+    };
     /**
     * Flag to show top most navigation context. For example the URL http://server:port/collection/project/_controller/action sets the Project bit while the URL http://server:port/collection/project/_admin/_controller/action sets also sets the area property to Admin.
     */
     topMostLevel: NavigationContextLevels;
-    /**
-     * The id of the matched route
-     */
-    routeId: string;
-    /**
-     * The templates for the matched route
-     */
-    routeTemplates: string[];
-    /**
-     * The set of route values for this request
-     */
-    routeValues: {
-        [key: string]: string;
-    };
 }
 /**
 * Flags to show which tokens of the navigation context are present in the current request URL. The request url's context part are formed like http://server:port[/{collection}[/{project}[/{team}]]][/_admin]/_{controller}/{action} The tokens {collection}, {project} and {team} are navigation level tokens whereas _admin segment is a switch to show admin areas of the site.
@@ -6689,6 +6679,20 @@ export interface PageContext {
     */
     webContext: WebContext;
 }
+export interface PageContribution {
+    id: string;
+    includes: string[];
+    properties: any;
+    targets: string[];
+    type: string;
+}
+export interface PageContributionProviderDetails {
+    displayName: string;
+    name: string;
+    properties: {
+        [key: string]: string;
+    };
+}
 export interface PageXHRData {
     activityId: string;
     bundles: DynamicBundlesCollection;
@@ -6770,7 +6774,6 @@ export interface TeamFoundationServiceHostModel {
 }
 export interface TfsMailSettings {
     enabled: boolean;
-    from: string;
 }
 /**
 * Internal structure to describe IVssServiceHost
@@ -6790,6 +6793,8 @@ export interface UserContext {
     id: string;
     limitedAccess: boolean;
     name: string;
+    subjectId: string;
+    subjectType: string;
     uniqueName: string;
 }
 /**
@@ -6831,6 +6836,10 @@ export interface WebPageDataProviderPageSource {
     */
     diagnostics: DiagnosticsContext;
     /**
+    * Globalization context (theme, time zone, etc.) of the source page
+    */
+    globalization: WebPageGlobalizationContext;
+    /**
     * The navigation context for the host page that is loading the data provider
     */
     navigation: NavigationContext;
@@ -6854,6 +6863,19 @@ export interface WebPageDataProviderPageSource {
     * The url of the host page that is loading the data provider
     */
     url: string;
+}
+/**
+* Lightweight globalization context for web-page-related data providers
+*/
+export interface WebPageGlobalizationContext {
+    /**
+    * UI Culture of the host page
+    */
+    culture: string;
+    /**
+    * Theme of the host page
+    */
+    theme: string;
 }
 export var TypeInfo: {
     ContextHostType: {
@@ -7360,6 +7382,72 @@ export interface AcquisitionOptions {
     target: string;
 }
 /**
+ * Representaion of a ContributionNode that can be used for serialized to clients.
+ */
+export interface ClientContribution {
+    /**
+     * Description of the contribution/type
+     */
+    description: string;
+    /**
+     * Fully qualified identifier of the contribution/type
+     */
+    id: string;
+    /**
+     * Includes is a set of contributions that should have this contribution included in their targets list.
+     */
+    includes: string[];
+    /**
+     * Properties/attributes of this contribution
+     */
+    properties: any;
+    /**
+     * The ids of the contribution(s) that this contribution targets. (parent contributions)
+     */
+    targets: string[];
+    /**
+     * Id of the Contribution Type
+     */
+    type: string;
+}
+/**
+ * Representaion of a ContributionNode that can be used for serialized to clients.
+ */
+export interface ClientContributionNode {
+    /**
+     * List of ids for contributions which are children to the current contribution.
+     */
+    children: string[];
+    /**
+     * Contribution associated with this node.
+     */
+    contribution: ClientContribution;
+    /**
+     * List of ids for contributions which are parents to the current contribution.
+     */
+    parents: string[];
+}
+export interface ClientContributionProviderDetails {
+    /**
+     * Friendly name for the provider.
+     */
+    displayName: string;
+    /**
+     * Unique identifier for this provider. The provider name can be used to cache the contribution data and refer back to it when looking for changes
+     */
+    name: string;
+    /**
+     * Properties associated with the provider
+     */
+    properties: {
+        [key: string]: string;
+    };
+    /**
+     * Version of contributions assoicated with this contribution provider.
+     */
+    version: string;
+}
+/**
  * A client data provider are the details needed to make the data provider request from the client.
  */
 export interface ClientDataProviderQuery extends DataProviderQuery {
@@ -7384,6 +7472,10 @@ export interface Contribution extends ContributionBase {
      * Properties/attributes of this contribution
      */
     properties: any;
+    /**
+     * List of demanded claims in order for the user to see this contribution (like anonymous, public, member...).
+     */
+    restrictedTo: string[];
     /**
      * The ids of the contribution(s) that this contribution targets. (parent contributions)
      */
@@ -7419,11 +7511,15 @@ export interface ContributionConstraint {
      */
     group: number;
     /**
+     * Fully qualified identifier of a shared constraint
+     */
+    id: string;
+    /**
      * If true, negate the result of the filter (include the contribution if the applied filter returns false instead of true)
      */
     inverse: boolean;
     /**
-     * Name of the IContributionFilter class
+     * Name of the IContributionFilter plugin
      */
     name: string;
     /**
@@ -7477,13 +7573,13 @@ export interface ContributionNodeQueryResult {
      * Map of contribution ids to corresponding node.
      */
     nodes: {
-        [key: string]: SerializedContributionNode;
+        [key: string]: ClientContributionNode;
     };
     /**
      * Map of provder ids to the corresponding provider details object.
      */
     providerDetails: {
-        [key: string]: ContributionProviderDetails;
+        [key: string]: ClientContributionProviderDetails;
     };
 }
 /**
@@ -7632,7 +7728,7 @@ export interface DataProviderContext {
         [key: string]: any;
     };
 }
-export interface DataProviderExceptionDetails extends VSS_Common_Contracts.AnonymousObject {
+export interface DataProviderExceptionDetails {
     /**
      * The type of the exception that was thrown.
      */
@@ -7662,7 +7758,7 @@ export interface DataProviderQuery {
 /**
  * Result structure from calls to GetDataProviderData
  */
-export interface DataProviderResult extends VSS_Common_Contracts.AnonymousObject {
+export interface DataProviderResult {
     /**
      * This is the set of data providers that were requested, but either they were defined as client providers, or as remote providers that failed and may be retried by the client.
      */
@@ -7685,6 +7781,14 @@ export interface DataProviderResult extends VSS_Common_Contracts.AnonymousObject
      * List of data providers resolved in the data-provider query
      */
     resolvedProviders: ResolvedDataProvider[];
+    /**
+     * Scope name applied to this data provider result.
+     */
+    scopeName: string;
+    /**
+     * Scope value applied to this data provider result.
+     */
+    scopeValue: string;
     /**
      * Property bag of shared data that was contributed to by any of the individual data providers
      */
@@ -7725,11 +7829,6 @@ export interface ExtensionAcquisitionRequest {
      * How many licenses should be purchased
      */
     quantity: number;
-}
-/**
- * Represents the state of an extension request
- */
-export interface ExtensionAuditAction {
 }
 /**
  * Audit log for an extension
@@ -7912,6 +8011,10 @@ export interface ExtensionManifest {
      */
     baseUri: string;
     /**
+     * List of shared constraints defined by this extension
+     */
+    constraints: ContributionConstraint[];
+    /**
      * List of contributions made by this extension
      */
     contributions: Contribution[];
@@ -7943,6 +8046,10 @@ export interface ExtensionManifest {
      * Version of the extension manifest format/content
      */
     manifestVersion: number;
+    /**
+     * Default user claims applied to all contributions (except the ones which have been speficied restrictedTo explicitly) to control the visibility of a contribution.
+     */
+    restrictedTo: string[];
     /**
      * List of all oauth scopes required by this extension
      */
@@ -8279,7 +8386,7 @@ export interface RequestedExtension {
 /**
  * Entry for a specific data provider's resulting data
  */
-export interface ResolvedDataProvider extends VSS_Common_Contracts.AnonymousObject {
+export interface ResolvedDataProvider {
     /**
      * The total time the data provider took to resolve its data (in milliseconds)
      */
@@ -8291,23 +8398,6 @@ export interface Scope {
     description: string;
     title: string;
     value: string;
-}
-/**
- * Representaion of a ContributionNode that can be used for serialized to clients.
- */
-export interface SerializedContributionNode {
-    /**
-     * List of ids for contributions which are children to the current contribution.
-     */
-    children: string[];
-    /**
-     * Contribution associated with this node.
-     */
-    contribution: Contribution;
-    /**
-     * List of ids for contributions which are parents to the current contribution.
-     */
-    parents: string[];
 }
 /**
  * Information about the extension
@@ -8607,6 +8697,13 @@ declare module "VSS/Contributions/LocalPageData" {
 import Contributions_Contracts = require("VSS/Contributions/Contracts");
 import Serialization = require("VSS/Serialization");
 /**
+ * Gets the scope name and value of the data providers loaded by the page initially.
+ */
+export function getDataProviderScope(): {
+    name?: string;
+    value?: string;
+};
+/**
  * Gets the current data provider results
  */
 export function getDataProviderResults(): Contributions_Contracts.DataProviderResult;
@@ -8761,9 +8858,9 @@ export class ContributionsHttpClient extends ContributionsHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return ContributionsHttpClient4
+ * @return ContributionsHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ContributionsHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ContributionsHttpClient4_1;
 }
 declare module "VSS/Contributions/Services" {
 import Contracts_Platform = require("VSS/Common/Contracts/Platform");
@@ -9124,10 +9221,6 @@ export class WebPageDataService extends Service.VssService {
  */
 export class ExtensionHelper {
     private static _httpUrlRegex;
-    private static _handlebarHelpersRegistered;
-    private static _asyncReplacementIndicator;
-    private static _asyncReplacementCounter;
-    private static _asyncReplacementPromises;
     /**
     * full contribution id for the given contribution.
     *
@@ -9172,9 +9265,6 @@ export class ExtensionHelper {
     * @param uriProperty The property name which contains the content uri ("uri" by default)
     */
     static hasContent(contribution: Contributions_Contracts.Contribution, uriProperty?: string): boolean;
-    private static _registerHandlebarHelpers(handlebars);
-    private static resolveDefaultHostUri(webContext, hostContext);
-    private static handleAsyncReplacements(value, asyncIndex, asyncStopIndex, deferred);
     /**
      * Processes a mustache template string with the given replacement object
      * @param string templateString The mustache template string
@@ -9719,6 +9809,7 @@ export class BaseComboBehavior {
     protected _options: any;
     protected _dataSource: Controls.BaseDataSource;
     private _onForceHideDropPopupDelegate;
+    private _onParentsScrollDelegate;
     private _onWheelDelegate;
     private _dropPopup;
     constructor(combo: any, options?: any);
@@ -9811,6 +9902,7 @@ export class BaseComboBehavior {
      * @return
      */
     onForceHideDropPopup(e?: JQueryEventObject): any;
+    onParentsScroll(e: JQueryEventObject): any;
     /**
      * Gets the text of the given index based on allItems in datasource. Default behavior returns datasource getItemText
      * Can be overridden by the getItemText option
@@ -9906,6 +9998,10 @@ export interface IComboOptions {
      */
     dropWidth?: string | number;
     /**
+     * Indicates whether or not the dropdown should be able to expand past the input control.
+     */
+    fixDropWidth?: boolean;
+    /**
      * Specifies the max size when auto-expand drop bigger than combo
      */
     maxAutoExpandDropWidth?: number;
@@ -9998,6 +10094,7 @@ export interface IComboOptions {
     * Aria attributes
     */
     ariaAttributes?: Controls.AriaAttributes;
+    isFocusableWhenDisabled?: boolean;
 }
 /**
 * Constant for Combo type options
@@ -10278,7 +10375,7 @@ export class ComboO<TOptions extends IComboOptions> extends Controls.Control<TOp
      */
     private _onInputKeyUp(e?);
     updateAriaAttributes(isDropVisible?: boolean): void;
-    protected updateAriaActiveDescendant(): void;
+    updateAriaActiveDescendant(): void;
 }
 export class Combo extends ComboO<IComboOptions> {
 }
@@ -11189,6 +11286,7 @@ export function show<TDialog extends Dialog>(dialogType: new (options: any) => T
  * @returns a promise that is resolved when the user accepts the dialog (Ok, Yes, any button with Button.reject===false), or rejected if the user does not (Cancel, No, any button with Button.reject===true).
  */
 export function showMessageDialog(message: string | JQuery, options?: IShowMessageDialogOptions): Q.Promise<IMessageDialogResult>;
+export function showConfirmNavigationDialog(message: string, title?: string): Q.Promise<IMessageDialogResult>;
 }
 declare module "VSS/Controls/EditableGrid" {
 import Combos = require("VSS/Controls/Combos");
@@ -11510,7 +11608,7 @@ export class ExternalHub extends Controls.BaseControl {
     hubNavigateStarting(): void;
     private postXhrHubNavigate(hub, pageData, navigateId, previousStaticContentVersions);
     private finishNavigateToNewHub(hub, url, navigateId);
-    handleNewPlatformFps(xhrData: Contracts_Platform.PageXHRData, hub: Hub): IPromise<any>;
+    handleNewPlatformFps(xhrData: Contracts_Platform.PageXHRData, newPageContext: PageContext): IPromise<any>;
     private showSpinner();
     private hideSpinner();
     private hasStaticContentVersionChanged(previousVersions, currentVersions);
@@ -13251,7 +13349,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      * @param e
      * @return
      */
-    private _onContextMenu(e?, args?);
+    protected _onContextMenu(e?: JQueryEventObject, args?: any): any;
     /**
      * @return
      */
@@ -13370,7 +13468,6 @@ export class HtmlTableFormatter implements ITableFormatter {
 }
 }
 declare module "VSS/Controls/Header" {
-import Contract_Platform = require("VSS/Common/Contracts/Platform");
 import Contributions_Contracts = require("VSS/Contributions/Contracts");
 import Controls = require("VSS/Controls");
 export interface ContributableHeaderOptions extends Controls.EnhancementOptions {
@@ -13385,10 +13482,19 @@ export class ContributableHeader<TOptions extends ContributableHeaderOptions> ex
     protected groupContributionsByAlignment(contributions: Contributions_Contracts.Contribution[]): IDictionaryStringTo<Contributions_Contracts.Contribution[]>;
     private renderContributedSection(contributions, selector);
 }
+export interface HeaderModel {
+    brandIcon: string;
+    brandName: string;
+    context: any;
+    contributionId: string;
+    elementContributionType: string;
+    supportsContribution: boolean;
+    userDisplayName: string;
+}
 /**
  * @exemptedapi
  */
-export class Header<TModel extends Contract_Platform.HeaderModel> extends ContributableHeader<TModel> {
+export class Header<TModel extends HeaderModel> extends ContributableHeader<TModel> {
     initialize(): void;
     protected renderLeftSection(container: JQuery): void;
     protected renderRightSection(container: JQuery): void;
@@ -15259,8 +15365,9 @@ export module FullScreenHelper {
      * @param showLeftLane  If true, the left tab in split panes will be shown during full screen mode.
      * @param suppressNavigate  If true, the setting of full screen will not cause a navigation event, and instead will simply set to fullscreen without updating navigation tabs, etc.
      * @param replaceHistoryPoint If true, update the url with the full screen tag w/o adding to the back history.  addHistoryPoint and replaceHistoryPoint are exclusive operations.
+     * @param supressWindowResizeEvent If true, don't trigger the window resize event after setting the new mode.
      */
-    function setFullScreen(value: boolean, addHistoryPoint?: boolean, showLeftLane?: boolean, suppressNavigate?: boolean, replaceHistoryPoint?: boolean): void;
+    function setFullScreen(value: boolean, addHistoryPoint?: boolean, showLeftLane?: boolean, suppressNavigate?: boolean, replaceHistoryPoint?: boolean, supressWindowResizeEvent?: boolean): void;
     /**
      * Get state object for the current full screen mode state.
      *
@@ -18283,6 +18390,7 @@ export class VirtualizingListView extends Controls.BaseControl {
     protected _createItem(index: number): JQuery;
     protected _drawItems(): void;
     protected _updateItemStyles(): void;
+    protected _updateAriaAttributes(): void;
     private _setupScrollbar(height);
     private _updateScrollbar();
     private _onScroll(e);
@@ -18757,9 +18865,9 @@ export class DelegatedAuthorizationHttpClient extends DelegatedAuthorizationHttp
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return DelegatedAuthorizationHttpClient4
+ * @return DelegatedAuthorizationHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): DelegatedAuthorizationHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): DelegatedAuthorizationHttpClient4_1;
 }
 declare module "VSS/DeviceTypeService" {
 import Service = require("VSS/Service");
@@ -20596,9 +20704,9 @@ export class ExtensionManagementHttpClient extends ExtensionManagementHttpClient
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return ExtensionManagementHttpClient4
+ * @return ExtensionManagementHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ExtensionManagementHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ExtensionManagementHttpClient4_1;
 }
 declare module "VSS/FeatureAvailability/Contracts" {
 /**
@@ -20610,7 +20718,7 @@ declare module "VSS/FeatureAvailability/Contracts" {
  *   https://vsowiki.com/index.php?title=Rest_Client_Generation
  *
  * Configuration file:
- *   Vssf\Client\WebApi\HttpClients\ClientGeneratorConfigs\genclient.json
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
  */
 export interface FeatureFlag {
     description: string;
@@ -20734,9 +20842,9 @@ export class FeatureAvailabilityHttpClient extends FeatureAvailabilityHttpClient
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return FeatureAvailabilityHttpClient4
+ * @return FeatureAvailabilityHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): FeatureAvailabilityHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): FeatureAvailabilityHttpClient4_1;
 }
 declare module "VSS/FeatureAvailability/Services" {
 import Service = require("VSS/Service");
@@ -21054,9 +21162,9 @@ export class FeatureManagementHttpClient extends FeatureManagementHttpClient4_1 
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return FeatureManagementHttpClient4
+ * @return FeatureManagementHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): FeatureManagementHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): FeatureManagementHttpClient4_1;
 }
 declare module "VSS/FeatureManagement/Services" {
 import Service = require("VSS/Service");
@@ -21385,9 +21493,9 @@ export class FileContainerHttpClient extends FileContainerHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return FileContainerHttpClient4
+ * @return FileContainerHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): FileContainerHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): FileContainerHttpClient4_1;
 }
 declare module "VSS/FileContainer/Services" {
 import FileContainer_Contracts = require("VSS/FileContainer/Contracts");
@@ -21528,7 +21636,13 @@ export class Component<TControl extends Controls.BaseControl, TProps extends Pro
 }
 declare module "VSS/Flux/Store" {
 import { Action } from "VSS/Flux/Action";
-export class Store {
+export interface IStore {
+    addChangedListener(handler: IEventHandler): void;
+    removeChangedListener(handler: IEventHandler): void;
+    addListener(eventName: string, handler: IEventHandler): void;
+    removeListener(eventName: string, handler: IEventHandler): void;
+}
+export class Store implements IStore {
     private _changedHandlers;
     private _namedEventCollection;
     addChangedListener(handler: IEventHandler): void;
@@ -21995,14 +22109,8 @@ export interface ExtensionEvents {
 }
 export interface ExtensionFile {
     assetType: string;
-    contentType: string;
-    fileId: number;
-    isDefault: boolean;
-    isPublic: boolean;
     language: string;
-    shortDescription: string;
     source: string;
-    version: string;
 }
 /**
  * The FilterResult is the set of extensions that matched a particular query filter.
@@ -22215,6 +22323,14 @@ export enum ExtensionQueryFilterType {
      * Filter type for specifying metadata key and value to be used for filtering.
      */
     VsixMetadata = 17,
+    /**
+     * Filter to get extensions published by a publisher having supplied internal name
+     */
+    PublisherName = 18,
+    /**
+     * Filter to get extensions published by all publishers having supplied display name
+     */
+    PublisherDisplayName = 19,
 }
 /**
  * Set of flags used to determine which set of information is retrieved when reading published extensions
@@ -22361,10 +22477,6 @@ export interface FilterCriteria {
     value: string;
 }
 export interface InstallationTarget {
-    maxInclusive: boolean;
-    maxVersion: string;
-    minInclusive: boolean;
-    minVersion: string;
     target: string;
     targetVersion: string;
 }
@@ -22418,6 +22530,10 @@ export enum NotificationTemplateType {
      * Template type for Customer Contact Notification.
      */
     CustomerContactNotification = 3,
+    /**
+     * Template type for Publisher Member Notification.
+     */
+    PublisherMemberUpdateNotification = 4,
 }
 /**
  * PagingDirection is used to define which set direction to move the returned result set based on a previous query.
@@ -22533,8 +22649,18 @@ export enum PublishedExtensionFlags {
      * The Trial flag indicates that the extension is in Trial version. The flag is right now being used only with respec to Visual Studio extensions.
      */
     Trial = 8192,
+    /**
+     * The Locked flag indicates that extension has been locked from Marketplace. Further updates/acquisitions are not allowed on the extension until this is present. This should be used along with making the extension private/unpublished.
+     */
+    Locked = 16384,
 }
-export interface Publisher {
+export interface Publisher extends PublisherBase {
+    _links: any;
+}
+/**
+ * Keeping base class separate since publisher DB model class and publisher contract class share these common properties
+ */
+export interface PublisherBase {
     displayName: string;
     emailAddress: string[];
     extensions: PublishedExtension[];
@@ -23327,6 +23453,8 @@ export var TypeInfo: {
             "installationTargetVersion": number;
             "installationTargetVersionRange": number;
             "vsixMetadata": number;
+            "publisherName": number;
+            "publisherDisplayName": number;
         };
     };
     ExtensionQueryFlags: {
@@ -23378,6 +23506,7 @@ export var TypeInfo: {
             "reviewNotification": number;
             "qnaNotification": number;
             "customerContactNotification": number;
+            "publisherMemberUpdateNotification": number;
         };
     };
     PagingDirection: {
@@ -23401,9 +23530,11 @@ export var TypeInfo: {
             "preview": number;
             "unpublished": number;
             "trial": number;
+            "locked": number;
         };
     };
     Publisher: any;
+    PublisherBase: any;
     PublisherFacts: any;
     PublisherFilterResult: any;
     PublisherFlags: {
@@ -23612,7 +23743,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      */
     getAssetWithToken(publisherName: string, extensionName: string, version: string, assetType: string, assetToken?: string, accountToken?: string, acceptDefault?: boolean): IPromise<ArrayBuffer>;
     /**
-     * [Preview API]
+     * [Preview API] This endpoint gets hit when you download a VSTS extension from the Web UI
      *
      * @param {string} publisherName
      * @param {string} extensionName
@@ -24251,6 +24382,34 @@ export class GalleryHttpClient4_1 extends CommonMethods3_2To4_1 {
      * @return IPromise<ArrayBuffer>
      */
     getAssetFromNewExtensionDraft(publisherName: string, draftId: string, assetType: string): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API] Delete publisher asset like logo
+     *
+     * @param {string} publisherName - Internal name of the publisher
+     * @param {string} assetType - Type of asset. Default value is 'logo'.
+     * @return IPromise<void>
+     */
+    deletePublisherAsset(publisherName: string, assetType?: string): IPromise<void>;
+    /**
+     * [Preview API] Get publisher asset like logo as a stream
+     *
+     * @param {string} publisherName - Internal name of the publisher
+     * @param {string} assetType - Type of asset. Default value is 'logo'.
+     * @return IPromise<ArrayBuffer>
+     */
+    getPublisherAsset(publisherName: string, assetType?: string): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API] Update publisher asset like logo. It accepts asset file as an octet stream and file name is passed in header values.
+     *
+     * @param {any} content - Content to upload
+     * @param {string} publisherName - Internal name of the publisher
+     * @param {string} assetType - Type of asset. Default value is 'logo'.
+     * @param {String} fileName - Header to pass the filename of the uploaded data
+     * @return IPromise<{ [key: string] : string; }>
+     */
+    updatePublisherAsset(content: any, publisherName: string, assetType?: string, fileName?: String): IPromise<{
+        [key: string]: string;
+    }>;
 }
 /**
  * @exemptedapi
@@ -24498,9 +24657,9 @@ export class GalleryHttpClient extends GalleryHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return GalleryHttpClient4
+ * @return GalleryHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): GalleryHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): GalleryHttpClient4_1;
 }
 declare module "VSS/Graph/Contracts" {
 import VSS_Identities_Contracts = require("VSS/Identities/Contracts");
@@ -24737,19 +24896,7 @@ export interface GraphStorageKeyResult {
     _links: any;
     value: string;
 }
-export interface GraphSubject {
-    /**
-     * This field contains zero or more interesting links about the graph subject. These links may be invoked to obtain additional relationships or more detailed information about this graph subject.
-     */
-    _links: any;
-    /**
-     * The descriptor is the primary way to reference the graph subject while the system is running. This field will uniquely identify the same graph subject across both Accounts and Organizations.
-     */
-    descriptor: string;
-    /**
-     * This is the non-unique display name of the graph subject. To change this field, you must alter its value in the source provider.
-     */
-    displayName: string;
+export interface GraphSubject extends GraphSubjectBase {
     /**
      * [Internal Use Only] The legacy descriptor is here in case you need to access old version IMS using identity descriptor.
      */
@@ -24766,6 +24913,20 @@ export interface GraphSubject {
      * This field identifies the type of the graph subject (ex: Group, Scope, User).
      */
     subjectKind: string;
+}
+export interface GraphSubjectBase {
+    /**
+     * This field contains zero or more interesting links about the graph subject. These links may be invoked to obtain additional relationships or more detailed information about this graph subject.
+     */
+    _links: any;
+    /**
+     * The descriptor is the primary way to reference the graph subject while the system is running. This field will uniquely identify the same graph subject across both Accounts and Organizations.
+     */
+    descriptor: string;
+    /**
+     * This is the non-unique display name of the graph subject. To change this field, you must alter its value in the source provider.
+     */
+    displayName: string;
     /**
      * This url is the full route to the source resource of this graph subject.
      */
@@ -24785,10 +24946,6 @@ export enum GraphTraversalDirection {
     Up = 2,
 }
 export interface GraphUser extends GraphMember {
-    /**
-     * The alias that is used for Basic Authentication flows (alternative authentication credentials)
-     */
-    basicAuthAlias: string;
     /**
      * The meta type of the user in the origin, such as "member", "guest", etc. See UserMetaType for the set of possible values.
      */
@@ -24904,30 +25061,30 @@ export class CommonMethods3_1To4_1 extends VSS_WebApi.VssHttpClient {
     getDescriptor(storageKey: string): IPromise<Contracts.GraphDescriptorResult>;
 }
 export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
-    protected cachepoliciesApiVersion: string;
+    protected cachePoliciesApiVersion: string;
     protected graphGlobalExtendedPropertyBatchApiVersion: string;
     protected groupsApiVersion: string;
     protected idsApiVersion: string;
-    protected memberlookupApiVersion: string;
+    protected memberLookupApiVersion: string;
     protected membersApiVersion: string;
     protected membersApiVersion_42939f1e: string;
     protected membersApiVersion_8b9ecdb2: string;
     protected membershipsApiVersion: string;
-    protected membershipsbatchApiVersion: string;
-    protected membershipstatesApiVersion: string;
+    protected membershipsBatchApiVersion: string;
+    protected membershipStatesApiVersion: string;
     protected membershipTraversalsApiVersion: string;
     protected scopesApiVersion: string;
-    protected shardingstateApiVersion: string;
-    protected storagekeysApiVersion: string;
-    protected subjectlookupApiVersion: string;
+    protected shardingStateApiVersion: string;
+    protected storageKeysApiVersion: string;
+    protected subjectLookupApiVersion: string;
     protected subjectsApiVersion: string;
     protected usersApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
-     * [Preview API] Get a list of all users in a given scope.  Since the list of users may be large, results are returned in pages of users.  If there are more results than can be returned in a single page, the result set will containt a continuation token for retrieval of the next set of results.
+     * [Preview API] Get a list of all users in a given scope.
      *
      * @param {string[]} subjectTypes - A comma separated list of user subject subtypes to reduce the retrieved results, e.g. msa’, ‘aad’, ‘svc’ (service identity), ‘imp’ (imported identity), etc.
-     * @param {string} continuationToken - An opaque data blog that allows the next page of data to resume immediately after where the previous page ended. The only reliable way to know if there is more data left is the presence of a continuation token.
+     * @param {string} continuationToken - An opaque data blob that allows the next page of data to resume immediately after where the previous page ended. The only reliable way to know if there is more data left is the presence of a continuation token.
      * @return IPromise<Contracts.PagedGraphUsers>
      */
     listUsers(subjectTypes?: string[], continuationToken?: string): IPromise<Contracts.PagedGraphUsers>;
@@ -24939,14 +25096,14 @@ export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
      */
     getUser(userDescriptor: string): IPromise<Contracts.GraphUser>;
     /**
-     * [Preview API] Disables a user.  Calls to GET .../users/{userDescriptor} will return the user with disabled marked true. Other GET calls, which may return multiple users, can control whether or not deleted users should be returned using the disabled flag, which defaults to false.
+     * [Preview API] Disables a user.
      *
      * @param {string} userDescriptor - The descriptor of the user to delete.
      * @return IPromise<void>
      */
     deleteUser(userDescriptor: string): IPromise<void>;
     /**
-     * [Preview API] Materialize an existing AAD or MSA user into the VSTS account.  NOTE: Created users are not active in an account unless they have been explicitly assigned a parent group at creation time or have signed in and been autolicensed through AAD group memberships.  Adding a user to an account is required before the user can be added to VSTS groups or assigned an asset.  The body of the request must be a derived type of GraphUserCreationContext: - GraphUserMailAddressCreationContext - Create a new user using the mail address as a reference to an existing user from an external AD or AAD backed provider. - GraphUserOriginIdCreationContext - Create a new user using the OriginID as a reference to an existing user from an external AD or AAD backed provider. - GraphUserPrincipalNameCreationContext - Create a new user using the principal name as a reference to an existing user from an external AD or AAD backed provider.  If the user to be added corresponds to a user that was previously deleted, then that user will be restored.  Optionally, you can add the newly created user as a member of an existing VSTS group and/or specify a custom storage key for the user.
+     * [Preview API] Materialize an existing AAD or MSA user into the VSTS account.
      *
      * @param {Contracts.GraphUserCreationContext} creationContext - The subset of the full graph user used to uniquely find the graph subject in an external provider.
      * @param {string[]} groupDescriptors - A comma separated list of descriptors of groups you want the graph user to join
@@ -24954,7 +25111,7 @@ export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
      */
     createUser(creationContext: Contracts.GraphUserCreationContext, groupDescriptors?: string[]): IPromise<Contracts.GraphUser>;
     /**
-     * [Preview API] Resolve descriptors to users, groups or scopes (Subjects) in a batch
+     * [Preview API] Resolve descriptors to users, groups or scopes (Subjects) in a batch.
      *
      * @param {Contracts.GraphSubjectLookup} subjectLookup - A list of descriptors that specifies a subset of subjects to retrieve. Each descriptor uniquely identifies the subject across all instance scopes, but only at a single point in time.
      * @return IPromise<{ [key: string] : Contracts.GraphSubject; }>
@@ -24970,14 +25127,14 @@ export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
      */
     getStorageKey(subjectDescriptor: string): IPromise<Contracts.GraphStorageKeyResult>;
     /**
-     * [Preview API] Check whether a subject is active or inactive
+     * [Preview API] Check whether a subject is active or inactive.
      *
      * @param {string} subjectDescriptor - Descriptor of the subject (user, group, scope, etc.) to check state of
      * @return IPromise<Contracts.GraphMembershipState>
      */
     getMembershipState(subjectDescriptor: string): IPromise<Contracts.GraphMembershipState>;
     /**
-     * [Preview API] Get all the memberships where this descriptor is a member in the relationship. The default value for direction is 'up' meaning return all memberships where the subject is a member (e.g. all groups the subject is a member of).  Alternatively, passing the direction as 'down' will return all memberships where the subject is a container (e.g. all members of the subject group).
+     * [Preview API] Get all the memberships where this descriptor is a member in the relationship.
      *
      * @param {string} subjectDescriptor - Fetch all direct memberships of this descriptor.
      * @param {Contracts.GraphTraversalDirection} direction - Defaults to Up.
@@ -24986,7 +25143,7 @@ export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
      */
     listMemberships(subjectDescriptor: string, direction?: Contracts.GraphTraversalDirection, depth?: number): IPromise<Contracts.GraphMembership[]>;
     /**
-     * [Preview API] Deletes a membership between a container and subject
+     * [Preview API] Deletes a membership between a container and subject.
      *
      * @param {string} subjectDescriptor - A descriptor to a group or user that is the child subject in the relationship.
      * @param {string} containerDescriptor - A descriptor to a group that is the container in the relationship.
@@ -24994,7 +25151,7 @@ export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
      */
     removeMembership(subjectDescriptor: string, containerDescriptor: string): IPromise<void>;
     /**
-     * [Preview API] Get a membership relationship between a container and subject
+     * [Preview API] Get a membership relationship between a container and subject.
      *
      * @param {string} subjectDescriptor - A descriptor to the child subject in the relationship.
      * @param {string} containerDescriptor - A descriptor to the container in the relationship.
@@ -25002,7 +25159,7 @@ export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
      */
     getMembership(subjectDescriptor: string, containerDescriptor: string): IPromise<Contracts.GraphMembership>;
     /**
-     * [Preview API] Check to see if a membership relationship between a container and subject exists
+     * [Preview API] Check to see if a membership relationship between a container and subject exists.
      *
      * @param {string} subjectDescriptor - The group or user that is a child subject of the relationship.
      * @param {string} containerDescriptor - The group that is the container in the relationship.
@@ -25010,7 +25167,7 @@ export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
      */
     checkMembershipExistence(subjectDescriptor: string, containerDescriptor: string): IPromise<boolean>;
     /**
-     * [Preview API] Create a new membership between a container and subject
+     * [Preview API] Create a new membership between a container and subject.
      *
      * @param {string} subjectDescriptor - A descriptor to a group or user that can be the child subject in the relationship.
      * @param {string} containerDescriptor - A descriptor to a group that can be the container in the relationship.
@@ -25018,7 +25175,7 @@ export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
      */
     addMembership(subjectDescriptor: string, containerDescriptor: string): IPromise<Contracts.GraphMembership>;
     /**
-     * [Preview API] Update the properties of a VSTS group.  Currently limited to only changing the description and account name.
+     * [Preview API] Update the properties of a VSTS group.
      *
      * @param {string} groupDescriptor - The descriptor of the group to modify.
      * @param {VSS_Common_Contracts.JsonPatchDocument} patchDocument - The JSON+Patch document containing the fields to alter.
@@ -25026,33 +25183,33 @@ export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
      */
     updateGroup(groupDescriptor: string, patchDocument: VSS_Common_Contracts.JsonPatchDocument): IPromise<Contracts.GraphGroup>;
     /**
-     * [Preview API] Gets a list of all groups in the current scope (usually organization or account). The optional parameters are used to filter down the returned results. Returned results are in no guaranteed order.  Since the list of groups may be large, results are returned in pages of groups.  If there are more results than can be returned in a single page, the result set will containt a continuation token for retrieval of the next set of results.
+     * [Preview API] Gets a list of all groups in the current scope (usually organization or account).
      *
      * @param {string} scopeDescriptor - Specify a non-default scope (collection, project) to search for groups.
      * @param {string[]} subjectTypes - A comma separated list of user subject subtypes to reduce the retrieved results, e.g. Microsoft.IdentityModel.Claims.ClaimsIdentity
-     * @param {string} continuationToken - An opaque data blog that allows the next page of data to resume immediately after where the previous page ended. The only reliable way to know if there is more data left is the presence of a continuation token.
+     * @param {string} continuationToken - An opaque data blob that allows the next page of data to resume immediately after where the previous page ended. The only reliable way to know if there is more data left is the presence of a continuation token.
      * @return IPromise<Contracts.PagedGraphGroups>
      */
     listGroups(scopeDescriptor?: string, subjectTypes?: string[], continuationToken?: string): IPromise<Contracts.PagedGraphGroups>;
     /**
-     * [Preview API] Get a group by its descriptor.  The group will be returned even if it has been deleted from the account or has had all its memberships deleted.
+     * [Preview API] Get a group by its descriptor.
      *
      * @param {string} groupDescriptor - The descriptor of the desired graph group.
      * @return IPromise<Contracts.GraphGroup>
      */
     getGroup(groupDescriptor: string): IPromise<Contracts.GraphGroup>;
     /**
-     * [Preview API] Removes a VSTS group from all of its parent groups. The group will still be visible, but membership checks for the group, and all descendants which derive membership through it, will return false.”
+     * [Preview API] Removes a VSTS group from all of its parent groups.
      *
      * @param {string} groupDescriptor - The descriptor of the group to delete.
      * @return IPromise<void>
      */
     deleteGroup(groupDescriptor: string): IPromise<void>;
     /**
-     * [Preview API] Create a new VSTS group or materialize an existing AAD group.  The body of the request must be a derived type of GraphGroupCreationContext: - GraphGroupVstsCreationContext - Create a new VSTS group that is not backed by an external provider. - GraphGroupMailAddressCreationContext - Create a new group using the mail address as a reference to an existing group from an external AD or AAD backed provider. - GraphGroupOriginIdCreationContext - Create a new group using the OriginID as a reference to a group from an external AD or AAD backed provider.  Optionally, you can add the newly created group as a member of an existing VSTS group and/or specify a custom storage key for the group.
+     * [Preview API] Create a new VSTS group or materialize an existing AAD group.
      *
      * @param {Contracts.GraphGroupCreationContext} creationContext - The subset of the full graph group used to uniquely find the graph subject in an external provider.
-     * @param {string} scopeDescriptor - A descriptor referencing the scope (collection, project) in which the group should be created. If omitted, while be created in the scope of the enclosing account or organization. Valid only for VSTS groups.
+     * @param {string} scopeDescriptor - A descriptor referencing the scope (collection, project) in which the group should be created. If omitted, will be created in the scope of the enclosing account or organization. Valid only for VSTS groups.
      * @param {string[]} groupDescriptors - A comma separated list of descriptors referencing groups you want the graph group to join
      * @return IPromise<Contracts.GraphGroup>
      */
@@ -25088,9 +25245,9 @@ export class GraphHttpClient extends GraphHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return GraphHttpClient4
+ * @return GraphHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): GraphHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): GraphHttpClient4_1;
 }
 declare module "VSS/Identities/Contracts" {
 /**
@@ -25150,7 +25307,12 @@ export enum GroupScopeType {
     ServiceHost = 1,
     TeamProject = 2,
 }
-export interface Identity {
+export interface Identity extends IdentityBase {
+}
+/**
+ * Base Identity class to allow "trimmed" identity class in the GetConnectionData API Makes sure that on-the-wire representations of the derived classes are compatible with each other (e.g. Server responds with PublicIdentity object while client deserializes it as Identity object) Derived classes should not have additional [DataMember] properties
+ */
+export interface IdentityBase {
     /**
      * The custom display name for the identity (if any). Setting this property to an empty string will clear the existing custom display name. Setting this property to null will not affect the existing persisted value (since null values do not get sent over the wire or to the database)
      */
@@ -25302,7 +25464,7 @@ declare module "VSS/Identities/Mru/Contracts" {
  *   https://vsowiki.com/index.php?title=Rest_Client_Generation
  *
  * Configuration file:
- *   Sps\Clients\Identity\ClientGeneratorConfigs\genclient.json
+ *   sps\clients\identity\clientgeneratorconfigs\genclient.json
  */
 export interface JsonPatchOperationData<T> {
     op: string;
@@ -25405,9 +25567,9 @@ export class IdentityMruHttpClient extends IdentityMruHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return IdentityMruHttpClient4
+ * @return IdentityMruHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): IdentityMruHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): IdentityMruHttpClient4_1;
 }
 declare module "VSS/Identities/Picker/Cache" {
 /**
@@ -25577,6 +25739,10 @@ export class CommonHelpers {
     static readonly _stringListHashPrime: number;
     private static readonly _stringHashPrime;
 }
+export interface IPoint {
+    x: number;
+    y: number;
+}
 }
 declare module "VSS/Identities/Picker/Constants" {
 /**
@@ -25673,6 +25839,10 @@ export interface ContactCardContactLineProps extends Component_Base.Props {
      * Option to pad top.
      */
     padTop?: boolean;
+    /**
+    * Publish telemetry on contact information click
+    */
+    publishTelemetry?: (cardType: string, action: string, source?: string) => void;
 }
 export class ContactCardContactLine extends React.Component<ContactCardContactLineProps, {}> {
     render(): JSX.Element;
@@ -25685,6 +25855,10 @@ export interface ContactCardProps extends Component_Base.Props {
      * Identity object for persona and contact information.
      */
     identity?: Identities_Picker_RestClient.IEntity;
+    /**
+    * Publish telemetry on card load
+    */
+    publishTelemetry: (cardType: string, action: string) => void;
 }
 export class ContactCard extends React.Component<ContactCardProps, {}> {
     render(): JSX.Element;
@@ -25793,6 +25967,11 @@ export interface IIdentityPickerDropdownOptions extends Identities_Picker_Servic
     *   If this is not specified, JQueryUI's default is to append the dialog element to the <body> element.
     **/
     dialogAppendTo?: string;
+    /**
+     *  (optional) When turned on, the "No identities found" dropdown message will not be displayed.
+     *  Default is true
+    **/
+    showNoIdentitiesFound?: boolean;
 }
 export interface IIdentityPickerDropdownEventOptions {
     /**
@@ -25948,7 +26127,6 @@ export class IdentityPickerDropdownControl extends Controls.Control<IIdentityPic
     private _constructInformativeMessage(errorMessageText);
     private _loadNextPage(force?);
     private _searchButtonClickDelegate();
-    private _setShowContactCard();
 }
 export interface IIdentityPickerIdCardDialogOptions extends Identities_Picker_Services.IIdentityServiceOptions, Identities_Picker_Services.IIdentityPickerExtensionOptions {
     /**
@@ -26066,8 +26244,8 @@ export interface ISearchControlCallbackOptions {
 }
 export interface IIdentityPickerSearchOptions extends Identities_Picker_Services.IIdentityServiceOptions, Identities_Picker_Services.IIdentityPickerExtensionOptions {
     /**
-    *   default identities to initialise the dropdown with - if you are constructing the IEntity objects, their identifiers (such as entityId, localId etc.) have to be valid;
-    *   alternatively the input can be a semi-colon separated sequence of unique identifiers (such as sign-in addresses or aliases).
+    *   default identities to initialize the search control with - if you are constructing the IEntity objects, their identifiers (such as entityId, localId etc.) have to be valid;
+    *   alternatively the input can be a semi-colon separated sequence of unique identifiers (such as sign-in addresses, vsIds, entityIds or SubjectDescriptors).
     *   We also support the format "DisplayName <UniqueIdentifier>" (see the option showTemporaryDisplayName for details)
     **/
     items?: string | Identities_Picker_RestClient.IEntity[];
@@ -26193,6 +26371,11 @@ export interface IIdentityPickerSearchOptions extends Identities_Picker_Services
      * Default is false
      */
     showMruOnClick?: boolean;
+    /**
+     * (optional) When turned on, the "No identities found" dropdown message will not be displayed.
+     * Default is true
+     */
+    showNoIdentitiesFound?: boolean;
 }
 /**
  * @exemptedapi
@@ -26344,7 +26527,6 @@ export class IdentityPickerSearchControl extends Controls.Control<IIdentityPicke
     private _createCloseButton();
     private _getSearchPrefix(input);
     private _unresolveItem(token);
-    private _setShowContactCard();
     private _generatePlaceHolder(identityTypeList);
     private _isInArray(s, a);
 }
@@ -26543,6 +26725,10 @@ export interface DefaultAbridgedCardProps extends Component_Base.Props {
      * Identity object for persona and contact information.
      */
     identity: Identities_Picker_RestClient.IEntity;
+    /**
+    * Publish telemetry on card load
+    */
+    publishTelemetry: (cardType: string, action: string) => void;
 }
 export class DefaultAbridgedCard extends React.Component<DefaultAbridgedCardProps, {}> {
     render(): JSX.Element;
@@ -26557,9 +26743,9 @@ import Identities_Picker_RestClient = require("VSS/Identities/Picker/RestClient"
  */
 export interface DefaultCardContactLineProps extends Component_Base.Props {
     /**
-    * Class for icon.
+    * Name for icon.
     */
-    iconClass?: string;
+    iconName?: string;
     /**
     * Content for line.
     */
@@ -26568,6 +26754,10 @@ export interface DefaultCardContactLineProps extends Component_Base.Props {
     * Link (if not link, left blank).
     */
     link?: string;
+    /**
+    * Publish telemetry on contact information click
+    */
+    publishTelemetry?: (componentType: string, action: string) => void;
 }
 export class DefaultCardContactLine extends React.Component<DefaultCardContactLineProps, {}> {
     render(): JSX.Element;
@@ -26600,8 +26790,17 @@ export interface DefaultCardProps extends Component_Base.Props {
      * Method to handle identity click.
      */
     onClickEntity?: (identifier: string | Identities_Picker_RestClient.IEntity) => void;
+    /**
+     * Publish telemetry on card load
+    */
+    publishTelemetry: (componentType: string, action: string, source?: string) => void;
+    /**
+    * Function to set the focus to first active element of focuszone on update of the card.
+    */
+    setFocus?: () => void;
 }
 export class DefaultCard extends React.Component<DefaultCardProps, {}> {
+    componentDidMount(): void;
     render(): JSX.Element;
     /**
      * Renders the direct manager for the persona.
@@ -26645,6 +26844,10 @@ export interface OrganizationCardProps extends Component_Base.Props {
      * Method to handle identity click.
      */
     onClickEntity?: (identifier: string | Identities_Picker_RestClient.IEntity) => void;
+    /**
+    * Publish telemetry on card load
+    */
+    publishTelemetry: (cardType: string, action: string, source?: string) => void;
 }
 export class OrganizationCard extends React.Component<OrganizationCardProps, {}> {
     render(): JSX.Element;
@@ -26653,35 +26856,9 @@ export class OrganizationCard extends React.Component<OrganizationCardProps, {}>
 }
 }
 declare module "VSS/Identities/Picker/PersonaCard" {
-import Component_Base = require("VSS/Flux/Component");
-import { PersonaCardContentProps } from "VSS/Identities/Picker/PersonaCardContent";
-/**
- * Definitions for PersonaCard.
- */
-export interface PersonaCardProps extends Component_Base.Props, PersonaCardContentProps {
-    /**
-     * Reference HTML component.
-     */
-    referenceHTMLComponent?: HTMLElement;
-    /**
-    * Optional callback when card is dismissed.
-    */
-    onDismissCallback?: () => void;
-}
-export const PersonaCard: (props: PersonaCardProps) => JSX.Element;
-}
-declare module "VSS/Identities/Picker/PersonaCardContent" {
-import React = require("react");
 import * as Component_Base from "VSS/Flux/Component";
-import Identities_Picker_RestClient = require("VSS/Identities/Picker/RestClient");
-import Identities_Picker_Services = require("VSS/Identities/Picker/Services");
-import Picker_Controls = require("VSS/Identities/Picker/Controls");
-import { HeaderElementProps } from "VSS/Identities/Picker/PersonaCardHeaderElement";
-export enum CardType {
-    Default = 0,
-    Contact = 1,
-    Organization = 2,
-}
+import { IDataState, PersonaCardProps } from "VSS/Identities/Picker/PersonaCardContracts";
+import * as Identities_Picker_Services from "VSS/Identities/Picker/Services";
 export const sourceOperationScope: Identities_Picker_Services.IOperationScope;
 export const sourceAdOperationScope: Identities_Picker_Services.IOperationScope;
 export const sourceImsOperationScope: Identities_Picker_Services.IOperationScope;
@@ -26689,6 +26866,55 @@ export const sourceImsAdOperationScope: Identities_Picker_Services.IOperationSco
 export const userIdentityType: Identities_Picker_Services.IEntityType;
 export const managerAndDirectReportsConnectionType: Identities_Picker_Services.IConnectionType;
 export const managerConnectionType: Identities_Picker_Services.IConnectionType;
+export interface PersonaCardState extends Component_Base.State {
+    /** Mimics stack to allow for breadcrumb */
+    dataState: IDataState;
+    /** Prevent requests if working */
+    working: boolean;
+}
+export const PersonaCard: (props: PersonaCardProps) => JSX.Element;
+}
+declare module "VSS/Identities/Picker/PersonaCardContent" {
+import * as React from "react";
+import * as Component_Base from "VSS/Flux/Component";
+import { IDataState, PersonaCardProps } from "VSS/Identities/Picker/PersonaCardContracts";
+import * as Identities_Picker_RestClient from "VSS/Identities/Picker/RestClient";
+export interface PersonaCardContentProps extends Component_Base.Props, PersonaCardProps {
+    dataProps: IDataState;
+    onClickEntity?: (identity: Identities_Picker_RestClient.IEntity) => void;
+    onHeaderClick?: () => void;
+    onShowOrganizationCard?: () => void;
+    onShowContactCard?: () => void;
+    working?: boolean;
+}
+/**
+ * The content of the callout for the persona card. See the associated wiki page for design details:
+ * https://mseng.visualstudio.com/VSOnline/_wiki?pagePath=%2FWorking-with-the-React-Profile-Card
+ */
+export class PersonaCardContent extends React.Component<PersonaCardContentProps> {
+    private _focusZone;
+    componentDidMount(): void;
+    componentDidUpdate(): void;
+    render(): JSX.Element;
+    private _renderCard();
+    private _onFocusZoneRef(focusZone);
+    private _focusOnUpdate();
+    private _renderInnerCard();
+    private _onDismissCallout();
+    private _publishTelemetry(componentType, action, source?);
+}
+}
+declare module "VSS/Identities/Picker/PersonaCardContracts" {
+import * as Component_Base from "VSS/Flux/Component";
+import * as Picker_Controls from "VSS/Identities/Picker/Controls";
+import { HeaderElementProps } from "VSS/Identities/Picker/PersonaCardHeaderElement";
+import * as Identities_Picker_RestClient from "VSS/Identities/Picker/RestClient";
+import { IPoint } from "VSS/Identities/Picker/Common";
+export enum CardType {
+    Default = 0,
+    Contact = 1,
+    Organization = 2,
+}
 export interface IDataState {
     header: Identities_Picker_RestClient.IEntity;
     identity: Identities_Picker_RestClient.IEntity;
@@ -26696,50 +26922,34 @@ export interface IDataState {
     directReportList: Identities_Picker_RestClient.IEntity[];
     previousDataState: IDataState;
     cardType: CardType;
+    displayName: string;
+    imageUrl: string;
+    email: string;
+    source?: string;
 }
-export interface PersonaCardContentProps {
-    /**
-     * Initial identity object, if available.
-     */
+export namespace personaCardEntity {
+    const contactCard = "ContactCard";
+    const clicked = "Clicked";
+    const featureName = "PersonaCard";
+    const loaded = "Loaded";
+    const orgCard = "OrgCard";
+    const orgCardManagerChain = "OrgCardManagerChain";
+    const orgCardDirectReport = "OrgCardDirectReport";
+    const personaCard = "PersonaCard";
+    const reportingManager = "ReportingManager";
+}
+export interface PersonaCardProps extends Component_Base.Props {
     identity?: Identities_Picker_RestClient.IEntity;
-    /**
-     * Unique attribute (entityID or signInAddress or uniqueName) to get identity object (if no identity available).
-     */
     uniqueAttribute?: string;
-    /**
-     * EntityOperationsFacade for getting identity call (required).
-     */
+    consumerId: string;
     entityOperationsFacade: Picker_Controls.EntityOperationsFacade;
-    /** (Optional) Initial header props to use if content is hosted inside an external component */
     initialHeader?: HeaderElementProps;
-}
-export interface PersonaCardContentState extends Component_Base.State {
-    /** Mimics stack to allow for breadcrumb */
-    dataState: IDataState;
-    /** Prevent requests if working */
-    working: boolean;
-}
-/**
- * The content of the callout for the persona card. See the associated wiki page for design details:
- * https://mseng.visualstudio.com/VSOnline/_wiki?pagePath=%2FWorking-with-the-React-Profile-Card
- */
-export class PersonaCardContent extends React.Component<PersonaCardContentProps, PersonaCardContentState> {
-    private _IdentityService;
-    private _dismissed;
-    constructor(props: PersonaCardContentProps);
-    componentWillUnmount(): void;
-    render(): JSX.Element;
-    private _renderInnerCard();
-    private _onShowContactCard();
-    private _onShowOrganizationCard();
-    private _onClickEntity(identity);
-    private _headerOnClickHandler();
-    private _setupInitialData(dataState, uniqueAttribute?);
-    _getIdentityByUniqueAttribute(identifier: string | Identities_Picker_RestClient.IEntity): void;
-    private _getIdentitiesSuccessCallback(identitiesResponse);
-    private _getConnectionsSuccessCallback(dataState, connectionsResponse);
-    private _getImagesForDataState();
-    private _getImagesForEntitiesCallback(entityIdUrlMap);
+    displayName?: string;
+    imageUrl?: string;
+    referenceHTMLComponent?: HTMLElement;
+    target?: HTMLElement | IPoint;
+    onDismissCallback?: () => void;
+    consumer?: string;
 }
 }
 declare module "VSS/Identities/Picker/PersonaCardHeaderElement" {
@@ -26759,12 +26969,14 @@ export interface HeaderElementProps extends Component_Base.Props {
     */
     onClickFunction?: () => void;
     /**
-    * Tab index for the header element. Default value is 1 if not provided.
+    * Function to set the focus to first active element of focuszone on update of the card.
     */
-    tabIndex: number;
+    setFocus?: () => void;
 }
 export class PersonaCardHeaderElement extends React.Component<HeaderElementProps, {}> {
     private _personaElement;
+    componentDidMount(): void;
+    componentDidUpdate(): void;
     constructor(props: HeaderElementProps);
     render(): JSX.Element;
     /**
@@ -26837,6 +27049,7 @@ export interface IEntity {
     mailNickname?: string;
     physicalDeliveryOfficeName?: string;
     signInAddress?: string;
+    subjectDescriptor?: string;
     surname?: string;
     guest?: boolean;
     active?: boolean;
@@ -27023,6 +27236,7 @@ export class ServiceHelpers {
     static getConnectionTypeList(connectionType: IConnectionType): string[];
     static getDefaultIdentityImage(identity: Identities_Picker_RestClient.IEntity): string;
     static getDistinct(array: string[]): string[];
+    static isAuthenticatedMember(): boolean;
     static getPrefixTypeForTelemetry(prefix: string): "signInAddress" | "domainSamAccountName" | "entityId" | "vsid" | "scopedPrefix" | "stringPrefix";
     static addScenarioProperties(service: Service.VssService, scenarioProperties: IDictionaryStringTo<any>, operationScope?: IOperationScope, identityType?: IEntityType, options?: IIdentityServiceOptions, extensionOptions?: IIdentityPickerExtensionOptions): IDictionaryStringTo<any>;
     private static _getHostMetadata(service);
@@ -27044,7 +27258,7 @@ export interface IIdentityPickerExtensionOptions {
     /**
     *   The source of the request - please update the Common Identity Picker wiki with your consumer GUID
     **/
-    consumerId?: string;
+    consumerId: string;
 }
 /**
  * @exemptedapi
@@ -27479,9 +27693,9 @@ export class IdentitiesHttpClient extends IdentitiesHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return IdentitiesHttpClient4
+ * @return IdentitiesHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): IdentitiesHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): IdentitiesHttpClient4_1;
 }
 declare module "VSS/Invitation/Contracts" {
 /**
@@ -27983,9 +28197,9 @@ export class LicensingRuleHttpClient extends LicensingRuleHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return LicensingRuleHttpClient4
+ * @return LicensingRuleHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): LicensingRuleHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): LicensingRuleHttpClient4_1;
 }
 declare module "VSS/Licensing/Contracts" {
 import VSS_Accounts_Contracts = require("VSS/Accounts/Contracts");
@@ -28012,6 +28226,10 @@ export interface AccountEntitlement {
      */
     lastAccessedDate: Date;
     license: License;
+    /**
+     * Licensing origin
+     */
+    origin: LicensingOrigin;
     /**
      * The computed rights of this user in the account.
      */
@@ -28060,10 +28278,14 @@ export enum AccountLicenseType {
 }
 export interface AccountLicenseUsage {
     /**
-     * Amount that is disabled (Usually from licenses that were provisioned, but became invalid due to loss of subscription for in a billing cycle)
+     * Amount that is disabled (Usually from licenses that were provisioned, but became invalid due to loss of subscription in a new billing cycle)
      */
     disabledCount: number;
     license: AccountUserLicense;
+    /**
+     * Amount that will be purchased in the next billing cycle
+     */
+    pendingProvisionedCount: number;
     /**
      * Amount that has been purchased
      */
@@ -28188,29 +28410,6 @@ export interface ExtensionSource {
     licensingSource: LicensingSource;
 }
 /**
- * Container for licensing rights
- */
-export interface IUsageRight {
-    /**
-     * Rights data
-     */
-    attributes: {
-        [key: string]: any;
-    };
-    /**
-     * Rights expiration
-     */
-    expirationDate: Date;
-    /**
-     * Name, uniquely identifying a usage right
-     */
-    name: string;
-    /**
-     * Version
-     */
-    version: string;
-}
-/**
  * The base class for a specific license source and license
  */
 export interface License {
@@ -28218,6 +28417,14 @@ export interface License {
      * Gets the source of the license
      */
     source: LicensingSource;
+}
+export enum LicensingOrigin {
+    None = 0,
+    OnDemandPrivateProject = 1,
+    OnDemandPublicProject = 2,
+    UserHubInvitation = 3,
+    PrivateProjectInvitation = 4,
+    PublicProjectInvitation = 5,
 }
 export enum LicensingSource {
     None = 0,
@@ -28383,8 +28590,17 @@ export var TypeInfo: {
         };
     };
     ExtensionSource: any;
-    IUsageRight: any;
     License: any;
+    LicensingOrigin: {
+        enumValues: {
+            "none": number;
+            "onDemandPrivateProject": number;
+            "onDemandPublicProject": number;
+            "userHubInvitation": number;
+            "privateProjectInvitation": number;
+            "publicProjectInvitation": number;
+        };
+    };
     LicensingSource: {
         enumValues: {
             "none": number;
@@ -28442,15 +28658,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
     protected msdnApiVersion: string;
     protected msdnApiVersion_69522c3f: string;
     protected usageApiVersion: string;
-    protected usageRightsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API]
-     *
-     * @param {string} rightName
-     * @return IPromise<Contracts.IUsageRight[]>
-     */
-    getUsageRights(rightName?: string): IPromise<Contracts.IUsageRight[]>;
     /**
      * [Preview API]
      *
@@ -28542,9 +28750,10 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * @param {Contracts.AccountEntitlementUpdateModel} body - The update model for the entitlement
      * @param {string} userId - The id of the user
      * @param {boolean} dontNotifyUser
+     * @param {Contracts.LicensingOrigin} origin
      * @return IPromise<Contracts.AccountEntitlement>
      */
-    assignAccountEntitlementForUser(body: Contracts.AccountEntitlementUpdateModel, userId: string, dontNotifyUser?: boolean): IPromise<Contracts.AccountEntitlement>;
+    assignAccountEntitlementForUser(body: Contracts.AccountEntitlementUpdateModel, userId: string, dontNotifyUser?: boolean, origin?: Contracts.LicensingOrigin): IPromise<Contracts.AccountEntitlement>;
     /**
      * [Preview API] Gets top (top) entitlements for users in the account from offset (skip) order by DateCreated ASC
      *
@@ -28564,9 +28773,10 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      *
      * @param {string} userId - The user to which to assign the entitilement
      * @param {boolean} dontNotifyUser
+     * @param {Contracts.LicensingOrigin} origin
      * @return IPromise<Contracts.AccountEntitlement>
      */
-    assignAvailableAccountEntitlement(userId: string, dontNotifyUser?: boolean): IPromise<Contracts.AccountEntitlement>;
+    assignAvailableAccountEntitlement(userId: string, dontNotifyUser?: boolean, origin?: Contracts.LicensingOrigin): IPromise<Contracts.AccountEntitlement>;
     /**
      * [Preview API]
      *
@@ -28702,9 +28912,9 @@ export class LicensingHttpClient extends LicensingHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return LicensingHttpClient4
+ * @return LicensingHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): LicensingHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): LicensingHttpClient4_1;
 }
 declare module "VSS/Locations" {
 import Contracts_Platform = require("VSS/Common/Contracts/Platform");
@@ -29373,7 +29583,7 @@ export class LocationService implements ILocalService {
      * @param routeId Id of the route to generate a url for
      * @param routeValues Dictionary of route values
      */
-    routeUrl(routeId: string, routeValues: IDictionaryStringTo<string>): string;
+    routeUrl(routeId: string, routeValues: IDictionaryStringTo<string>, hostPath?: string): string;
 }
 }
 declare module "VSS/Navigation/NavigationHistoryService" {
@@ -29437,6 +29647,10 @@ export interface INavigationHistoryService {
         [key: string]: string;
     };
     /**
+     * Get the route id for the current page.
+     */
+    getCurrentRouteId(): string;
+    /**
      * Subscribe to pop state events. The provided listener is invoked whenever a forward or back navigation
      * has occurred to a push-state entry that this service is managing.
      *
@@ -29449,6 +29663,12 @@ export interface INavigationHistoryService {
      * @param listener Listener to remove.
      */
     unsubscribe(listener: (event: INavigationPopStateEvent) => void): any;
+    /**
+     * Register that the same code handles the aliasRouteId as hanldes the baseRouteId. Navigation
+     * between routes that map to the same baseRouteId won't set isNewRoute on the navigation
+     * events.
+     */
+    registerRouteAlias(baseRouteId: string, aliasRouteId: string): void;
 }
 /**
  * The state pushed in a single history entry
@@ -29843,9 +30063,9 @@ export class OperationsHttpClient extends OperationsHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return OperationsHttpClient4
+ * @return OperationsHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OperationsHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OperationsHttpClient4_1;
 }
 declare module "VSS/OrganizationPolicy/Contracts" {
 /**
@@ -29857,7 +30077,7 @@ declare module "VSS/OrganizationPolicy/Contracts" {
  *   https://vsowiki.com/index.php?title=Rest_Client_Generation
  *
  * Configuration file:
- *   Vssf\Client\WebApi\HttpClients\ClientGeneratorConfigs\genclient.json
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
  */
 export interface Policy {
     effectiveValue: any;
@@ -29961,9 +30181,9 @@ export class OrganizationPolicyHttpClient extends OrganizationPolicyHttpClient4_
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return OrganizationPolicyHttpClient4
+ * @return OrganizationPolicyHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OrganizationPolicyHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OrganizationPolicyHttpClient4_1;
 }
 declare module "VSS/Organization/Contracts" {
 export interface Collection {
@@ -29988,12 +30208,24 @@ export interface Collection {
     properties: any;
     status: CollectionStatus;
 }
+export enum CollectionSearchKind {
+    Unknown = 0,
+    ById = 1,
+    ByName = 2,
+    ByTenantId = 3,
+}
 export enum CollectionStatus {
     Unknown = 0,
     Initial = 10,
     Enabled = 20,
     LogicallyDeleted = 30,
     MarkedForPhysicalDelete = 40,
+}
+export interface Logo {
+    /**
+     * The image for the logo represented as a byte array
+     */
+    image: number[];
 }
 export interface Organization {
     collections: Collection[];
@@ -30073,6 +30305,14 @@ export interface Region {
 }
 export var TypeInfo: {
     Collection: any;
+    CollectionSearchKind: {
+        enumValues: {
+            "unknown": number;
+            "byId": number;
+            "byName": number;
+            "byTenantId": number;
+        };
+    };
     CollectionStatus: {
         enumValues: {
             "unknown": number;
@@ -30116,6 +30356,7 @@ export class CommonMethods3To4_1 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected collectionPropertiesApiVersion: string;
     protected collectionsApiVersion: string;
+    protected organizationLogoApiVersion: string;
     protected organizationMigrationBlobsApiVersion: string;
     protected organizationPropertiesApiVersion: string;
     protected organizationsApiVersion: string;
@@ -30184,6 +30425,14 @@ export class CommonMethods3To4_1 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
+     * @param {string} organizationId
+     * @param {Contracts.Logo} logo
+     * @return IPromise<boolean>
+     */
+    updateOrganizationLogo(organizationId: string, logo: Contracts.Logo): IPromise<boolean>;
+    /**
+     * [Preview API]
+     *
      * @param {VSS_Common_Contracts.JsonPatchDocument} patchDocument
      * @param {string} collectionId
      * @return IPromise<Contracts.Collection>
@@ -30200,9 +30449,12 @@ export class CommonMethods3To4_1 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
+     * @param {Contracts.CollectionSearchKind} searchKind
+     * @param {string} searchValue
+     * @param {boolean} includeDeletedCollections
      * @return IPromise<Contracts.Collection[]>
      */
-    getCollections(): IPromise<Contracts.Collection[]>;
+    getCollections(searchKind?: Contracts.CollectionSearchKind, searchValue?: string, includeDeletedCollections?: boolean): IPromise<Contracts.Collection[]>;
     /**
      * [Preview API]
      *
@@ -30270,9 +30522,9 @@ export class OrganizationHttpClient extends OrganizationHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return OrganizationHttpClient4
+ * @return OrganizationHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OrganizationHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OrganizationHttpClient4_1;
 }
 declare module "VSS/Performance" {
 import Telemetry = require("VSS/Telemetry/Services");
@@ -30687,650 +30939,6 @@ export var TypeInfo: {
     };
 };
 }
-declare module "VSS/Profile/Metrics" {
-import Q = require("q");
-import Telemetry_RestClient = require("VSS/Telemetry/RestClient");
-import Telemetry_Services = require("VSS/Telemetry/Services");
-/**
- * Service used to report telemetry via CI events and app insights, derived from VSS/Telemetry/Services
- * @remark export for testing only, do not use it externally
- */
-export class TelemetryAsyncHelper {
-    private static DelayMs;
-    private items;
-    private client;
-    private queue;
-    private pending;
-    constructor(client?: Telemetry_RestClient.CustomerIntelligenceHttpClient);
-    private queueEvent(eventData);
-    /**
-     * @param eventData
-     * @param publishImmediately flush all currently queueed events and publish them immediately
-     */
-    publish(eventData: Telemetry_Services.TelemetryEventData, publishImmediately?: boolean): Q.Promise<void>;
-    private publishEvents();
-}
-export interface MetricsEvent {
-    setValue<T>(key: string, value: T): any;
-    close(): Q.Promise<void>;
-    inner(feature: string): MetricsEvent;
-}
-/**
- * Base metrics event
- * @remarks Should be abstract when compiler supports
- */
-export class BaseMetricsEvent<T extends MetricsEvent> implements MetricsEvent {
-    protected isClosed: boolean;
-    protected area: string;
-    protected feature: string;
-    protected properties: IDictionaryStringTo<any>;
-    protected publishOnClose: boolean;
-    private children;
-    /**
-     * Creates a MetricsEvent with specified area and feature
-     */
-    constructor(area: string, feature: string, publishOnClose: boolean);
-    /**
-     * Set value for a metric field
-     */
-    setValue<T>(key: string, value: T): any;
-    /**
-     * Publishes data to telemetry services
-     * To be overriden for specific implementations
-     * @remarks Should be abstract when compiler supports
-     */
-    protected closeThis(): Q.Promise<void>;
-    /**
-     * Marks a MetricsEvent project as closed, once it is closed, it will not be updated with any new values
-     * invokes closeThis for specific implementations.
-     */
-    close(): Q.Promise<void>;
-    /**
-     * Create inner metrics by prefixing the keys with innerFeature
-     * @remarks Should be abstract when compiler supports, must be overriden
-     */
-    protected newInnerMetrics(feature: string): T;
-    inner(feature: string): T;
-}
-/**
- * Provides an easy-to-use tracking object for sending customer intelligence telemetries
- */
-export class IntervalMetricsEvent extends BaseMetricsEvent<IntervalMetricsEvent> {
-    protected startTime: number;
-    protected elapsedTime: number;
-    /**
-     * Set startTime for this metrics event to Date.now()
-     * @return set startTime
-     */
-    begin(): number;
-    /**
-     * Set elapsedTime if the start timestamp has been set by Date.now() - startTime
-     * @return set elapsedTime
-     */
-    end(): number;
-    /**
-     * Publishes data to telemetry services
-     * To be overriden for specific implementations
-     */
-    protected closeThis(): Q.Promise<void>;
-    /**
-     * Create inner metrics by prefixing the keys with innerFeature
-     */
-    protected newInnerMetrics(innerFeature: string): IntervalMetricsEvent;
-}
-export class InstantMetricsEvent extends BaseMetricsEvent<MetricsEvent> {
-    /**
-     * Publishes data to telemetry services
-     * To be overriden for specific implementations
-     */
-    protected closeThis(): Q.Promise<void>;
-    /**
-     * Create inner metrics by prefixing the keys with innerFeature
-     */
-    newInnerMetrics(innerFeature: string): MetricsEvent;
-}
-/**
- * Metrics event that does nothing
- */
-export class NullMetricsEvent implements MetricsEvent {
-    setValue<T>(key: string, value: T): void;
-    close(): Q.Promise<void>;
-    inner(feature: string): MetricsEvent;
-}
-/**
- * Interval metrics event that does nothing
- */
-export class NullIntervalMetricsEvent extends IntervalMetricsEvent {
-    constructor();
-    begin(): number;
-    end(): number;
-    setValue<T>(key: string, value: T): void;
-    close(): Q.Promise<void>;
-    inner(): NullIntervalMetricsEvent;
-}
-/**
- * Convenient metrics event object that does nothing
- */
-export var nullMetrics: NullMetricsEvent;
-export var nullIntervalMetrics: NullIntervalMetricsEvent;
-/**
- * Create auto metered async action with StartTime and ElapsedTime automatially set for a new metrics
- * @param action
- * @param metricsArea
- * @param metricsFeature
- */
-export function meterAsyncAction<T>(action: (metrics: IntervalMetricsEvent) => Q.Promise<T>, metricsArea: string, metricsFeature: string, metricsPublishOnClose: boolean): Q.Promise<T>;
-/**
- * Create auto metered async action with StartTime and ElapsedTime automatially set for a new inner metrics
- * @param action
- * @param parentMetrics
- * @param innerFeature
- */
-export function meterAsyncActionInner<T>(action: (metrics: MetricsEvent) => Q.Promise<T>, parentMetrics: IntervalMetricsEvent, innerFeature: string): Q.Promise<T>;
-/**
- * Publish all metrics immediately
- */
-export function publishAllImmediately(): Q.Promise<void>;
-/**
- * Wrapped async action with metrics automatically logged for beginning and end
- * Change to abstract class when using ts-api-checker supports it
- */
-export class MeteredAsyncAction<T> {
-    private parentMetrics;
-    private feature;
-    /**
-     * Create metered async action
-     * @param metrics parent metrics to put the metrics of this enaction into.
-     */
-    constructor(metrics?: IntervalMetricsEvent, feature?: string);
-    /**
-     * Creates metrics to be consumed, no direct passing metrics object from outside of the class, so the metrics lives only in the scope of this class
-     * Creates child metrics if parent metrics and feature are specified
-     * Override with method returning arbitrary IntervalMetricsEvent
-     */
-    protected createMetrics(): IntervalMetricsEvent;
-    /**
-     * Action implementation
-     * Abstract method, must be overriden
-     * @param metrics
-     */
-    protected action(metrics: MetricsEvent): Q.Promise<T>;
-    /**
-     * Enact action
-     */
-    enact(): Q.Promise<T>;
-}
-}
-declare module "VSS/Profile/RestClient" {
-import Contracts = require("VSS/Profile/Contracts");
-import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
-import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
-    static serviceInstanceId: string;
-    protected geoRegionApiVersion: string;
-    protected profilesApiVersion: string;
-    protected regionsApiVersion: string;
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * @exemptedapi
-     * [Preview API] Get available country/regions for profile with contact consent requirements
-     *
-     * @return IPromise<Contracts.ProfileRegions>
-     */
-    getRegions(): IPromise<Contracts.ProfileRegions>;
-    /**
-     * Update profile
-     *
-     * @param {Contracts.Profile} profile - Update profile
-     * @param {string} id - Profile ID
-     * @return IPromise<void>
-     */
-    updateProfile(profile: Contracts.Profile, id: string): IPromise<void>;
-    /**
-     * Get my profile.
-     *
-     * @param {string} id
-     * @param {boolean} details
-     * @param {boolean} withAttributes
-     * @param {string} partition
-     * @param {string} coreAttributes
-     * @param {boolean} forceRefresh
-     * @return IPromise<Contracts.Profile>
-     */
-    getProfile(id: string, details?: boolean, withAttributes?: boolean, partition?: string, coreAttributes?: string, forceRefresh?: boolean): IPromise<Contracts.Profile>;
-    /**
-     * Create profile
-     *
-     * @param {Contracts.CreateProfileContext} createProfileContext - Context for profile creation
-     * @param {boolean} autoCreate - Create profile automatically
-     * @return IPromise<Contracts.Profile>
-     */
-    createProfile(createProfileContext: Contracts.CreateProfileContext, autoCreate?: boolean): IPromise<Contracts.Profile>;
-    /**
-     * Lookup up country/region based on provided IPv4, null if using the remote IPv4 address.
-     *
-     * @param {string} ipaddress - IPv4 address to be used for reverse lookup, null if using RemoteIPAddress in request context
-     * @return IPromise<Contracts.GeoRegion>
-     */
-    getGeoRegion(ipaddress: string): IPromise<Contracts.GeoRegion>;
-}
-export class CommonMethods3To4_1 extends CommonMethods2To4_1 {
-    protected attributesApiVersion: string;
-    protected avatarApiVersion: string;
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API]
-     *
-     * @param {any} container
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    setAvatar(container: any, id: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    resetAvatar(id: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {any} container
-     * @param {string} id
-     * @param {string} size
-     * @param {string} format
-     * @param {string} displayName
-     * @return IPromise<Contracts.Avatar>
-     */
-    getAvatarPreview(container: any, id: string, size?: string, format?: string, displayName?: string): IPromise<Contracts.Avatar>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} id
-     * @param {string} size
-     * @param {string} format
-     * @return IPromise<Contracts.Avatar>
-     */
-    getAvatar(id: string, size?: string, format?: string): IPromise<Contracts.Avatar>;
-    /**
-     * [Preview API]
-     *
-     * @param {VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>} attributesCollection
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    setProfileAttributes(attributesCollection: VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>, id: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {any} container
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<void>
-     */
-    setProfileAttribute(container: any, id: string, descriptor: string): IPromise<void>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} id
-     * @param {string} partition
-     * @param {string} modifiedSince
-     * @param {string} modifiedAfterRevision
-     * @param {boolean} withCoreAttributes
-     * @param {string} coreAttributes
-     * @return IPromise<Contracts.ProfileAttribute[]>
-     */
-    getProfileAttributes(id: string, partition: string, modifiedSince?: string, modifiedAfterRevision?: string, withCoreAttributes?: boolean, coreAttributes?: string): IPromise<Contracts.ProfileAttribute[]>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<Contracts.ProfileAttribute>
-     */
-    getProfileAttribute(id: string, descriptor: string): IPromise<Contracts.ProfileAttribute>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<void>
-     */
-    deleteProfileAttribute(id: string, descriptor: string): IPromise<void>;
-}
-export class CommonMethods4To4_1 extends CommonMethods3To4_1 {
-    protected userDefaultsApiVersion: string;
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API]
-     *
-     * @param {boolean} includeAvatar
-     * @return IPromise<Contracts.RemoteProfile>
-     */
-    getUserDefaults(includeAvatar?: boolean): IPromise<Contracts.RemoteProfile>;
-}
-/**
- * @exemptedapi
- */
-export class ProfileHttpClient4_1 extends CommonMethods4To4_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-}
-/**
- * @exemptedapi
- */
-export class ProfileHttpClient4 extends CommonMethods4To4_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-}
-/**
- * @exemptedapi
- */
-export class ProfileHttpClient3_2 extends CommonMethods3To4_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API]
-     *
-     * @param {boolean} includeAvatar
-     * @return IPromise<Contracts.Profile>
-     */
-    getUserDefaults(includeAvatar?: boolean): IPromise<Contracts.Profile>;
-}
-/**
- * @exemptedapi
- */
-export class ProfileHttpClient3_1 extends CommonMethods3To4_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API]
-     *
-     * @param {boolean} includeAvatar
-     * @return IPromise<Contracts.Profile>
-     */
-    getUserDefaults(includeAvatar?: boolean): IPromise<Contracts.Profile>;
-}
-/**
- * @exemptedapi
- */
-export class ProfileHttpClient3 extends CommonMethods3To4_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API]
-     *
-     * @param {boolean} includeAvatar
-     * @return IPromise<Contracts.Profile>
-     */
-    getUserDefaults(includeAvatar?: boolean): IPromise<Contracts.Profile>;
-}
-export class ProfileHttpClient2_3 extends CommonMethods2To4_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<void>
-     */
-    deleteProfileAttribute(id: string, descriptor: string): IPromise<void>;
-    /**
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<Contracts.ProfileAttribute>
-     */
-    getProfileAttribute(id: string, descriptor: string): IPromise<Contracts.ProfileAttribute>;
-    /**
-     * @param {string} id
-     * @param {string} partition
-     * @param {string} modifiedSince
-     * @param {string} modifiedAfterRevision
-     * @param {boolean} withCoreAttributes
-     * @param {string} coreAttributes
-     * @return IPromise<Contracts.ProfileAttribute[]>
-     */
-    getProfileAttributes(id: string, partition: string, modifiedSince?: string, modifiedAfterRevision?: string, withCoreAttributes?: boolean, coreAttributes?: string): IPromise<Contracts.ProfileAttribute[]>;
-    /**
-     * @param {any} container
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<void>
-     */
-    setProfileAttribute(container: any, id: string, descriptor: string): IPromise<void>;
-    /**
-     * @param {VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>} attributesCollection
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    setProfileAttributes(attributesCollection: VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>, id: string): IPromise<void>;
-    /**
-     * @param {string} id
-     * @param {string} size
-     * @param {string} format
-     * @return IPromise<Contracts.Avatar>
-     */
-    getAvatar(id: string, size?: string, format?: string): IPromise<Contracts.Avatar>;
-    /**
-     * @param {any} container
-     * @param {string} id
-     * @param {string} size
-     * @param {string} format
-     * @param {string} displayName
-     * @return IPromise<Contracts.Avatar>
-     */
-    getAvatarPreview(container: any, id: string, size?: string, format?: string, displayName?: string): IPromise<Contracts.Avatar>;
-    /**
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    resetAvatar(id: string): IPromise<void>;
-    /**
-     * @param {any} container
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    setAvatar(container: any, id: string): IPromise<void>;
-}
-export class ProfileHttpClient2_2 extends CommonMethods2To4_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<void>
-     */
-    deleteProfileAttribute(id: string, descriptor: string): IPromise<void>;
-    /**
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<Contracts.ProfileAttribute>
-     */
-    getProfileAttribute(id: string, descriptor: string): IPromise<Contracts.ProfileAttribute>;
-    /**
-     * @param {string} id
-     * @param {string} partition
-     * @param {string} modifiedSince
-     * @param {string} modifiedAfterRevision
-     * @param {boolean} withCoreAttributes
-     * @param {string} coreAttributes
-     * @return IPromise<Contracts.ProfileAttribute[]>
-     */
-    getProfileAttributes(id: string, partition: string, modifiedSince?: string, modifiedAfterRevision?: string, withCoreAttributes?: boolean, coreAttributes?: string): IPromise<Contracts.ProfileAttribute[]>;
-    /**
-     * @param {any} container
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<void>
-     */
-    setProfileAttribute(container: any, id: string, descriptor: string): IPromise<void>;
-    /**
-     * @param {VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>} attributesCollection
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    setProfileAttributes(attributesCollection: VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>, id: string): IPromise<void>;
-    /**
-     * @param {string} id
-     * @param {string} size
-     * @param {string} format
-     * @return IPromise<Contracts.Avatar>
-     */
-    getAvatar(id: string, size?: string, format?: string): IPromise<Contracts.Avatar>;
-    /**
-     * @param {any} container
-     * @param {string} id
-     * @param {string} size
-     * @param {string} format
-     * @param {string} displayName
-     * @return IPromise<Contracts.Avatar>
-     */
-    getAvatarPreview(container: any, id: string, size?: string, format?: string, displayName?: string): IPromise<Contracts.Avatar>;
-    /**
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    resetAvatar(id: string): IPromise<void>;
-    /**
-     * @param {any} container
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    setAvatar(container: any, id: string): IPromise<void>;
-}
-export class ProfileHttpClient2_1 extends CommonMethods2To4_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<void>
-     */
-    deleteProfileAttribute(id: string, descriptor: string): IPromise<void>;
-    /**
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<Contracts.ProfileAttribute>
-     */
-    getProfileAttribute(id: string, descriptor: string): IPromise<Contracts.ProfileAttribute>;
-    /**
-     * @param {string} id
-     * @param {string} partition
-     * @param {string} modifiedSince
-     * @param {string} modifiedAfterRevision
-     * @param {boolean} withCoreAttributes
-     * @param {string} coreAttributes
-     * @return IPromise<Contracts.ProfileAttribute[]>
-     */
-    getProfileAttributes(id: string, partition: string, modifiedSince?: string, modifiedAfterRevision?: string, withCoreAttributes?: boolean, coreAttributes?: string): IPromise<Contracts.ProfileAttribute[]>;
-    /**
-     * @param {any} container
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<void>
-     */
-    setProfileAttribute(container: any, id: string, descriptor: string): IPromise<void>;
-    /**
-     * @param {VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>} attributesCollection
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    setProfileAttributes(attributesCollection: VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>, id: string): IPromise<void>;
-    /**
-     * @param {string} id
-     * @param {string} size
-     * @param {string} format
-     * @return IPromise<Contracts.Avatar>
-     */
-    getAvatar(id: string, size?: string, format?: string): IPromise<Contracts.Avatar>;
-    /**
-     * @param {any} container
-     * @param {string} id
-     * @param {string} size
-     * @param {string} format
-     * @param {string} displayName
-     * @return IPromise<Contracts.Avatar>
-     */
-    getAvatarPreview(container: any, id: string, size?: string, format?: string, displayName?: string): IPromise<Contracts.Avatar>;
-    /**
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    resetAvatar(id: string): IPromise<void>;
-    /**
-     * @param {any} container
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    setAvatar(container: any, id: string): IPromise<void>;
-}
-export class ProfileHttpClient2 extends CommonMethods2To4_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<void>
-     */
-    deleteProfileAttribute(id: string, descriptor: string): IPromise<void>;
-    /**
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<Contracts.ProfileAttribute>
-     */
-    getProfileAttribute(id: string, descriptor: string): IPromise<Contracts.ProfileAttribute>;
-    /**
-     * @param {string} id
-     * @param {string} partition
-     * @param {string} modifiedSince
-     * @param {string} modifiedAfterRevision
-     * @param {boolean} withCoreAttributes
-     * @param {string} coreAttributes
-     * @return IPromise<Contracts.ProfileAttribute[]>
-     */
-    getProfileAttributes(id: string, partition: string, modifiedSince?: string, modifiedAfterRevision?: string, withCoreAttributes?: boolean, coreAttributes?: string): IPromise<Contracts.ProfileAttribute[]>;
-    /**
-     * @param {any} container
-     * @param {string} id
-     * @param {string} descriptor
-     * @return IPromise<void>
-     */
-    setProfileAttribute(container: any, id: string, descriptor: string): IPromise<void>;
-    /**
-     * @param {VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>} attributesCollection
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    setProfileAttributes(attributesCollection: VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.ProfileAttributeBase<any>[]>, id: string): IPromise<void>;
-    /**
-     * @param {string} id
-     * @param {string} size
-     * @param {string} format
-     * @return IPromise<Contracts.Avatar>
-     */
-    getAvatar(id: string, size?: string, format?: string): IPromise<Contracts.Avatar>;
-    /**
-     * @param {any} container
-     * @param {string} id
-     * @param {string} size
-     * @param {string} format
-     * @param {string} displayName
-     * @return IPromise<Contracts.Avatar>
-     */
-    getAvatarPreview(container: any, id: string, size?: string, format?: string, displayName?: string): IPromise<Contracts.Avatar>;
-    /**
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    resetAvatar(id: string): IPromise<void>;
-    /**
-     * @param {any} container
-     * @param {string} id
-     * @return IPromise<void>
-     */
-    setAvatar(container: any, id: string): IPromise<void>;
-}
-export class ProfileHttpClient extends ProfileHttpClient4_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-}
-/**
- * Gets an http client targeting the latest released version of the APIs.
- *
- * @return ProfileHttpClient4
- */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ProfileHttpClient4;
-}
 declare module "VSS/ReparentCollection/Contracts" {
 export interface FrameworkReparentCollectionRequest extends FrameworkServicingOrchestrationRequest {
     sourceOrganizationId: string;
@@ -31623,7 +31231,7 @@ export class HostNavigationService implements IHostNavigationService {
     /**
     * Gets the current hash.
     */
-    getHash(): IPromise<string>;
+    getHash(): Q.Promise<string>;
     /**
      * Reloads the parent frame
      */
@@ -32044,9 +31652,10 @@ export class CommonMethods2_2To4_1 extends VSS_WebApi.VssHttpClient {
      * @param {Contracts.UserRoleAssignmentRef[]} roleAssignments
      * @param {string} scopeId
      * @param {string} resourceId
+     * @param {boolean} limitToCallerIdentityDomain
      * @return IPromise<Contracts.RoleAssignment[]>
      */
-    setRoleAssignments(roleAssignments: Contracts.UserRoleAssignmentRef[], scopeId: string, resourceId: string): IPromise<Contracts.RoleAssignment[]>;
+    setRoleAssignments(roleAssignments: Contracts.UserRoleAssignmentRef[], scopeId: string, resourceId: string, limitToCallerIdentityDomain?: boolean): IPromise<Contracts.RoleAssignment[]>;
     /**
      * [Preview API]
      *
@@ -32083,6 +31692,15 @@ export class CommonMethods2_2To4_1 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.RoleAssignment[]>
      */
     getRoleAssignments(scopeId: string, resourceId: string): IPromise<Contracts.RoleAssignment[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} scopeId
+     * @param {string} resourceId
+     * @param {boolean} inheritPermissions
+     * @return IPromise<void>
+     */
+    changeInheritance(scopeId: string, resourceId: string, inheritPermissions: boolean): IPromise<void>;
 }
 /**
  * @exemptedapi
@@ -32132,9 +31750,9 @@ export class SecurityRolesHttpClient extends SecurityRolesHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return SecurityRolesHttpClient4
+ * @return SecurityRolesHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): SecurityRolesHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): SecurityRolesHttpClient4_1;
 }
 declare module "VSS/Security/Contracts" {
 /**
@@ -32146,7 +31764,7 @@ declare module "VSS/Security/Contracts" {
  *   https://vsowiki.com/index.php?title=Rest_Client_Generation
  *
  * Configuration file:
- *   Vssf\Client\WebApi\HttpClients\ClientGeneratorConfigs\genclient.json
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\security.genclient.json
  */
 import VSS_Identities_Contracts = require("VSS/Identities/Contracts");
 /**
@@ -32418,9 +32036,9 @@ export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
     protected permissionEvaluationBatchApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
-     * Evaluates multiple permissions for the callign user.  Note: This methods does not aggregate the results nor does it short-circut if one of the permissions evaluates to false.
+     * Evaluates multiple permissions for the calling user.  Note: This method does not aggregate the results, nor does it short-circuit if one of the permissions evaluates to false.
      *
-     * @param {Contracts.PermissionEvaluationBatch} evalBatch - The set of permissions to check.
+     * @param {Contracts.PermissionEvaluationBatch} evalBatch - The set of evaluation requests.
      * @return IPromise<Contracts.PermissionEvaluationBatch>
      */
     hasPermissionsBatch(evalBatch: Contracts.PermissionEvaluationBatch): IPromise<Contracts.PermissionEvaluationBatch>;
@@ -32499,9 +32117,9 @@ export class SecurityHttpClient extends SecurityHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return SecurityHttpClient4
+ * @return SecurityHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): SecurityHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): SecurityHttpClient4_1;
 }
 declare module "VSS/Security/Services" {
 import Service = require("VSS/Service");
@@ -32511,6 +32129,7 @@ import Service = require("VSS/Service");
 export class SecurityService extends Service.VssService {
     hasPermission(securityNamespaceId: string, securityToken: string, requestedPermission: number): boolean;
     checkPermission(securityNamespaceId: string, securityToken: string, requestedPermission: number): void;
+    isPermissionIncluded(securityNamespaceId: string, securityToken: string): boolean;
     private handleMissingState(message);
 }
 }
@@ -32587,6 +32206,7 @@ export module ContractSerializer {
 * @param removeElement If true remove the element from the DOM after deserializing the content
 */
 export function deserializeJsonIsland<T>($element: JQuery, contractMetadata: ContractMetadata, removeElement?: boolean): T;
+export function deserializeVssJsonObject<T>(text: string): T;
 }
 declare module "VSS/Service" {
 import Contracts_Platform = require("VSS/Common/Contracts/Platform");
@@ -32893,9 +32513,103 @@ export class SettingsHttpClient extends SettingsHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return SettingsHttpClient4
+ * @return SettingsHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): SettingsHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): SettingsHttpClient4_1;
+}
+declare module "VSS/Settings/Services" {
+import { WebContext } from "VSS/Common/Contracts/Platform";
+/**
+ * Whether settings are applied to the current user or to all users in the host
+ */
+export const enum SettingsUserScope {
+    /**
+     * Settings for the current user
+     */
+    Me = 0,
+    /**
+     * Shared settings for all users in this host
+     */
+    Host = 1,
+}
+/**
+ * Service for interacting with Settings REST Endpoint which handles anonymous/public users
+ * by not calling the server since the server endpoint is not open to public.
+ */
+export interface ISettingsService {
+    /**
+     * Synchronous method to get a setting entry from the settings emitted from local data providers. Returns undefined
+     * if the value was not present.
+     *
+     * @param {string} key - Settings key.
+     * @param {string} userScope - User-Scope at which to get the value. Should be Me for the current user or Host for all users.
+     * @param {string} scopeName - Scope at which to get the setting for (e.g. "project" or "team")
+     * @param {string} scopeValue - Value of the scope (e.g. the project or team id)
+     * @return Promise<{ [key: string] : any; }>
+     */
+    getEntry<T>(key: string, userScope: SettingsUserScope, scopeName?: string, scopeValue?: string): T | undefined;
+    /**
+     * Get all setting entries by making a REST call if the data was not already included in local data provider data.
+     *
+     * @param {string} key - Key under which to filter all the entries
+     * @param {string} userScope - User-Scope at which to get the value. Should be Me for the current user or Host for all users.
+     * @param {string} scopeName - Scope at which to get the setting for (e.g. "project" or "team")
+     * @param {string} scopeValue - Value of the scope (e.g. the project or team id)
+     * @return Promise<{ [key: string] : any; }>
+     */
+    getEntriesAsync(key: string, userScope: SettingsUserScope, scopeName?: string, scopeValue?: string): IPromise<{
+        [key: string]: any;
+    }>;
+    /**
+     * Set the specified settings entries
+     *
+     * @param {{ [key: string] : any; }} entries - The entries to set
+     * @param {string} userScope - User-Scope at which to set the values. Should be Me for the current user or Host for all users.
+     * @param {string} scopeName - Scope at which to set the settings on (e.g. "project" or "team")
+     * @param {string} scopeValue - Value of the scope (e.g. the project or team id)
+     * @return Promise<void>
+     */
+    setEntries(entries: {
+        [key: string]: any;
+    }, userScope: SettingsUserScope, scopeName?: string, scopeValue?: string): IPromise<void>;
+    /**
+     * Remove the entry or entries under the specified path
+     *
+     * @param {string} key - Root key of the entry or entries to remove
+     * @param {string} userScope - User-Scope at which to remove the value. Should be Me for the current user or Host for all users.
+     * @param {string} scopeName - Scope at which to get the setting for (e.g. "project" or "team")
+     * @param {string} scopeValue - Value of the scope (e.g. the project or team id)
+     * @return Promise<void>
+     */
+    removeEntries(key: string, userScope: SettingsUserScope, scopeName?: string, scopeValue?: string): IPromise<void>;
+}
+/**
+ * Get the settings service for the web context default host type.
+ *
+ * @param webContext optional web context to use for the connection
+ * @return Collection-level or Application-level service
+ */
+export function getService(webContext?: WebContext): ISettingsService;
+}
+declare module "VSS/SignalR/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
+export interface SignalRObject {
+    identifier: string;
+    version: string;
+}
+export interface SignalROperation {
+    objects: SignalRObject[];
+}
 }
 declare module "VSS/Telemetry/Contracts" {
 /**
@@ -32907,7 +32621,7 @@ declare module "VSS/Telemetry/Contracts" {
  *   https://vsowiki.com/index.php?title=Rest_Client_Generation
  *
  * Configuration file:
- *   Vssf\Client\WebApi\HttpClients\ClientGeneratorConfigs\genclient.json
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
  */
 export interface CustomerIntelligenceEvent {
     area: string;
@@ -32991,9 +32705,9 @@ export class CustomerIntelligenceHttpClient extends CustomerIntelligenceHttpClie
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return CustomerIntelligenceHttpClient4
+ * @return CustomerIntelligenceHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CustomerIntelligenceHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CustomerIntelligenceHttpClient4_1;
 }
 declare module "VSS/Telemetry/Services" {
 /**
@@ -33446,20 +33160,32 @@ export class TokenHttpClient extends TokenHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return TokenHttpClient4
+ * @return TokenHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TokenHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TokenHttpClient4_1;
 }
 declare module "VSS/UserAccountMapping/Contracts" {
 export enum UserAccountMappingType {
     Member = 1,
     Owner = 2,
 }
+export enum VisualStudioLevel {
+    None = 0,
+    Professional = 1,
+    TestManager = 2,
+}
 export var TypeInfo: {
     UserAccountMappingType: {
         enumValues: {
             "member": number;
             "owner": number;
+        };
+    };
+    VisualStudioLevel: {
+        enumValues: {
+            "none": number;
+            "professional": number;
+            "testManager": number;
         };
     };
 };
@@ -33535,9 +33261,9 @@ export class UserMappingHttpClient extends UserMappingHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return UserMappingHttpClient4
+ * @return UserMappingHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): UserMappingHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): UserMappingHttpClient4_1;
 }
 declare module "VSS/User/Contracts" {
 /**
@@ -33615,6 +33341,19 @@ export interface MailConfirmationParameters {
      * The email address to be confirmed.
      */
     mailAddress: string;
+}
+/**
+ * Request to send notification
+ */
+export interface SendUserNotificationParameters {
+    /**
+     * Notification to be delivered
+     */
+    notification: UserNotification;
+    /**
+     * Users whom this notification is addressed to
+     */
+    recipients: string[];
 }
 /**
  * Used for updating a user's attributes.
@@ -33728,6 +33467,26 @@ export interface UserAttributes {
      */
     continuationToken: string;
 }
+export interface UserNotification {
+    /**
+     * Unique notification id (must be idempotent)
+     */
+    eventId: string;
+    /**
+     * Time at which notification was posted (must be idempotent)
+     */
+    timeStamp: Date;
+}
+export interface UserNotifications {
+    /**
+     * Continuation token to query the next segment
+     */
+    continuationToken: string;
+    /**
+     * Collection of notifications
+     */
+    notifications: UserNotification[];
+}
 export var TypeInfo: {
     Avatar: any;
     AvatarSize: {
@@ -33737,11 +33496,40 @@ export var TypeInfo: {
             "large": number;
         };
     };
+    SendUserNotificationParameters: any;
     SetUserAttributeParameters: any;
     User: any;
     UserAttribute: any;
     UserAttributes: any;
+    UserNotification: any;
+    UserNotifications: any;
 };
+}
+declare module "VSS/User/Services" {
+export namespace UserClaims {
+    /**
+     * User is not authenticated.
+     */
+    const Anonymous = "anonymous";
+    /**
+     * User carrying this claim is not a member of the current project but a member of the current account.
+     */
+    const Public = "public";
+    /**
+     * User carrying this claim is a member of the current project.
+     */
+    const Member = "member";
+}
+export interface IUserClaimsService {
+    /**
+     * Checks whether current user has the specified claim or not.
+     *
+     * @param {string} claim User claim to check.
+     * @returns {boolean}
+     */
+    hasClaim: (claim: string) => boolean;
+}
+export function getService(): IUserClaimsService;
 }
 declare module "VSS/Utils/Accessibility" {
 /**
@@ -34028,6 +33816,11 @@ export function clear<T>(array: T[]): void;
  * @returns An array that is the intersection of the values from the two input arrays (as determined by the comparer). The result array will be sorted. If there is no intersection, an empty array is returned.
  */
 export function intersectUniqueSorted<T>(sortedUniqueArray1: T[], sortedUniqueArray2: T[], comparer?: IComparer<T>): T[];
+/**
+ * Flattens an array made of arrays, returning a list where inner lists are put together in a single list.
+ * It's like Linq.SelectMany.
+ */
+export function flatten<T>(listOfLists: T[][]): T[];
 export class StableSorter<T> {
     private cmpFunc;
     constructor(cmpFunc: (a: T, b: T) => number);
@@ -34372,7 +34165,15 @@ export function equals(first: any, second: any): boolean;
  * @param reachMaxAttemptCallback Callback when max attempted is reached
  */
 export function poll(functionDelegate: (sucessCallback: IResultCallback, errorCallback?: IErrorCallback) => void, delay: number, maxAttempt: number, firstDelay?: number, shouldStopDelegate?: (result: any) => boolean, reachMaxAttemptCallback?: () => void): void;
-export function setCookie(cookieName: string, cookieValue: string): void;
+/**
+ * Set a cookie
+ * @param name Name of cookie
+ * @param value Value of cookie
+ * @param path Path for which to set cookie, defaults to '/'
+ * @param expires Optional, data in GMTString format, indicating the time of expiration
+ * @param maxAge Optional, maximum age of the cookie in seconds
+ */
+export function setCookie(name: string, value: string, path?: string, expires?: string, maxAge?: number): void;
 export function deleteCookie(cookieName: string): void;
 export var documentSelection: any;
 }
@@ -34987,6 +34788,66 @@ export function localeFormat(value: number, format: string): string;
  */
 export function formatAbbreviatedNumber(count: number, cultureInfo?: Culture.ICultureInfo): string;
 }
+declare module "VSS/Utils/Object" {
+/**
+ * Describes the behavior to use in a deep merge when the source and target
+ * both have the same property which is an array. Either take the source array
+ * or combine the two arrays
+ */
+export const enum MergeArrayOptions {
+    /**
+     * When a source property is an array, override the target property with
+     * the source array.
+     */
+    replace = 0,
+    /**
+     * When a source property and its target property are both arrays, concatenate
+     * the values in the source array into the target array.
+     */
+    concat = 1,
+}
+/**
+ * Options when performing a deep merge
+ */
+export interface IMergeOptions {
+    /**
+     * Describes the behavior to use in a deep merge when the source and target
+     * both have the same property which is an array. Either take the source array
+     * or combine the two arrays
+     */
+    arrayOptions?: MergeArrayOptions;
+    /**
+     * If true, clone all objects including their child/descendant properties when
+     * merging values into the new object. Ensures that no properties in the resulting merged
+     * object (including sub-properties, recursively) are "===" to any objects in the source.
+     */
+    deepClone?: boolean;
+}
+/**
+ * Performs a deep merge of the given source objects into the target. The sources are merged-in left-to-right.
+ * So for properties with collisions, the right-most value "wins". Clones all properties and sub-properties
+ * recursively so that no objects referenced in the resulting target are "===" to objects in the sources.
+ *
+ * Specifically works on standard JSON objects, not classes/functions with property accessors, etc.
+ *
+ * @param target The target object to merge values into
+ * @param sources Source objects to merge into the target
+ * @returns The target parameter
+ */
+export function deepMerge(target: any, ...sources: any[]): any;
+/**
+ * Performs a deep merge of the given source objects into the target. The sources are merged-in left-to-right.
+ * So for properties with collisions, the right-most value "wins".
+ *
+ * Specifically works on standard JSON objects, not classes/functions with property accessors, etc.
+ *
+ * @param options Options describing the merge behavior
+ * @param target The target object to merge values into
+ * @param sources Source objects to merge into the target
+ * @returns The target parameter
+ */
+export function deepMergeWithOptions(options: IMergeOptions, target: any, ...sources: any[]): any;
+}
 declare module "VSS/Utils/String" {
 import Culture = require("VSS/Utils/Culture");
 export var EmptyGuidString: string;
@@ -35314,6 +35175,19 @@ export module KeyUtils {
      * @param e The event object.
      */
     function isModifierKey(e: JQueryKeyEventObject): boolean;
+    /**
+     * Check if only Meta is pressed on Mac/OSX or if Ctrl is pressed on Windows. This
+     * should generally be used unless you have a specific reason to not use the key that
+     * is expected on a Mac.
+     *
+     * @param e The event object.
+     */
+    function isExclusivelyCommandOrMetaKeyBasedOnPlatform(e: JQueryKeyEventObject | KeyboardEvent): boolean;
+    /**
+     * Determines if we are running in an OS that prefers use of Meta key instead of Control key.
+     * MacOSx and IOS prefer Meta, Windows/Linux prefer Control
+     */
+    function shouldUseMetaKeyInsteadOfControl(): boolean;
 }
 export module Constants {
     var HtmlNewLine: string;
@@ -35650,6 +35524,13 @@ export interface IQueryParameter {
     * Unencoded value of the query parameter
     */
     value: string;
+    /**
+     * Determines if this query paramter contains a empty value part ("a=").
+     * We use this information to ensure we can recreate the same string. This
+     * allows us to tell the different between this "a&b&c" versus "a=&b=&c=" which
+     * matters to some customers.
+     */
+    hasEmptyValuePart?: boolean;
 }
 /**
 * Options for parsing a Uri string
@@ -36126,6 +36007,8 @@ export module AccessMappingConstants {
     var HostGuidAccessMappingMoniker: string;
     var RootDomainMappingMoniker: string;
     var AzureInstanceMappingMoniker: string;
+    var ServicePathMappingMoniker: string;
+    var ServiceDomainMappingMoniker: string;
 }
 export module AuthenticationResourceIds {
     var AuthenticationLocationId: string;
@@ -36139,12 +36022,17 @@ export module BlobCopyLocationIds {
     var ResouceName: string;
     var AreaName: string;
 }
+export module ClientTraceResourceIds {
+    var EventsLocationId: string;
+    var AreaId: string;
+    var ClientTraceAreaName: string;
+    var ClientTraceEventsResource: string;
+}
 export module CommonIdentityPickerResourceIds {
     var IdentitiesLocationId: string;
     var IdentityAvatarLocationId: string;
     var IdentityFeatureMruLocationId: string;
     var IdentityConnectionsLocationId: string;
-    var IdentityUserConnectionsLocationId: string;
     var ServiceArea: string;
     var IdentitiesResource: string;
 }
@@ -36199,14 +36087,6 @@ export module DirectoryName {
     * This is a concrete directory.
     */
     var AzureActiveDirectory: string;
-    /**
-    * This is a concrete directory.
-    */
-    var ActiveDirectory: string;
-    /**
-    * This is a concrete directory.
-    */
-    var WindowsMachineDirectory: string;
 }
 /**
 * Mustache items names available in replacement oject while resolving a mustache template
@@ -36263,10 +36143,19 @@ export module NameResolutionResourceIds {
 }
 export module OperationsResourceIds {
     var OperationsLocationId: string;
+    var OperationsPluginLocationId: string;
     var AreaName: string;
     var OperationsResource: string;
     var OperationsRouteName: string;
+    var OperationsPluginRouteName: string;
     var OperationsApi: string;
+    var TagOperationsLocationId: string;
+    var TagOperationsPluginLocationId: string;
+}
+export module OriginName {
+    var AzureActiveDirectory: string;
+    var MicrosoftAccount: string;
+    var VisualStudioTeamServices: string;
 }
 export module PartitioningResourceIds {
     var PartitionContainers: string;
@@ -36302,10 +36191,12 @@ export module SubjectKind {
     var Group: string;
     var User: string;
 }
+export module UserMetaType {
+    var Guest: string;
+}
 }
 declare module "VSS/WebApi/Contracts" {
-export interface AnonymousObject {
-}
+import VSS_Graph_Contracts = require("VSS/Graph/Contracts");
 /**
  * Information about the location of a REST API resource
  */
@@ -36415,9 +36306,8 @@ export interface EventScope {
      */
     type: string;
 }
-export interface IdentityRef {
+export interface IdentityRef extends VSS_Graph_Contracts.GraphSubjectBase {
     directoryAlias: string;
-    displayName: string;
     id: string;
     imageUrl: string;
     inactive: boolean;
@@ -36425,7 +36315,6 @@ export interface IdentityRef {
     isContainer: boolean;
     profileUrl: string;
     uniqueName: string;
-    url: string;
 }
 export interface IdentityRefWithEmail extends IdentityRef {
     preferredEmailAddress: string;
@@ -36531,6 +36420,42 @@ export interface ServiceEvent {
 export interface TeamMember {
     identity: IdentityRef;
     isTeamAdmin: boolean;
+}
+/**
+ * A single secured timing consisting of a duration and start time
+ */
+export interface TimingEntry {
+    /**
+     * Duration of the entry in ticks
+     */
+    elapsedTicks: number;
+    /**
+     * Properties to distinguish timings within the same group or to provide data to send with telemetry
+     */
+    properties: {
+        [key: string]: any;
+    };
+    /**
+     * Offset from Server Request Context start time in microseconds
+     */
+    startOffset: number;
+}
+/**
+ * A set of secured performance timings all keyed off of the same string
+ */
+export interface TimingGroup {
+    /**
+     * The total number of timing entries associated with this group
+     */
+    count: number;
+    /**
+     * Overall duration of all entries in this group in ticks
+     */
+    elapsedTicks: number;
+    /**
+     * A list of timing entries in this group. Only the first few entries in each group are collected.
+     */
+    timings: TimingEntry[];
 }
 export interface VssJsonCollectionWrapper extends VssJsonCollectionWrapperBase {
     value: any[];
@@ -36726,6 +36651,10 @@ export interface IVssHttpClientOptions {
     * send an excludeUrls=true header to suppress the generation of links in the JSON responses of requests from this client.
     */
     includeUrls?: boolean;
+    /**
+     * Use the new platform serialization format
+     */
+    useNewPlatformSerialization?: boolean;
 }
 /**
 * Base class that should be used (derived from) to make requests to VSS REST apis
