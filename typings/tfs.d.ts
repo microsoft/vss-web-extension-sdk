@@ -1,8 +1,10 @@
-// Type definitions for Microsoft Visual Studio Services v127.20171208.1643
+// Type definitions for Microsoft Visual Studio Services v131.20180312.1911
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
+/// <reference types='vss-common' />
 /// <reference types='knockout' />
+/// <reference types='knockoutSecureBinding' />
 /// <reference types='jquery' />
 /// <reference types='jqueryui' />
 /// <reference types='q' />
@@ -13,6 +15,8 @@
 declare module "TFS/Build/Contracts" {
 import TFS_Core_Contracts = require("TFS/Core/Contracts");
 import TFS_DistributedTask_Common_Contracts = require("TFS/DistributedTaskCommon/Contracts");
+import TFS_SourceControl_Contracts = require("TFS/VersionControl/Contracts");
+import TFS_TestManagement_Contracts = require("TFS/TestManagement/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 /**
  * Represents a queue for running builds.
@@ -93,6 +97,10 @@ export interface ArtifactResource {
      */
     data: string;
     /**
+     * A secret that can be sent in a request header to retrieve an artifact anonymously. Valid for a limited amount of time. Optional.
+     */
+    downloadTicket: string;
+    /**
      * A link to download the resource.
      */
     downloadUrl: string;
@@ -110,6 +118,16 @@ export interface ArtifactResource {
      * The full http link to the resource.
      */
     url: string;
+}
+/**
+ * Represents an attachment to a build.
+ */
+export interface Attachment {
+    _links: any;
+    /**
+     * The name of the attachment.
+     */
+    name: string;
 }
 export enum AuditAction {
     Add = 1,
@@ -264,6 +282,10 @@ export interface Build {
     status: BuildStatus;
     tags: string[];
     /**
+     * The build that triggered this build via a Build completion trigger.
+     */
+    triggeredByBuild: Build;
+    /**
      * Sourceprovider-specific information about what triggered the build
      */
     triggerInfo: {
@@ -327,9 +349,6 @@ export interface BuildArtifact {
      */
     resource: ArtifactResource;
 }
-export interface BuildArtifactAddedEvent extends BuildUpdatedEvent {
-    artifact: BuildArtifact;
-}
 /**
  * Represents the desired scope of authorization for a build.
  */
@@ -356,22 +375,34 @@ export interface BuildBadge {
      */
     imageUrl: string;
 }
-export interface BuildChangesCalculatedEvent extends BuildUpdatedEvent {
-    changes: Change[];
-}
 export interface BuildCompletedEvent extends BuildUpdatedEvent {
-    /**
-     * errors associated with a build used for build notifications
-     */
-    buildErrors: BuildRequestValidationResult[];
-    /**
-     * warnings associated with a build used for build notifications
-     */
-    buildWarnings: BuildRequestValidationResult[];
     /**
      * Changes associated with a build used for build notifications
      */
     changes: Change[];
+    /**
+     * Test results associated with a build used for build notifications
+     */
+    testResults: TFS_TestManagement_Contracts.AggregatedResultsAnalysis;
+    /**
+     * Timeline records associated with a build used for build notifications
+     */
+    timelineRecords: TimelineRecord[];
+    /**
+     * Work items associated with a build used for build notifications
+     */
+    workItems: TFS_SourceControl_Contracts.AssociatedWorkItem[];
+}
+/**
+ * Represents a build completion trigger.
+ */
+export interface BuildCompletionTrigger extends BuildTrigger {
+    branchFilters: string[];
+    /**
+     * A reference to the definition that should trigger builds for this definition.
+     */
+    definition: DefinitionReference;
+    requiresSuccessfulBuild: boolean;
 }
 export interface BuildController extends XamlBuildControllerReference {
     _links: any;
@@ -416,6 +447,9 @@ export interface BuildDefinition extends BuildDefinitionReference {
      * A save-time comment for the definition.
      */
     comment: string;
+    counters: {
+        [key: string]: BuildDefinitionCounter;
+    };
     demands: any[];
     /**
      * The description.
@@ -516,14 +550,22 @@ export interface BuildDefinition3_2 extends BuildDefinitionReference3_2 {
         [key: string]: BuildDefinitionVariable;
     };
 }
-export interface BuildDefinitionChangedEvent {
-    changeType: AuditAction;
-    definition: BuildDefinition;
-}
-export interface BuildDefinitionChangingEvent {
-    changeType: AuditAction;
-    newDefinition: BuildDefinition;
-    originalDefinition: BuildDefinition;
+/**
+ * Represents a variable that increases in value with each build.
+ */
+export interface BuildDefinitionCounter {
+    /**
+     * The unique Id of the Counter.
+     */
+    id: number;
+    /**
+     * This is the original counter value.
+     */
+    seed: number;
+    /**
+     * This is the current counter value.
+     */
+    value: number;
 }
 /**
  * Represents a reference to a build definition.
@@ -698,6 +740,10 @@ export interface BuildDefinitionTemplate {
      */
     category: string;
     /**
+     * An optional hosted agent queue for the template to use by default.
+     */
+    defaultHostedQueue: string;
+    /**
      * A description of the template.
      */
     description: string;
@@ -727,6 +773,7 @@ export interface BuildDefinitionTemplate {
 export interface BuildDefinitionTemplate3_2 {
     canDelete: boolean;
     category: string;
+    defaultHostedQueue: string;
     description: string;
     icons: {
         [key: string]: string;
@@ -760,8 +807,9 @@ export interface BuildDeployment {
     deployment: BuildSummary;
     sourceBuild: XamlBuildReference;
 }
-export interface BuildDestroyedEvent extends RealtimeBuildEvent {
-    build: Build;
+export interface BuildEvent {
+    data: string[];
+    identifier: string;
 }
 /**
  * Represents a build log.
@@ -947,8 +995,6 @@ export enum BuildPhaseStatus {
      */
     Succeeded = 2,
 }
-export interface BuildPollingSummaryEvent {
-}
 /**
  * Represents a build process.
  */
@@ -1007,8 +1053,6 @@ export enum BuildQueryOrder {
      */
     StartTimeAscending = 7,
 }
-export interface BuildQueuedEvent extends BuildUpdatedEvent {
-}
 export enum BuildReason {
     /**
      * No reason. This value should not be used.
@@ -1047,13 +1091,17 @@ export enum BuildReason {
      */
     PullRequest = 256,
     /**
+     * The build was started when another build completed.
+     */
+    BuildCompletion = 512,
+    /**
      * The build was triggered for retention policy purposes.
      */
-    Triggered = 431,
+    Triggered = 943,
     /**
      * All reasons.
      */
-    All = 495,
+    All = 1007,
 }
 /**
  * Represents a reference to a build.
@@ -1244,8 +1292,6 @@ export interface BuildSettings {
      */
     maximumRetentionPolicy: RetentionPolicy;
 }
-export interface BuildStartedEvent extends BuildUpdatedEvent {
-}
 export enum BuildStatus {
     /**
      * No status.
@@ -1285,6 +1331,10 @@ export interface BuildSummary {
     requestedFor: VSS_Common_Contracts.IdentityRef;
     startTime: Date;
     status: BuildStatus;
+}
+export interface BuildTagsAddedEvent extends BuildUpdatedEvent {
+    allTags: string[];
+    newTags: string[];
 }
 /**
  * Represents a trigger for a buld definition.
@@ -1390,6 +1440,7 @@ export interface ContinuousIntegrationTrigger extends BuildTrigger {
      * The ID of the job used to poll an external repository.
      */
     pollingJobId: string;
+    settingsSourceType: number;
 }
 export enum ControllerStatus {
     /**
@@ -1523,9 +1574,13 @@ export enum DefinitionTriggerType {
      */
     PullRequest = 64,
     /**
+     * A build should be triggered when another build completes.
+     */
+    BuildCompletion = 128,
+    /**
      * All types.
      */
-    All = 127,
+    All = 255,
 }
 export enum DefinitionType {
     Xaml = 1,
@@ -1805,6 +1860,10 @@ export interface Phase {
      * The name of the phase.
      */
     name: string;
+    /**
+     * The unique ref name of the phase.
+     */
+    refName: string;
     steps: BuildDefinitionStep[];
     /**
      * The target (agent, server, etc.) for this phase.
@@ -1893,10 +1952,6 @@ export enum QueuePriority {
 export interface RealtimeBuildEvent {
     buildId: number;
 }
-export interface RecreateSubscriptionResult {
-    eventType: string;
-    repositoryType: string;
-}
 export enum RepositoryCleanOptions {
     Source = 0,
     SourceAndOutputDir = 1,
@@ -1910,6 +1965,20 @@ export enum RepositoryCleanOptions {
     AllBuildDir = 3,
 }
 /**
+ * Represents a repository's webhook returned from a source provider.
+ */
+export interface RepositoryWebhook {
+    /**
+     * The friendly name of the repository.
+     */
+    name: string;
+    types: DefinitionTriggerType[];
+    /**
+     * The URL of the repository.
+     */
+    url: string;
+}
+/**
  * Represents a reference to a resource.
  */
 export interface ResourceReference {
@@ -1917,6 +1986,16 @@ export interface ResourceReference {
      * An alias to be used when referencing the resource.
      */
     alias: string;
+}
+export enum ResultSet {
+    /**
+     * Include all repositories
+     */
+    All = 0,
+    /**
+     * Include most relevant repositories for user
+     */
+    Top = 1,
 }
 /**
  * Represents a retention policy for a build definition.
@@ -2090,6 +2169,27 @@ export enum SourceProviderAvailability {
     All = 3,
 }
 /**
+ * A set of repositories returned from the source provider.
+ */
+export interface SourceRepositories {
+    /**
+     * A token used to continue this paged request; 'null' if the request is complete
+     */
+    continuationToken: string;
+    /**
+     * The number of repositories requested for each page
+     */
+    pageLength: number;
+    /**
+     * A list of repositories
+     */
+    repositories: SourceRepository[];
+    /**
+     * The total number of pages, or '-1' if unknown
+     */
+    totalPageCount: number;
+}
+/**
  * Represents a repository returned from a source provider.
  */
 export interface SourceRepository {
@@ -2118,6 +2218,27 @@ export interface SourceRepository {
     sourceProviderName: string;
     /**
      * The URL of the repository.
+     */
+    url: string;
+}
+/**
+ * Represents an item in a repository from a source provider.
+ */
+export interface SourceRepositoryItem {
+    /**
+     * Whether the item is able to have sub-items (e.g., is a folder).
+     */
+    isContainer: boolean;
+    /**
+     * The full path of the item, relative to the root of the repository.
+     */
+    path: string;
+    /**
+     * The type of the item (folder, file, etc).
+     */
+    type: string;
+    /**
+     * The URL of the item.
      */
     url: string;
 }
@@ -2185,10 +2306,6 @@ export interface SvnMappingDetails {
  */
 export interface SvnWorkspace {
     mappings: SvnMappingDetails[];
-}
-export interface SyncBuildCompletedEvent extends BuildUpdatedEvent {
-}
-export interface SyncBuildStartedEvent extends BuildUpdatedEvent {
 }
 /**
  * Represents a reference to an agent pool.
@@ -2662,20 +2779,17 @@ export var TypeInfo: {
     };
     Build: any;
     BuildAgent: any;
-    BuildArtifactAddedEvent: any;
     BuildAuthorizationScope: {
         enumValues: {
             "projectCollection": number;
             "project": number;
         };
     };
-    BuildChangesCalculatedEvent: any;
     BuildCompletedEvent: any;
+    BuildCompletionTrigger: any;
     BuildController: any;
     BuildDefinition: any;
     BuildDefinition3_2: any;
-    BuildDefinitionChangedEvent: any;
-    BuildDefinitionChangingEvent: any;
     BuildDefinitionReference: any;
     BuildDefinitionReference3_2: any;
     BuildDefinitionRevision: any;
@@ -2684,7 +2798,6 @@ export var TypeInfo: {
     BuildDefinitionTemplate3_2: any;
     BuildDeletedEvent: any;
     BuildDeployment: any;
-    BuildDestroyedEvent: any;
     BuildLog: any;
     BuildMetric: any;
     BuildOptionDefinition: any;
@@ -2718,7 +2831,6 @@ export var TypeInfo: {
             "startTimeAscending": number;
         };
     };
-    BuildQueuedEvent: any;
     BuildReason: {
         enumValues: {
             "none": number;
@@ -2730,6 +2842,7 @@ export var TypeInfo: {
             "validateShelveset": number;
             "checkInShelveset": number;
             "pullRequest": number;
+            "buildCompletion": number;
             "triggered": number;
             "all": number;
         };
@@ -2746,7 +2859,6 @@ export var TypeInfo: {
         };
     };
     BuildServer: any;
-    BuildStartedEvent: any;
     BuildStatus: {
         enumValues: {
             "none": number;
@@ -2759,6 +2871,7 @@ export var TypeInfo: {
         };
     };
     BuildSummary: any;
+    BuildTagsAddedEvent: any;
     BuildTrigger: any;
     BuildUpdatedEvent: any;
     Change: any;
@@ -2803,6 +2916,7 @@ export var TypeInfo: {
             "gatedCheckIn": number;
             "batchedGatedCheckIn": number;
             "pullRequest": number;
+            "buildCompletion": number;
             "all": number;
         };
     };
@@ -2887,6 +3001,13 @@ export var TypeInfo: {
             "allBuildDir": number;
         };
     };
+    RepositoryWebhook: any;
+    ResultSet: {
+        enumValues: {
+            "all": number;
+            "top": number;
+        };
+    };
     Schedule: any;
     ScheduleDays: {
         enumValues: {
@@ -2924,8 +3045,6 @@ export var TypeInfo: {
             "required": number;
         };
     };
-    SyncBuildCompletedEvent: any;
-    SyncBuildStartedEvent: any;
     TaskResult: {
         enumValues: {
             "succeeded": number;
@@ -3032,19 +3151,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
     protected settingsApiVersion: string;
     protected tagsApiVersion: string;
     protected tagsApiVersion_6e6114b2: string;
-    protected timelineApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * Gets a timeline for a build.
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} buildId - The ID of the build.
-     * @param {string} timelineId - The ID of the timeline. If not specified, uses the main timeline for the plan.
-     * @param {number} changeId
-     * @param {string} planId - The ID of the plan. If not specified, uses the primary plan for the build.
-     * @return IPromise<Contracts.Timeline>
-     */
-    getBuildTimeline(project: string, buildId: number, timelineId?: string, changeId?: number, planId?: string): IPromise<Contracts.Timeline>;
     /**
      * Gets a list of all build and definition tags in the project.
      *
@@ -3172,7 +3279,6 @@ export class CommonMethods3To4_1 extends CommonMethods2To4_1 {
     protected artifactsApiVersion: string;
     protected buildsApiVersion: string;
     protected changesApiVersion: string;
-    protected changesApiVersion_54572c7b: string;
     protected foldersApiVersion: string;
     protected logsApiVersion: string;
     protected reportApiVersion: string;
@@ -3318,17 +3424,6 @@ export class CommonMethods3To4_1 extends CommonMethods2To4_1 {
      */
     getChangesBetweenBuilds(project: string, fromBuildId?: number, toBuildId?: number, top?: number): IPromise<Contracts.Change[]>;
     /**
-     * Gets the changes associated with a build.
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} buildId - The build ID.
-     * @param {string} continuationToken
-     * @param {number} top - The maximum number of changes to return.
-     * @param {boolean} includeSourceChange
-     * @return IPromise<Contracts.Change[]>
-     */
-    getBuildChanges(project: string, buildId: number, continuationToken?: string, top?: number, includeSourceChange?: boolean): IPromise<Contracts.Change[]>;
-    /**
      * Updates multiple builds.
      *
      * @param {Contracts.Build[]} builds - The builds to update.
@@ -3355,15 +3450,6 @@ export class CommonMethods3To4_1 extends CommonMethods2To4_1 {
      * @return IPromise<Contracts.Build>
      */
     queueBuild(build: Contracts.Build, project?: string, ignoreWarnings?: boolean, checkInTicket?: string): IPromise<Contracts.Build>;
-    /**
-     * Gets a build.
-     *
-     * @param {number} buildId - The ID of the build.
-     * @param {string} project - Project ID or project name
-     * @param {string} propertyFilters - A comma-delimited list of properties to include in the results.
-     * @return IPromise<Contracts.Build>
-     */
-    getBuild(buildId: number, project?: string, propertyFilters?: string): IPromise<Contracts.Build>;
     /**
      * Deletes a build.
      *
@@ -3514,7 +3600,7 @@ export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
     protected templatesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
-     * [Preview API] Updates an existing build definition template.
+     * Updates an existing build definition template.
      *
      * @param {Contracts.BuildDefinitionTemplate} template - The new version of the template.
      * @param {string} project - Project ID or project name
@@ -3523,14 +3609,14 @@ export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
      */
     saveTemplate(template: Contracts.BuildDefinitionTemplate, project: string, templateId: string): IPromise<Contracts.BuildDefinitionTemplate>;
     /**
-     * [Preview API] Gets all definition templates.
+     * Gets all definition templates.
      *
      * @param {string} project - Project ID or project name
      * @return IPromise<Contracts.BuildDefinitionTemplate[]>
      */
     getTemplates(project: string): IPromise<Contracts.BuildDefinitionTemplate[]>;
     /**
-     * [Preview API] Gets a specific build definition template.
+     * Gets a specific build definition template.
      *
      * @param {string} project - Project ID or project name
      * @param {string} templateId - The ID of the requested template.
@@ -3538,7 +3624,7 @@ export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
      */
     getTemplate(project: string, templateId: string): IPromise<Contracts.BuildDefinitionTemplate>;
     /**
-     * [Preview API] Deletes a build definition template.
+     * Deletes a build definition template.
      *
      * @param {string} project - Project ID or project name
      * @param {string} templateId - The ID of the template.
@@ -3546,7 +3632,7 @@ export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
      */
     deleteTemplate(project: string, templateId: string): IPromise<void>;
     /**
-     * [Preview API] Updates an existing definition.
+     * Updates an existing definition.
      *
      * @param {Contracts.BuildDefinition} definition - The new version of the defintion.
      * @param {number} definitionId - The ID of the definition.
@@ -3557,7 +3643,27 @@ export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
      */
     updateDefinition(definition: Contracts.BuildDefinition, definitionId: number, project?: string, secretsSourceDefinitionId?: number, secretsSourceDefinitionRevision?: number): IPromise<Contracts.BuildDefinition>;
     /**
-     * [Preview API] Gets a list of definitions.
+     * Changes the counter variable Seed, and optionally resets the Value to this new Seed. Note that if Seed is being set above Value, then Value will be updated regardless.
+     *
+     * @param {number} definitionId - The ID of the definition.
+     * @param {number} counterId - The ID of the counter.
+     * @param {number} newSeed - The new Seed value.
+     * @param {boolean} resetValue - Flag indicating if Value should also be reset.
+     * @param {string} project - Project ID or project name
+     * @return IPromise<void>
+     */
+    updateCounterSeed(definitionId: number, counterId: number, newSeed: number, resetValue: boolean, project?: string): IPromise<void>;
+    /**
+     * Resets the counter variable Value back to the Seed.
+     *
+     * @param {number} definitionId - The ID of the definition.
+     * @param {number} counterId - The ID of the counter.
+     * @param {string} project - Project ID or project name
+     * @return IPromise<void>
+     */
+    resetCounter(definitionId: number, counterId: number, project?: string): IPromise<void>;
+    /**
+     * Gets a list of definitions.
      *
      * @param {string} project - Project ID or project name
      * @param {string} name - If specified, filters to definitions whose names match this pattern.
@@ -3578,7 +3684,7 @@ export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
      */
     getDefinitions(project?: string, name?: string, repositoryId?: string, repositoryType?: string, queryOrder?: Contracts.DefinitionQueryOrder, top?: number, continuationToken?: string, minMetricsTime?: Date, definitionIds?: number[], path?: string, builtAfter?: Date, notBuiltAfter?: Date, includeAllProperties?: boolean, includeLatestBuilds?: boolean, taskIdFilter?: string): IPromise<Contracts.BuildDefinitionReference[]>;
     /**
-     * [Preview API] Gets a definition, optionally at a specific revision.
+     * Gets a definition, optionally at a specific revision.
      *
      * @param {number} definitionId - The ID of the definition.
      * @param {string} project - Project ID or project name
@@ -3590,7 +3696,7 @@ export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
      */
     getDefinition(definitionId: number, project?: string, revision?: number, minMetricsTime?: Date, propertyFilters?: string[], includeLatestBuilds?: boolean): IPromise<Contracts.BuildDefinition>;
     /**
-     * [Preview API] Deletes a definition and all associated builds.
+     * Deletes a definition and all associated builds.
      *
      * @param {number} definitionId - The ID of the definition.
      * @param {string} project - Project ID or project name
@@ -3598,7 +3704,7 @@ export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
      */
     deleteDefinition(definitionId: number, project?: string): IPromise<void>;
     /**
-     * [Preview API] Creates a new definition.
+     * Creates a new definition.
      *
      * @param {Contracts.BuildDefinition} definition - The definition.
      * @param {string} project - Project ID or project name
@@ -3614,15 +3720,45 @@ export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
 export class BuildHttpClient4_1 extends CommonMethods4To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
+     * [Preview API] Gets the list of attachments of a specific type that are associated with a build.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId - The ID of the build.
+     * @param {string} type - The type of attachment.
+     * @return IPromise<Contracts.Attachment[]>
+     */
+    getAttachments(project: string, buildId: number, type: string): IPromise<Contracts.Attachment[]>;
+    /**
+     * [Preview API] Gets a specific attachment.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId - The ID of the build.
+     * @param {string} timelineId - The ID of the timeline.
+     * @param {string} recordId - The ID of the timeline record.
+     * @param {string} type - The type of the attachment.
+     * @param {string} name - The name of the attachment.
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachment(project: string, buildId: number, timelineId: string, recordId: string, type: string, name: string): IPromise<ArrayBuffer>;
+    /**
      * [Preview API] Gets a list of branches for the given source code repository.
      *
      * @param {string} project - Project ID or project name
      * @param {string} providerName - The name of the source provider.
-     * @param {string} serviceEndpointId - If specified, the ID of the service endpoint to query. Can only be omitted for providers that do use service endpoints, e.g. TFVC or TFGit.
+     * @param {string} serviceEndpointId - If specified, the ID of the service endpoint to query. Can only be omitted for providers that do not use service endpoints, e.g. TFVC or TFGit.
      * @param {string} repository - If specified, the vendor-specific identifier or the name of the repository to get branches. Can only be omitted for providers that do not support multiple repositories.
      * @return IPromise<string[]>
      */
     listBranches(project: string, providerName: string, serviceEndpointId?: string, repository?: string): IPromise<string[]>;
+    /**
+     * [Preview API] Gets a build
+     *
+     * @param {number} buildId
+     * @param {string} project - Project ID or project name
+     * @param {string} propertyFilters
+     * @return IPromise<Contracts.Build>
+     */
+    getBuild(buildId: number, project?: string, propertyFilters?: string): IPromise<Contracts.Build>;
     /**
      * [Preview API] Gets a list of builds.
      *
@@ -3651,14 +3787,53 @@ export class BuildHttpClient4_1 extends CommonMethods4To4_1 {
      */
     getBuilds(project?: string, definitions?: number[], queues?: number[], buildNumber?: string, minTime?: Date, maxTime?: Date, requestedFor?: string, reasonFilter?: Contracts.BuildReason, statusFilter?: Contracts.BuildStatus, resultFilter?: Contracts.BuildResult, tagFilters?: string[], properties?: string[], top?: number, continuationToken?: string, maxBuildsPerDefinition?: number, deletedFilter?: Contracts.QueryDeletedOption, queryOrder?: Contracts.BuildQueryOrder, branchName?: string, buildIds?: number[], repositoryId?: string, repositoryType?: string): IPromise<Contracts.Build[]>;
     /**
+     * [Preview API] Gets the changes associated with a build
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId
+     * @param {string} continuationToken
+     * @param {number} top - The maximum number of changes to return
+     * @param {boolean} includeSourceChange
+     * @return IPromise<Contracts.Change[]>
+     */
+    getBuildChanges(project: string, buildId: number, continuationToken?: string, top?: number, includeSourceChange?: boolean): IPromise<Contracts.Change[]>;
+    /**
+     * [Preview API] Gets the contents of a file in the given source code repository.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} providerName - The name of the source provider.
+     * @param {string} serviceEndpointId - If specified, the ID of the service endpoint to query. Can only be omitted for providers that do not use service endpoints, e.g. TFVC or TFGit.
+     * @param {string} repository - If specified, the vendor-specific identifier or the name of the repository to get branches. Can only be omitted for providers that do not support multiple repositories.
+     * @param {string} commitOrBranch - The identifier of the commit or branch from which a file's contents are retrieved.
+     * @param {string} path - The path to the file to retrieve, relative to the root of the repository.
+     * @return IPromise<string>
+     */
+    getFileContents(project: string, providerName: string, serviceEndpointId?: string, repository?: string, commitOrBranch?: string, path?: string): IPromise<string>;
+    /**
+     * [Preview API] Gets the contents of a directory in the given source code repository.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} providerName - The name of the source provider.
+     * @param {string} serviceEndpointId - If specified, the ID of the service endpoint to query. Can only be omitted for providers that do not use service endpoints, e.g. TFVC or TFGit.
+     * @param {string} repository - If specified, the vendor-specific identifier or the name of the repository to get branches. Can only be omitted for providers that do not support multiple repositories.
+     * @param {string} commitOrBranch - The identifier of the commit or branch from which a file's contents are retrieved.
+     * @param {string} path - The path contents to list, relative to the root of the repository.
+     * @return IPromise<Contracts.SourceRepositoryItem[]>
+     */
+    getPathContents(project: string, providerName: string, serviceEndpointId?: string, repository?: string, commitOrBranch?: string, path?: string): IPromise<Contracts.SourceRepositoryItem[]>;
+    /**
      * [Preview API] Gets a list of source code repositories.
      *
      * @param {string} project - Project ID or project name
      * @param {string} providerName - The name of the source provider.
-     * @param {string} serviceEndpointId - If specified, the ID of the service endpoint to query. Can only be omitted for providers that do use service endpoints, e.g. TFVC or TFGit.
-     * @return IPromise<Contracts.SourceRepository[]>
+     * @param {string} serviceEndpointId - If specified, the ID of the service endpoint to query. Can only be omitted for providers that do not use service endpoints, e.g. TFVC or TFGit.
+     * @param {string} repository - If specified, the vendor-specific identifier or the name of a single repository to get.
+     * @param {Contracts.ResultSet} resultSet - 'top' for the repositories most relevant for the endpoint. If not set, all repositories are returned. Ignored if 'repository' is set.
+     * @param {boolean} pageResults - If set to true, this will limit the set of results and will return a continuation token to continue the query.
+     * @param {string} continuationToken - When paging results, this is a continuation token, returned by a previous call to this method, that can be used to return the next set of repositories.
+     * @return IPromise<Contracts.SourceRepositories>
      */
-    listRepositories(project: string, providerName: string, serviceEndpointId?: string): IPromise<Contracts.SourceRepository[]>;
+    listRepositories(project: string, providerName: string, serviceEndpointId?: string, repository?: string, resultSet?: Contracts.ResultSet, pageResults?: boolean, continuationToken?: string): IPromise<Contracts.SourceRepositories>;
     /**
      * [Preview API] Get a list of source providers and their capabilities.
      *
@@ -3666,14 +3841,70 @@ export class BuildHttpClient4_1 extends CommonMethods4To4_1 {
      * @return IPromise<Contracts.SourceProviderAttributes[]>
      */
     listSourceProviders(project: string): IPromise<Contracts.SourceProviderAttributes[]>;
+    /**
+     * [Preview API] Gets a Zip file of the artifact with the given name for a build.
+     *
+     * @param {number} buildId - The ID of the build.
+     * @param {string} projectId - The project ID.
+     * @param {string} artifactName - The name of the artifact.
+     * @param {String} downloadTicket - A valid ticket that gives permission to download artifacts
+     * @return IPromise<ArrayBuffer>
+     */
+    getTicketedArtifactContentZip(buildId: number, projectId: string, artifactName: string, downloadTicket: String): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API] Gets a Zip file of the logs for a given build.
+     *
+     * @param {number} buildId - The ID of the build.
+     * @param {String} downloadTicket - A valid ticket that gives permission to download the logs.
+     * @return IPromise<ArrayBuffer>
+     */
+    getTicketedLogsContentZip(buildId: number, downloadTicket: String): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API] Gets details for a build
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId
+     * @param {string} timelineId
+     * @param {number} changeId
+     * @param {string} planId
+     * @return IPromise<Contracts.Timeline>
+     */
+    getBuildTimeline(project: string, buildId: number, timelineId?: string, changeId?: number, planId?: string): IPromise<Contracts.Timeline>;
+    /**
+     * [Preview API] Recreates the webhooks for the specified triggers in the given source code repository.
+     *
+     * @param {Contracts.DefinitionTriggerType[]} triggerTypes - The types of triggers to restore webhooks for.
+     * @param {string} project - Project ID or project name
+     * @param {string} providerName - The name of the source provider.
+     * @param {string} serviceEndpointId - If specified, the ID of the service endpoint to query. Can only be omitted for providers that do not use service endpoints, e.g. TFVC or TFGit.
+     * @param {string} repository - If specified, the vendor-specific identifier or the name of the repository to get webhooks. Can only be omitted for providers that do not support multiple repositories.
+     * @return IPromise<void>
+     */
+    restoreWebhooks(triggerTypes: Contracts.DefinitionTriggerType[], project: string, providerName: string, serviceEndpointId?: string, repository?: string): IPromise<void>;
+    /**
+     * [Preview API] Gets a list of webhooks installed in the given source code repository.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} providerName - The name of the source provider.
+     * @param {string} serviceEndpointId - If specified, the ID of the service endpoint to query. Can only be omitted for providers that do not use service endpoints, e.g. TFVC or TFGit.
+     * @param {string} repository - If specified, the vendor-specific identifier or the name of the repository to get webhooks. Can only be omitted for providers that do not support multiple repositories.
+     * @return IPromise<Contracts.RepositoryWebhook[]>
+     */
+    listWebhooks(project: string, providerName: string, serviceEndpointId?: string, repository?: string): IPromise<Contracts.RepositoryWebhook[]>;
 }
-/**
- * @exemptedapi
- */
 export class BuildHttpClient4 extends CommonMethods4To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
-     * [Preview API] Gets a list of builds.
+     * Gets a build.
+     *
+     * @param {number} buildId - The ID of the build.
+     * @param {string} project - Project ID or project name
+     * @param {string} propertyFilters - A comma-delimited list of properties to include in the results.
+     * @return IPromise<Contracts.Build>
+     */
+    getBuild(buildId: number, project?: string, propertyFilters?: string): IPromise<Contracts.Build>;
+    /**
+     * Gets a list of builds.
      *
      * @param {string} project - Project ID or project name
      * @param {number[]} definitions - A comma-delimited list of definition IDs. If specified, filters to builds for these definitions.
@@ -3699,10 +3930,41 @@ export class BuildHttpClient4 extends CommonMethods4To4_1 {
      * @return IPromise<Contracts.Build[]>
      */
     getBuilds(project?: string, definitions?: number[], queues?: number[], buildNumber?: string, minFinishTime?: Date, maxFinishTime?: Date, requestedFor?: string, reasonFilter?: Contracts.BuildReason, statusFilter?: Contracts.BuildStatus, resultFilter?: Contracts.BuildResult, tagFilters?: string[], properties?: string[], top?: number, continuationToken?: string, maxBuildsPerDefinition?: number, deletedFilter?: Contracts.QueryDeletedOption, queryOrder?: Contracts.BuildQueryOrder, branchName?: string, buildIds?: number[], repositoryId?: string, repositoryType?: string): IPromise<Contracts.Build[]>;
+    /**
+     * Gets the changes associated with a build.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId - The build ID.
+     * @param {string} continuationToken
+     * @param {number} top - The maximum number of changes to return.
+     * @param {boolean} includeSourceChange
+     * @return IPromise<Contracts.Change[]>
+     */
+    getBuildChanges(project: string, buildId: number, continuationToken?: string, top?: number, includeSourceChange?: boolean): IPromise<Contracts.Change[]>;
+    /**
+     * Gets a timeline for a build.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId - The ID of the build.
+     * @param {string} timelineId - The ID of the timeline. If not specified, uses the main timeline for the plan.
+     * @param {number} changeId
+     * @param {string} planId - The ID of the plan. If not specified, uses the primary plan for the build.
+     * @return IPromise<Contracts.Timeline>
+     */
+    getBuildTimeline(project: string, buildId: number, timelineId?: string, changeId?: number, planId?: string): IPromise<Contracts.Timeline>;
 }
 export class BuildHttpClient3_2 extends CommonMethods3_2To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
+     * Gets a build.
+     *
+     * @param {number} buildId - The ID of the build.
+     * @param {string} project - Project ID or project name
+     * @param {string} propertyFilters - A comma-delimited list of properties to include in the results.
+     * @return IPromise<Contracts.Build>
+     */
+    getBuild(buildId: number, project?: string, propertyFilters?: string): IPromise<Contracts.Build>;
+    /**
      * Gets a list of builds.
      *
      * @param {string} project - Project ID or project name
@@ -3729,6 +3991,17 @@ export class BuildHttpClient3_2 extends CommonMethods3_2To4_1 {
      * @return IPromise<Contracts.Build[]>
      */
     getBuilds(project?: string, definitions?: number[], queues?: number[], buildNumber?: string, minFinishTime?: Date, maxFinishTime?: Date, requestedFor?: string, reasonFilter?: Contracts.BuildReason, statusFilter?: Contracts.BuildStatus, resultFilter?: Contracts.BuildResult, tagFilters?: string[], properties?: string[], top?: number, continuationToken?: string, maxBuildsPerDefinition?: number, deletedFilter?: Contracts.QueryDeletedOption, queryOrder?: Contracts.BuildQueryOrder, branchName?: string, buildIds?: number[], repositoryId?: string, repositoryType?: string): IPromise<Contracts.Build[]>;
+    /**
+     * Gets the changes associated with a build.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId - The build ID.
+     * @param {string} continuationToken
+     * @param {number} top - The maximum number of changes to return.
+     * @param {boolean} includeSourceChange
+     * @return IPromise<Contracts.Change[]>
+     */
+    getBuildChanges(project: string, buildId: number, continuationToken?: string, top?: number, includeSourceChange?: boolean): IPromise<Contracts.Change[]>;
     /**
      * Creates a new definition
      *
@@ -3823,10 +4096,30 @@ export class BuildHttpClient3_2 extends CommonMethods3_2To4_1 {
      * @return IPromise<Contracts.BuildDefinitionTemplate3_2>
      */
     saveTemplate(template: Contracts.BuildDefinitionTemplate3_2, project: string, templateId: string): IPromise<Contracts.BuildDefinitionTemplate3_2>;
+    /**
+     * Gets a timeline for a build.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId - The ID of the build.
+     * @param {string} timelineId - The ID of the timeline. If not specified, uses the main timeline for the plan.
+     * @param {number} changeId
+     * @param {string} planId - The ID of the plan. If not specified, uses the primary plan for the build.
+     * @return IPromise<Contracts.Timeline>
+     */
+    getBuildTimeline(project: string, buildId: number, timelineId?: string, changeId?: number, planId?: string): IPromise<Contracts.Timeline>;
 }
 export class BuildHttpClient3_1 extends CommonMethods3_1To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
+     * Gets a build.
+     *
+     * @param {number} buildId - The ID of the build.
+     * @param {string} project - Project ID or project name
+     * @param {string} propertyFilters - A comma-delimited list of properties to include in the results.
+     * @return IPromise<Contracts.Build>
+     */
+    getBuild(buildId: number, project?: string, propertyFilters?: string): IPromise<Contracts.Build>;
+    /**
      * Gets a list of builds.
      *
      * @param {string} project - Project ID or project name
@@ -3853,6 +4146,17 @@ export class BuildHttpClient3_1 extends CommonMethods3_1To4_1 {
      * @return IPromise<Contracts.Build[]>
      */
     getBuilds(project?: string, definitions?: number[], queues?: number[], buildNumber?: string, minFinishTime?: Date, maxFinishTime?: Date, requestedFor?: string, reasonFilter?: Contracts.BuildReason, statusFilter?: Contracts.BuildStatus, resultFilter?: Contracts.BuildResult, tagFilters?: string[], properties?: string[], top?: number, continuationToken?: string, maxBuildsPerDefinition?: number, deletedFilter?: Contracts.QueryDeletedOption, queryOrder?: Contracts.BuildQueryOrder, branchName?: string, buildIds?: number[], repositoryId?: string, repositoryType?: string): IPromise<Contracts.Build[]>;
+    /**
+     * Gets the changes associated with a build.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId - The build ID.
+     * @param {string} continuationToken
+     * @param {number} top - The maximum number of changes to return.
+     * @param {boolean} includeSourceChange
+     * @return IPromise<Contracts.Change[]>
+     */
+    getBuildChanges(project: string, buildId: number, continuationToken?: string, top?: number, includeSourceChange?: boolean): IPromise<Contracts.Change[]>;
     /**
      * Creates a new definition
      *
@@ -3947,9 +4251,29 @@ export class BuildHttpClient3_1 extends CommonMethods3_1To4_1 {
      * @return IPromise<Contracts.BuildDefinitionTemplate3_2>
      */
     saveTemplate(template: Contracts.BuildDefinitionTemplate3_2, project: string, templateId: string): IPromise<Contracts.BuildDefinitionTemplate3_2>;
+    /**
+     * Gets a timeline for a build.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId - The ID of the build.
+     * @param {string} timelineId - The ID of the timeline. If not specified, uses the main timeline for the plan.
+     * @param {number} changeId
+     * @param {string} planId - The ID of the plan. If not specified, uses the primary plan for the build.
+     * @return IPromise<Contracts.Timeline>
+     */
+    getBuildTimeline(project: string, buildId: number, timelineId?: string, changeId?: number, planId?: string): IPromise<Contracts.Timeline>;
 }
 export class BuildHttpClient3 extends CommonMethods3To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * Gets a build.
+     *
+     * @param {number} buildId - The ID of the build.
+     * @param {string} project - Project ID or project name
+     * @param {string} propertyFilters - A comma-delimited list of properties to include in the results.
+     * @return IPromise<Contracts.Build>
+     */
+    getBuild(buildId: number, project?: string, propertyFilters?: string): IPromise<Contracts.Build>;
     /**
      * Gets a list of builds.
      *
@@ -3977,6 +4301,17 @@ export class BuildHttpClient3 extends CommonMethods3To4_1 {
      * @return IPromise<Contracts.Build[]>
      */
     getBuilds(project?: string, definitions?: number[], queues?: number[], buildNumber?: string, minFinishTime?: Date, maxFinishTime?: Date, requestedFor?: string, reasonFilter?: Contracts.BuildReason, statusFilter?: Contracts.BuildStatus, resultFilter?: Contracts.BuildResult, tagFilters?: string[], properties?: string[], top?: number, continuationToken?: string, maxBuildsPerDefinition?: number, deletedFilter?: Contracts.QueryDeletedOption, queryOrder?: Contracts.BuildQueryOrder, branchName?: string, buildIds?: number[], repositoryId?: string, repositoryType?: string): IPromise<Contracts.Build[]>;
+    /**
+     * Gets the changes associated with a build.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId - The build ID.
+     * @param {string} continuationToken
+     * @param {number} top - The maximum number of changes to return.
+     * @param {boolean} includeSourceChange
+     * @return IPromise<Contracts.Change[]>
+     */
+    getBuildChanges(project: string, buildId: number, continuationToken?: string, top?: number, includeSourceChange?: boolean): IPromise<Contracts.Change[]>;
     /**
      * Creates a new definition
      *
@@ -4081,6 +4416,17 @@ export class BuildHttpClient3 extends CommonMethods3To4_1 {
      * @return IPromise<Contracts.BuildDefinitionTemplate3_2>
      */
     saveTemplate(template: Contracts.BuildDefinitionTemplate3_2, project: string, templateId: string): IPromise<Contracts.BuildDefinitionTemplate3_2>;
+    /**
+     * Gets a timeline for a build.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId - The ID of the build.
+     * @param {string} timelineId - The ID of the timeline. If not specified, uses the main timeline for the plan.
+     * @param {number} changeId
+     * @param {string} planId - The ID of the plan. If not specified, uses the primary plan for the build.
+     * @return IPromise<Contracts.Timeline>
+     */
+    getBuildTimeline(project: string, buildId: number, timelineId?: string, changeId?: number, planId?: string): IPromise<Contracts.Timeline>;
 }
 export class BuildHttpClient2_3 extends CommonMethods2To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -4387,6 +4733,17 @@ export class BuildHttpClient2_3 extends CommonMethods2To4_1 {
      * @return IPromise<Contracts.BuildDefinitionTemplate3_2>
      */
     saveTemplate(template: Contracts.BuildDefinitionTemplate3_2, project: string, templateId: string): IPromise<Contracts.BuildDefinitionTemplate3_2>;
+    /**
+     * Gets a timeline for a build.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId - The ID of the build.
+     * @param {string} timelineId - The ID of the timeline. If not specified, uses the main timeline for the plan.
+     * @param {number} changeId
+     * @param {string} planId - The ID of the plan. If not specified, uses the primary plan for the build.
+     * @return IPromise<Contracts.Timeline>
+     */
+    getBuildTimeline(project: string, buildId: number, timelineId?: string, changeId?: number, planId?: string): IPromise<Contracts.Timeline>;
     /**
      * Gets the work item ids associated with a build
      *
@@ -4722,6 +5079,17 @@ export class BuildHttpClient2_2 extends CommonMethods2To4_1 {
      */
     saveTemplate(template: Contracts.BuildDefinitionTemplate3_2, project: string, templateId: string): IPromise<Contracts.BuildDefinitionTemplate3_2>;
     /**
+     * Gets a timeline for a build.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId - The ID of the build.
+     * @param {string} timelineId - The ID of the timeline. If not specified, uses the main timeline for the plan.
+     * @param {number} changeId
+     * @param {string} planId - The ID of the plan. If not specified, uses the primary plan for the build.
+     * @return IPromise<Contracts.Timeline>
+     */
+    getBuildTimeline(project: string, buildId: number, timelineId?: string, changeId?: number, planId?: string): IPromise<Contracts.Timeline>;
+    /**
      * Gets the work item ids associated with a build
      *
      * @param {string} project - Project ID or project name
@@ -5034,6 +5402,17 @@ export class BuildHttpClient2_1 extends CommonMethods2To4_1 {
      */
     saveTemplate(template: Contracts.BuildDefinitionTemplate3_2, project: string, templateId: string): IPromise<Contracts.BuildDefinitionTemplate3_2>;
     /**
+     * Gets a timeline for a build.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId - The ID of the build.
+     * @param {string} timelineId - The ID of the timeline. If not specified, uses the main timeline for the plan.
+     * @param {number} changeId
+     * @param {string} planId - The ID of the plan. If not specified, uses the primary plan for the build.
+     * @return IPromise<Contracts.Timeline>
+     */
+    getBuildTimeline(project: string, buildId: number, timelineId?: string, changeId?: number, planId?: string): IPromise<Contracts.Timeline>;
+    /**
      * Gets the work item ids associated with a build
      *
      * @param {string} project - Project ID or project name
@@ -5335,6 +5714,17 @@ export class BuildHttpClient2 extends CommonMethods2To4_1 {
      */
     saveTemplate(template: Contracts.BuildDefinitionTemplate3_2, project: string, templateId: string): IPromise<Contracts.BuildDefinitionTemplate3_2>;
     /**
+     * Gets a timeline for a build.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId - The ID of the build.
+     * @param {string} timelineId - The ID of the timeline. If not specified, uses the main timeline for the plan.
+     * @param {number} changeId
+     * @param {string} planId - The ID of the plan. If not specified, uses the primary plan for the build.
+     * @return IPromise<Contracts.Timeline>
+     */
+    getBuildTimeline(project: string, buildId: number, timelineId?: string, changeId?: number, planId?: string): IPromise<Contracts.Timeline>;
+    /**
      * Gets the work item ids associated with a build
      *
      * @param {string} project - Project ID or project name
@@ -5362,9 +5752,9 @@ export class BuildHttpClient extends BuildHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return BuildHttpClient4
+ * @return BuildHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): BuildHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): BuildHttpClient4_1;
 }
 declare module "TFS/Core/Contracts" {
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
@@ -5750,6 +6140,8 @@ export interface WebApiTeam extends WebApiTeamRef {
      * Identity REST API Url to this team
      */
     identityUrl: string;
+    projectId: string;
+    projectName: string;
 }
 export interface WebApiTeamRef {
     /**
@@ -6051,13 +6443,10 @@ export class CoreHttpClient4_1 extends CommonMethods4To4_1 {
      */
     getTeams(projectId: string, mine?: boolean, top?: number, skip?: number): IPromise<Contracts.WebApiTeam[]>;
 }
-/**
- * @exemptedapi
- */
 export class CoreHttpClient4 extends CommonMethods4To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
-     * [Preview API] Get a list of members for a specific team.
+     * Get a list of members for a specific team.
      *
      * @param {string} projectId - The name or ID (GUID) of the team project the team belongs to.
      * @param {string} teamId - The name or ID (GUID) of the team .
@@ -6067,7 +6456,7 @@ export class CoreHttpClient4 extends CommonMethods4To4_1 {
      */
     getTeamMembers(projectId: string, teamId: string, top?: number, skip?: number): IPromise<VSS_Common_Contracts.IdentityRef[]>;
     /**
-     * [Preview API] Get a list of teams.
+     * Get a list of teams.
      *
      * @param {string} projectId
      * @param {number} top - Maximum number of teams to return.
@@ -6292,9 +6681,9 @@ export class CoreHttpClient extends CoreHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return CoreHttpClient4
+ * @return CoreHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CoreHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CoreHttpClient4_1;
 }
 declare module "TFS/Dashboards/Contracts" {
 /**
@@ -6431,6 +6820,10 @@ export interface Widget {
      * Refers to the allowed sizes for the widget. This gets populated when user wants to configure the widget
      */
     allowedSizes: WidgetSize[];
+    /**
+     * Read-Only Property from Dashboard Service. Indicates if settings are blocked for the current user.
+     */
+    areSettingsBlockedForUser: boolean;
     /**
      * Refers to unique identifier of a feature artifact. Used for pinning+unpinning a specific artifact.
      */
@@ -7104,9 +7497,9 @@ export class DashboardHttpClient extends DashboardHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return DashboardHttpClient4
+ * @return DashboardHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): DashboardHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): DashboardHttpClient4_1;
 }
 declare module "TFS/Dashboards/Services" {
 /**
@@ -7137,6 +7530,12 @@ export interface IWidgetHostService {
     * Identification should not be relied upon to be present for all widgets. In particular, new unsaved widgets in preview mode do not have an identity yet.
     */
     getWidgetId: () => IPromise<string>;
+    /**
+     * Request the host to remove the background color and shadow from the widget container.
+     * Allows widget authors to set a transparent background in their widgets.
+     * @param value - True if widget container shouldn't have a background. False restores the background.
+     */
+    hideWidgetBackground: (value: boolean) => void;
 }
 export module WidgetHostService {
     /**
@@ -7500,22 +7899,49 @@ declare module "TFS/DistributedTaskCommon/Contracts" {
  *   https://vsowiki.com/index.php?title=Rest_Client_Generation
  *
  * Configuration file:
- *   DistributedTask\Shared\Common\Contracts\ClientGeneratorConfigs\genclient.json
+ *   distributedtask\shared\common\contracts\clientgeneratorconfigs\genclient.json
  */
 export interface AuthorizationHeader {
     name: string;
     value: string;
 }
+/**
+ * Represents binding of data source for the service endpoint request.
+ */
 export interface DataSourceBindingBase {
+    /**
+     * Gets or sets the name of the data source.
+     */
     dataSourceName: string;
+    /**
+     * Gets or sets the endpoint Id.
+     */
     endpointId: string;
+    /**
+     * Gets or sets the url of the service endpoint.
+     */
     endpointUrl: string;
+    /**
+     * Gets or sets the authorization headers.
+     */
     headers: AuthorizationHeader[];
+    /**
+     * Gets or sets the parameters for the data source.
+     */
     parameters: {
         [key: string]: string;
     };
+    /**
+     * Gets or sets the result selector.
+     */
     resultSelector: string;
+    /**
+     * Gets or sets the result template.
+     */
     resultTemplate: string;
+    /**
+     * Gets or sets the target of the data source.
+     */
     target: string;
 }
 export interface ProcessParameters {
@@ -7628,14 +8054,6 @@ export interface AgentRefreshMessage {
     targetVersion: string;
     timeout: any;
 }
-export interface AgentRequestEvent {
-    eventType: string;
-    planId: string;
-    poolId: number;
-    reservedAgentId: number;
-    result: TaskResult;
-    timeStamp: Date;
-}
 export enum AuditAction {
     Add = 1,
     Update = 2,
@@ -7649,7 +8067,13 @@ export interface AuthenticationSchemeReference {
     type: string;
 }
 export interface AuthorizationHeader {
+    /**
+     * Gets or sets the name of authorization header.
+     */
     name: string;
+    /**
+     * Gets or sets the value of authorization header.
+     */
     value: string;
 }
 export interface AzureKeyVaultPermission extends AzureResourcePermission {
@@ -7689,6 +8113,12 @@ export interface AzureSubscriptionQueryResult {
     errorMessage: string;
     value: AzureSubscription[];
 }
+export interface ClientCertificate {
+    /**
+     * Gets or sets the value of client certificate.
+     */
+    value: string;
+}
 export interface DataSource {
     authenticationScheme: AuthenticationSchemeReference;
     endpointUrl: string;
@@ -7727,36 +8157,157 @@ export interface DependsOn {
     input: string;
     map: DependencyBinding[];
 }
+/**
+ * Deployment group.
+ */
 export interface DeploymentGroup extends DeploymentGroupReference {
+    /**
+     * Description of the deployment group.
+     */
     description: string;
+    /**
+     * Number of deployment targets in the deployment group.
+     */
     machineCount: number;
+    /**
+     * List of deployment targets in the deployment group.
+     */
     machines: DeploymentMachine[];
+    /**
+     * List of unique tags across all deployment targets in the deployment group.
+     */
     machineTags: string[];
 }
+/**
+ * This is useful in getting a list of deployment groups, filtered for which caller has permissions to take a particular action.
+ */
 export enum DeploymentGroupActionFilter {
+    /**
+     * All deployment groups.
+     */
     None = 0,
+    /**
+     * Only deployment groups for which caller has **manage** permission.
+     */
     Manage = 2,
+    /**
+     * Only deployment groups for which caller has **use** permission.
+     */
     Use = 16,
 }
+/**
+ * Properties to create Deployment group.
+ */
+export interface DeploymentGroupCreateParameter {
+    /**
+     * Description of the deployment group.
+     */
+    description: string;
+    /**
+     * Name of the deployment group.
+     */
+    name: string;
+    /**
+     * Deployment pool in which deployment agents are registered. This is obsolete. Kept for compatibility. Will be marked obsolete explicitly by M132.
+     */
+    pool: DeploymentGroupCreateParameterPoolProperty;
+    /**
+     * Identifier of the deployment pool in which deployment agents are registered.
+     */
+    poolId: number;
+}
+/**
+ * Properties of Deployment pool to create Deployment group.
+ */
+export interface DeploymentGroupCreateParameterPoolProperty {
+    /**
+     * Deployment pool identifier.
+     */
+    id: number;
+}
+/**
+ * Properties to be included or expanded in deployment group objects. This is useful when getting a single or list of deployment grouops.
+ */
 export enum DeploymentGroupExpands {
+    /**
+     * No additional properties.
+     */
     None = 0,
+    /**
+     * Deprecated: Include all the deployment targets.
+     */
     Machines = 2,
+    /**
+     * Include unique list of tags across all deployment targets.
+     */
     Tags = 4,
 }
+/**
+ * Deployment group metrics.
+ */
 export interface DeploymentGroupMetrics {
+    /**
+     * List of deployment group properties. And types of metrics provided for those properties.
+     */
     columnsHeader: MetricsColumnsHeader;
+    /**
+     * Deployment group.
+     */
     deploymentGroup: DeploymentGroupReference;
+    /**
+     * Values of properties and the metrics. E.g. 1: total count of deployment targets for which 'TargetState' is 'offline'. E.g. 2: Average time of deployment to the deployment targets for which 'LastJobStatus' is 'passed' and 'TargetState' is 'online'.
+     */
     rows: MetricsRow[];
 }
+/**
+ * Deployment group reference. This is useful for referring a deployment group in another object.
+ */
 export interface DeploymentGroupReference {
+    /**
+     * Deployment group identifier.
+     */
     id: number;
+    /**
+     * Name of the deployment group.
+     */
     name: string;
+    /**
+     * Deployment pool in which deployment agents are registered.
+     */
     pool: TaskAgentPoolReference;
+    /**
+     * Project to which the deployment group belongs.
+     */
     project: ProjectReference;
 }
+/**
+ * Deployment group update parameter.
+ */
+export interface DeploymentGroupUpdateParameter {
+    /**
+     * Description of the deployment group.
+     */
+    description: string;
+    /**
+     * Name of the deployment group.
+     */
+    name: string;
+}
+/**
+ * Deployment target.
+ */
 export interface DeploymentMachine {
+    /**
+     * Deployment agent.
+     */
     agent: TaskAgent;
+    /**
+     * Deployment target Identifier.
+     */
     id: number;
+    /**
+     * Tags of the deployment target.
+     */
     tags: string[];
 }
 export enum DeploymentMachineExpands {
@@ -7778,21 +8329,70 @@ export interface DeploymentMachinesChangeEvent {
     machineGroupReference: DeploymentGroupReference;
     machines: DeploymentMachine[];
 }
+/**
+ * Deployment pool summary.
+ */
 export interface DeploymentPoolSummary {
+    /**
+     * List of deployment groups referring to the deployment pool.
+     */
     deploymentGroups: DeploymentGroupReference[];
+    /**
+     * Number of deployment agents that are offline.
+     */
     offlineAgentsCount: number;
+    /**
+     * Number of deployment agents that are online.
+     */
     onlineAgentsCount: number;
+    /**
+     * Deployment pool.
+     */
     pool: TaskAgentPoolReference;
 }
+/**
+ * Properties to be included or expanded in deployment pool summary objects. This is useful when getting a single or list of deployment pool summaries.
+ */
 export enum DeploymentPoolSummaryExpands {
+    /**
+     * No additional properties
+     */
     None = 0,
+    /**
+     * Include deployment groups referring to the deployment pool.
+     */
     DeploymentGroups = 2,
 }
+/**
+ * Properties to be included or expanded in deployment target objects. This is useful when getting a single or list of deployment targets.
+ */
 export enum DeploymentTargetExpands {
+    /**
+     * No additional properties.
+     */
     None = 0,
+    /**
+     * Include capabilities of the deployment agent.
+     */
     Capabilities = 2,
+    /**
+     * Include the job request assigned to the deployment agent.
+     */
     AssignedRequest = 4,
+    /**
+     * Include the last completed job request of the deployment agent.
+     */
     LastCompletedRequest = 8,
+}
+/**
+ * Deployment target update parameter.
+ */
+export interface DeploymentTargetUpdateParameter {
+    /**
+     * Identifier of the deployment target.
+     */
+    id: number;
+    tags: string[];
 }
 export interface DiagnosticLogMetadata {
     agentId: number;
@@ -7803,16 +8403,40 @@ export interface DiagnosticLogMetadata {
     poolId: number;
 }
 export interface EndpointAuthorization {
+    /**
+     * Gets or sets the parameters for the selected authorization scheme.
+     */
     parameters: {
         [key: string]: string;
     };
+    /**
+     * Gets or sets the scheme used for service endpoint authentication.
+     */
     scheme: string;
 }
+/**
+ * Represents url of the service endpoint.
+ */
 export interface EndpointUrl {
+    /**
+     * Gets or sets the dependency bindings.
+     */
     dependsOn: DependsOn;
+    /**
+     * Gets or sets the display name of service endpoint url.
+     */
     displayName: string;
+    /**
+     * Gets or sets the help text of service endpoint url.
+     */
     helpText: string;
+    /**
+     * Gets or sets the visibility of service endpoint url.
+     */
     isVisible: string;
+    /**
+     * Gets or sets the value of service endpoint url.
+     */
     value: string;
 }
 export interface EventsConfig {
@@ -7929,17 +8553,113 @@ export enum MaskType {
     Variable = 1,
     Regex = 2,
 }
+/**
+ * Meta data for a metrics column.
+ */
 export interface MetricsColumnMetaData {
+    /**
+     * Name.
+     */
     columnName: string;
+    /**
+     * Data type.
+     */
     columnValueType: string;
 }
+/**
+ * Metrics columns header
+ */
 export interface MetricsColumnsHeader {
+    /**
+     * Properties of deployment group for which metrics are provided. E.g. 1: LastJobStatus E.g. 2: TargetState
+     */
     dimensions: MetricsColumnMetaData[];
+    /**
+     * The types of metrics. E.g. 1: total count of deployment targets. E.g. 2: Average time of deployment to the deployment targets.
+     */
     metrics: MetricsColumnMetaData[];
 }
+/**
+ * Metrics row.
+ */
 export interface MetricsRow {
+    /**
+     * The values of the properties mentioned as 'Dimensions' in column header. E.g. 1: For a property 'LastJobStatus' - metrics will be provided for 'passed', 'failed', etc. E.g. 2: For a property 'TargetState' - metrics will be provided for 'online', 'offline' targets.
+     */
     dimensions: string[];
+    /**
+     * Metrics in serialized format. Should be deserialized based on the data type provided in header.
+     */
     metrics: string[];
+}
+export interface OAuthConfiguration {
+    /**
+     * Gets or sets the ClientId
+     */
+    clientId: string;
+    /**
+     * Gets or sets the ClientSecret
+     */
+    clientSecret: string;
+    /**
+     * Gets or sets the identity who created the config.
+     */
+    createdBy: VSS_Common_Contracts.IdentityRef;
+    /**
+     * Gets or sets the time when config was created.
+     */
+    createdOn: Date;
+    /**
+     * Gets or sets the type of the endpoint.
+     */
+    endpointType: string;
+    /**
+     * Gets or sets the unique identifier of this field
+     */
+    id: number;
+    /**
+     * Gets or sets the identity who modified the config.
+     */
+    modifiedBy: VSS_Common_Contracts.IdentityRef;
+    /**
+     * Gets or sets the time when variable group was modified
+     */
+    modifiedOn: Date;
+    /**
+     * Gets or sets the name
+     */
+    name: string;
+    /**
+     * Gets or sets the Url
+     */
+    url: string;
+}
+export enum OAuthConfigurationActionFilter {
+    None = 0,
+    Manage = 2,
+    Use = 16,
+}
+export interface OAuthConfigurationParams {
+    /**
+     * Gets or sets the ClientId
+     */
+    clientId: string;
+    /**
+     * Gets or sets the ClientSecret
+     */
+    clientSecret: string;
+    /**
+     * Gets or sets the type of the endpoint.
+     */
+    endpointType: string;
+    /**
+     * Gets or sets the name
+     */
+    name: string;
+    /**
+     * Gets or sets the Url
+     */
+    url: string;
 }
 /**
  * Represents a downloadable package.
@@ -8056,20 +8776,23 @@ export interface ServerTaskRequestMessage extends JobRequestMessage {
  * Represents an endpoint which may be used by an orchestration job.
  */
 export interface ServiceEndpoint {
+    /**
+     * Gets or sets the identity reference for the administrators group of the service endpoint.
+     */
     administratorsGroup: VSS_Common_Contracts.IdentityRef;
     /**
      * Gets or sets the authorization data for talking to the endpoint.
      */
     authorization: EndpointAuthorization;
     /**
-     * The Gets or sets Identity reference for the user who created the Service endpoint
+     * Gets or sets the identity reference for the user who created the Service endpoint.
      */
     createdBy: VSS_Common_Contracts.IdentityRef;
     data: {
         [key: string]: string;
     };
     /**
-     * Gets or Sets description of endpoint
+     * Gets or sets the description of endpoint.
      */
     description: string;
     groupScopeId: string;
@@ -8089,6 +8812,9 @@ export interface ServiceEndpoint {
      * Error message during creation/deletion of endpoint
      */
     operationStatus: any;
+    /**
+     * Gets or sets the identity reference for the readers group of the service endpoint.
+     */
     readersGroup: VSS_Common_Contracts.IdentityRef;
     /**
      * Gets or sets the type of the endpoint.
@@ -8100,9 +8826,25 @@ export interface ServiceEndpoint {
     url: string;
 }
 export interface ServiceEndpointAuthenticationScheme {
+    /**
+     * Gets or sets the authorization headers of service endpoint authentication scheme.
+     */
     authorizationHeaders: AuthorizationHeader[];
+    /**
+     * Gets or sets the certificates of service endpoint authentication scheme.
+     */
+    clientCertificates: ClientCertificate[];
+    /**
+     * Gets or sets the display name for the service endpoint authentication scheme.
+     */
     displayName: string;
+    /**
+     * Gets or sets the input descriptors for the service endpoint authentication scheme.
+     */
     inputDescriptors: VSS_FormInput_Contracts.InputDescriptor[];
+    /**
+     * Gets or sets the scheme for service endpoint authentication.
+     */
     scheme: string;
 }
 export interface ServiceEndpointDetails {
@@ -8113,17 +8855,47 @@ export interface ServiceEndpointDetails {
     type: string;
     url: string;
 }
+/**
+ * Represents service endpoint execution data.
+ */
 export interface ServiceEndpointExecutionData {
+    /**
+     * Gets the definition of service endpoint execution owner.
+     */
     definition: TaskOrchestrationOwner;
+    /**
+     * Gets the finish time of service endpoint execution.
+     */
     finishTime: Date;
+    /**
+     * Gets the Id of service endpoint execution data.
+     */
     id: number;
+    /**
+     * Gets the owner of service endpoint execution data.
+     */
     owner: TaskOrchestrationOwner;
+    /**
+     * Gets the plan type of service endpoint execution data.
+     */
     planType: string;
+    /**
+     * Gets the result of service endpoint execution.
+     */
     result: TaskResult;
+    /**
+     * Gets the start time of service endpoint execution.
+     */
     startTime: Date;
 }
 export interface ServiceEndpointExecutionRecord {
+    /**
+     * Gets the execution data of service endpoint execution.
+     */
     data: ServiceEndpointExecutionData;
+    /**
+     * Gets the Id of service endpoint.
+     */
     endpointId: string;
 }
 export interface ServiceEndpointExecutionRecordsInput {
@@ -8140,19 +8912,58 @@ export interface ServiceEndpointRequestResult {
     result: any;
     statusCode: string;
 }
+/**
+ * Represents type of the service endpoint.
+ */
 export interface ServiceEndpointType {
+    /**
+     * Authentication scheme of service endpoint type.
+     */
     authenticationSchemes: ServiceEndpointAuthenticationScheme[];
+    /**
+     * Data sources of service endpoint type.
+     */
     dataSources: DataSource[];
+    /**
+     * Dependency data of service endpoint type.
+     */
     dependencyData: DependencyData[];
+    /**
+     * Gets or sets the description of service endpoint type.
+     */
     description: string;
+    /**
+     * Gets or sets the display name of service endpoint type.
+     */
     displayName: string;
+    /**
+     * Gets or sets the endpoint url of service endpoint type.
+     */
     endpointUrl: EndpointUrl;
+    /**
+     * Gets or sets the help link of service endpoint type.
+     */
     helpLink: HelpLink;
     helpMarkDown: string;
+    /**
+     * Gets or sets the icon url of service endpoint type.
+     */
     iconUrl: string;
+    /**
+     * Input descriptor of service endpoint type.
+     */
     inputDescriptors: VSS_FormInput_Contracts.InputDescriptor[];
+    /**
+     * Gets or sets the name of service endpoint type.
+     */
     name: string;
+    /**
+     * Trusted hosts of a service endpoint type.
+     */
     trustedHosts: string[];
+    /**
+     * Gets or sets the ui contribution id of service endpoint type.
+     */
     uiContributionId: string;
 }
 export interface TaskAgent extends TaskAgentReference {
@@ -8242,10 +9053,25 @@ export interface TaskAgentJobRequest {
     scopeId: string;
     serviceOwner: string;
 }
+/**
+ * This is useful in getting a list of deployment targets, filtered by the result of their last job.
+ */
 export enum TaskAgentJobResultFilter {
+    /**
+     * Only those deployment targets on which last job failed (**Abandoned**, **Canceled**, **Failed**, **Skipped**).
+     */
     Failed = 1,
+    /**
+     * Only those deployment targets on which last job Passed (**Succeeded**, **Succeeded with issues**).
+     */
     Passed = 2,
+    /**
+     * Only those deployment targets that never executed a job.
+     */
     NeverDeployed = 4,
+    /**
+     * All deployment targets.
+     */
     All = 7,
 }
 export interface TaskAgentManualUpdate extends TaskAgentUpdateReason {
@@ -8289,6 +9115,10 @@ export interface TaskAgentPool extends TaskAgentPoolReference {
      * Gets the date/time of the pool creation.
      */
     createdOn: Date;
+    /**
+     * Gets the identity who owns or administrates this pool.
+     */
+    owner: VSS_Common_Contracts.IdentityRef;
     properties: any;
 }
 export enum TaskAgentPoolActionFilter {
@@ -8597,9 +9427,21 @@ export enum TaskAgentStatus {
     Offline = 1,
     Online = 2,
 }
+/**
+ * This is useful in getting a list of deployment targets, filtered by the deployment agent status.
+ */
 export enum TaskAgentStatusFilter {
+    /**
+     * Only deployment targets that are offline.
+     */
     Offline = 1,
+    /**
+     * Only deployment targets that are online.
+     */
     Online = 2,
+    /**
+     * All deployment targets.
+     */
     All = 3,
 }
 export interface TaskAgentUpdate {
@@ -8646,8 +9488,6 @@ export interface TaskAttachment {
     recordId: string;
     timelineId: string;
     type: string;
-}
-export interface TaskChangeEvent {
 }
 export interface TaskCompletedEvent extends TaskEvent {
     result: TaskResult;
@@ -8862,6 +9702,19 @@ export enum TaskGroupExpands {
     None = 0,
     Tasks = 2,
 }
+/**
+ * Specifies the desired ordering of taskGroups.
+ */
+export enum TaskGroupQueryOrder {
+    /**
+     * Order by createdon ascending.
+     */
+    CreatedOnAscending = 0,
+    /**
+     * Order by createdon descending.
+     */
+    CreatedOnDescending = 1,
+}
 export interface TaskGroupRevision {
     changedBy: VSS_Common_Contracts.IdentityRef;
     changedDate: Date;
@@ -8871,6 +9724,9 @@ export interface TaskGroupRevision {
     revision: number;
     taskGroupId: string;
 }
+/**
+ * Represents tasks in the task group.
+ */
 export interface TaskGroupStep {
     /**
      * Gets or sets as 'true' to run the task always, 'false' otherwise.
@@ -9203,16 +10059,49 @@ export interface ValidationItem {
      */
     value: string;
 }
+/**
+ * A variable group is a collection of related variables.
+ */
 export interface VariableGroup {
+    /**
+     * Gets or sets the identity who created the variable group.
+     */
     createdBy: VSS_Common_Contracts.IdentityRef;
+    /**
+     * Gets or sets the time when variable group was created.
+     */
     createdOn: Date;
+    /**
+     * Gets or sets description of the variable group.
+     */
     description: string;
+    /**
+     * Gets or sets id of the variable group.
+     */
     id: number;
+    /**
+     * Gets or sets the identity who modified the variable group.
+     */
     modifiedBy: VSS_Common_Contracts.IdentityRef;
+    /**
+     * Gets or sets the time when variable group was modified
+     */
     modifiedOn: Date;
+    /**
+     * Gets or sets name of the variable group.
+     */
     name: string;
+    /**
+     * Gets or sets provider data.
+     */
     providerData: VariableGroupProviderData;
+    /**
+     * Gets or sets type of the variable group.
+     */
     type: string;
+    /**
+     * Gets or sets variables contained in the variable group.
+     */
     variables: {
         [key: string]: VariableValue;
     };
@@ -9222,7 +10111,47 @@ export enum VariableGroupActionFilter {
     Manage = 2,
     Use = 16,
 }
+export interface VariableGroupParameters {
+    /**
+     * Sets description of the variable group.
+     */
+    description: string;
+    /**
+     * Sets name of the variable group.
+     */
+    name: string;
+    /**
+     * Sets provider data.
+     */
+    providerData: VariableGroupProviderData;
+    /**
+     * Sets type of the variable group.
+     */
+    type: string;
+    /**
+     * Sets variables contained in the variable group.
+     */
+    variables: {
+        [key: string]: VariableValue;
+    };
+}
+/**
+ * Defines provider data of the variable group.
+ */
 export interface VariableGroupProviderData {
+}
+/**
+ * Specifies the desired ordering of variableGroups.
+ */
+export enum VariableGroupQueryOrder {
+    /**
+     * Order by id ascending.
+     */
+    IdAscending = 0,
+    /**
+     * Order by id descending.
+     */
+    IdDescending = 1,
 }
 export interface VariableValue {
     isSecret: boolean;
@@ -9243,7 +10172,6 @@ export var TypeInfo: {
     AgentPoolEvent: any;
     AgentQueueEvent: any;
     AgentQueuesEvent: any;
-    AgentRequestEvent: any;
     AuditAction: {
         enumValues: {
             "add": number;
@@ -9320,6 +10248,14 @@ export var TypeInfo: {
         enumValues: {
             "variable": number;
             "regex": number;
+        };
+    };
+    OAuthConfiguration: any;
+    OAuthConfigurationActionFilter: {
+        enumValues: {
+            "none": number;
+            "manage": number;
+            "use": number;
         };
     };
     PackageMetadata: any;
@@ -9468,6 +10404,12 @@ export var TypeInfo: {
             "tasks": number;
         };
     };
+    TaskGroupQueryOrder: {
+        enumValues: {
+            "createdOnAscending": number;
+            "createdOnDescending": number;
+        };
+    };
     TaskGroupRevision: any;
     TaskLog: any;
     TaskOrchestrationContainer: any;
@@ -9516,6 +10458,12 @@ export var TypeInfo: {
             "none": number;
             "manage": number;
             "use": number;
+        };
+    };
+    VariableGroupQueryOrder: {
+        enumValues: {
+            "idAscending": number;
+            "idDescending": number;
         };
     };
 };
@@ -9871,16 +10819,19 @@ export class CommonMethods3To4_1 extends CommonMethods2_1To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @exemptedapi
-     * [Preview API] Get a list of task groups.
+     * [Preview API] List task groups.
      *
      * @param {string} project - Project ID or project name
      * @param {string} taskGroupId - Id of the task group.
      * @param {boolean} expanded - 'true' to recursively expand task groups. Default is 'false'.
      * @param {string} taskIdFilter - Guid of the taskId to filter.
      * @param {boolean} deleted - 'true'to include deleted task groups. Default is 'false'.
+     * @param {number} top - Number of task groups to get.
+     * @param {Date} continuationToken - Gets the task groups after the continuation token provided.
+     * @param {Contracts.TaskGroupQueryOrder} queryOrder - Gets the results in the defined order. Default is 'CreatedOnDescending'.
      * @return IPromise<Contracts.TaskGroup[]>
      */
-    getTaskGroups(project: string, taskGroupId?: string, expanded?: boolean, taskIdFilter?: string, deleted?: boolean): IPromise<Contracts.TaskGroup[]>;
+    getTaskGroups(project: string, taskGroupId?: string, expanded?: boolean, taskIdFilter?: string, deleted?: boolean, top?: number, continuationToken?: Date, queryOrder?: Contracts.TaskGroupQueryOrder): IPromise<Contracts.TaskGroup[]>;
     /**
      * @exemptedapi
      * [Preview API] Delete a task group.
@@ -10035,55 +10986,58 @@ export class CommonMethods3_1To4_1 extends CommonMethods3To4_1 {
      */
     acquireAccessToken(authenticationRequest: Contracts.AadOauthTokenRequest): IPromise<Contracts.AadOauthTokenResult>;
     /**
-     * [Preview API]
+     * [Preview API] Update a variable group.
      *
-     * @param {Contracts.VariableGroup} group
+     * @param {Contracts.VariableGroupParameters} group - Variable group to update.
      * @param {string} project - Project ID or project name
-     * @param {number} groupId
+     * @param {number} groupId - Id of the variable group to update.
      * @return IPromise<Contracts.VariableGroup>
      */
-    updateVariableGroup(group: Contracts.VariableGroup, project: string, groupId: number): IPromise<Contracts.VariableGroup>;
+    updateVariableGroup(group: Contracts.VariableGroupParameters, project: string, groupId: number): IPromise<Contracts.VariableGroup>;
     /**
-     * [Preview API]
+     * [Preview API] Get variable groups by ids.
      *
      * @param {string} project - Project ID or project name
-     * @param {number[]} groupIds
+     * @param {number[]} groupIds - Comma separated list of Ids of variable groups.
      * @return IPromise<Contracts.VariableGroup[]>
      */
     getVariableGroupsById(project: string, groupIds: number[]): IPromise<Contracts.VariableGroup[]>;
     /**
-     * [Preview API]
+     * [Preview API] Get variable groups.
      *
      * @param {string} project - Project ID or project name
-     * @param {string} groupName
-     * @param {Contracts.VariableGroupActionFilter} actionFilter
+     * @param {string} groupName - Name of variable group.
+     * @param {Contracts.VariableGroupActionFilter} actionFilter - Action filter for the variable group. It specifies the action which can be performed on the variable groups.
+     * @param {number} top - Number of variable groups to get.
+     * @param {number} continuationToken - Gets the variable groups after the continuation token provided.
+     * @param {Contracts.VariableGroupQueryOrder} queryOrder - Gets the results in the defined order. Default is 'IdDescending'.
      * @return IPromise<Contracts.VariableGroup[]>
      */
-    getVariableGroups(project: string, groupName?: string, actionFilter?: Contracts.VariableGroupActionFilter): IPromise<Contracts.VariableGroup[]>;
+    getVariableGroups(project: string, groupName?: string, actionFilter?: Contracts.VariableGroupActionFilter, top?: number, continuationToken?: number, queryOrder?: Contracts.VariableGroupQueryOrder): IPromise<Contracts.VariableGroup[]>;
     /**
-     * [Preview API]
+     * [Preview API] Get a variable group.
      *
      * @param {string} project - Project ID or project name
-     * @param {number} groupId
+     * @param {number} groupId - Id of the variable group.
      * @return IPromise<Contracts.VariableGroup>
      */
     getVariableGroup(project: string, groupId: number): IPromise<Contracts.VariableGroup>;
     /**
-     * [Preview API]
+     * [Preview API] Delete a variable group
      *
      * @param {string} project - Project ID or project name
-     * @param {number} groupId
+     * @param {number} groupId - Id of the variable group.
      * @return IPromise<void>
      */
     deleteVariableGroup(project: string, groupId: number): IPromise<void>;
     /**
-     * [Preview API]
+     * [Preview API] Add a variable group.
      *
-     * @param {Contracts.VariableGroup} group
+     * @param {Contracts.VariableGroupParameters} group - Variable group to add.
      * @param {string} project - Project ID or project name
      * @return IPromise<Contracts.VariableGroup>
      */
-    addVariableGroup(group: Contracts.VariableGroup, project: string): IPromise<Contracts.VariableGroup>;
+    addVariableGroup(group: Contracts.VariableGroupParameters, project: string): IPromise<Contracts.VariableGroup>;
     /**
      * [Preview API]
      *
@@ -10517,58 +11471,58 @@ export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
      */
     getAgentRequestsForDeploymentMachine(project: string, deploymentGroupId: number, machineId: number, completedRequestCount?: number): IPromise<Contracts.TaskAgentJobRequest[]>;
     /**
-     * [Preview API]
+     * [Preview API] Update a deployment group.
      *
-     * @param {Contracts.DeploymentGroup} deploymentGroup
+     * @param {Contracts.DeploymentGroupUpdateParameter} deploymentGroup - Deployment group to update.
      * @param {string} project - Project ID or project name
-     * @param {number} deploymentGroupId
+     * @param {number} deploymentGroupId - ID of the deployment group.
      * @return IPromise<Contracts.DeploymentGroup>
      */
-    updateDeploymentGroup(deploymentGroup: Contracts.DeploymentGroup, project: string, deploymentGroupId: number): IPromise<Contracts.DeploymentGroup>;
+    updateDeploymentGroup(deploymentGroup: Contracts.DeploymentGroupUpdateParameter, project: string, deploymentGroupId: number): IPromise<Contracts.DeploymentGroup>;
     /**
-     * [Preview API]
+     * [Preview API] Get a list of deployment groups by name or IDs.
      *
      * @param {string} project - Project ID or project name
-     * @param {string} name
-     * @param {Contracts.DeploymentGroupActionFilter} actionFilter
-     * @param {Contracts.DeploymentGroupExpands} expand
-     * @param {string} continuationToken
-     * @param {number} top
-     * @param {number[]} ids
+     * @param {string} name - Name of the deployment group.
+     * @param {Contracts.DeploymentGroupActionFilter} actionFilter - Get only deployment groups on which this action can be performed.
+     * @param {Contracts.DeploymentGroupExpands} expand - Include these additional details in the returned objects.
+     * @param {string} continuationToken - Get deployment groups with names greater than this continuationToken lexicographically.
+     * @param {number} top - Maximum number of deployment groups to return. Default is **1000**.
+     * @param {number[]} ids - Comma separated list of IDs of the deployment groups.
      * @return IPromise<Contracts.DeploymentGroup[]>
      */
     getDeploymentGroups(project: string, name?: string, actionFilter?: Contracts.DeploymentGroupActionFilter, expand?: Contracts.DeploymentGroupExpands, continuationToken?: string, top?: number, ids?: number[]): IPromise<Contracts.DeploymentGroup[]>;
     /**
-     * [Preview API]
+     * [Preview API] Get a deployment group by its ID.
      *
      * @param {string} project - Project ID or project name
-     * @param {number} deploymentGroupId
-     * @param {Contracts.DeploymentGroupActionFilter} actionFilter
-     * @param {Contracts.DeploymentGroupExpands} expand
+     * @param {number} deploymentGroupId - ID of the deployment group.
+     * @param {Contracts.DeploymentGroupActionFilter} actionFilter - Get the deployment group only if this action can be performed on it.
+     * @param {Contracts.DeploymentGroupExpands} expand - Include these additional details in the returned object.
      * @return IPromise<Contracts.DeploymentGroup>
      */
     getDeploymentGroup(project: string, deploymentGroupId: number, actionFilter?: Contracts.DeploymentGroupActionFilter, expand?: Contracts.DeploymentGroupExpands): IPromise<Contracts.DeploymentGroup>;
     /**
-     * [Preview API]
+     * [Preview API] Delete a deployment group.
      *
      * @param {string} project - Project ID or project name
-     * @param {number} deploymentGroupId
+     * @param {number} deploymentGroupId - ID of the deployment group to be deleted.
      * @return IPromise<void>
      */
     deleteDeploymentGroup(project: string, deploymentGroupId: number): IPromise<void>;
     /**
-     * [Preview API]
+     * [Preview API] Create a deployment group.
      *
-     * @param {Contracts.DeploymentGroup} deploymentGroup
+     * @param {Contracts.DeploymentGroupCreateParameter} deploymentGroup - Deployment group to create.
      * @param {string} project - Project ID or project name
      * @return IPromise<Contracts.DeploymentGroup>
      */
-    addDeploymentGroup(deploymentGroup: Contracts.DeploymentGroup, project: string): IPromise<Contracts.DeploymentGroup>;
+    addDeploymentGroup(deploymentGroup: Contracts.DeploymentGroupCreateParameter, project: string): IPromise<Contracts.DeploymentGroup>;
     /**
-     * [Preview API]
+     * [Preview API] GET a PAT token for managing (configuring, removing, tagging) deployment targets in a deployment group.
      *
      * @param {string} project - Project ID or project name
-     * @param {number} deploymentGroupId
+     * @param {number} deploymentGroupId - ID of the deployment group in which deployment targets are managed.
      * @return IPromise<string>
      */
     generateDeploymentGroupAccessToken(project: string, deploymentGroupId: number): IPromise<string>;
@@ -10605,23 +11559,12 @@ export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
      */
     publishPreviewTaskGroup(taskGroup: Contracts.TaskGroup, project: string, taskGroupId: string, disablePriorVersions?: boolean): IPromise<Contracts.TaskGroup[]>;
     /**
-     * [Obsolete - This REST API is deprecated and will be removed in a future release. Use GetTasGroupAsync(project, searchText = null, expand = null, artifactType = null, artifactSourceId = null, top = null, continuationToken = null, queryOrder = null, path = null, isExactNameMatch = null, tagFilter = null, propertyFilters = null, definitionIdFilter = null, userState = null, cancellationToken = default(CancellationToken)) instead.] Get task group.
+     * [Preview API] Get a list of deployment group metrics.
      *
      * @param {string} project - Project ID or project name
-     * @param {string} taskGroupId - Id of the task group.
-     * @param {string} versionSpec - version specification of the task group. examples: 1, 1.*, 1.*-test.
-     * @param {boolean} expanded - 'true' to expand tasks in task group. Default is 'false'.
-     * @param {Contracts.TaskGroupExpands} expand
-     * @return IPromise<Contracts.TaskGroup>
-     */
-    getTaskGroup(project: string, taskGroupId: string, versionSpec: string, expanded?: boolean, expand?: Contracts.TaskGroupExpands): IPromise<Contracts.TaskGroup>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} deploymentGroupName
-     * @param {string} continuationToken
-     * @param {number} top
+     * @param {string} deploymentGroupName - Name of the deployment group.
+     * @param {string} continuationToken - Get metrics for deployment groups with names greater than this continuationToken lexicographically.
+     * @param {number} top - Maximum number of deployment group metrics to return. Default is **50**.
      * @return IPromise<Contracts.DeploymentGroupMetrics[]>
      */
     getDeploymentGroupsMetrics(project: string, deploymentGroupName?: string, continuationToken?: string, top?: number): IPromise<Contracts.DeploymentGroupMetrics[]>;
@@ -10640,17 +11583,17 @@ export class TaskAgentHttpClient4_1 extends CommonMethods4To4_1 {
      */
     queueAgentRequest(request: Contracts.TaskAgentJobRequest, queueId: number): IPromise<Contracts.TaskAgentJobRequest>;
     /**
-     * [Preview API]
+     * [Preview API] GET a PAT token for managing (configuring, removing, tagging) deployment agents in a deployment pool.
      *
-     * @param {number} poolId
+     * @param {number} poolId - ID of the deployment pool in which deployment agents are managed.
      * @return IPromise<string>
      */
     generateDeploymentPoolAccessToken(poolId: number): IPromise<string>;
     /**
-     * [Preview API] Get the deployment pools summary.
+     * [Preview API] Get a list of deployment pool summaries.
      *
-     * @param {string} poolName - Get summary of deployment pools with name containing poolName.
-     * @param {Contracts.DeploymentPoolSummaryExpands} expands - Populate Deployment groups references if set to DeploymentGroups. Default is **None**
+     * @param {string} poolName - Name of the deployment pool.
+     * @param {Contracts.DeploymentPoolSummaryExpands} expands - Include these additional details in the returned objects.
      * @return IPromise<Contracts.DeploymentPoolSummary[]>
      */
     getDeploymentPoolsSummary(poolName?: string, expands?: Contracts.DeploymentPoolSummaryExpands): IPromise<Contracts.DeploymentPoolSummary[]>;
@@ -10658,30 +11601,73 @@ export class TaskAgentHttpClient4_1 extends CommonMethods4To4_1 {
      * [Preview API] Get agent requests for a deployment target.
      *
      * @param {string} project - Project ID or project name
-     * @param {number} deploymentGroupId - Id of the deployment group to which target belongs.
-     * @param {number} targetId - Id of the deployment target to get.
-     * @param {number} completedRequestCount - Maximum count of completed requests to get.
+     * @param {number} deploymentGroupId - ID of the deployment group to which the target belongs.
+     * @param {number} targetId - ID of the deployment target.
+     * @param {number} completedRequestCount - Maximum number of completed requests to return. Default is **50**
      * @return IPromise<Contracts.TaskAgentJobRequest[]>
      */
     getAgentRequestsForDeploymentTarget(project: string, deploymentGroupId: number, targetId: number, completedRequestCount?: number): IPromise<Contracts.TaskAgentJobRequest[]>;
     /**
-     * [Preview API] Get agent requests for deployment targets.
+     * [Preview API] Get agent requests for a list deployment targets.
      *
      * @param {string} project - Project ID or project name
-     * @param {number} deploymentGroupId - Id of the deployment group to which targets belongs.
-     * @param {number[]} targetIds - Ids of the deployment target to get.
-     * @param {number} completedRequestCount - Maximum count of completed requests to get.
+     * @param {number} deploymentGroupId - ID of the deployment group to which the targets belong.
+     * @param {number[]} targetIds - Comma separated list of IDs of the deployment targets.
+     * @param {number} completedRequestCount - Maximum number of completed requests to return for each target. Default is **50**
      * @return IPromise<Contracts.TaskAgentJobRequest[]>
      */
     getAgentRequestsForDeploymentTargets(project: string, deploymentGroupId: number, targetIds?: number[], completedRequestCount?: number): IPromise<Contracts.TaskAgentJobRequest[]>;
     /**
-     * [Preview API] Upgrade the Deployment Targets for a Deployment Group
+     * [Preview API] Upgrade the deployment targets in a deployment group.
      *
      * @param {string} project - Project ID or project name
-     * @param {number} deploymentGroupId - Id of the Deployment Group
+     * @param {number} deploymentGroupId - ID of the deployment group.
      * @return IPromise<void>
      */
     refreshDeploymentTargets(project: string, deploymentGroupId: number): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.OAuthConfigurationParams} configurationParams
+     * @return IPromise<Contracts.OAuthConfiguration>
+     */
+    createOAuthConfiguration(configurationParams: Contracts.OAuthConfigurationParams): IPromise<Contracts.OAuthConfiguration>;
+    /**
+     * [Preview API]
+     *
+     * @param {number} configurationId
+     * @return IPromise<Contracts.OAuthConfiguration>
+     */
+    deleteOAuthConfiguration(configurationId: number): IPromise<Contracts.OAuthConfiguration>;
+    /**
+     * [Preview API]
+     *
+     * @param {number} configurationId
+     * @return IPromise<Contracts.OAuthConfiguration>
+     */
+    getOAuthConfiguration(configurationId: number): IPromise<Contracts.OAuthConfiguration>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.OAuthConfigurationActionFilter} actionFilter
+     * @return IPromise<Contracts.OAuthConfiguration[]>
+     */
+    getOAuthConfigurations(actionFilter?: Contracts.OAuthConfigurationActionFilter): IPromise<Contracts.OAuthConfiguration[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.OAuthConfigurationParams} configurationParams
+     * @param {number} configurationId
+     * @return IPromise<Contracts.OAuthConfiguration>
+     */
+    updateOAuthConfiguration(configurationParams: Contracts.OAuthConfigurationParams, configurationId: number): IPromise<Contracts.OAuthConfiguration>;
+    /**
+     * [Preview API]
+     *
+     * @param {number} poolId
+     * @return IPromise<string>
+     */
+    getAgentPoolMetadata(poolId: number): IPromise<string>;
     /**
      * [Preview API]
      *
@@ -10693,78 +11679,88 @@ export class TaskAgentHttpClient4_1 extends CommonMethods4To4_1 {
      */
     getResourceUsage(resourceType?: string, poolIsHosted?: boolean, includeRunningPlanGroups?: boolean, maxPlanGroupsCount?: number): IPromise<Contracts.ResourceUsage>;
     /**
-     * [Preview API]
+     * [Preview API] Register a deployment target to a deployment group. Generally this is called by agent configuration tool.
      *
-     * @param {Contracts.DeploymentMachine} machine
+     * @param {Contracts.DeploymentMachine} machine - Deployment target to register.
      * @param {string} project - Project ID or project name
-     * @param {number} deploymentGroupId
+     * @param {number} deploymentGroupId - ID of the deployment group to which the deployment target is registered.
      * @return IPromise<Contracts.DeploymentMachine>
      */
     addDeploymentTarget(machine: Contracts.DeploymentMachine, project: string, deploymentGroupId: number): IPromise<Contracts.DeploymentMachine>;
     /**
-     * [Preview API]
+     * [Preview API] Delete a deployment target in a deployment group. This deletes the agent from associated deployment pool too.
      *
      * @param {string} project - Project ID or project name
-     * @param {number} deploymentGroupId
-     * @param {number} targetId
+     * @param {number} deploymentGroupId - ID of the deployment group in which deployment target is deleted.
+     * @param {number} targetId - ID of the deployment target to delete.
      * @return IPromise<void>
      */
     deleteDeploymentTarget(project: string, deploymentGroupId: number, targetId: number): IPromise<void>;
     /**
-     * [Preview API]
+     * [Preview API] Get a deployment target by its ID in a deployment group
      *
      * @param {string} project - Project ID or project name
-     * @param {number} deploymentGroupId
-     * @param {number} targetId
-     * @param {Contracts.DeploymentTargetExpands} expand
+     * @param {number} deploymentGroupId - ID of the deployment group to which deployment target belongs.
+     * @param {number} targetId - ID of the deployment target to return.
+     * @param {Contracts.DeploymentTargetExpands} expand - Include these additional details in the returned objects.
      * @return IPromise<Contracts.DeploymentMachine>
      */
     getDeploymentTarget(project: string, deploymentGroupId: number, targetId: number, expand?: Contracts.DeploymentTargetExpands): IPromise<Contracts.DeploymentMachine>;
     /**
-     * [Preview API]
+     * [Preview API] Get a list of deployment targets in a deployment group.
      *
      * @param {string} project - Project ID or project name
-     * @param {number} deploymentGroupId
-     * @param {string[]} tags
-     * @param {string} name
-     * @param {boolean} partialNameMatch
-     * @param {Contracts.DeploymentTargetExpands} expand
-     * @param {Contracts.TaskAgentStatusFilter} agentStatus
-     * @param {Contracts.TaskAgentJobResultFilter} agentJobResult
-     * @param {string} continuationToken
-     * @param {number} top
+     * @param {number} deploymentGroupId - ID of the deployment group.
+     * @param {string[]} tags - Get only the deployment targets that contain all these comma separted list of tags.
+     * @param {string} name - Name pattern of the deployment targets to return.
+     * @param {boolean} partialNameMatch - When set to true, treats **name** as pattern. Else treats it as absolute match. Default is **false**.
+     * @param {Contracts.DeploymentTargetExpands} expand - Include these additional details in the returned objects.
+     * @param {Contracts.TaskAgentStatusFilter} agentStatus - Get only deployment targets that have this status.
+     * @param {Contracts.TaskAgentJobResultFilter} agentJobResult - Get only deployment targets that have this last job result.
+     * @param {string} continuationToken - Get deployment targets with names greater than this continuationToken lexicographically.
+     * @param {number} top - Maximum number of deployment targets to return. Default is **1000**.
      * @return IPromise<Contracts.DeploymentMachine[]>
      */
     getDeploymentTargets(project: string, deploymentGroupId: number, tags?: string[], name?: string, partialNameMatch?: boolean, expand?: Contracts.DeploymentTargetExpands, agentStatus?: Contracts.TaskAgentStatusFilter, agentJobResult?: Contracts.TaskAgentJobResultFilter, continuationToken?: string, top?: number): IPromise<Contracts.DeploymentMachine[]>;
     /**
-     * [Preview API]
+     * [Preview API] Replace a deployment target in a deployment group. Generally this is called by agent configuration tool.
      *
-     * @param {Contracts.DeploymentMachine} machine
+     * @param {Contracts.DeploymentMachine} machine - New deployment target.
      * @param {string} project - Project ID or project name
-     * @param {number} deploymentGroupId
-     * @param {number} targetId
+     * @param {number} deploymentGroupId - ID of the deployment group in which deployment target is replaced.
+     * @param {number} targetId - ID of the deployment target to replace.
      * @return IPromise<Contracts.DeploymentMachine>
      */
     replaceDeploymentTarget(machine: Contracts.DeploymentMachine, project: string, deploymentGroupId: number, targetId: number): IPromise<Contracts.DeploymentMachine>;
     /**
-     * [Preview API]
+     * [Preview API] Update a deployment target and its agent properties in a deployment group. Generally this is called by agent configuration tool.
      *
-     * @param {Contracts.DeploymentMachine} machine
+     * @param {Contracts.DeploymentMachine} machine - Deployment target to update.
      * @param {string} project - Project ID or project name
-     * @param {number} deploymentGroupId
-     * @param {number} targetId
+     * @param {number} deploymentGroupId - ID of the deployment group in which deployment target is updated.
+     * @param {number} targetId - ID of the deployment target to update.
      * @return IPromise<Contracts.DeploymentMachine>
      */
     updateDeploymentTarget(machine: Contracts.DeploymentMachine, project: string, deploymentGroupId: number, targetId: number): IPromise<Contracts.DeploymentMachine>;
     /**
-     * [Preview API]
+     * [Preview API] Update tags of a list of deployment targets in a deployment group.
      *
-     * @param {Contracts.DeploymentMachine[]} machines
+     * @param {Contracts.DeploymentTargetUpdateParameter[]} machines - Deployment targets with tags to udpdate.
      * @param {string} project - Project ID or project name
-     * @param {number} deploymentGroupId
+     * @param {number} deploymentGroupId - ID of the deployment group in which deployment targets are updated.
      * @return IPromise<Contracts.DeploymentMachine[]>
      */
-    updateDeploymentTargets(machines: Contracts.DeploymentMachine[], project: string, deploymentGroupId: number): IPromise<Contracts.DeploymentMachine[]>;
+    updateDeploymentTargets(machines: Contracts.DeploymentTargetUpdateParameter[], project: string, deploymentGroupId: number): IPromise<Contracts.DeploymentMachine[]>;
+    /**
+     * [Preview API] Get task group.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} taskGroupId - Id of the task group.
+     * @param {string} versionSpec - version specification of the task group. examples: 1, 1.0.
+     * @param {Contracts.TaskGroupExpands} expand - The properties that should be expanded. example $expand=Tasks will expand nested task groups.
+     * @return IPromise<Contracts.TaskGroup>
+     */
+    getTaskGroup(project: string, taskGroupId: string, versionSpec: string, expand?: Contracts.TaskGroupExpands): IPromise<Contracts.TaskGroup>;
     /**
      * [Preview API] Update a task group.
      *
@@ -11177,9 +12173,9 @@ export class TaskAgentHttpClient extends TaskAgentHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return TaskAgentHttpClient4
+ * @return TaskAgentHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TaskAgentHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TaskAgentHttpClient4_1;
 }
 declare module "TFS/DistributedTask/TaskRestClient" {
 import TFS_DistributedTask_Contracts = require("TFS/DistributedTask/Contracts");
@@ -11441,9 +12437,9 @@ export class TaskHttpClient extends TaskHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return TaskHttpClient4
+ * @return TaskHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TaskHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TaskHttpClient4_1;
 }
 declare module "TFS/ProjectAnalysis/Contracts" {
 export enum AggregationType {
@@ -11462,7 +12458,12 @@ export interface CodeChangeTrendItem {
     time: Date;
     value: number;
 }
-export interface LanguageStatistics {
+export interface LanguageMetricsSecuredObject {
+    namespaceId: string;
+    projectId: string;
+    requiredPermissions: number;
+}
+export interface LanguageStatistics extends LanguageMetricsSecuredObject {
     bytes: number;
     files: number;
     filesPercentage: number;
@@ -11477,7 +12478,7 @@ export interface ProjectActivityMetrics {
     pullRequestsCompletedCount: number;
     pullRequestsCreatedCount: number;
 }
-export interface ProjectLanguageAnalytics {
+export interface ProjectLanguageAnalytics extends LanguageMetricsSecuredObject {
     id: string;
     languageBreakdown: LanguageStatistics[];
     repositoryLanguageAnalytics: RepositoryLanguageAnalytics[];
@@ -11489,7 +12490,7 @@ export interface RepositoryActivityMetrics {
     codeChangesTrend: CodeChangeTrendItem[];
     repositoryId: string;
 }
-export interface RepositoryLanguageAnalytics {
+export interface RepositoryLanguageAnalytics extends LanguageMetricsSecuredObject {
     id: string;
     languageBreakdown: LanguageStatistics[];
     name: string;
@@ -11585,9 +12586,546 @@ export class ProjectAnalysisHttpClient extends ProjectAnalysisHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return ProjectAnalysisHttpClient4
+ * @return ProjectAnalysisHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ProjectAnalysisHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ProjectAnalysisHttpClient4_1;
+}
+declare module "TFS/ServiceEndpoint/Contracts" {
+import TFS_DistributedTask_Common_Contracts = require("TFS/DistributedTaskCommon/Contracts");
+import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
+import VSS_FormInput_Contracts = require("VSS/Common/Contracts/FormInput");
+export interface AuthenticationSchemeReference {
+    inputs: {
+        [key: string]: string;
+    };
+    type: string;
+}
+/**
+ * Represents the header of the REST request.
+ */
+export interface AuthorizationHeader {
+    /**
+     * Gets or sets the name of authorization header.
+     */
+    name: string;
+    /**
+     * Gets or sets the value of authorization header.
+     */
+    value: string;
+}
+export interface ClientCertificate {
+    /**
+     * Gets or sets the value of client certificate.
+     */
+    value: string;
+}
+export interface DataSource {
+    authenticationScheme: AuthenticationSchemeReference;
+    endpointUrl: string;
+    headers: AuthorizationHeader[];
+    name: string;
+    resourceUrl: string;
+    resultSelector: string;
+}
+export interface DataSourceBinding extends TFS_DistributedTask_Common_Contracts.DataSourceBindingBase {
+}
+/**
+ * Represents details of the service endpoint data source.
+ */
+export interface DataSourceDetails {
+    /**
+     * Gets or sets the data source name.
+     */
+    dataSourceName: string;
+    /**
+     * Gets or sets the data source url.
+     */
+    dataSourceUrl: string;
+    /**
+     * Gets or sets the request headers.
+     */
+    headers: AuthorizationHeader[];
+    /**
+     * Gets the parameters of data source.
+     */
+    parameters: {
+        [key: string]: string;
+    };
+    /**
+     * Gets or sets the resource url of data source.
+     */
+    resourceUrl: string;
+    /**
+     * Gets or sets the result selector.
+     */
+    resultSelector: string;
+}
+export interface DependencyBinding {
+    key: string;
+    value: string;
+}
+export interface DependencyData {
+    input: string;
+    map: {
+        key: string;
+        value: {
+            key: string;
+            value: string;
+        }[];
+    }[];
+}
+export interface DependsOn {
+    input: string;
+    map: DependencyBinding[];
+}
+/**
+ * Represents the authorization used for service endpoint.
+ */
+export interface EndpointAuthorization {
+    /**
+     * Gets or sets the parameters for the selected authorization scheme.
+     */
+    parameters: {
+        [key: string]: string;
+    };
+    /**
+     * Gets or sets the scheme used for service endpoint authentication.
+     */
+    scheme: string;
+}
+/**
+ * Represents url of the service endpoint.
+ */
+export interface EndpointUrl {
+    /**
+     * Gets or sets the dependency bindings.
+     */
+    dependsOn: DependsOn;
+    /**
+     * Gets or sets the display name of service endpoint url.
+     */
+    displayName: string;
+    /**
+     * Gets or sets the help text of service endpoint url.
+     */
+    helpText: string;
+    /**
+     * Gets or sets the visibility of service endpoint url.
+     */
+    isVisible: string;
+    /**
+     * Gets or sets the value of service endpoint url.
+     */
+    value: string;
+}
+export interface HelpLink {
+    text: string;
+    url: string;
+}
+/**
+ * Represents template to tranform the result data.
+ */
+export interface ResultTransformationDetails {
+    /**
+     * Gets or sets the template for result transformation.
+     */
+    resultTemplate: string;
+}
+/**
+ * Represents an endpoint which may be used by an orchestration job.
+ */
+export interface ServiceEndpoint {
+    /**
+     * Gets or sets the identity reference for the administrators group of the service endpoint.
+     */
+    administratorsGroup: VSS_Common_Contracts.IdentityRef;
+    /**
+     * Gets or sets the authorization data for talking to the endpoint.
+     */
+    authorization: EndpointAuthorization;
+    /**
+     * Gets or sets the identity reference for the user who created the Service endpoint.
+     */
+    createdBy: VSS_Common_Contracts.IdentityRef;
+    data: {
+        [key: string]: string;
+    };
+    /**
+     * Gets or sets the description of endpoint.
+     */
+    description: string;
+    groupScopeId: string;
+    /**
+     * Gets or sets the identifier of this endpoint.
+     */
+    id: string;
+    /**
+     * EndPoint state indictor
+     */
+    isReady: boolean;
+    /**
+     * Gets or sets the friendly name of the endpoint.
+     */
+    name: string;
+    /**
+     * Error message during creation/deletion of endpoint
+     */
+    operationStatus: any;
+    /**
+     * Gets or sets the identity reference for the readers group of the service endpoint.
+     */
+    readersGroup: VSS_Common_Contracts.IdentityRef;
+    /**
+     * Gets or sets the type of the endpoint.
+     */
+    type: string;
+    /**
+     * Gets or sets the url of the endpoint.
+     */
+    url: string;
+}
+export interface ServiceEndpointAuthenticationScheme {
+    /**
+     * Gets or sets the authorization headers of service endpoint authentication scheme.
+     */
+    authorizationHeaders: AuthorizationHeader[];
+    /**
+     * Gets or sets the certificates of service endpoint authentication scheme.
+     */
+    clientCertificates: ClientCertificate[];
+    /**
+     * Gets or sets the display name for the service endpoint authentication scheme.
+     */
+    displayName: string;
+    /**
+     * Gets or sets the input descriptors for the service endpoint authentication scheme.
+     */
+    inputDescriptors: VSS_FormInput_Contracts.InputDescriptor[];
+    /**
+     * Gets or sets the scheme for service endpoint authentication.
+     */
+    scheme: string;
+}
+/**
+ * Represents details of the service endpoint.
+ */
+export interface ServiceEndpointDetails {
+    /**
+     * Gets or sets the authorization of service endpoint.
+     */
+    authorization: EndpointAuthorization;
+    /**
+     * Gets or sets the data of service endpoint.
+     */
+    data: {
+        [key: string]: string;
+    };
+    /**
+     * Gets or sets the type of service endpoint.
+     */
+    type: string;
+    /**
+     * Gets or sets the connection url of service endpoint.
+     */
+    url: string;
+}
+/**
+ * Represents service endpoint execution data.
+ */
+export interface ServiceEndpointExecutionData {
+    /**
+     * Gets the definition of service endpoint execution owner.
+     */
+    definition: ServiceEndpointExecutionOwner;
+    /**
+     * Gets the finish time of service endpoint execution.
+     */
+    finishTime: Date;
+    /**
+     * Gets the Id of service endpoint execution data.
+     */
+    id: number;
+    /**
+     * Gets the owner of service endpoint execution data.
+     */
+    owner: ServiceEndpointExecutionOwner;
+    /**
+     * Gets the plan type of service endpoint execution data.
+     */
+    planType: string;
+    /**
+     * Gets the result of service endpoint execution.
+     */
+    result: ServiceEndpointExecutionResult;
+    /**
+     * Gets the start time of service endpoint execution.
+     */
+    startTime: Date;
+}
+/**
+ * Represents execution owner of the service endpoint.
+ */
+export interface ServiceEndpointExecutionOwner {
+    _links: any;
+    /**
+     * Gets or sets the Id of service endpoint execution owner.
+     */
+    id: number;
+    /**
+     * Gets or sets the name of service endpoint execution owner.
+     */
+    name: string;
+}
+export interface ServiceEndpointExecutionRecord {
+    /**
+     * Gets the execution data of service endpoint execution.
+     */
+    data: ServiceEndpointExecutionData;
+    /**
+     * Gets the Id of service endpoint.
+     */
+    endpointId: string;
+}
+export interface ServiceEndpointExecutionRecordsInput {
+    data: ServiceEndpointExecutionData;
+    endpointIds: string[];
+}
+export enum ServiceEndpointExecutionResult {
+    Succeeded = 0,
+    SucceededWithIssues = 1,
+    Failed = 2,
+    Canceled = 3,
+    Skipped = 4,
+    Abandoned = 5,
+}
+export interface ServiceEndpointRequest {
+    /**
+     * Gets or sets the data source details for the service endpoint request.
+     */
+    dataSourceDetails: DataSourceDetails;
+    /**
+     * Gets or sets the result transformation details for the service endpoint request.
+     */
+    resultTransformationDetails: ResultTransformationDetails;
+    /**
+     * Gets or sets the service endpoint details for the service endpoint request.
+     */
+    serviceEndpointDetails: ServiceEndpointDetails;
+}
+/**
+ * Represents result of the service endpoint request.
+ */
+export interface ServiceEndpointRequestResult {
+    /**
+     * Gets or sets the error message of the service endpoint request result.
+     */
+    errorMessage: string;
+    /**
+     * Gets or sets the result of service endpoint request.
+     */
+    result: any;
+    /**
+     * Gets or sets the status code of the service endpoint request result.
+     */
+    statusCode: string;
+}
+/**
+ * Represents type of the service endpoint.
+ */
+export interface ServiceEndpointType {
+    /**
+     * Authentication scheme of service endpoint type.
+     */
+    authenticationSchemes: ServiceEndpointAuthenticationScheme[];
+    /**
+     * Data sources of service endpoint type.
+     */
+    dataSources: DataSource[];
+    /**
+     * Dependency data of service endpoint type.
+     */
+    dependencyData: DependencyData[];
+    /**
+     * Gets or sets the description of service endpoint type.
+     */
+    description: string;
+    /**
+     * Gets or sets the display name of service endpoint type.
+     */
+    displayName: string;
+    /**
+     * Gets or sets the endpoint url of service endpoint type.
+     */
+    endpointUrl: EndpointUrl;
+    /**
+     * Gets or sets the help link of service endpoint type.
+     */
+    helpLink: HelpLink;
+    helpMarkDown: string;
+    /**
+     * Gets or sets the icon url of service endpoint type.
+     */
+    iconUrl: string;
+    /**
+     * Input descriptor of service endpoint type.
+     */
+    inputDescriptors: VSS_FormInput_Contracts.InputDescriptor[];
+    /**
+     * Gets or sets the name of service endpoint type.
+     */
+    name: string;
+    /**
+     * Trusted hosts of a service endpoint type.
+     */
+    trustedHosts: string[];
+    /**
+     * Gets or sets the ui contribution id of service endpoint type.
+     */
+    uiContributionId: string;
+}
+export var TypeInfo: {
+    ServiceEndpointAuthenticationScheme: any;
+    ServiceEndpointExecutionData: any;
+    ServiceEndpointExecutionRecord: any;
+    ServiceEndpointExecutionRecordsInput: any;
+    ServiceEndpointExecutionResult: {
+        enumValues: {
+            "succeeded": number;
+            "succeededWithIssues": number;
+            "failed": number;
+            "canceled": number;
+            "skipped": number;
+            "abandoned": number;
+        };
+    };
+    ServiceEndpointRequestResult: any;
+    ServiceEndpointType: any;
+};
+}
+declare module "TFS/ServiceEndpoint/ServiceEndpointRestClient" {
+import Contracts = require("TFS/ServiceEndpoint/Contracts");
+import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
+export class ServiceEndpointHttpClient4_1 extends VSS_WebApi.VssHttpClient {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Proxy for a GET request defined by a service endpoint.
+     *
+     * @param {Contracts.ServiceEndpointRequest} serviceEndpointRequest - Service endpoint request.
+     * @param {string} project - Project ID or project name
+     * @param {string} endpointId - Id of the service endpoint.
+     * @return IPromise<Contracts.ServiceEndpointRequestResult>
+     */
+    executeServiceEndpointRequest(serviceEndpointRequest: Contracts.ServiceEndpointRequest, project: string, endpointId: string): IPromise<Contracts.ServiceEndpointRequestResult>;
+    /**
+     * [Obsolete - Use ExecuteServiceEndpointRequest API Instead] Proxy for a GET request defined by a service endpoint. The request is authorized using a data source in service endpoint. The response is filtered using an XPath/Json based selector.
+     *
+     * @param {Contracts.DataSourceBinding} binding - Describes the data source to fetch.
+     * @param {string} project - Project ID or project name
+     * @return IPromise<string[]>
+     */
+    queryServiceEndpoint(binding: Contracts.DataSourceBinding, project: string): IPromise<string[]>;
+    /**
+     * [Preview API] Create a service endpoint.
+     *
+     * @param {Contracts.ServiceEndpoint} endpoint - Service endpoint to create.
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    createServiceEndpoint(endpoint: Contracts.ServiceEndpoint, project: string): IPromise<Contracts.ServiceEndpoint>;
+    /**
+     * [Preview API] Delete a service endpoint.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} endpointId - Id of the service endpoint to delete.
+     * @return IPromise<void>
+     */
+    deleteServiceEndpoint(project: string, endpointId: string): IPromise<void>;
+    /**
+     * [Preview API] Get the service endpoint details.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} endpointId - Id of the service endpoint.
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    getServiceEndpointDetails(project: string, endpointId: string): IPromise<Contracts.ServiceEndpoint>;
+    /**
+     * [Preview API] Get the service endpoints.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} type - Type of the service endpoints.
+     * @param {string[]} authSchemes - Authorization schemes used for service endpoints.
+     * @param {string[]} endpointIds - Ids of the service endpoints.
+     * @param {boolean} includeFailed - Failed flag for service endpoints.
+     * @return IPromise<Contracts.ServiceEndpoint[]>
+     */
+    getServiceEndpoints(project: string, type?: string, authSchemes?: string[], endpointIds?: string[], includeFailed?: boolean): IPromise<Contracts.ServiceEndpoint[]>;
+    /**
+     * [Preview API] Get the service endpoints by name.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string[]} endpointNames - Names of the service endpoints.
+     * @param {string} type - Type of the service endpoints.
+     * @param {string[]} authSchemes - Authorization schemes used for service endpoints.
+     * @param {boolean} includeFailed - Failed flag for service endpoints.
+     * @return IPromise<Contracts.ServiceEndpoint[]>
+     */
+    getServiceEndpointsByNames(project: string, endpointNames: string[], type?: string, authSchemes?: string[], includeFailed?: boolean): IPromise<Contracts.ServiceEndpoint[]>;
+    /**
+     * [Preview API] Update a service endpoint.
+     *
+     * @param {Contracts.ServiceEndpoint} endpoint - Service endpoint to update.
+     * @param {string} project - Project ID or project name
+     * @param {string} endpointId - Id of the service endpoint to update.
+     * @param {string} operation - Operation for the service endpoint.
+     * @return IPromise<Contracts.ServiceEndpoint>
+     */
+    updateServiceEndpoint(endpoint: Contracts.ServiceEndpoint, project: string, endpointId: string, operation?: string): IPromise<Contracts.ServiceEndpoint>;
+    /**
+     * [Preview API] Update the service endpoints.
+     *
+     * @param {Contracts.ServiceEndpoint[]} endpoints - Names of the service endpoints to update.
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.ServiceEndpoint[]>
+     */
+    updateServiceEndpoints(endpoints: Contracts.ServiceEndpoint[], project: string): IPromise<Contracts.ServiceEndpoint[]>;
+    /**
+     * [Preview API] Get service endpoint execution records.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} endpointId - Id of the service endpoint.
+     * @param {number} top - Number of service endpoint execution records to get.
+     * @return IPromise<Contracts.ServiceEndpointExecutionRecord[]>
+     */
+    getServiceEndpointExecutionRecords(project: string, endpointId: string, top?: number): IPromise<Contracts.ServiceEndpointExecutionRecord[]>;
+    /**
+     * [Preview API] Add service endpoint execution records.
+     *
+     * @param {Contracts.ServiceEndpointExecutionRecordsInput} input - Service endpoint execution records to add.
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.ServiceEndpointExecutionRecord[]>
+     */
+    addServiceEndpointExecutionRecords(input: Contracts.ServiceEndpointExecutionRecordsInput, project: string): IPromise<Contracts.ServiceEndpointExecutionRecord[]>;
+    /**
+     * [Preview API] Get service endpoint types.
+     *
+     * @param {string} type - Type of service endpoint.
+     * @param {string} scheme - Scheme of service endpoint.
+     * @return IPromise<Contracts.ServiceEndpointType[]>
+     */
+    getServiceEndpointTypes(type?: string, scheme?: string): IPromise<Contracts.ServiceEndpointType[]>;
+}
+export class ServiceEndpointHttpClient extends ServiceEndpointHttpClient4_1 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * Gets an http client targeting the latest released version of the APIs.
+ *
+ * @return ServiceEndpointHttpClient4_1
+ */
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ServiceEndpointHttpClient4_1;
 }
 declare module "TFS/TestImpact/Contracts" {
 export enum BuildType {
@@ -11866,9 +13404,9 @@ export class TestHttpClient extends TestHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return TestHttpClient4
+ * @return TestHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TestHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TestHttpClient4_1;
 }
 declare module "TFS/TestManagement/Contracts" {
 import TFS_Core_Contracts = require("TFS/Core/Contracts");
@@ -11880,6 +13418,9 @@ export interface AggregatedDataForResultTrend {
     duration: any;
     resultsByOutcome: {
         [key: number]: AggregatedResultsByOutcome;
+    };
+    runSummaryByState: {
+        [key: number]: AggregatedRunsByState;
     };
     testResultsContext: TestResultsContext;
     totalTests: number;
@@ -11894,6 +13435,9 @@ export interface AggregatedResultsAnalysis {
         [key: number]: AggregatedResultsByOutcome;
     };
     resultsDifference: AggregatedResultsDifference;
+    runSummaryByState: {
+        [key: number]: AggregatedRunsByState;
+    };
     totalTests: number;
 }
 export interface AggregatedResultsByOutcome {
@@ -11910,6 +13454,10 @@ export interface AggregatedResultsDifference {
     increaseInOtherTests: number;
     increaseInPassedTests: number;
     increaseInTotalTests: number;
+}
+export interface AggregatedRunsByState {
+    runsCount: number;
+    state: TestRunState;
 }
 /**
  * The types of test attachments.
@@ -12450,6 +13998,17 @@ export interface ShallowReference {
      */
     url: string;
 }
+export interface ShallowTestCaseResult {
+    automatedTestStorage: string;
+    id: number;
+    isReRun: boolean;
+    outcome: string;
+    owner: string;
+    priority: number;
+    refId: number;
+    runId: number;
+    testCaseTitle: string;
+}
 export interface SharedStepModel {
     id: number;
     revision: number;
@@ -12492,6 +14051,16 @@ export interface SuiteEntryUpdateModel {
      */
     testCaseId: number;
 }
+export enum SuiteExpand {
+    /**
+     * Include children in response.
+     */
+    Children = 1,
+    /**
+     * Include default testers in response.
+     */
+    DefaultTesters = 2,
+}
 export interface SuiteTestCase {
     pointAssignments: PointAssignment[];
     testCase: WorkItemReference;
@@ -12520,6 +14089,7 @@ export interface TestAttachment {
     createdDate: Date;
     fileName: string;
     id: number;
+    size: number;
     url: string;
 }
 export interface TestAttachmentReference {
@@ -12687,6 +14257,11 @@ export interface TestFailuresAnalysis {
     fixedTests: TestFailureDetails;
     newFailures: TestFailureDetails;
     previousContext: TestResultsContext;
+}
+export interface TestFailureType {
+    id: number;
+    name: string;
+    project: ShallowReference;
 }
 export interface TestIterationDetailsModel {
     actionResults: TestActionResultModel[];
@@ -13045,11 +14620,18 @@ export interface TestRun {
     url: string;
     webAccessUrl: string;
 }
+export interface TestRunCanceledEvent extends TestRunEvent {
+}
 export interface TestRunCoverage {
     lastError: string;
     modules: ModuleCoverage[];
     state: string;
     testRun: ShallowReference;
+}
+export interface TestRunCreatedEvent extends TestRunEvent {
+}
+export interface TestRunEvent {
+    testRun: TestRun;
 }
 /**
  * The types of publish context for run.
@@ -13067,6 +14649,8 @@ export enum TestRunPublishContext {
      * Run is published for any Context.
      */
     All = 3,
+}
+export interface TestRunStartedEvent extends TestRunEvent {
 }
 /**
  * The types of states for test run.
@@ -13300,6 +14884,43 @@ export interface TestSettings {
      */
     testSettingsName: string;
 }
+/**
+ * Represents the test settings of the run. Used to create test settings and fetch test settings
+ */
+export interface TestSettings2 {
+    /**
+     * Area path required to create test settings
+     */
+    areaPath: string;
+    createdBy: VSS_Common_Contracts.IdentityRef;
+    createdDate: Date;
+    /**
+     * Description of the test settings. Used in create test settings.
+     */
+    description: string;
+    /**
+     * Indicates if the tests settings is public or private.Used in create test settings.
+     */
+    isPublic: boolean;
+    lastUpdatedBy: VSS_Common_Contracts.IdentityRef;
+    lastUpdatedDate: Date;
+    /**
+     * Xml string of machine roles. Used in create test settings.
+     */
+    machineRoles: string;
+    /**
+     * Test settings content.
+     */
+    testSettingsContent: string;
+    /**
+     * Test settings id.
+     */
+    testSettingsId: number;
+    /**
+     * Test settings name.
+     */
+    testSettingsName: string;
+}
 export interface TestSuite {
     areaUri: string;
     children: TestSuite[];
@@ -13384,6 +15005,7 @@ export var TypeInfo: {
     AggregatedDataForResultTrend: any;
     AggregatedResultsAnalysis: any;
     AggregatedResultsByOutcome: any;
+    AggregatedRunsByState: any;
     AttachmentType: {
         enumValues: {
             "generalAttachment": number;
@@ -13457,6 +15079,12 @@ export var TypeInfo: {
     ResultsFilter: any;
     ResultUpdateRequestModel: any;
     RunUpdateModel: any;
+    SuiteExpand: {
+        enumValues: {
+            "children": number;
+            "defaultTesters": number;
+        };
+    };
     TestActionResultModel: any;
     TestAttachment: any;
     TestCaseResult: any;
@@ -13512,6 +15140,9 @@ export var TypeInfo: {
     TestResultSummary: any;
     TestResultTrendFilter: any;
     TestRun: any;
+    TestRunCanceledEvent: any;
+    TestRunCreatedEvent: any;
+    TestRunEvent: any;
     TestRunPublishContext: {
         enumValues: {
             "build": number;
@@ -13519,6 +15150,7 @@ export var TypeInfo: {
             "all": number;
         };
     };
+    TestRunStartedEvent: any;
     TestRunState: {
         enumValues: {
             "unspecified": number;
@@ -13566,6 +15198,7 @@ export var TypeInfo: {
             "declined": number;
         };
     };
+    TestSettings2: any;
     TestSuite: any;
     TestSummaryForWorkItem: any;
 };
@@ -13861,24 +15494,6 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.TestSuite>
      */
     updateTestSuite(suiteUpdateModel: Contracts.SuiteUpdateModel, project: string, planId: number, suiteId: number): IPromise<Contracts.TestSuite>;
-    /**
-     * @param {string} project - Project ID or project name
-     * @param {number} planId
-     * @param {boolean} includeSuites
-     * @param {number} skip
-     * @param {number} top
-     * @param {boolean} asTreeView
-     * @return IPromise<Contracts.TestSuite[]>
-     */
-    getTestSuitesForPlan(project: string, planId: number, includeSuites?: boolean, skip?: number, top?: number, asTreeView?: boolean): IPromise<Contracts.TestSuite[]>;
-    /**
-     * @param {string} project - Project ID or project name
-     * @param {number} planId
-     * @param {number} suiteId
-     * @param {boolean} includeChildSuites
-     * @return IPromise<Contracts.TestSuite>
-     */
-    getTestSuiteById(project: string, planId: number, suiteId: number, includeChildSuites?: boolean): IPromise<Contracts.TestSuite>;
     /**
      * @param {string} project - Project ID or project name
      * @param {number} planId
@@ -14573,9 +16188,11 @@ export class CommonMethods3To4_1 extends CommonMethods2To4_1 {
      * @param {string} groupBy
      * @param {string} filter
      * @param {string} orderby
+     * @param {boolean} shouldIncludeResults
+     * @param {boolean} queryRunSummaryForInProgress
      * @return IPromise<Contracts.TestResultsDetails>
      */
-    getTestResultDetailsForRelease(project: string, releaseId: number, releaseEnvId: number, publishContext?: string, groupBy?: string, filter?: string, orderby?: string): IPromise<Contracts.TestResultsDetails>;
+    getTestResultDetailsForRelease(project: string, releaseId: number, releaseEnvId: number, publishContext?: string, groupBy?: string, filter?: string, orderby?: string, shouldIncludeResults?: boolean, queryRunSummaryForInProgress?: boolean): IPromise<Contracts.TestResultsDetails>;
     /**
      * @exemptedapi
      * [Preview API]
@@ -14586,9 +16203,11 @@ export class CommonMethods3To4_1 extends CommonMethods2To4_1 {
      * @param {string} groupBy
      * @param {string} filter
      * @param {string} orderby
+     * @param {boolean} shouldIncludeResults
+     * @param {boolean} queryRunSummaryForInProgress
      * @return IPromise<Contracts.TestResultsDetails>
      */
-    getTestResultDetailsForBuild(project: string, buildId: number, publishContext?: string, groupBy?: string, filter?: string, orderby?: string): IPromise<Contracts.TestResultsDetails>;
+    getTestResultDetailsForBuild(project: string, buildId: number, publishContext?: string, groupBy?: string, filter?: string, orderby?: string, shouldIncludeResults?: boolean, queryRunSummaryForInProgress?: boolean): IPromise<Contracts.TestResultsDetails>;
     /**
      * @exemptedapi
      * [Preview API]
@@ -14701,15 +16320,32 @@ export class TestHttpClient4_1 extends CommonMethods3To4_1 {
      * @return IPromise<Contracts.TestRun[]>
      */
     queryTestRuns(project: string, minLastUpdatedDate: Date, maxLastUpdatedDate: Date, state?: Contracts.TestRunState, planIds?: number[], isAutomated?: boolean, publishContext?: Contracts.TestRunPublishContext, buildIds?: number[], buildDefIds?: number[], branchName?: string, releaseIds?: number[], releaseDefIds?: number[], releaseEnvIds?: number[], releaseEnvDefIds?: number[], runTitle?: string, top?: number, continuationToken?: string): IPromise<Contracts.TestRun[]>;
-}
-/**
- * @exemptedapi
- */
-export class TestHttpClient4 extends CommonMethods3To4_1 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
      *
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {number} suiteId
+     * @param {number} expand
+     * @return IPromise<Contracts.TestSuite>
+     */
+    getTestSuiteById(project: string, planId: number, suiteId: number, expand?: number): IPromise<Contracts.TestSuite>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {number} expand
+     * @param {number} skip
+     * @param {number} top
+     * @param {boolean} asTreeView
+     * @return IPromise<Contracts.TestSuite[]>
+     */
+    getTestSuitesForPlan(project: string, planId: number, expand?: number, skip?: number, top?: number, asTreeView?: boolean): IPromise<Contracts.TestSuite[]>;
+}
+export class TestHttpClient4 extends CommonMethods3To4_1 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
      * @param {string} project - Project ID or project name
      * @param {number} runId
      * @param {Contracts.ResultDetails} detailsToInclude
@@ -14718,6 +16354,24 @@ export class TestHttpClient4 extends CommonMethods3To4_1 {
      * @return IPromise<Contracts.TestCaseResult[]>
      */
     getTestResults(project: string, runId: number, detailsToInclude?: Contracts.ResultDetails, skip?: number, top?: number): IPromise<Contracts.TestCaseResult[]>;
+    /**
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {number} suiteId
+     * @param {boolean} includeChildSuites
+     * @return IPromise<Contracts.TestSuite>
+     */
+    getTestSuiteById(project: string, planId: number, suiteId: number, includeChildSuites?: boolean): IPromise<Contracts.TestSuite>;
+    /**
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {boolean} includeSuites
+     * @param {number} skip
+     * @param {number} top
+     * @param {boolean} asTreeView
+     * @return IPromise<Contracts.TestSuite[]>
+     */
+    getTestSuitesForPlan(project: string, planId: number, includeSuites?: boolean, skip?: number, top?: number, asTreeView?: boolean): IPromise<Contracts.TestSuite[]>;
 }
 export class TestHttpClient3_2 extends CommonMethods3To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -14730,6 +16384,24 @@ export class TestHttpClient3_2 extends CommonMethods3To4_1 {
      * @return IPromise<Contracts.TestCaseResult[]>
      */
     getTestResults(project: string, runId: number, detailsToInclude?: Contracts.ResultDetails, skip?: number, top?: number): IPromise<Contracts.TestCaseResult[]>;
+    /**
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {number} suiteId
+     * @param {boolean} includeChildSuites
+     * @return IPromise<Contracts.TestSuite>
+     */
+    getTestSuiteById(project: string, planId: number, suiteId: number, includeChildSuites?: boolean): IPromise<Contracts.TestSuite>;
+    /**
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {boolean} includeSuites
+     * @param {number} skip
+     * @param {number} top
+     * @param {boolean} asTreeView
+     * @return IPromise<Contracts.TestSuite[]>
+     */
+    getTestSuitesForPlan(project: string, planId: number, includeSuites?: boolean, skip?: number, top?: number, asTreeView?: boolean): IPromise<Contracts.TestSuite[]>;
 }
 export class TestHttpClient3_1 extends CommonMethods3To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -14742,6 +16414,24 @@ export class TestHttpClient3_1 extends CommonMethods3To4_1 {
      * @return IPromise<Contracts.TestCaseResult[]>
      */
     getTestResults(project: string, runId: number, detailsToInclude?: Contracts.ResultDetails, skip?: number, top?: number): IPromise<Contracts.TestCaseResult[]>;
+    /**
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {number} suiteId
+     * @param {boolean} includeChildSuites
+     * @return IPromise<Contracts.TestSuite>
+     */
+    getTestSuiteById(project: string, planId: number, suiteId: number, includeChildSuites?: boolean): IPromise<Contracts.TestSuite>;
+    /**
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {boolean} includeSuites
+     * @param {number} skip
+     * @param {number} top
+     * @param {boolean} asTreeView
+     * @return IPromise<Contracts.TestSuite[]>
+     */
+    getTestSuitesForPlan(project: string, planId: number, includeSuites?: boolean, skip?: number, top?: number, asTreeView?: boolean): IPromise<Contracts.TestSuite[]>;
 }
 export class TestHttpClient3 extends CommonMethods3To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -14754,6 +16444,24 @@ export class TestHttpClient3 extends CommonMethods3To4_1 {
      * @return IPromise<Contracts.TestCaseResult[]>
      */
     getTestResults(project: string, runId: number, detailsToInclude?: Contracts.ResultDetails, skip?: number, top?: number): IPromise<Contracts.TestCaseResult[]>;
+    /**
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {number} suiteId
+     * @param {boolean} includeChildSuites
+     * @return IPromise<Contracts.TestSuite>
+     */
+    getTestSuiteById(project: string, planId: number, suiteId: number, includeChildSuites?: boolean): IPromise<Contracts.TestSuite>;
+    /**
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {boolean} includeSuites
+     * @param {number} skip
+     * @param {number} top
+     * @param {boolean} asTreeView
+     * @return IPromise<Contracts.TestSuite[]>
+     */
+    getTestSuitesForPlan(project: string, planId: number, includeSuites?: boolean, skip?: number, top?: number, asTreeView?: boolean): IPromise<Contracts.TestSuite[]>;
 }
 export class TestHttpClient2_3 extends CommonMethods2To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -14842,6 +16550,24 @@ export class TestHttpClient2_3 extends CommonMethods2To4_1 {
      * @return IPromise<Contracts.TestRun[]>
      */
     getTestRunsByQuery(query: Contracts.QueryModel, project: string, includeRunDetails?: boolean, skip?: number, top?: number): IPromise<Contracts.TestRun[]>;
+    /**
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {number} suiteId
+     * @param {boolean} includeChildSuites
+     * @return IPromise<Contracts.TestSuite>
+     */
+    getTestSuiteById(project: string, planId: number, suiteId: number, includeChildSuites?: boolean): IPromise<Contracts.TestSuite>;
+    /**
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {boolean} includeSuites
+     * @param {number} skip
+     * @param {number} top
+     * @param {boolean} asTreeView
+     * @return IPromise<Contracts.TestSuite[]>
+     */
+    getTestSuitesForPlan(project: string, planId: number, includeSuites?: boolean, skip?: number, top?: number, asTreeView?: boolean): IPromise<Contracts.TestSuite[]>;
 }
 export class TestHttpClient2_2 extends CommonMethods2To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -14930,6 +16656,24 @@ export class TestHttpClient2_2 extends CommonMethods2To4_1 {
      * @return IPromise<Contracts.TestRun[]>
      */
     getTestRunsByQuery(query: Contracts.QueryModel, project: string, includeRunDetails?: boolean, skip?: number, top?: number): IPromise<Contracts.TestRun[]>;
+    /**
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {number} suiteId
+     * @param {boolean} includeChildSuites
+     * @return IPromise<Contracts.TestSuite>
+     */
+    getTestSuiteById(project: string, planId: number, suiteId: number, includeChildSuites?: boolean): IPromise<Contracts.TestSuite>;
+    /**
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {boolean} includeSuites
+     * @param {number} skip
+     * @param {number} top
+     * @param {boolean} asTreeView
+     * @return IPromise<Contracts.TestSuite[]>
+     */
+    getTestSuitesForPlan(project: string, planId: number, includeSuites?: boolean, skip?: number, top?: number, asTreeView?: boolean): IPromise<Contracts.TestSuite[]>;
 }
 export class TestHttpClient2_1 extends CommonMethods2To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -15018,6 +16762,24 @@ export class TestHttpClient2_1 extends CommonMethods2To4_1 {
      * @return IPromise<Contracts.TestRun[]>
      */
     getTestRunsByQuery(query: Contracts.QueryModel, project: string, includeRunDetails?: boolean, skip?: number, top?: number): IPromise<Contracts.TestRun[]>;
+    /**
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {number} suiteId
+     * @param {boolean} includeChildSuites
+     * @return IPromise<Contracts.TestSuite>
+     */
+    getTestSuiteById(project: string, planId: number, suiteId: number, includeChildSuites?: boolean): IPromise<Contracts.TestSuite>;
+    /**
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {boolean} includeSuites
+     * @param {number} skip
+     * @param {number} top
+     * @param {boolean} asTreeView
+     * @return IPromise<Contracts.TestSuite[]>
+     */
+    getTestSuitesForPlan(project: string, planId: number, includeSuites?: boolean, skip?: number, top?: number, asTreeView?: boolean): IPromise<Contracts.TestSuite[]>;
 }
 export class TestHttpClient2 extends CommonMethods2To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -15106,6 +16868,24 @@ export class TestHttpClient2 extends CommonMethods2To4_1 {
      * @return IPromise<Contracts.TestRun[]>
      */
     getTestRunsByQuery(query: Contracts.QueryModel, project: string, includeRunDetails?: boolean, skip?: number, top?: number): IPromise<Contracts.TestRun[]>;
+    /**
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {number} suiteId
+     * @param {boolean} includeChildSuites
+     * @return IPromise<Contracts.TestSuite>
+     */
+    getTestSuiteById(project: string, planId: number, suiteId: number, includeChildSuites?: boolean): IPromise<Contracts.TestSuite>;
+    /**
+     * @param {string} project - Project ID or project name
+     * @param {number} planId
+     * @param {boolean} includeSuites
+     * @param {number} skip
+     * @param {number} top
+     * @param {boolean} asTreeView
+     * @return IPromise<Contracts.TestSuite[]>
+     */
+    getTestSuitesForPlan(project: string, planId: number, includeSuites?: boolean, skip?: number, top?: number, asTreeView?: boolean): IPromise<Contracts.TestSuite[]>;
 }
 export class TestHttpClient extends TestHttpClient4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -15113,9 +16893,9 @@ export class TestHttpClient extends TestHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return TestHttpClient4
+ * @return TestHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TestHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TestHttpClient4_1;
 }
 declare module "TFS/VersionControl/Contracts" {
 import TFS_Core_Contracts = require("TFS/Core/Contracts");
@@ -15685,6 +17465,10 @@ export enum GitAsyncRefOperationFailureStatus {
      * Unexpected failure
      */
     Other = 9,
+    /**
+     * Initiator of async operation has signature with empty name or email
+     */
+    EmptyCommitterSignature = 10,
 }
 /**
  * Parameters that are provided in the request body when requesting to cherry pick or revert.
@@ -16739,6 +18523,7 @@ export interface GitPullRequestIterationChanges {
  * The options which are used when a pull request merge is created.
  */
 export interface GitPullRequestMergeOptions {
+    detectRenameFalsePositives: boolean;
     /**
      * If true, rename detection will not be performed during the merge.
      */
@@ -16969,8 +18754,15 @@ export interface GitQueryRefsCriteria {
      */
     searchType: GitRefSearchType;
 }
+export interface GitRecycleBinRepositoryDetails {
+    /**
+     * Setting to false will undo earlier deletion and restore the repository.
+     */
+    deleted: boolean;
+}
 export interface GitRef {
     _links: any;
+    creator: VSS_Common_Contracts.IdentityRef;
     isLocked: boolean;
     isLockedBy: VSS_Common_Contracts.IdentityRef;
     name: string;
@@ -17166,8 +18958,6 @@ export interface GitRepositoryStats {
     commitsCount: number;
     repositoryId: string;
 }
-export interface GitResolution {
-}
 /**
  * The type of a merge conflict.
  */
@@ -17201,7 +18991,7 @@ export enum GitResolutionError {
      */
     OtherError = 255,
 }
-export interface GitResolutionMergeContent extends GitResolution {
+export interface GitResolutionMergeContent {
     mergeType: GitResolutionMergeType;
     userMergedBlob: GitBlobRef;
     userMergedContent: number[];
@@ -17213,7 +19003,7 @@ export enum GitResolutionMergeType {
     AutoMerged = 3,
     UserMerged = 4,
 }
-export interface GitResolutionPathConflict extends GitResolution {
+export interface GitResolutionPathConflict {
     action: GitResolutionPathConflictAction;
     renamePath: string;
 }
@@ -17224,7 +19014,7 @@ export enum GitResolutionPathConflictAction {
     KeepTargetRenameSource = 3,
     KeepTargetDeleteSource = 4,
 }
-export interface GitResolutionPickOneAction extends GitResolution {
+export interface GitResolutionPickOneAction {
     action: GitResolutionWhichAction;
 }
 export interface GitResolutionRename1to2 extends GitResolutionMergeContent {
@@ -17618,6 +19408,7 @@ export interface ItemDetailsOptions {
 }
 export interface ItemModel {
     _links: any;
+    content: string;
     contentMetadata: FileContentMetadata;
     isFolder: boolean;
     isSymLink: boolean;
@@ -18077,6 +19868,12 @@ export interface TfvcItemDescriptor {
     versionOption: TfvcVersionOption;
     versionType: TfvcVersionType;
 }
+export interface TfvcItemPreviousHash extends TfvcItem {
+    /**
+     * MD5 hash as a base 64 string, applies to files only.
+     */
+    previousHashValue: string;
+}
 export interface TfvcItemRequestData {
     /**
      * If true, include metadata about the file type
@@ -18315,6 +20112,7 @@ export var TypeInfo: {
             "operationIndentityNotFound": number;
             "asyncOperationNotFound": number;
             "other": number;
+            "emptyCommitterSignature": number;
         };
     };
     GitAsyncRefOperationParameters: any;
@@ -18651,6 +20449,7 @@ export var TypeInfo: {
     TfvcHistoryEntry: any;
     TfvcItem: any;
     TfvcItemDescriptor: any;
+    TfvcItemPreviousHash: any;
     TfvcItemRequestData: any;
     TfvcLabel: any;
     TfvcLabelRef: any;
@@ -18721,6 +20520,12 @@ export namespace HistoryListColumnKeys {
     const ChangeType = "changeType";
     const CommitOptions = "commitOptions";
 }
+export namespace HistoryListFilterKeys {
+    const Author = "userString";
+    const HistoryMode = "gitLogHistoryMode";
+    const FromDate = "fromDate";
+    const ToDate = "toDate";
+}
 export interface IHistoryList {
     /**
     *  Query the history by providing certain searchCriteria
@@ -18732,7 +20537,7 @@ export interface IHistoryList {
     createHistoryList(itemPaths: string[] | string, fromVersion: string, toVersion: string, repositoryId?: string): any;
 }
 /**
-* Configuration options when creating the GitHistoryList extension control.
+* Configuration options when creating the TfvcHistoryList extension control.
 */
 export interface ITfvcHistoryListOptions {
     /** ItemPath for control to search history */
@@ -18745,7 +20550,7 @@ export interface ITfvcHistoryListOptions {
     toVersion?: string;
 }
 /**
-* Control showing the Git history list
+* Control showing the Tfvc history list
 */
 export module TfvcHistoryList {
     var contributionId: string;
@@ -18756,7 +20561,7 @@ export module TfvcHistoryList {
     * @param options GitHistoryList control options
     * @param webContext Optional web context to scope the control to
     */
-    function create($container: JQuery, options?: ITfvcHistoryListOptions, webContext?: Contracts_Platform.WebContext): IPromise<void>;
+    function create($container: JQuery, options?: ITfvcHistoryListOptions, webContext?: Contracts_Platform.WebContext): IPromise<IDisposable>;
 }
 /**
 * Configuration options when creating CommitHistoryList extension control.
@@ -18784,7 +20589,7 @@ export module SimpleCommitHistoryList {
     * @param options SimpleCommitHistoryList control options
     * @param webContext Optional web context to scope the control to
     */
-    function create($container: JQuery, options?: ISimpleCommitHistoryListOptions, webContext?: Contracts_Platform.WebContext): IPromise<void>;
+    function create($container: JQuery, options?: ISimpleCommitHistoryListOptions, webContext?: Contracts_Platform.WebContext): IPromise<IDisposable>;
 }
 /**
 * Configuration options when creating the GitHistoryList extension control.
@@ -18804,6 +20609,13 @@ export interface IGitHistoryListOptions {
     toVersion?: string;
     /** List of columns to be shown */
     visibleColumns?: string[];
+    /**Displays filter component */
+    showFilters?: boolean;
+    /**List of filters to be shown. This can be ignore if all filters are required */
+    visibleFilters?: string[];
+    /** Id of the project that hosts the repository. If this is not passed, then
+     * all repositories in the collection are queried and filtered */
+    projectId?: string;
 }
 /**
 * Control showing the Git history list
@@ -18817,7 +20629,7 @@ export module GitHistoryList {
     * @param options GitHistoryList control options
     * @param webContext Optional web context to scope the control to
     */
-    function create($container: JQuery, options?: IGitHistoryListOptions, webContext?: Contracts_Platform.WebContext): IPromise<void>;
+    function create($container: JQuery, options?: IGitHistoryListOptions, webContext?: Contracts_Platform.WebContext): IPromise<IDisposable>;
 }
 /**
 * Configuration options when creating the IGitVersionSelector extension control.
@@ -19035,9 +20847,9 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * @param {string} repositoryId - ID or name of the repository.
      * @param {number} pullRequestId - ID of the pull request.
      * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.AssociatedWorkItem[]>
+     * @return IPromise<VSS_Common_Contracts.ResourceRef[]>
      */
-    getPullRequestWorkItems(repositoryId: string, pullRequestId: number, project?: string): IPromise<Contracts.AssociatedWorkItem[]>;
+    getPullRequestWorkItemRefs(repositoryId: string, pullRequestId: number, project?: string): IPromise<VSS_Common_Contracts.ResourceRef[]>;
     /**
      * Update a pull request.
      *
@@ -19178,9 +20990,10 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * @param {boolean} latestProcessedChange - Set to true to include the lastest changes.  Default is false.
      * @param {boolean} download - Set to true to download the response as a file.  Default is false.
      * @param {Contracts.GitVersionDescriptor} versionDescriptor - Version descriptor.  Default is null.
+     * @param {boolean} includeContent - Set to true to include item content when requesting json.  Default is false.
      * @return IPromise<ArrayBuffer>
      */
-    getItemZip(repositoryId: string, path: string, project?: string, scopePath?: string, recursionLevel?: Contracts.VersionControlRecursionType, includeContentMetadata?: boolean, latestProcessedChange?: boolean, download?: boolean, versionDescriptor?: Contracts.GitVersionDescriptor): IPromise<ArrayBuffer>;
+    getItemZip(repositoryId: string, path: string, project?: string, scopePath?: string, recursionLevel?: Contracts.VersionControlRecursionType, includeContentMetadata?: boolean, latestProcessedChange?: boolean, download?: boolean, versionDescriptor?: Contracts.GitVersionDescriptor, includeContent?: boolean): IPromise<ArrayBuffer>;
     /**
      * Get Item Metadata and/or Content for a single item. The download parameter is to indicate whether the content should be available as a download or just sent as a stream in the response. Doesn't apply to zipped content, which is always returned as a download.
      *
@@ -19193,9 +21006,10 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * @param {boolean} latestProcessedChange - Set to true to include the lastest changes.  Default is false.
      * @param {boolean} download - Set to true to download the response as a file.  Default is false.
      * @param {Contracts.GitVersionDescriptor} versionDescriptor - Version descriptor.  Default is null.
+     * @param {boolean} includeContent - Set to true to include item content when requesting json.  Default is false.
      * @return IPromise<string>
      */
-    getItemText(repositoryId: string, path: string, project?: string, scopePath?: string, recursionLevel?: Contracts.VersionControlRecursionType, includeContentMetadata?: boolean, latestProcessedChange?: boolean, download?: boolean, versionDescriptor?: Contracts.GitVersionDescriptor): IPromise<string>;
+    getItemText(repositoryId: string, path: string, project?: string, scopePath?: string, recursionLevel?: Contracts.VersionControlRecursionType, includeContentMetadata?: boolean, latestProcessedChange?: boolean, download?: boolean, versionDescriptor?: Contracts.GitVersionDescriptor, includeContent?: boolean): IPromise<string>;
     /**
      * Get Item Metadata and/or Content for a collection of items. The download parameter is to indicate whether the content should be available as a download or just sent as a stream in the response. Doesn't apply to zipped content which is always returned as a download.
      *
@@ -19223,9 +21037,10 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * @param {boolean} latestProcessedChange - Set to true to include the lastest changes.  Default is false.
      * @param {boolean} download - Set to true to download the response as a file.  Default is false.
      * @param {Contracts.GitVersionDescriptor} versionDescriptor - Version descriptor.  Default is null.
+     * @param {boolean} includeContent - Set to true to include item content when requesting json.  Default is false.
      * @return IPromise<ArrayBuffer>
      */
-    getItemContent(repositoryId: string, path: string, project?: string, scopePath?: string, recursionLevel?: Contracts.VersionControlRecursionType, includeContentMetadata?: boolean, latestProcessedChange?: boolean, download?: boolean, versionDescriptor?: Contracts.GitVersionDescriptor): IPromise<ArrayBuffer>;
+    getItemContent(repositoryId: string, path: string, project?: string, scopePath?: string, recursionLevel?: Contracts.VersionControlRecursionType, includeContentMetadata?: boolean, latestProcessedChange?: boolean, download?: boolean, versionDescriptor?: Contracts.GitVersionDescriptor, includeContent?: boolean): IPromise<ArrayBuffer>;
     /**
      * Get Item Metadata and/or Content for a single item. The download parameter is to indicate whether the content should be available as a download or just sent as a stream in the response. Doesn't apply to zipped content, which is always returned as a download.
      *
@@ -19238,9 +21053,10 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * @param {boolean} latestProcessedChange - Set to true to include the lastest changes.  Default is false.
      * @param {boolean} download - Set to true to download the response as a file.  Default is false.
      * @param {Contracts.GitVersionDescriptor} versionDescriptor - Version descriptor.  Default is null.
+     * @param {boolean} includeContent - Set to true to include item content when requesting json.  Default is false.
      * @return IPromise<Contracts.GitItem>
      */
-    getItem(repositoryId: string, path: string, project?: string, scopePath?: string, recursionLevel?: Contracts.VersionControlRecursionType, includeContentMetadata?: boolean, latestProcessedChange?: boolean, download?: boolean, versionDescriptor?: Contracts.GitVersionDescriptor): IPromise<Contracts.GitItem>;
+    getItem(repositoryId: string, path: string, project?: string, scopePath?: string, recursionLevel?: Contracts.VersionControlRecursionType, includeContentMetadata?: boolean, latestProcessedChange?: boolean, download?: boolean, versionDescriptor?: Contracts.GitVersionDescriptor, includeContent?: boolean): IPromise<Contracts.GitItem>;
     /**
      * Retrieve git commits for a project matching the search criteria
      *
@@ -19340,7 +21156,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * Get a single blob.
      *
      * @param {string} repositoryId - The name or ID of the repository.
-     * @param {string} sha1 - SHA1 hash of the file. You can get the SHA1 of a file using the “Git/Items/Get Item” endpoint.
+     * @param {string} sha1 - SHA1 hash of the file. You can get the SHA1 of a file using the "Git/Items/Get Item" endpoint.
      * @param {string} project - Project ID or project name
      * @param {boolean} download - If true, prompt for a download rather than rendering in a browser. Note: this value defaults to true if $format is zip
      * @param {string} fileName - Provide a fileName to use for a download.
@@ -19361,7 +21177,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * Get a single blob.
      *
      * @param {string} repositoryId - The name or ID of the repository.
-     * @param {string} sha1 - SHA1 hash of the file. You can get the SHA1 of a file using the “Git/Items/Get Item” endpoint.
+     * @param {string} sha1 - SHA1 hash of the file. You can get the SHA1 of a file using the "Git/Items/Get Item" endpoint.
      * @param {string} project - Project ID or project name
      * @param {boolean} download - If true, prompt for a download rather than rendering in a browser. Note: this value defaults to true if $format is zip
      * @param {string} fileName - Provide a fileName to use for a download.
@@ -19372,7 +21188,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * Get a single blob.
      *
      * @param {string} repositoryId - The name or ID of the repository.
-     * @param {string} sha1 - SHA1 hash of the file. You can get the SHA1 of a file using the “Git/Items/Get Item” endpoint.
+     * @param {string} sha1 - SHA1 hash of the file. You can get the SHA1 of a file using the "Git/Items/Get Item" endpoint.
      * @param {string} project - Project ID or project name
      * @param {boolean} download - If true, prompt for a download rather than rendering in a browser. Note: this value defaults to true if $format is zip
      * @param {string} fileName - Provide a fileName to use for a download.
@@ -20197,6 +22013,30 @@ export class GitHttpClient4_1 extends CommonMethods4To4_1 {
      * @return IPromise<any>
      */
     updatePullRequestProperties(patchDocument: VSS_Common_Contracts.JsonPatchDocument, repositoryId: string, pullRequestId: number, project?: string): IPromise<any>;
+    /**
+     * [Preview API] Destroy (hard delete) a soft-deleted Git repository.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} repositoryId - The ID of the repository.
+     * @return IPromise<void>
+     */
+    deleteRepositoryFromRecycleBin(project: string, repositoryId: string): IPromise<void>;
+    /**
+     * [Preview API] Retrieve soft-deleted git repositories from the recycle bin.
+     *
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.GitDeletedRepository[]>
+     */
+    getRecycleBinRepositories(project: string): IPromise<Contracts.GitDeletedRepository[]>;
+    /**
+     * [Preview API] Recover a soft-deleted Git repository. Recently deleted repositories go into a soft-delete state for a period of time before they are hard deleted and become unrecoverable.
+     *
+     * @param {Contracts.GitRecycleBinRepositoryDetails} repositoryDetails
+     * @param {string} project - Project ID or project name
+     * @param {string} repositoryId - The ID of the repository.
+     * @return IPromise<Contracts.GitRepository>
+     */
+    restoreRepositoryFromRecycleBin(repositoryDetails: Contracts.GitRecycleBinRepositoryDetails, project: string, repositoryId: string): IPromise<Contracts.GitRepository>;
 }
 /**
  * @exemptedapi
@@ -20252,9 +22092,9 @@ export class GitHttpClient extends GitHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return GitHttpClient4
+ * @return GitHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): GitHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): GitHttpClient4_1;
 }
 declare module "TFS/VersionControl/Services" {
 import Contracts_Platform = require("VSS/Common/Contracts/Platform");
@@ -20370,10 +22210,11 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * @param {boolean} download - If true, create a downloadable attachment.
      * @param {string} scopePath - Version control path of a folder to return multiple items.
      * @param {TFS_VersionControl_Contracts.VersionControlRecursionType} recursionLevel - None (just the item), or OneLevel (contents of a folder).
-     * @param {TFS_VersionControl_Contracts.TfvcVersionDescriptor} versionDescriptor
+     * @param {TFS_VersionControl_Contracts.TfvcVersionDescriptor} versionDescriptor - Version descriptor.  Default is null.
+     * @param {boolean} includeContent - Set to true to include item content when requesting json.  Default is false.
      * @return IPromise<ArrayBuffer>
      */
-    getItemZip(path: string, project?: string, fileName?: string, download?: boolean, scopePath?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.TfvcVersionDescriptor): IPromise<ArrayBuffer>;
+    getItemZip(path: string, project?: string, fileName?: string, download?: boolean, scopePath?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.TfvcVersionDescriptor, includeContent?: boolean): IPromise<ArrayBuffer>;
     /**
      * Get Item Metadata and/or Content for a single item. The download parameter is to indicate whether the content should be available as a download or just sent as a stream in the response. Doesn't apply to zipped content which is always returned as a download.
      *
@@ -20383,10 +22224,11 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * @param {boolean} download - If true, create a downloadable attachment.
      * @param {string} scopePath - Version control path of a folder to return multiple items.
      * @param {TFS_VersionControl_Contracts.VersionControlRecursionType} recursionLevel - None (just the item), or OneLevel (contents of a folder).
-     * @param {TFS_VersionControl_Contracts.TfvcVersionDescriptor} versionDescriptor
+     * @param {TFS_VersionControl_Contracts.TfvcVersionDescriptor} versionDescriptor - Version descriptor.  Default is null.
+     * @param {boolean} includeContent - Set to true to include item content when requesting json.  Default is false.
      * @return IPromise<string>
      */
-    getItemText(path: string, project?: string, fileName?: string, download?: boolean, scopePath?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.TfvcVersionDescriptor): IPromise<string>;
+    getItemText(path: string, project?: string, fileName?: string, download?: boolean, scopePath?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.TfvcVersionDescriptor, includeContent?: boolean): IPromise<string>;
     /**
      * Get a list of Tfvc items
      *
@@ -20407,10 +22249,11 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * @param {boolean} download - If true, create a downloadable attachment.
      * @param {string} scopePath - Version control path of a folder to return multiple items.
      * @param {TFS_VersionControl_Contracts.VersionControlRecursionType} recursionLevel - None (just the item), or OneLevel (contents of a folder).
-     * @param {TFS_VersionControl_Contracts.TfvcVersionDescriptor} versionDescriptor
+     * @param {TFS_VersionControl_Contracts.TfvcVersionDescriptor} versionDescriptor - Version descriptor.  Default is null.
+     * @param {boolean} includeContent - Set to true to include item content when requesting json.  Default is false.
      * @return IPromise<ArrayBuffer>
      */
-    getItemContent(path: string, project?: string, fileName?: string, download?: boolean, scopePath?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.TfvcVersionDescriptor): IPromise<ArrayBuffer>;
+    getItemContent(path: string, project?: string, fileName?: string, download?: boolean, scopePath?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.TfvcVersionDescriptor, includeContent?: boolean): IPromise<ArrayBuffer>;
     /**
      * Get Item Metadata and/or Content for a single item. The download parameter is to indicate whether the content should be available as a download or just sent as a stream in the response. Doesn't apply to zipped content which is always returned as a download.
      *
@@ -20420,10 +22263,11 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * @param {boolean} download - If true, create a downloadable attachment.
      * @param {string} scopePath - Version control path of a folder to return multiple items.
      * @param {TFS_VersionControl_Contracts.VersionControlRecursionType} recursionLevel - None (just the item), or OneLevel (contents of a folder).
-     * @param {TFS_VersionControl_Contracts.TfvcVersionDescriptor} versionDescriptor
+     * @param {TFS_VersionControl_Contracts.TfvcVersionDescriptor} versionDescriptor - Version descriptor.  Default is null.
+     * @param {boolean} includeContent - Set to true to include item content when requesting json.  Default is false.
      * @return IPromise<TFS_VersionControl_Contracts.TfvcItem>
      */
-    getItem(path: string, project?: string, fileName?: string, download?: boolean, scopePath?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.TfvcVersionDescriptor): IPromise<TFS_VersionControl_Contracts.TfvcItem>;
+    getItem(path: string, project?: string, fileName?: string, download?: boolean, scopePath?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.TfvcVersionDescriptor, includeContent?: boolean): IPromise<TFS_VersionControl_Contracts.TfvcItem>;
     /**
      * Post for retrieving a set of items given a list of paths or a long path. Allows for specifying the recursionLevel and version descriptors for each path.
      *
@@ -20793,9 +22637,9 @@ export class TfvcHttpClient extends TfvcHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return TfvcHttpClient4
+ * @return TfvcHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TfvcHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TfvcHttpClient4_1;
 }
 declare module "TFS/VersionControl/UIContracts" {
 import VCContracts = require("TFS/VersionControl/Contracts");
@@ -20873,6 +22717,31 @@ export interface WikiAttachmentResponse {
     eTag: string[];
 }
 /**
+ * Base wiki creation parameters.
+ */
+export interface WikiCreateBaseParameters {
+    /**
+     * Folder path inside repository which is shown as Wiki. Not required for ProjectWiki type.
+     */
+    mappedPath: string;
+    /**
+     * Wiki name.
+     */
+    name: string;
+    /**
+     * ID of the project in which the wiki is to be created.
+     */
+    projectId: string;
+    /**
+     * ID of the git repository that backs up the wiki. Not required for ProjectWiki type.
+     */
+    repositoryId: string;
+    /**
+     * Type of the wiki.
+     */
+    type: WikiType;
+}
+/**
  * Wiki creations parameters.
  */
 export interface WikiCreateParameters {
@@ -20884,6 +22753,15 @@ export interface WikiCreateParameters {
      * ID of the project in which the wiki is to be created.
      */
     projectId: string;
+}
+/**
+ * Wiki creation parameters.
+ */
+export interface WikiCreateParametersV2 extends WikiCreateBaseParameters {
+    /**
+     * Version of the wiki. Not required for ProjectWiki type.
+     */
+    version: TFS_VersionControl_Contracts.GitVersionDescriptor;
 }
 /**
  * Defines a page in a wiki.
@@ -20910,9 +22788,17 @@ export interface WikiPage extends WikiPageCreateOrUpdateParameters {
      */
     path: string;
     /**
+     * Remote web url to the wiki page.
+     */
+    remoteUrl: string;
+    /**
      * List of subpages of the current page.
      */
     subPages: WikiPage[];
+    /**
+     * REST url for this wiki page.
+     */
+    url: string;
 }
 /**
  * Contract encapsulating parameters for the page create or update operations.
@@ -20975,8 +22861,79 @@ export interface WikiPageResponse {
      */
     page: WikiPage;
 }
+/**
+ * Defines properties for wiki page view stats.
+ */
+export interface WikiPageViewStats {
+    /**
+     * Wiki page view count.
+     */
+    count: number;
+    /**
+     * Wiki page last viewed time.
+     */
+    lastViewedTime: Date;
+    /**
+     * Wiki page path.
+     */
+    path: string;
+}
+/**
+ * Wiki types.
+ */
+export enum WikiType {
+    ProjectWiki = 0,
+    CodeWiki = 1,
+}
+/**
+ * Wiki update parameters.
+ */
+export interface WikiUpdateParameters {
+    /**
+     * Versions of the wiki.
+     */
+    versions: TFS_VersionControl_Contracts.GitVersionDescriptor[];
+}
+/**
+ * Defines a wiki resource.
+ */
+export interface WikiV2 extends WikiCreateBaseParameters {
+    /**
+     * ID of the wiki.
+     */
+    id: string;
+    /**
+     * Properties of the wiki.
+     */
+    properties: {
+        [key: string]: string;
+    };
+    /**
+     * Remote web url to the wiki.
+     */
+    remoteUrl: string;
+    /**
+     * REST url for this wiki.
+     */
+    url: string;
+    /**
+     * Versions of the wiki.
+     */
+    versions: TFS_VersionControl_Contracts.GitVersionDescriptor[];
+}
 export var TypeInfo: {
     Wiki: any;
+    WikiCreateBaseParameters: any;
+    WikiCreateParametersV2: any;
+    WikiPageViewStats: any;
+    WikiType: {
+        enumValues: {
+            "projectWiki": number;
+            "codeWiki": number;
+        };
+    };
+    WikiUpdateParameters: any;
+    WikiV2: any;
 };
 }
 declare module "TFS/Wiki/WikiRestClient" {
@@ -20990,88 +22947,113 @@ export class CommonMethods4To4_1 extends VSS_WebApi.VssHttpClient {
     protected wikisApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
-     * [Preview API] Gets wiki repositories in a project or collection.
+     * Updates the wiki corresponding to the wiki Id or name provided using the update parameters.
      *
+     * @param {Contracts.WikiUpdateParameters} updateParameters - Update parameters.
+     * @param {string} wikiIdentifier - Wiki name or Id.
      * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.Wiki[]>
+     * @return IPromise<Contracts.WikiV2>
      */
-    getWikis(project?: string): IPromise<Contracts.Wiki[]>;
+    updateWiki(updateParameters: Contracts.WikiUpdateParameters, wikiIdentifier: string, project?: string): IPromise<Contracts.WikiV2>;
     /**
-     * [Preview API] Creates a backing git repository and does the intialization of the wiki for the given project.
+     * Gets the wiki corresponding to the wiki name or Id provided.
      *
-     * @param {Contracts.WikiCreateParameters} wikiCreateParams - Object containing name of the wiki to be created and the ID of the project in which the wiki is to be created. The provided name will also be used in the name of the backing git repository. If this is empty, the name will be auto generated.
+     * @param {string} wikiIdentifier - Wiki name or id.
      * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.Wiki>
+     * @return IPromise<Contracts.WikiV2>
      */
-    createWiki(wikiCreateParams: Contracts.WikiCreateParameters, project?: string): IPromise<Contracts.Wiki>;
+    getWiki(wikiIdentifier: string, project?: string): IPromise<Contracts.WikiV2>;
     /**
-     * [Preview API] Gets metadata or content of the wiki page for the provided path. Content negotiation is done based on the `Accept` header sent in the request.
+     * Gets all wikis in a project or collection.
      *
      * @param {string} project - Project ID or project name
-     * @param {string} wikiId - Wiki ID.
+     * @return IPromise<Contracts.WikiV2[]>
+     */
+    getAllWikis(project?: string): IPromise<Contracts.WikiV2[]>;
+    /**
+     * Deletes the wiki corresponding to the wiki name or Id provided.
+     *
+     * @param {string} wikiIdentifier - Wiki name or Id.
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WikiV2>
+     */
+    deleteWiki(wikiIdentifier: string, project?: string): IPromise<Contracts.WikiV2>;
+    /**
+     * Creates the wiki resource.
+     *
+     * @param {Contracts.WikiCreateParametersV2} wikiCreateParams - Parameters for the wiki creation.
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WikiV2>
+     */
+    createWiki(wikiCreateParams: Contracts.WikiCreateParametersV2, project?: string): IPromise<Contracts.WikiV2>;
+    /**
+     * Gets metadata or content of the wiki page for the provided path. Content negotiation is done based on the `Accept` header sent in the request.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} wikiIdentifier - Wiki Id or name.
      * @param {string} path - Wiki page path.
      * @param {TFS_VersionControl_Contracts.VersionControlRecursionType} recursionLevel - Recursion level for subpages retrieval. Defaults to `None` (Optional).
-     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} versionDescriptor - Version descriptor for the page. Defaults to the default branch (Optional).
+     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} versionDescriptor - GitVersionDescriptor for the page. Defaults to the default branch (Optional).
      * @param {boolean} includeContent - True to include the content of the page in the response for Json content type. Defaults to false (Optional)
      * @return IPromise<ArrayBuffer>
      */
-    getPageZip(project: string, wikiId: string, path?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.GitVersionDescriptor, includeContent?: boolean): IPromise<ArrayBuffer>;
+    getPageZip(project: string, wikiIdentifier: string, path?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.GitVersionDescriptor, includeContent?: boolean): IPromise<ArrayBuffer>;
     /**
-     * [Preview API] Gets metadata or content of the wiki page for the provided path. Content negotiation is done based on the `Accept` header sent in the request.
+     * Gets metadata or content of the wiki page for the provided path. Content negotiation is done based on the `Accept` header sent in the request.
      *
      * @param {string} project - Project ID or project name
-     * @param {string} wikiId - Wiki ID.
+     * @param {string} wikiIdentifier - Wiki Id or name.
      * @param {string} path - Wiki page path.
      * @param {TFS_VersionControl_Contracts.VersionControlRecursionType} recursionLevel - Recursion level for subpages retrieval. Defaults to `None` (Optional).
-     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} versionDescriptor - Version descriptor for the page. Defaults to the default branch (Optional).
+     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} versionDescriptor - GitVersionDescriptor for the page. Defaults to the default branch (Optional).
      * @param {boolean} includeContent - True to include the content of the page in the response for Json content type. Defaults to false (Optional)
      * @return IPromise<string>
      */
-    getPageText(project: string, wikiId: string, path?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.GitVersionDescriptor, includeContent?: boolean): IPromise<string>;
+    getPageText(project: string, wikiIdentifier: string, path?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.GitVersionDescriptor, includeContent?: boolean): IPromise<string>;
     /**
-     * [Preview API] Gets metadata or content of the wiki page for the provided path. Content negotiation is done based on the `Accept` header sent in the request.
+     * Gets metadata or content of the wiki page for the provided path. Content negotiation is done based on the `Accept` header sent in the request.
      *
      * @param {string} project - Project ID or project name
-     * @param {string} wikiId - Wiki ID.
+     * @param {string} wikiIdentifier - Wiki Id or name.
      * @param {string} path - Wiki page path.
      * @param {TFS_VersionControl_Contracts.VersionControlRecursionType} recursionLevel - Recursion level for subpages retrieval. Defaults to `None` (Optional).
-     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} versionDescriptor - Version descriptor for the page. Defaults to the default branch (Optional).
+     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} versionDescriptor - GitVersionDescriptor for the page. Defaults to the default branch (Optional).
      * @param {boolean} includeContent - True to include the content of the page in the response for Json content type. Defaults to false (Optional)
      * @return IPromise<Contracts.WikiPageResponse>
      */
-    getPage(project: string, wikiId: string, path?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.GitVersionDescriptor, includeContent?: boolean): IPromise<Contracts.WikiPageResponse>;
+    getPage(project: string, wikiIdentifier: string, path?: string, recursionLevel?: TFS_VersionControl_Contracts.VersionControlRecursionType, versionDescriptor?: TFS_VersionControl_Contracts.GitVersionDescriptor, includeContent?: boolean): IPromise<Contracts.WikiPageResponse>;
     /**
-     * [Preview API] Deletes a wiki page.
+     * Deletes a wiki page.
      *
      * @param {string} project - Project ID or project name
-     * @param {string} wikiId - Wiki ID.
+     * @param {string} wikiIdentifier - Wiki Id or name.
      * @param {string} path - Wiki page path.
      * @param {string} comment - Comment to be associated with this page delete.
      * @return IPromise<Contracts.WikiPageResponse>
      */
-    deletePage(project: string, wikiId: string, path: string, comment?: string): IPromise<Contracts.WikiPageResponse>;
+    deletePage(project: string, wikiIdentifier: string, path: string, comment?: string): IPromise<Contracts.WikiPageResponse>;
     /**
-     * [Preview API] Creates or edits a wiki page.
+     * Creates or edits a wiki page.
      *
      * @param {Contracts.WikiPageCreateOrUpdateParameters} parameters - Wiki create or update operation parameters.
      * @param {string} project - Project ID or project name
-     * @param {string} wikiId - Wiki ID.
+     * @param {string} wikiIdentifier - Wiki Id or name.
      * @param {string} path - Wiki page path.
      * @param {String} Version - Version of the page on which the change is to be made. Mandatory for `Edit` scenario. To be populated in the If-Match header of the request.
      * @param {string} comment - Comment to be associated with the page operation.
      * @return IPromise<Contracts.WikiPageResponse>
      */
-    createOrUpdatePage(parameters: Contracts.WikiPageCreateOrUpdateParameters, project: string, wikiId: string, path: string, Version: String, comment?: string): IPromise<Contracts.WikiPageResponse>;
+    createOrUpdatePage(parameters: Contracts.WikiPageCreateOrUpdateParameters, project: string, wikiIdentifier: string, path: string, Version: String, comment?: string): IPromise<Contracts.WikiPageResponse>;
     /**
-     * [Preview API] Creates an attachment in the wiki.
+     * Creates an attachment in the wiki.
      *
      * @param {any} content - Content to upload
      * @param {string} project - Project ID or project name
-     * @param {string} wikiId - Wiki ID.
+     * @param {string} wikiIdentifier - Wiki Id or name.
      * @param {string} name - Wiki attachment name.
      * @return IPromise<Contracts.WikiAttachmentResponse>
      */
-    createAttachment(content: any, project: string, wikiId: string, name: string): IPromise<Contracts.WikiAttachmentResponse>;
+    createAttachment(content: any, project: string, wikiIdentifier: string, name: string): IPromise<Contracts.WikiAttachmentResponse>;
 }
 /**
  * @exemptedapi
@@ -21083,11 +23065,22 @@ export class WikiHttpClient4_1 extends CommonMethods4To4_1 {
      *
      * @param {Contracts.WikiPageMoveParameters} pageMoveParameters - Page more operation parameters.
      * @param {string} project - Project ID or project name
-     * @param {string} wikiId - Wiki ID.
+     * @param {string} wikiIdentifier - Wiki Id or name.
      * @param {string} comment - Comment that is to be associated with this page move.
      * @return IPromise<Contracts.WikiPageMoveResponse>
      */
-    createPageMove(pageMoveParameters: Contracts.WikiPageMoveParameters, project: string, wikiId: string, comment?: string): IPromise<Contracts.WikiPageMoveResponse>;
+    createPageMove(pageMoveParameters: Contracts.WikiPageMoveParameters, project: string, wikiIdentifier: string, comment?: string): IPromise<Contracts.WikiPageMoveResponse>;
+    /**
+     * [Preview API] Creates a new page view stats resource or updates an existing page view stats resource.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} wikiIdentifier - Wiki name or Id.
+     * @param {TFS_VersionControl_Contracts.GitVersionDescriptor} wikiVersion - Wiki version.
+     * @param {string} path - Wiki page path.
+     * @param {string} oldPath - Old page path. This is optional and required to rename path in existing page view stats.
+     * @return IPromise<Contracts.WikiPageViewStats>
+     */
+    createOrUpdatePageViewStats(project: string, wikiIdentifier: string, wikiVersion: TFS_VersionControl_Contracts.GitVersionDescriptor, path: string, oldPath?: string): IPromise<Contracts.WikiPageViewStats>;
 }
 /**
  * @exemptedapi
@@ -21101,9 +23094,9 @@ export class WikiHttpClient extends WikiHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return WikiHttpClient4
+ * @return WikiHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WikiHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WikiHttpClient4_1;
 }
 declare module "TFS/WorkItemTracking/BatchRestClient" {
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -21344,6 +23337,13 @@ export interface ArtifactUriQueryResult {
 export interface AttachmentReference {
     id: string;
     url: string;
+}
+/**
+ * Flag to control error policy in a batch classification nodes get request.
+ */
+export enum ClassificationNodesErrorPolicy {
+    Fail = 1,
+    Omit = 2,
 }
 export enum CommentSortOrder {
     Asc = 1,
@@ -21635,7 +23635,7 @@ export interface QueryHierarchyItem extends WorkItemTrackingResource {
      */
     id: string;
     /**
-     * Indicates if this query item is deleted.
+     * Indicates if this query item is deleted. Setting this to false on a deleted query item will undelete it. Undeleting a query or folder will not bring back the permission changes that were previously applied to it.
      */
     isDeleted: boolean;
     /**
@@ -21927,16 +23927,31 @@ export interface WorkItemClassificationNode extends WorkItemTrackingResource {
      */
     structureType: TreeNodeStructureType;
 }
+/**
+ * Comment on Work Item
+ */
 export interface WorkItemComment extends WorkItemTrackingResource {
+    /**
+     * Identity of user who added the comment.
+     */
     revisedBy: IdentityReference;
+    /**
+     * The date of comment.
+     */
     revisedDate: Date;
+    /**
+     * The work item revision number.
+     */
     revision: number;
+    /**
+     * The text of the comment.
+     */
     text: string;
 }
 /**
- * Comment results container.
+ * Collection of comments
  */
-export interface WorkItemComments {
+export interface WorkItemComments extends WorkItemTrackingResource {
     /**
      * Comments collection.
      */
@@ -21999,6 +24014,19 @@ export interface WorkItemDeleteReference {
      * Type of work item.
      */
     type: string;
+    /**
+     * REST API URL of the resource
+     */
+    url: string;
+}
+/**
+ * Shallow Reference to a deleted work item.
+ */
+export interface WorkItemDeleteShallowReference {
+    /**
+     * Work item ID.
+     */
+    id: number;
     /**
      * REST API URL of the resource
      */
@@ -22495,15 +24523,69 @@ export interface WorkItemTypeColorAndIcon {
      */
     workItemTypeName: string;
 }
-export interface WorkItemTypeFieldInstance extends WorkItemFieldReference {
+/**
+ * Field instance of a work item type.
+ */
+export interface WorkItemTypeFieldInstance extends WorkItemTypeFieldInstanceBase {
+    /**
+     * The list of field allowed values.
+     */
+    allowedValues: string[];
+    /**
+     * Represents the default value of the field.
+     */
+    defaultValue: string;
+}
+/**
+ * Base field instance for workItemType fields.
+ */
+export interface WorkItemTypeFieldInstanceBase extends WorkItemFieldReference {
     /**
      * Indicates whether field value is always required.
      */
     alwaysRequired: boolean;
     /**
+     * The list of dependent fields.
+     */
+    dependentFields: WorkItemFieldReference[];
+    /**
      * Gets the help text for the field.
      */
     helpText: string;
+}
+/**
+ * Expand options for the work item field(s) request.
+ */
+export enum WorkItemTypeFieldsExpandLevel {
+    /**
+     * Includes only basic properties of the field.
+     */
+    None = 0,
+    /**
+     * Includes allowed values for the field.
+     */
+    AllowedValues = 1,
+    /**
+     * Includes dependent fields of the field.
+     */
+    DependentFields = 2,
+    /**
+     * Includes allowed values and dependent fields of the field.
+     */
+    All = 3,
+}
+/**
+ * Field Instance of a workItemype with detailed references.
+ */
+export interface WorkItemTypeFieldWithReferences extends WorkItemTypeFieldInstanceBase {
+    /**
+     * The list of field allowed values.
+     */
+    allowedValues: any[];
+    /**
+     * Represents the default value of the field.
+     */
+    defaultValue: any;
 }
 /**
  * Reference to a work item type.
@@ -22597,6 +24679,12 @@ export var TypeInfo: {
     AccountRecentActivityWorkItemModel: any;
     AccountRecentMentionWorkItemModel: any;
     AccountWorkWorkItemModel: any;
+    ClassificationNodesErrorPolicy: {
+        enumValues: {
+            "fail": number;
+            "omit": number;
+        };
+    };
     CommentSortOrder: {
         enumValues: {
             "asc": number;
@@ -22758,6 +24846,14 @@ export var TypeInfo: {
             "restored": number;
         };
     };
+    WorkItemTypeFieldsExpandLevel: {
+        enumValues: {
+            "none": number;
+            "allowedValues": number;
+            "dependentFields": number;
+            "all": number;
+        };
+    };
     WorkItemTypeTemplateUpdateModel: any;
     WorkItemUpdate: any;
 };
@@ -22771,6 +24867,8 @@ export interface IQuerySelectorComponentProps {
     value: string;
     /** callback for selected item changed */
     onValueChanged(value: string): void;
+    /** the label for the input element*/
+    label?: string;
 }
 export module QuerySelectorControl {
     var contributionId: string;
@@ -22805,6 +24903,10 @@ export interface IWorkItemLoadedArgs extends IWorkItemChangedArgs {
     * 'true' if the work item is a 'new', unsaved work item, 'false' otherwise.
     */
     isNew: boolean;
+    /**
+     * 'true' write rest apis are disabled. All controls should be rendered as readonly
+     */
+    isReadOnly: boolean;
 }
 /**
 * Interface defining the arguments for the 'onFieldChanged' notification sent by the ActiveWorkItemService
@@ -22946,7 +25048,7 @@ export const KnownColumns: {
  */
 export interface IContributedArtifactLinkProvider {
     validate(artifact: ILinkedArtifact): IPromise<boolean>;
-    browseLink(): IPromise<string>;
+    browseLink?(): IPromise<string>;
     getDisplayData(artifacts: ILinkedArtifact[]): IPromise<ILinkedArtifactDisplayData[]>;
 }
 }
@@ -23006,9 +25108,21 @@ export interface Control {
     watermark: string;
 }
 export interface CreateProcessModel {
+    /**
+     * Description of the process
+     */
     description: string;
+    /**
+     * Name of the process
+     */
     name: string;
+    /**
+     * The ID of the parent process
+     */
     parentProcessTypeId: string;
+    /**
+     * Reference name of the process
+     */
     referenceName: string;
 }
 /**
@@ -23180,24 +25294,72 @@ export enum ProcessClass {
     Custom = 2,
 }
 export interface ProcessModel {
+    /**
+     * Description of the process
+     */
     description: string;
+    /**
+     * Name of the process
+     */
     name: string;
+    /**
+     * Projects in this process
+     */
     projects: ProjectReference[];
+    /**
+     * Properties of the process
+     */
     properties: ProcessProperties;
+    /**
+     * Reference name of the process
+     */
     referenceName: string;
+    /**
+     * The ID of the process
+     */
     typeId: string;
 }
+/**
+ * Properties of the process
+ */
 export interface ProcessProperties {
+    /**
+     * Class of the process
+     */
     class: ProcessClass;
+    /**
+     * Is the process default process
+     */
     isDefault: boolean;
+    /**
+     * Is the process enabled
+     */
     isEnabled: boolean;
+    /**
+     * ID of the parent process
+     */
     parentProcessTypeId: string;
+    /**
+     * Version of the process
+     */
     version: string;
 }
 export interface ProjectReference {
+    /**
+     * Description of the project
+     */
     description: string;
+    /**
+     * The ID of the project
+     */
     id: string;
+    /**
+     * Name of the project
+     */
     name: string;
+    /**
+     * Url of the project
+     */
     url: string;
 }
 export interface RuleActionModel {
@@ -23421,6 +25583,9 @@ export interface BehaviorModel {
      * Rank
      */
     rank: number;
+    /**
+     * Url of the behavior
+     */
     url: string;
 }
 export interface BehaviorReplaceModel {
@@ -23494,11 +25659,29 @@ export interface Extension {
     id: string;
 }
 export interface FieldModel {
+    /**
+     * Description about field
+     */
     description: string;
+    /**
+     * ID of the field
+     */
     id: string;
+    /**
+     * Name of the field
+     */
     name: string;
+    /**
+     * Reference to picklist in this field
+     */
     pickList: PickListMetadataModel;
+    /**
+     * Type of field
+     */
     type: FieldType;
+    /**
+     * Url to the field
+     */
     url: string;
 }
 export enum FieldType {
@@ -23635,6 +25818,9 @@ export interface Page {
      */
     visible: boolean;
 }
+/**
+ * Type of page
+ */
 export enum PageType {
     Custom = 1,
     History = 2,
@@ -23646,15 +25832,36 @@ export interface PickListItemModel {
     value: string;
 }
 export interface PickListMetadataModel {
+    /**
+     * ID of the picklist
+     */
     id: string;
+    /**
+     * Is input values by user only limited to suggested values
+     */
     isSuggested: boolean;
+    /**
+     * Name of the picklist
+     */
     name: string;
+    /**
+     * Type of picklist
+     */
     type: string;
+    /**
+     * Url of the picklist
+     */
     url: string;
 }
 export interface PickListModel extends PickListMetadataModel {
+    /**
+     * A list of PicklistItemModel
+     */
     items: PickListItemModel[];
 }
+/**
+ * A layout node holding groups together in a page
+ */
 export interface Section {
     groups: Group[];
     /**
@@ -23687,22 +25894,61 @@ export interface WitContribution {
     showOnDeletedWorkItem: boolean;
 }
 export interface WorkItemBehaviorReference {
+    /**
+     * The ID of the reference behavior
+     */
     id: string;
+    /**
+     * The url of the reference behavior
+     */
     url: string;
 }
 export interface WorkItemStateInputModel {
+    /**
+     * Color of the state
+     */
     color: string;
+    /**
+     * Name of the state
+     */
     name: string;
+    /**
+     * Order in which state should appear
+     */
     order: number;
+    /**
+     * Category of the state
+     */
     stateCategory: string;
 }
 export interface WorkItemStateResultModel {
+    /**
+     * Color of the state
+     */
     color: string;
+    /**
+     * Is the state hidden
+     */
     hidden: boolean;
+    /**
+     * The ID of the State
+     */
     id: string;
+    /**
+     * Name of the state
+     */
     name: string;
+    /**
+     * Order in which state should appear
+     */
     order: number;
+    /**
+     * Category of the state
+     */
     stateCategory: string;
+    /**
+     * Url of the state
+     */
     url: string;
 }
 export interface WorkItemTypeBehavior {
@@ -23710,6 +25956,9 @@ export interface WorkItemTypeBehavior {
     isDefault: boolean;
     url: string;
 }
+/**
+ * Work item type classes'
+ */
 export enum WorkItemTypeClass {
     System = 0,
     Derived = 1,
@@ -23727,26 +25976,71 @@ export interface WorkItemTypeFieldModel {
     url: string;
 }
 export interface WorkItemTypeModel {
+    /**
+     * Behaviors of the work item type
+     */
     behaviors: WorkItemTypeBehavior[];
+    /**
+     * Class of the work item type
+     */
     class: WorkItemTypeClass;
+    /**
+     * Color of the work item type
+     */
     color: string;
+    /**
+     * Description of the work item type
+     */
     description: string;
+    /**
+     * Icon of the work item type
+     */
     icon: string;
+    /**
+     * The ID of the work item type
+     */
     id: string;
     /**
      * Parent WIT Id/Internal ReferenceName that it inherits from
      */
     inherits: string;
+    /**
+     * Is work item type disabled
+     */
     isDisabled: boolean;
+    /**
+     * Layout of the work item type
+     */
     layout: FormLayout;
+    /**
+     * Name of the work item type
+     */
     name: string;
+    /**
+     * States of the work item type
+     */
     states: WorkItemStateResultModel[];
+    /**
+     * Url of the work item type
+     */
     url: string;
 }
 export interface WorkItemTypeUpdateModel {
+    /**
+     * Color of the work item type
+     */
     color: string;
+    /**
+     * Description of the work item type
+     */
     description: string;
+    /**
+     * Icon of the work item type
+     */
     icon: string;
+    /**
+     * Is the workitem type to be disabled
+     */
     isDisabled: boolean;
 }
 export var TypeInfo: {
@@ -23817,178 +26111,178 @@ export class CommonMethods2_1To4_1 extends VSS_WebApi.VssHttpClient {
     protected workItemTypesFieldsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
-     * [Preview API]
+     * [Preview API] Removes a field in the work item type of the process.
      *
-     * @param {string} processId
-     * @param {string} witRefNameForFields
-     * @param {string} fieldRefName
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @param {string} fieldRefName - The reference name of the field
      * @return IPromise<void>
      */
     removeFieldFromWorkItemType(processId: string, witRefNameForFields: string, fieldRefName: string): IPromise<void>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a list of all fields in the work item type of the process.
      *
-     * @param {string} processId
-     * @param {string} witRefNameForFields
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
      * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>
      */
     getWorkItemTypeFields(processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>;
     /**
-     * [Preview API]
+     * [Preview API] Retuens a single field in the work item type of the process.
      *
-     * @param {string} processId
-     * @param {string} witRefNameForFields
-     * @param {string} fieldRefName
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @param {string} fieldRefName - The reference name of the field
      * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
      */
     getWorkItemTypeField(processId: string, witRefNameForFields: string, fieldRefName: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
     /**
-     * [Preview API]
+     * [Preview API] Adds a field to the work item type in the process.
      *
      * @param {ProcessDefinitionsContracts.WorkItemTypeFieldModel} field
-     * @param {string} processId
-     * @param {string} witRefNameForFields
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for the field
      * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
      */
     addFieldToWorkItemType(field: ProcessDefinitionsContracts.WorkItemTypeFieldModel, processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
     /**
-     * [Preview API]
+     * [Preview API] Updates a work item type of the process.
      *
      * @param {ProcessDefinitionsContracts.WorkItemTypeUpdateModel} workItemTypeUpdate
-     * @param {string} processId
-     * @param {string} witRefName
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
      * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeModel>
      */
     updateWorkItemType(workItemTypeUpdate: ProcessDefinitionsContracts.WorkItemTypeUpdateModel, processId: string, witRefName: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeModel>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a list of all work item types in the process.
      *
-     * @param {string} processId
+     * @param {string} processId - The ID of the process
      * @param {ProcessDefinitionsContracts.GetWorkItemTypeExpand} expand
      * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeModel[]>
      */
     getWorkItemTypes(processId: string, expand?: ProcessDefinitionsContracts.GetWorkItemTypeExpand): IPromise<ProcessDefinitionsContracts.WorkItemTypeModel[]>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a work item type of the process.
      *
-     * @param {string} processId
-     * @param {string} witRefName
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
      * @param {ProcessDefinitionsContracts.GetWorkItemTypeExpand} expand
      * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeModel>
      */
     getWorkItemType(processId: string, witRefName: string, expand?: ProcessDefinitionsContracts.GetWorkItemTypeExpand): IPromise<ProcessDefinitionsContracts.WorkItemTypeModel>;
     /**
-     * [Preview API]
+     * [Preview API] Removes a work itewm type in the process.
      *
-     * @param {string} processId
-     * @param {string} witRefName
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
      * @return IPromise<void>
      */
     deleteWorkItemType(processId: string, witRefName: string): IPromise<void>;
     /**
-     * [Preview API]
+     * [Preview API] Creates a work item type in the process.
      *
      * @param {ProcessDefinitionsContracts.WorkItemTypeModel} workItemType
-     * @param {string} processId
+     * @param {string} processId - The ID of the process
      * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeModel>
      */
     createWorkItemType(workItemType: ProcessDefinitionsContracts.WorkItemTypeModel, processId: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeModel>;
     /**
-     * [Preview API]
+     * [Preview API] Updates a behavior for the work item type of the process.
      *
      * @param {ProcessDefinitionsContracts.WorkItemTypeBehavior} behavior
-     * @param {string} processId
-     * @param {string} witRefNameForBehaviors
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForBehaviors - Work item type reference name for the behavior
      * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeBehavior>
      */
     updateBehaviorToWorkItemType(behavior: ProcessDefinitionsContracts.WorkItemTypeBehavior, processId: string, witRefNameForBehaviors: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeBehavior>;
     /**
-     * [Preview API]
+     * [Preview API] Removes a behavior for the work item type of the process.
      *
-     * @param {string} processId
-     * @param {string} witRefNameForBehaviors
-     * @param {string} behaviorRefName
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForBehaviors - Work item type reference name for the behavior
+     * @param {string} behaviorRefName - The reference name of the behavior
      * @return IPromise<void>
      */
     removeBehaviorFromWorkItemType(processId: string, witRefNameForBehaviors: string, behaviorRefName: string): IPromise<void>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a list of all behaviors for the work item type of the process.
      *
-     * @param {string} processId
-     * @param {string} witRefNameForBehaviors
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForBehaviors - Work item type reference name for the behavior
      * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeBehavior[]>
      */
     getBehaviorsForWorkItemType(processId: string, witRefNameForBehaviors: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeBehavior[]>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a behavior for the work item type of the process.
      *
-     * @param {string} processId
-     * @param {string} witRefNameForBehaviors
-     * @param {string} behaviorRefName
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForBehaviors - Work item type reference name for the behavior
+     * @param {string} behaviorRefName - The reference name of the behavior
      * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeBehavior>
      */
     getBehaviorForWorkItemType(processId: string, witRefNameForBehaviors: string, behaviorRefName: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeBehavior>;
     /**
-     * [Preview API]
+     * [Preview API] Adds a behavior to the work item type of the process.
      *
      * @param {ProcessDefinitionsContracts.WorkItemTypeBehavior} behavior
-     * @param {string} processId
-     * @param {string} witRefNameForBehaviors
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForBehaviors - Work item type reference name for the behavior
      * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeBehavior>
      */
     addBehaviorToWorkItemType(behavior: ProcessDefinitionsContracts.WorkItemTypeBehavior, processId: string, witRefNameForBehaviors: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeBehavior>;
     /**
-     * [Preview API]
+     * [Preview API] Updates a given state definition in the work item type of the process.
      *
      * @param {ProcessDefinitionsContracts.WorkItemStateInputModel} stateModel
-     * @param {string} processId
-     * @param {string} witRefName
-     * @param {string} stateId
+     * @param {string} processId - ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} stateId - ID of the state
      * @return IPromise<ProcessDefinitionsContracts.WorkItemStateResultModel>
      */
     updateStateDefinition(stateModel: ProcessDefinitionsContracts.WorkItemStateInputModel, processId: string, witRefName: string, stateId: string): IPromise<ProcessDefinitionsContracts.WorkItemStateResultModel>;
     /**
-     * [Preview API]
+     * [Preview API] Hides a state definition in the work item type of the process.
      *
      * @param {ProcessDefinitionsContracts.HideStateModel} hideStateModel
-     * @param {string} processId
-     * @param {string} witRefName
-     * @param {string} stateId
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} stateId - The ID of the state
      * @return IPromise<ProcessDefinitionsContracts.WorkItemStateResultModel>
      */
     hideStateDefinition(hideStateModel: ProcessDefinitionsContracts.HideStateModel, processId: string, witRefName: string, stateId: string): IPromise<ProcessDefinitionsContracts.WorkItemStateResultModel>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a list of all state definitions in the work item type of the process.
      *
-     * @param {string} processId
-     * @param {string} witRefName
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
      * @return IPromise<ProcessDefinitionsContracts.WorkItemStateResultModel[]>
      */
     getStateDefinitions(processId: string, witRefName: string): IPromise<ProcessDefinitionsContracts.WorkItemStateResultModel[]>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a state definition in the work item type of the process.
      *
-     * @param {string} processId
-     * @param {string} witRefName
-     * @param {string} stateId
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} stateId - The ID of the state
      * @return IPromise<ProcessDefinitionsContracts.WorkItemStateResultModel>
      */
     getStateDefinition(processId: string, witRefName: string, stateId: string): IPromise<ProcessDefinitionsContracts.WorkItemStateResultModel>;
     /**
-     * [Preview API]
+     * [Preview API] Removes a state definition in the work item type of the process.
      *
-     * @param {string} processId
-     * @param {string} witRefName
-     * @param {string} stateId
+     * @param {string} processId - ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} stateId - ID of the state
      * @return IPromise<void>
      */
     deleteStateDefinition(processId: string, witRefName: string, stateId: string): IPromise<void>;
     /**
-     * [Preview API]
+     * [Preview API] Creates a state definition in the work item type of the process.
      *
      * @param {ProcessDefinitionsContracts.WorkItemStateInputModel} stateModel
-     * @param {string} processId
-     * @param {string} witRefName
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
      * @return IPromise<ProcessDefinitionsContracts.WorkItemStateResultModel>
      */
     createStateDefinition(stateModel: ProcessDefinitionsContracts.WorkItemStateInputModel, processId: string, witRefName: string): IPromise<ProcessDefinitionsContracts.WorkItemStateResultModel>;
@@ -24020,36 +26314,36 @@ export class CommonMethods2_1To4_1 extends VSS_WebApi.VssHttpClient {
      */
     addPage(page: ProcessDefinitionsContracts.Page, processId: string, witRefName: string): IPromise<ProcessDefinitionsContracts.Page>;
     /**
-     * [Preview API]
+     * [Preview API] Updates a list.
      *
      * @param {ProcessDefinitionsContracts.PickListModel} picklist
-     * @param {string} listId
+     * @param {string} listId - The ID of the list
      * @return IPromise<ProcessDefinitionsContracts.PickListModel>
      */
     updateList(picklist: ProcessDefinitionsContracts.PickListModel, listId: string): IPromise<ProcessDefinitionsContracts.PickListModel>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a picklist.
      *
-     * @param {string} listId
+     * @param {string} listId - The ID of the list
      * @return IPromise<ProcessDefinitionsContracts.PickListModel>
      */
     getList(listId: string): IPromise<ProcessDefinitionsContracts.PickListModel>;
     /**
-     * [Preview API]
+     * [Preview API] Removes a picklist.
      *
-     * @param {string} listId
+     * @param {string} listId - The ID of the list
      * @return IPromise<void>
      */
     deleteList(listId: string): IPromise<void>;
     /**
-     * [Preview API]
+     * [Preview API] Creates a picklist.
      *
      * @param {ProcessDefinitionsContracts.PickListModel} picklist
      * @return IPromise<ProcessDefinitionsContracts.PickListModel>
      */
     createList(picklist: ProcessDefinitionsContracts.PickListModel): IPromise<ProcessDefinitionsContracts.PickListModel>;
     /**
-     * [Preview API]
+     * [Preview API] Returns meta data of the picklist.
      *
      * @return IPromise<ProcessDefinitionsContracts.PickListMetadataModel[]>
      */
@@ -24124,18 +26418,18 @@ export class CommonMethods2_1To4_1 extends VSS_WebApi.VssHttpClient {
      */
     addGroup(group: ProcessDefinitionsContracts.Group, processId: string, witRefName: string, pageId: string, sectionId: string): IPromise<ProcessDefinitionsContracts.Group>;
     /**
-     * [Preview API]
+     * [Preview API] Updates a given field in the process.
      *
      * @param {ProcessDefinitionsContracts.FieldUpdate} field
-     * @param {string} processId
+     * @param {string} processId - The ID of the process
      * @return IPromise<ProcessDefinitionsContracts.FieldModel>
      */
     updateField(field: ProcessDefinitionsContracts.FieldUpdate, processId: string): IPromise<ProcessDefinitionsContracts.FieldModel>;
     /**
-     * [Preview API]
+     * [Preview API] Creates a single field in the process.
      *
      * @param {ProcessDefinitionsContracts.FieldModel} field
-     * @param {string} processId
+     * @param {string} processId - The ID of the process
      * @return IPromise<ProcessDefinitionsContracts.FieldModel>
      */
     createField(field: ProcessDefinitionsContracts.FieldModel, processId: string): IPromise<ProcessDefinitionsContracts.FieldModel>;
@@ -24183,42 +26477,42 @@ export class CommonMethods2_1To4_1 extends VSS_WebApi.VssHttpClient {
      */
     addControlToGroup(control: ProcessDefinitionsContracts.Control, processId: string, witRefName: string, groupId: string): IPromise<ProcessDefinitionsContracts.Control>;
     /**
-     * [Preview API]
+     * [Preview API] Replaces a behavior in the process.
      *
      * @param {ProcessDefinitionsContracts.BehaviorReplaceModel} behaviorData
-     * @param {string} processId
-     * @param {string} behaviorId
+     * @param {string} processId - The ID of the process
+     * @param {string} behaviorId - The ID of the behavior
      * @return IPromise<ProcessDefinitionsContracts.BehaviorModel>
      */
     replaceBehavior(behaviorData: ProcessDefinitionsContracts.BehaviorReplaceModel, processId: string, behaviorId: string): IPromise<ProcessDefinitionsContracts.BehaviorModel>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a list of all behaviors in the process.
      *
-     * @param {string} processId
+     * @param {string} processId - The ID of the process
      * @return IPromise<ProcessDefinitionsContracts.BehaviorModel[]>
      */
     getBehaviors(processId: string): IPromise<ProcessDefinitionsContracts.BehaviorModel[]>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a single behavior in the process.
      *
-     * @param {string} processId
-     * @param {string} behaviorId
+     * @param {string} processId - The ID of the process
+     * @param {string} behaviorId - The ID of the behavior
      * @return IPromise<ProcessDefinitionsContracts.BehaviorModel>
      */
     getBehavior(processId: string, behaviorId: string): IPromise<ProcessDefinitionsContracts.BehaviorModel>;
     /**
-     * [Preview API]
+     * [Preview API] Removes a behavior in the process.
      *
-     * @param {string} processId
-     * @param {string} behaviorId
+     * @param {string} processId - The ID of the process
+     * @param {string} behaviorId - The ID of the behavior
      * @return IPromise<void>
      */
     deleteBehavior(processId: string, behaviorId: string): IPromise<void>;
     /**
-     * [Preview API]
+     * [Preview API] Creates a single behavior in the given process.
      *
      * @param {ProcessDefinitionsContracts.BehaviorCreateModel} behavior
-     * @param {string} processId
+     * @param {string} processId - The ID of the process
      * @return IPromise<ProcessDefinitionsContracts.BehaviorModel>
      */
     createBehavior(behavior: ProcessDefinitionsContracts.BehaviorCreateModel, processId: string): IPromise<ProcessDefinitionsContracts.BehaviorModel>;
@@ -24277,9 +26571,9 @@ export class WorkItemTrackingHttpClient extends WorkItemTrackingHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return WorkItemTrackingHttpClient4
+ * @return WorkItemTrackingHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkItemTrackingHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkItemTrackingHttpClient4_1;
 }
 declare module "TFS/WorkItemTracking/ProcessRestClient" {
 import ProcessContracts = require("TFS/WorkItemTracking/ProcessContracts");
@@ -24294,69 +26588,69 @@ export class CommonMethods2_1To4_1 extends VSS_WebApi.VssHttpClient {
     protected workItemTypesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
-     * [Preview API]
+     * [Preview API] Returns a list of all work item types in a process.
      *
-     * @param {string} processId
+     * @param {string} processId - The ID of the process
      * @param {ProcessContracts.GetWorkItemTypeExpand} expand
      * @return IPromise<ProcessContracts.WorkItemTypeModel[]>
      */
     getWorkItemTypes(processId: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel[]>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a single work item type in a process.
      *
-     * @param {string} processId
-     * @param {string} witRefName
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
      * @param {ProcessContracts.GetWorkItemTypeExpand} expand
      * @return IPromise<ProcessContracts.WorkItemTypeModel>
      */
     getWorkItemType(processId: string, witRefName: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel>;
     /**
-     * [Preview API]
+     * [Preview API] Updates a rule in the work item type of the process.
      *
      * @param {ProcessContracts.FieldRuleModel} fieldRule
-     * @param {string} processId
-     * @param {string} witRefName
-     * @param {string} ruleId
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
      * @return IPromise<ProcessContracts.FieldRuleModel>
      */
     updateWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a list of all rules in the work item type of the process.
      *
-     * @param {string} processId
-     * @param {string} witRefName
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
      * @return IPromise<ProcessContracts.FieldRuleModel[]>
      */
     getWorkItemTypeRules(processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel[]>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a single rule in the work item type of the process.
      *
-     * @param {string} processId
-     * @param {string} witRefName
-     * @param {string} ruleId
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
      * @return IPromise<ProcessContracts.FieldRuleModel>
      */
     getWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
     /**
-     * [Preview API]
+     * [Preview API] Removes a rule from the work item type in the process.
      *
-     * @param {string} processId
-     * @param {string} witRefName
-     * @param {string} ruleId
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
      * @return IPromise<void>
      */
     deleteWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<void>;
     /**
-     * [Preview API]
+     * [Preview API] Adds a rule to work item type in the process.
      *
      * @param {ProcessContracts.FieldRuleModel} fieldRule
-     * @param {string} processId
-     * @param {string} witRefName
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
      * @return IPromise<ProcessContracts.FieldRuleModel>
      */
     addWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel>;
     /**
-     * [Preview API]
+     * [Preview API] Updates a process of a specific ID.
      *
      * @param {ProcessContracts.UpdateProcessModel} updateRequest
      * @param {string} processTypeId
@@ -24364,14 +26658,14 @@ export class CommonMethods2_1To4_1 extends VSS_WebApi.VssHttpClient {
      */
     updateProcess(updateRequest: ProcessContracts.UpdateProcessModel, processTypeId: string): IPromise<ProcessContracts.ProcessModel>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a list of all processes.
      *
      * @param {ProcessContracts.GetProcessExpandLevel} expand
      * @return IPromise<ProcessContracts.ProcessModel[]>
      */
     getProcesses(expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel[]>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a single process of a specified ID.
      *
      * @param {string} processTypeId
      * @param {ProcessContracts.GetProcessExpandLevel} expand
@@ -24379,47 +26673,47 @@ export class CommonMethods2_1To4_1 extends VSS_WebApi.VssHttpClient {
      */
     getProcessById(processTypeId: string, expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel>;
     /**
-     * [Preview API]
+     * [Preview API] Removes a process of a specific ID.
      *
      * @param {string} processTypeId
      * @return IPromise<void>
      */
     deleteProcess(processTypeId: string): IPromise<void>;
     /**
-     * [Preview API]
+     * [Preview API] Creates a process.
      *
      * @param {ProcessContracts.CreateProcessModel} createRequest
      * @return IPromise<ProcessContracts.ProcessModel>
      */
     createProcess(createRequest: ProcessContracts.CreateProcessModel): IPromise<ProcessContracts.ProcessModel>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a list of all fields in a work item type.
      *
-     * @param {string} processId
-     * @param {string} witRefName
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
      * @return IPromise<ProcessContracts.FieldModel[]>
      */
     getWorkItemTypeFields(processId: string, witRefName: string): IPromise<ProcessContracts.FieldModel[]>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a list of all fields in a process.
      *
-     * @param {string} processId
+     * @param {string} processId - The ID of the process
      * @return IPromise<ProcessContracts.FieldModel[]>
      */
     getFields(processId: string): IPromise<ProcessContracts.FieldModel[]>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a list of all behaviors in the process.
      *
-     * @param {string} processId
+     * @param {string} processId - The ID of the process
      * @param {ProcessContracts.GetBehaviorsExpand} expand
      * @return IPromise<ProcessContracts.WorkItemBehavior[]>
      */
     getBehaviors(processId: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior[]>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a behavior of the process.
      *
-     * @param {string} processId
-     * @param {string} behaviorRefName
+     * @param {string} processId - The ID of the process
+     * @param {string} behaviorRefName - Reference name of the behavior
      * @param {ProcessContracts.GetBehaviorsExpand} expand
      * @return IPromise<ProcessContracts.WorkItemBehavior>
      */
@@ -24429,19 +26723,19 @@ export class CommonMethods3_2To4_1 extends CommonMethods2_1To4_1 {
     protected statesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
-     * [Preview API]
+     * [Preview API] Returns a list of all state definitions in a work item type of the process.
      *
-     * @param {string} processId
-     * @param {string} witRefName
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
      * @return IPromise<ProcessContracts.WorkItemStateResultModel[]>
      */
     getStateDefinitions(processId: string, witRefName: string): IPromise<ProcessContracts.WorkItemStateResultModel[]>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a single state definition in a work item type of the process.
      *
-     * @param {string} processId
-     * @param {string} witRefName
-     * @param {string} stateId
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} stateId - The ID of the state
      * @return IPromise<ProcessContracts.WorkItemStateResultModel>
      */
     getStateDefinition(processId: string, witRefName: string, stateId: string): IPromise<ProcessContracts.WorkItemStateResultModel>;
@@ -24500,9 +26794,9 @@ export class WorkItemTrackingHttpClient extends WorkItemTrackingHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return WorkItemTrackingHttpClient4
+ * @return WorkItemTrackingHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkItemTrackingHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkItemTrackingHttpClient4_1;
 }
 declare module "TFS/WorkItemTracking/ProcessTemplateContracts" {
 /**
@@ -24626,7 +26920,7 @@ export interface ProcessPromoteStatus {
      */
     id: string;
     /**
-     * The error message assoicated with the promote operation.
+     * The error message assoicated with the promote operation. The string will be empty if there are no errors.
      */
     message: string;
     /**
@@ -24638,7 +26932,7 @@ export interface ProcessPromoteStatus {
      */
     remainingRetries: number;
     /**
-     * Indicates whether this promote operation is successful.
+     * True if promote finished all the projects successfully. False if still inprogress or any project promote failed.
      */
     successful: boolean;
 }
@@ -24672,29 +26966,29 @@ export class CommonMethods2_2To4_1 extends VSS_WebApi.VssHttpClient {
     protected processesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
-     * [Preview API] Whether promote has completed for the specified promote job id
+     * [Preview API] Tells whether promote has completed for the specified promote job ID.
      *
-     * @param {string} id
+     * @param {string} id - The ID of the promote job operation
      * @return IPromise<ProcessTemplateContracts.ProcessPromoteStatus>
      */
     importProcessTemplateStatus(id: string): IPromise<ProcessTemplateContracts.ProcessPromoteStatus>;
     /**
-     * [Preview API]
+     * [Preview API] Imports a process from zip file.
      *
      * @param {any} content - Content to upload
-     * @param {boolean} ignoreWarnings
+     * @param {boolean} ignoreWarnings - Default value is false
      * @return IPromise<ProcessTemplateContracts.ProcessImportResult>
      */
     importProcessTemplate(content: any, ignoreWarnings?: boolean): IPromise<ProcessTemplateContracts.ProcessImportResult>;
     /**
-     * [Preview API] Returns requested process template
+     * [Preview API] Returns requested process template.
      *
-     * @param {string} id
+     * @param {string} id - The ID of the process
      * @return IPromise<ArrayBuffer>
      */
     exportProcessTemplate(id: string): IPromise<ArrayBuffer>;
     /**
-     * [Preview API] Clone a xml process to an inherited process
+     * [Preview API] Clone a xml process to an inherited process.
      *
      * @param {string} SourceProcessId - The template type id of the source process
      * @param {string} TargetProcessName - The name for the new inherited process
@@ -24703,7 +26997,7 @@ export class CommonMethods2_2To4_1 extends VSS_WebApi.VssHttpClient {
      */
     cloneXmlToInherited(SourceProcessId: string, TargetProcessName: string, TargetProcessType: string): IPromise<string>;
     /**
-     * [Preview API] Check if process template exists
+     * [Preview API] Check if process template exists.
      *
      * @param {any} content - Content to upload
      * @return IPromise<ProcessTemplateContracts.CheckTemplateExistenceResult>
@@ -24714,17 +27008,17 @@ export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
     protected behaviorsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
-     * [Preview API]
+     * [Preview API] Returns a list of behaviors for the process.
      *
-     * @param {string} processId
+     * @param {string} processId - The ID of the process
      * @return IPromise<ProcessTemplateContracts.AdminBehavior[]>
      */
     getBehaviors(processId: string): IPromise<ProcessTemplateContracts.AdminBehavior[]>;
     /**
-     * [Preview API]
+     * [Preview API] Returns a behavior for the process.
      *
-     * @param {string} processId
-     * @param {string} behaviorRefName
+     * @param {string} processId - The ID of the process
+     * @param {string} behaviorRefName - The reference name of the behavior
      * @return IPromise<ProcessTemplateContracts.AdminBehavior>
      */
     getBehavior(processId: string, behaviorRefName: string): IPromise<ProcessTemplateContracts.AdminBehavior>;
@@ -24777,9 +27071,9 @@ export class WorkItemTrackingProcessTemplateHttpClient extends WorkItemTrackingP
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return WorkItemTrackingProcessTemplateHttpClient4
+ * @return WorkItemTrackingProcessTemplateHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkItemTrackingProcessTemplateHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkItemTrackingProcessTemplateHttpClient4_1;
 }
 declare module "TFS/WorkItemTracking/RestClient" {
 import Contracts = require("TFS/WorkItemTracking/Contracts");
@@ -24790,7 +27084,6 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
     protected accountMyWorkApiVersion: string;
     protected accountMyWorkRecentActivityApiVersion: string;
     protected accountRecentMentionsApiVersion: string;
-    protected attachmentsApiVersion: string;
     protected classificationNodesApiVersion: string;
     protected classificationNodesApiVersion_a70579d1: string;
     protected fieldsApiVersion: string;
@@ -24803,13 +27096,11 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
     protected workItemIconsApiVersion: string;
     protected workItemRelationTypesApiVersion: string;
     protected workItemsApiVersion: string;
-    protected workItemsApiVersion_72c7ddf8: string;
     protected workitemStateColorApiVersion: string;
     protected workItemTypeCategoriesApiVersion: string;
     protected workItemTypeColorAndIconApiVersion: string;
     protected workitemTypeColorApiVersion: string;
     protected workItemTypesApiVersion: string;
-    protected workItemTypesFieldApiVersion: string;
     protected workItemTypeStatesApiVersion: string;
     protected workItemTypeTemplateApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -24822,15 +27113,6 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.WorkItemStateColor[]>
      */
     getWorkItemTypeStates(project: string, type: string): IPromise<Contracts.WorkItemStateColor[]>;
-    /**
-     * Returns the dependent fields for the corresponding workitem type and fieldname.
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} type - The work item type name
-     * @param {string} field
-     * @return IPromise<Contracts.FieldDependentRule>
-     */
-    getDependentFields(project: string, type: string, field: string): IPromise<Contracts.FieldDependentRule>;
     /**
      * Returns the list of work item types
      *
@@ -24847,7 +27129,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      */
     getWorkItemType(project: string, type: string): IPromise<Contracts.WorkItemType>;
     /**
-     * Returns a the deltas between work item revisions.
+     * Get specific work item type category by name.
      *
      * @param {string} project - Project ID or project name
      * @param {string} category - The category name
@@ -24855,7 +27137,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      */
     getWorkItemTypeCategory(project: string, category: string): IPromise<Contracts.WorkItemTypeCategory>;
     /**
-     * Returns a the deltas between work item revisions.
+     * Get all work item type categories.
      *
      * @param {string} project - Project ID or project name
      * @return IPromise<Contracts.WorkItemTypeCategory[]>
@@ -24868,7 +27150,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * @param {string} type - The work item type name
      * @param {string} fields - Comma-separated list of requested fields
      * @param {Date} asOf - AsOf UTC date time string
-     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
      * @return IPromise<Contracts.WorkItem>
      */
     getWorkItemTemplate(project: string, type: string, fields?: string, asOf?: Date, expand?: Contracts.WorkItemExpand): IPromise<Contracts.WorkItem>;
@@ -24884,46 +27166,6 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.WorkItem>
      */
     createWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, project: string, type: string, validateOnly?: boolean, bypassRules?: boolean, suppressNotifications?: boolean): IPromise<Contracts.WorkItem>;
-    /**
-     * Updates a single work item.
-     *
-     * @param {VSS_Common_Contracts.JsonPatchDocument} document - The JSON Patch document representing the update
-     * @param {number} id - The id of the work item to update
-     * @param {boolean} validateOnly - Indicate if you only want to validate the changes without saving the work item
-     * @param {boolean} bypassRules - Do not enforce the work item type rules on this update
-     * @param {boolean} suppressNotifications - Do not fire any notifications for this change
-     * @return IPromise<Contracts.WorkItem>
-     */
-    updateWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, id: number, validateOnly?: boolean, bypassRules?: boolean, suppressNotifications?: boolean): IPromise<Contracts.WorkItem>;
-    /**
-     * Returns a list of work items.
-     *
-     * @param {number[]} ids - The comma-separated list of requested work item ids
-     * @param {string[]} fields - Comma-separated list of requested fields
-     * @param {Date} asOf - AsOf UTC date time string
-     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes
-     * @param {Contracts.WorkItemErrorPolicy} errorPolicy - The flag to control error policy in a bulk get work items request
-     * @return IPromise<Contracts.WorkItem[]>
-     */
-    getWorkItems(ids: number[], fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand, errorPolicy?: Contracts.WorkItemErrorPolicy): IPromise<Contracts.WorkItem[]>;
-    /**
-     * Returns a single work item.
-     *
-     * @param {number} id - The work item id
-     * @param {string[]} fields - Comma-separated list of requested fields
-     * @param {Date} asOf - AsOf UTC date time string
-     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes
-     * @return IPromise<Contracts.WorkItem>
-     */
-    getWorkItem(id: number, fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand): IPromise<Contracts.WorkItem>;
-    /**
-     * Deletes the specified work item and sends it to the Recycle Bin, so that it can be restored back, if required. Optionally, if the destroy parameter has been set to true, it destroys the work item permanently.
-     *
-     * @param {number} id - ID of the work item to be deleted
-     * @param {boolean} destroy - Optional parameter, if set to true, the work item is deleted permanently
-     * @return IPromise<Contracts.WorkItemDelete>
-     */
-    deleteWorkItem(id: number, destroy?: boolean): IPromise<Contracts.WorkItemDelete>;
     /**
      * Gets the work item relation types.
      *
@@ -25037,7 +27279,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      * @param {Contracts.QueryHierarchyItem} queryUpdate - The query to update.
      * @param {string} project - Project ID or project name
      * @param {string} query - The path for the query to update.
-     * @param {boolean} undeleteDescendants - Undelete the children of this folder.
+     * @param {boolean} undeleteDescendants - Undelete the children of this folder. It is important to note that this will not bring back the permission changes that were previously applied to the descendants.
      * @return IPromise<Contracts.QueryHierarchyItem>
      */
     updateQuery(queryUpdate: Contracts.QueryHierarchyItem, project: string, query: string, undeleteDescendants?: boolean): IPromise<Contracts.QueryHierarchyItem>;
@@ -25074,7 +27316,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      */
     getQueries(project: string, expand?: Contracts.QueryExpand, depth?: number, includeDeleted?: boolean): IPromise<Contracts.QueryHierarchyItem[]>;
     /**
-     * Delete a query or a folder
+     * Delete a query or a folder. This deletes any permission change on the deleted query or folder and any of its descendants if it is a folder. It is important to note that the deleted permission changes cannot be recovered upon undeleting the query or folder.
      *
      * @param {string} project - Project ID or project name
      * @param {string} query - ID or path of the query or folder to delete.
@@ -25172,31 +27414,15 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      */
     getRootNodes(project: string, depth?: number): IPromise<Contracts.WorkItemClassificationNode[]>;
     /**
-     * Downloads an attachment.
+     * Gets root classification nodes or list of classification nodes for a given list of nodes ids, for a given project. In case ids parameter is supplied you will  get list of classification nodes for those ids. Otherwise you will get root classification nodes for this project.
      *
-     * @param {string} id - Attachment ID
-     * @param {string} fileName - Name of the file
-     * @return IPromise<ArrayBuffer>
+     * @param {string} project - Project ID or project name
+     * @param {number[]} ids - Comma seperated integer classification nodes ids. It's not required, if you want root nodes.
+     * @param {number} depth - Depth of children to fetch.
+     * @param {Contracts.ClassificationNodesErrorPolicy} errorPolicy - Flag to handle errors in getting some nodes. Possible options are Fail and Omit.
+     * @return IPromise<Contracts.WorkItemClassificationNode[]>
      */
-    getAttachmentZip(id: string, fileName?: string): IPromise<ArrayBuffer>;
-    /**
-     * Downloads an attachment.
-     *
-     * @param {string} id - Attachment ID
-     * @param {string} fileName - Name of the file
-     * @return IPromise<ArrayBuffer>
-     */
-    getAttachmentContent(id: string, fileName?: string): IPromise<ArrayBuffer>;
-    /**
-     * Uploads an attachment.
-     *
-     * @param {any} content - Content to upload
-     * @param {string} fileName - The name of the file
-     * @param {string} uploadType - Attachment upload type: Simple or Chunked
-     * @param {string} areaPath - Target project Area Path
-     * @return IPromise<Contracts.AttachmentReference>
-     */
-    createAttachment(content: any, fileName?: string, uploadType?: string, areaPath?: string): IPromise<Contracts.AttachmentReference>;
+    getClassificationNodes(project: string, ids: number[], depth?: number, errorPolicy?: Contracts.ClassificationNodesErrorPolicy): IPromise<Contracts.WorkItemClassificationNode[]>;
 }
 export class CommonMethods2_1To4_1 extends CommonMethods2To4_1 {
     protected recyclebinApiVersion: string;
@@ -25219,13 +27445,6 @@ export class CommonMethods2_1To4_1 extends CommonMethods2To4_1 {
      */
     getDeletedWorkItems(ids: number[], project?: string): IPromise<Contracts.WorkItemDeleteReference[]>;
     /**
-     * Gets a list of the IDs and the URLs of the deleted the work items in the Recycle Bin.
-     *
-     * @param {string} project - Project ID or project name
-     * @return IPromise<Contracts.WorkItemReference[]>
-     */
-    getDeletedWorkItemReferences(project?: string): IPromise<Contracts.WorkItemReference[]>;
-    /**
      * Gets a deleted work item from Recycle Bin.
      *
      * @param {number} id - ID of the work item to be returned
@@ -25243,7 +27462,6 @@ export class CommonMethods2_1To4_1 extends CommonMethods2To4_1 {
     destroyWorkItem(id: number, project?: string): IPromise<void>;
 }
 export class CommonMethods2_2To4_1 extends CommonMethods2_1To4_1 {
-    protected workItemLinksApiVersion: string;
     protected workItemRevisionsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -25275,19 +27493,8 @@ export class CommonMethods2_2To4_1 extends CommonMethods2_1To4_1 {
      * @return IPromise<Contracts.ReportingWorkItemRevisionsBatch>
      */
     readReportingRevisionsGet(project?: string, fields?: string[], types?: string[], continuationToken?: string, startDateTime?: Date, includeIdentityRef?: boolean, includeDeleted?: boolean, includeTagRef?: boolean, includeLatestOnly?: boolean, expand?: Contracts.ReportingRevisionsExpand, includeDiscussionChangesOnly?: boolean, maxPageSize?: number): IPromise<Contracts.ReportingWorkItemRevisionsBatch>;
-    /**
-     * Get a batch of work item links
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
-     * @param {string} continuationToken - Specifies the continuationToken to start the batch from. Omit this parameter to get the first batch of links.
-     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
-     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
-     */
-    getReportingLinks(project?: string, types?: string[], continuationToken?: string, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
 }
 export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
-    protected commentsApiVersion: string;
     protected templatesApiVersion: string;
     protected templatesApiVersion_6a90345f: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -25337,36 +27544,10 @@ export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
      * @return IPromise<Contracts.WorkItemTemplate>
      */
     createTemplate(template: Contracts.WorkItemTemplate, project: string, team: string): IPromise<Contracts.WorkItemTemplate>;
-    /**
-     * [Preview API] Gets the specified number of comments for a work item from the specified revision.
-     *
-     * @param {number} id - Work item id
-     * @param {number} fromRevision - Revision from which comments are to be fetched
-     * @param {number} top - The number of comments to return
-     * @param {Contracts.CommentSortOrder} order - Ascending or descending by revision id
-     * @return IPromise<Contracts.WorkItemComments>
-     */
-    getComments(id: number, fromRevision?: number, top?: number, order?: Contracts.CommentSortOrder): IPromise<Contracts.WorkItemComments>;
-    /**
-     * [Preview API] Gets a comment for a work item at the specified revision.
-     *
-     * @param {number} id - Work item id
-     * @param {number} revision - Revision for which the comment need to be fetched
-     * @return IPromise<Contracts.WorkItemComment>
-     */
-    getComment(id: number, revision: number): IPromise<Contracts.WorkItemComment>;
 }
 export class CommonMethods3_2To4_1 extends CommonMethods3To4_1 {
     protected artifactLinkTypesApiVersion: string;
-    protected artifactUriQueryApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API] Queries work items linked to a given list of artifact URI.
-     *
-     * @param {Contracts.ArtifactUriQuery} artifactUriQuery - Defines a list of artifact URI for querying work items.
-     * @return IPromise<Contracts.ArtifactUriQueryResult>
-     */
-    queryWorkItemsForArtifactUris(artifactUriQuery: Contracts.ArtifactUriQuery): IPromise<Contracts.ArtifactUriQueryResult>;
     /**
      * [Preview API] Get the list of work item tracking outbound artifact link types.
      *
@@ -25374,11 +27555,136 @@ export class CommonMethods3_2To4_1 extends CommonMethods3To4_1 {
      */
     getWorkArtifactLinkTypes(): IPromise<Contracts.WorkArtifactLink[]>;
 }
+export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
+    protected workItemsApiVersion_72c7ddf8: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * Updates a single work item.
+     *
+     * @param {VSS_Common_Contracts.JsonPatchDocument} document - The JSON Patch document representing the update
+     * @param {number} id - The id of the work item to update
+     * @param {string} project - Project ID or project name
+     * @param {boolean} validateOnly - Indicate if you only want to validate the changes without saving the work item
+     * @param {boolean} bypassRules - Do not enforce the work item type rules on this update
+     * @param {boolean} suppressNotifications - Do not fire any notifications for this change
+     * @return IPromise<Contracts.WorkItem>
+     */
+    updateWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, id: number, project?: string, validateOnly?: boolean, bypassRules?: boolean, suppressNotifications?: boolean): IPromise<Contracts.WorkItem>;
+    /**
+     * Returns a list of work items.
+     *
+     * @param {number[]} ids - The comma-separated list of requested work item ids
+     * @param {string[]} fields - Comma-separated list of requested fields
+     * @param {Date} asOf - AsOf UTC date time string
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
+     * @param {Contracts.WorkItemErrorPolicy} errorPolicy - The flag to control error policy in a bulk get work items request. Possible options are {Fail, Omit}.
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItem[]>
+     */
+    getWorkItems(ids: number[], fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand, errorPolicy?: Contracts.WorkItemErrorPolicy, project?: string): IPromise<Contracts.WorkItem[]>;
+    /**
+     * Returns a single work item.
+     *
+     * @param {number} id - The work item id
+     * @param {string[]} fields - Comma-separated list of requested fields
+     * @param {Date} asOf - AsOf UTC date time string
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItem>
+     */
+    getWorkItem(id: number, fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand, project?: string): IPromise<Contracts.WorkItem>;
+    /**
+     * Deletes the specified work item and sends it to the Recycle Bin, so that it can be restored back, if required. Optionally, if the destroy parameter has been set to true, it destroys the work item permanently.
+     *
+     * @param {number} id - ID of the work item to be deleted
+     * @param {string} project - Project ID or project name
+     * @param {boolean} destroy - Optional parameter, if set to true, the work item is deleted permanently
+     * @return IPromise<Contracts.WorkItemDelete>
+     */
+    deleteWorkItem(id: number, project?: string, destroy?: boolean): IPromise<Contracts.WorkItemDelete>;
+}
 /**
  * @exemptedapi
  */
-export class WorkItemTrackingHttpClient4_1 extends CommonMethods3_2To4_1 {
+export class WorkItemTrackingHttpClient4_1 extends CommonMethods4To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Queries work items linked to a given list of artifact URI.
+     *
+     * @param {Contracts.ArtifactUriQuery} artifactUriQuery - Defines a list of artifact URI for querying work items.
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.ArtifactUriQueryResult>
+     */
+    queryWorkItemsForArtifactUris(artifactUriQuery: Contracts.ArtifactUriQuery, project?: string): IPromise<Contracts.ArtifactUriQueryResult>;
+    /**
+     * [Preview API] Uploads an attachment.
+     *
+     * @param {any} content - Content to upload
+     * @param {string} fileName - The name of the file
+     * @param {string} uploadType - Attachment upload type: Simple or Chunked
+     * @param {string} project - Project ID or project name
+     * @param {string} areaPath - Target project Area Path
+     * @return IPromise<Contracts.AttachmentReference>
+     */
+    createAttachment(content: any, fileName?: string, uploadType?: string, project?: string, areaPath?: string): IPromise<Contracts.AttachmentReference>;
+    /**
+     * [Preview API] Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {string} project - Project ID or project name
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentContent(id: string, fileName?: string, project?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API] Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {string} project - Project ID or project name
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentZip(id: string, fileName?: string, project?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API] Gets a comment for a work item at the specified revision.
+     *
+     * @param {number} id - Work item id
+     * @param {number} revision - Revision for which the comment need to be fetched
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemComment>
+     */
+    getComment(id: number, revision: number, project?: string): IPromise<Contracts.WorkItemComment>;
+    /**
+     * [Preview API] Gets the specified number of comments for a work item from the specified revision.
+     *
+     * @param {number} id - Work item id
+     * @param {number} fromRevision - Revision from which comments are to be fetched (default is 1)
+     * @param {number} top - The number of comments to return (default is 200)
+     * @param {Contracts.CommentSortOrder} order - Ascending or descending by revision id (default is ascending)
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemComments>
+     */
+    getComments(id: number, fromRevision?: number, top?: number, order?: Contracts.CommentSortOrder, project?: string): IPromise<Contracts.WorkItemComments>;
+    /**
+     * [Preview API] Gets a list of the IDs and the URLs of the deleted the work items in the Recycle Bin.
+     *
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemDeleteShallowReference[]>
+     */
+    getDeletedWorkItemShallowReferences(project?: string): IPromise<Contracts.WorkItemDeleteShallowReference[]>;
+    /**
+     * [Preview API] Get a batch of work item links
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string[]} linkTypes - A list of types to filter the results to specific link types. Omit this parameter to get work item links of all link types.
+     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
+     * @param {string} continuationToken - Specifies the continuationToken to start the batch from. Omit this parameter to get the first batch of links.
+     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
+     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
+     */
+    getReportingLinksByLinkType(project?: string, linkTypes?: string[], types?: string[], continuationToken?: string, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
     /**
      * [Preview API] Returns the next state on the given work item IDs.
      *
@@ -25387,28 +27693,404 @@ export class WorkItemTrackingHttpClient4_1 extends CommonMethods3_2To4_1 {
      * @return IPromise<Contracts.WorkItemNextStateOnTransition[]>
      */
     getWorkItemNextStatesOnCheckinAction(ids: number[], action?: string): IPromise<Contracts.WorkItemNextStateOnTransition[]>;
+    /**
+     * [Preview API] Get a list of fields for a work item type with detailed references.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} type - Work item type.
+     * @param {Contracts.WorkItemTypeFieldsExpandLevel} expand - Expand level for the API response. Properties: to include allowedvalues, default value, isRequired etc. as a part of response; None: to skip these properties.
+     * @return IPromise<Contracts.WorkItemTypeFieldWithReferences[]>
+     */
+    getWorkItemTypeFieldsWithReferences(project: string, type: string, expand?: Contracts.WorkItemTypeFieldsExpandLevel): IPromise<Contracts.WorkItemTypeFieldWithReferences[]>;
+    /**
+     * [Preview API] Get a field for a work item type with detailed references.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} type - Work item type.
+     * @param {string} field
+     * @param {Contracts.WorkItemTypeFieldsExpandLevel} expand - Expand level for the API response. Properties: to include allowedvalues, default value, isRequired etc. as a part of response; None: to skip these properties.
+     * @return IPromise<Contracts.WorkItemTypeFieldWithReferences>
+     */
+    getWorkItemTypeFieldWithReferences(project: string, type: string, field: string, expand?: Contracts.WorkItemTypeFieldsExpandLevel): IPromise<Contracts.WorkItemTypeFieldWithReferences>;
 }
-/**
- * @exemptedapi
- */
-export class WorkItemTrackingHttpClient4 extends CommonMethods3_2To4_1 {
+export class WorkItemTrackingHttpClient4 extends CommonMethods4To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * @exemptedapi
+     * [Preview API] Queries work items linked to a given list of artifact URI.
+     *
+     * @param {Contracts.ArtifactUriQuery} artifactUriQuery - Defines a list of artifact URI for querying work items.
+     * @return IPromise<Contracts.ArtifactUriQueryResult>
+     */
+    queryWorkItemsForArtifactUris(artifactUriQuery: Contracts.ArtifactUriQuery): IPromise<Contracts.ArtifactUriQueryResult>;
+    /**
+     * Uploads an attachment.
+     *
+     * @param {any} content - Content to upload
+     * @param {string} fileName - The name of the file
+     * @param {string} uploadType - Attachment upload type: Simple or Chunked
+     * @param {string} areaPath - Target project Area Path
+     * @return IPromise<Contracts.AttachmentReference>
+     */
+    createAttachment(content: any, fileName?: string, uploadType?: string, areaPath?: string): IPromise<Contracts.AttachmentReference>;
+    /**
+     * Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentContent(id: string, fileName?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentZip(id: string, fileName?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * @exemptedapi
+     * [Preview API] Gets a comment for a work item at the specified revision.
+     *
+     * @param {number} id - Work item id
+     * @param {number} revision - Revision for which the comment need to be fetched
+     * @return IPromise<Contracts.WorkItemComment>
+     */
+    getComment(id: number, revision: number): IPromise<Contracts.WorkItemComment>;
+    /**
+     * @exemptedapi
+     * [Preview API] Gets the specified number of comments for a work item from the specified revision.
+     *
+     * @param {number} id - Work item id
+     * @param {number} fromRevision - Revision from which comments are to be fetched (default is 1)
+     * @param {number} top - The number of comments to return (default is 200)
+     * @param {Contracts.CommentSortOrder} order - Ascending or descending by revision id (default is ascending)
+     * @return IPromise<Contracts.WorkItemComments>
+     */
+    getComments(id: number, fromRevision?: number, top?: number, order?: Contracts.CommentSortOrder): IPromise<Contracts.WorkItemComments>;
+    /**
+     * Gets a list of the IDs and the URLs of the deleted the work items in the Recycle Bin.
+     *
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemReference[]>
+     */
+    getDeletedWorkItemReferences(project?: string): IPromise<Contracts.WorkItemReference[]>;
+    /**
+     * Get a batch of work item links
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
+     * @param {string} continuationToken - Specifies the continuationToken to start the batch from. Omit this parameter to get the first batch of links.
+     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
+     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
+     */
+    getReportingLinks(project?: string, types?: string[], continuationToken?: string, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
+    /**
+     * Returns the dependent fields for the corresponding workitem type and fieldname.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} type - The work item type name
+     * @param {string} field
+     * @return IPromise<Contracts.FieldDependentRule>
+     */
+    getDependentFields(project: string, type: string, field: string): IPromise<Contracts.FieldDependentRule>;
 }
-/**
- * @exemptedapi
- */
 export class WorkItemTrackingHttpClient3_2 extends CommonMethods3_2To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * @exemptedapi
+     * [Preview API] Queries work items linked to a given list of artifact URI.
+     *
+     * @param {Contracts.ArtifactUriQuery} artifactUriQuery - Defines a list of artifact URI for querying work items.
+     * @return IPromise<Contracts.ArtifactUriQueryResult>
+     */
+    queryWorkItemsForArtifactUris(artifactUriQuery: Contracts.ArtifactUriQuery): IPromise<Contracts.ArtifactUriQueryResult>;
+    /**
+     * Uploads an attachment.
+     *
+     * @param {any} content - Content to upload
+     * @param {string} fileName - The name of the file
+     * @param {string} uploadType - Attachment upload type: Simple or Chunked
+     * @param {string} areaPath - Target project Area Path
+     * @return IPromise<Contracts.AttachmentReference>
+     */
+    createAttachment(content: any, fileName?: string, uploadType?: string, areaPath?: string): IPromise<Contracts.AttachmentReference>;
+    /**
+     * Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentContent(id: string, fileName?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentZip(id: string, fileName?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * @exemptedapi
+     * [Preview API] Gets a comment for a work item at the specified revision.
+     *
+     * @param {number} id - Work item id
+     * @param {number} revision - Revision for which the comment need to be fetched
+     * @return IPromise<Contracts.WorkItemComment>
+     */
+    getComment(id: number, revision: number): IPromise<Contracts.WorkItemComment>;
+    /**
+     * @exemptedapi
+     * [Preview API] Gets the specified number of comments for a work item from the specified revision.
+     *
+     * @param {number} id - Work item id
+     * @param {number} fromRevision - Revision from which comments are to be fetched (default is 1)
+     * @param {number} top - The number of comments to return (default is 200)
+     * @param {Contracts.CommentSortOrder} order - Ascending or descending by revision id (default is ascending)
+     * @return IPromise<Contracts.WorkItemComments>
+     */
+    getComments(id: number, fromRevision?: number, top?: number, order?: Contracts.CommentSortOrder): IPromise<Contracts.WorkItemComments>;
+    /**
+     * Gets a list of the IDs and the URLs of the deleted the work items in the Recycle Bin.
+     *
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemReference[]>
+     */
+    getDeletedWorkItemReferences(project?: string): IPromise<Contracts.WorkItemReference[]>;
+    /**
+     * Get a batch of work item links
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
+     * @param {string} continuationToken - Specifies the continuationToken to start the batch from. Omit this parameter to get the first batch of links.
+     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
+     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
+     */
+    getReportingLinks(project?: string, types?: string[], continuationToken?: string, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
+    /**
+     * Deletes the specified work item and sends it to the Recycle Bin, so that it can be restored back, if required. Optionally, if the destroy parameter has been set to true, it destroys the work item permanently.
+     *
+     * @param {number} id - ID of the work item to be deleted
+     * @param {boolean} destroy - Optional parameter, if set to true, the work item is deleted permanently
+     * @return IPromise<Contracts.WorkItemDelete>
+     */
+    deleteWorkItem(id: number, destroy?: boolean): IPromise<Contracts.WorkItemDelete>;
+    /**
+     * Returns a single work item.
+     *
+     * @param {number} id - The work item id
+     * @param {string[]} fields - Comma-separated list of requested fields
+     * @param {Date} asOf - AsOf UTC date time string
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
+     * @return IPromise<Contracts.WorkItem>
+     */
+    getWorkItem(id: number, fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand): IPromise<Contracts.WorkItem>;
+    /**
+     * Returns a list of work items.
+     *
+     * @param {number[]} ids - The comma-separated list of requested work item ids
+     * @param {string[]} fields - Comma-separated list of requested fields
+     * @param {Date} asOf - AsOf UTC date time string
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
+     * @param {Contracts.WorkItemErrorPolicy} errorPolicy - The flag to control error policy in a bulk get work items request. Possible options are {Fail, Omit}.
+     * @return IPromise<Contracts.WorkItem[]>
+     */
+    getWorkItems(ids: number[], fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand, errorPolicy?: Contracts.WorkItemErrorPolicy): IPromise<Contracts.WorkItem[]>;
+    /**
+     * Updates a single work item.
+     *
+     * @param {VSS_Common_Contracts.JsonPatchDocument} document - The JSON Patch document representing the update
+     * @param {number} id - The id of the work item to update
+     * @param {boolean} validateOnly - Indicate if you only want to validate the changes without saving the work item
+     * @param {boolean} bypassRules - Do not enforce the work item type rules on this update
+     * @param {boolean} suppressNotifications - Do not fire any notifications for this change
+     * @return IPromise<Contracts.WorkItem>
+     */
+    updateWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, id: number, validateOnly?: boolean, bypassRules?: boolean, suppressNotifications?: boolean): IPromise<Contracts.WorkItem>;
+    /**
+     * Returns the dependent fields for the corresponding workitem type and fieldname.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} type - The work item type name
+     * @param {string} field
+     * @return IPromise<Contracts.FieldDependentRule>
+     */
+    getDependentFields(project: string, type: string, field: string): IPromise<Contracts.FieldDependentRule>;
 }
-/**
- * @exemptedapi
- */
 export class WorkItemTrackingHttpClient3_1 extends CommonMethods3To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * Uploads an attachment.
+     *
+     * @param {any} content - Content to upload
+     * @param {string} fileName - The name of the file
+     * @param {string} uploadType - Attachment upload type: Simple or Chunked
+     * @param {string} areaPath - Target project Area Path
+     * @return IPromise<Contracts.AttachmentReference>
+     */
+    createAttachment(content: any, fileName?: string, uploadType?: string, areaPath?: string): IPromise<Contracts.AttachmentReference>;
+    /**
+     * Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentContent(id: string, fileName?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentZip(id: string, fileName?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * @exemptedapi
+     * [Preview API] Gets a comment for a work item at the specified revision.
+     *
+     * @param {number} id - Work item id
+     * @param {number} revision - Revision for which the comment need to be fetched
+     * @return IPromise<Contracts.WorkItemComment>
+     */
+    getComment(id: number, revision: number): IPromise<Contracts.WorkItemComment>;
+    /**
+     * @exemptedapi
+     * [Preview API] Gets the specified number of comments for a work item from the specified revision.
+     *
+     * @param {number} id - Work item id
+     * @param {number} fromRevision - Revision from which comments are to be fetched (default is 1)
+     * @param {number} top - The number of comments to return (default is 200)
+     * @param {Contracts.CommentSortOrder} order - Ascending or descending by revision id (default is ascending)
+     * @return IPromise<Contracts.WorkItemComments>
+     */
+    getComments(id: number, fromRevision?: number, top?: number, order?: Contracts.CommentSortOrder): IPromise<Contracts.WorkItemComments>;
+    /**
+     * Gets a list of the IDs and the URLs of the deleted the work items in the Recycle Bin.
+     *
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemReference[]>
+     */
+    getDeletedWorkItemReferences(project?: string): IPromise<Contracts.WorkItemReference[]>;
+    /**
+     * Get a batch of work item links
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
+     * @param {string} continuationToken - Specifies the continuationToken to start the batch from. Omit this parameter to get the first batch of links.
+     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
+     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
+     */
+    getReportingLinks(project?: string, types?: string[], continuationToken?: string, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
+    /**
+     * Deletes the specified work item and sends it to the Recycle Bin, so that it can be restored back, if required. Optionally, if the destroy parameter has been set to true, it destroys the work item permanently.
+     *
+     * @param {number} id - ID of the work item to be deleted
+     * @param {boolean} destroy - Optional parameter, if set to true, the work item is deleted permanently
+     * @return IPromise<Contracts.WorkItemDelete>
+     */
+    deleteWorkItem(id: number, destroy?: boolean): IPromise<Contracts.WorkItemDelete>;
+    /**
+     * Returns a single work item.
+     *
+     * @param {number} id - The work item id
+     * @param {string[]} fields - Comma-separated list of requested fields
+     * @param {Date} asOf - AsOf UTC date time string
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
+     * @return IPromise<Contracts.WorkItem>
+     */
+    getWorkItem(id: number, fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand): IPromise<Contracts.WorkItem>;
+    /**
+     * Returns a list of work items.
+     *
+     * @param {number[]} ids - The comma-separated list of requested work item ids
+     * @param {string[]} fields - Comma-separated list of requested fields
+     * @param {Date} asOf - AsOf UTC date time string
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
+     * @param {Contracts.WorkItemErrorPolicy} errorPolicy - The flag to control error policy in a bulk get work items request. Possible options are {Fail, Omit}.
+     * @return IPromise<Contracts.WorkItem[]>
+     */
+    getWorkItems(ids: number[], fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand, errorPolicy?: Contracts.WorkItemErrorPolicy): IPromise<Contracts.WorkItem[]>;
+    /**
+     * Updates a single work item.
+     *
+     * @param {VSS_Common_Contracts.JsonPatchDocument} document - The JSON Patch document representing the update
+     * @param {number} id - The id of the work item to update
+     * @param {boolean} validateOnly - Indicate if you only want to validate the changes without saving the work item
+     * @param {boolean} bypassRules - Do not enforce the work item type rules on this update
+     * @param {boolean} suppressNotifications - Do not fire any notifications for this change
+     * @return IPromise<Contracts.WorkItem>
+     */
+    updateWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, id: number, validateOnly?: boolean, bypassRules?: boolean, suppressNotifications?: boolean): IPromise<Contracts.WorkItem>;
+    /**
+     * Returns the dependent fields for the corresponding workitem type and fieldname.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} type - The work item type name
+     * @param {string} field
+     * @return IPromise<Contracts.FieldDependentRule>
+     */
+    getDependentFields(project: string, type: string, field: string): IPromise<Contracts.FieldDependentRule>;
 }
 export class WorkItemTrackingHttpClient3 extends CommonMethods3To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
+     * Uploads an attachment.
+     *
+     * @param {any} content - Content to upload
+     * @param {string} fileName - The name of the file
+     * @param {string} uploadType - Attachment upload type: Simple or Chunked
+     * @param {string} areaPath - Target project Area Path
+     * @return IPromise<Contracts.AttachmentReference>
+     */
+    createAttachment(content: any, fileName?: string, uploadType?: string, areaPath?: string): IPromise<Contracts.AttachmentReference>;
+    /**
+     * Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentContent(id: string, fileName?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentZip(id: string, fileName?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * @exemptedapi
+     * [Preview API] Gets a comment for a work item at the specified revision.
+     *
+     * @param {number} id - Work item id
+     * @param {number} revision - Revision for which the comment need to be fetched
+     * @return IPromise<Contracts.WorkItemComment>
+     */
+    getComment(id: number, revision: number): IPromise<Contracts.WorkItemComment>;
+    /**
+     * @exemptedapi
+     * [Preview API] Gets the specified number of comments for a work item from the specified revision.
+     *
+     * @param {number} id - Work item id
+     * @param {number} fromRevision - Revision from which comments are to be fetched (default is 1)
+     * @param {number} top - The number of comments to return (default is 200)
+     * @param {Contracts.CommentSortOrder} order - Ascending or descending by revision id (default is ascending)
+     * @return IPromise<Contracts.WorkItemComments>
+     */
+    getComments(id: number, fromRevision?: number, top?: number, order?: Contracts.CommentSortOrder): IPromise<Contracts.WorkItemComments>;
+    /**
      * Returns history of all revision for a given work item ID
      *
      * @param {number} id
@@ -25425,10 +28107,104 @@ export class WorkItemTrackingHttpClient3 extends CommonMethods3To4_1 {
      * @return IPromise<Contracts.WorkItemHistory>
      */
     getHistoryById(id: number, revisionNumber: number): IPromise<Contracts.WorkItemHistory>;
+    /**
+     * Gets a list of the IDs and the URLs of the deleted the work items in the Recycle Bin.
+     *
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemReference[]>
+     */
+    getDeletedWorkItemReferences(project?: string): IPromise<Contracts.WorkItemReference[]>;
+    /**
+     * Get a batch of work item links
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
+     * @param {string} continuationToken - Specifies the continuationToken to start the batch from. Omit this parameter to get the first batch of links.
+     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
+     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
+     */
+    getReportingLinks(project?: string, types?: string[], continuationToken?: string, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
+    /**
+     * Deletes the specified work item and sends it to the Recycle Bin, so that it can be restored back, if required. Optionally, if the destroy parameter has been set to true, it destroys the work item permanently.
+     *
+     * @param {number} id - ID of the work item to be deleted
+     * @param {boolean} destroy - Optional parameter, if set to true, the work item is deleted permanently
+     * @return IPromise<Contracts.WorkItemDelete>
+     */
+    deleteWorkItem(id: number, destroy?: boolean): IPromise<Contracts.WorkItemDelete>;
+    /**
+     * Returns a single work item.
+     *
+     * @param {number} id - The work item id
+     * @param {string[]} fields - Comma-separated list of requested fields
+     * @param {Date} asOf - AsOf UTC date time string
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
+     * @return IPromise<Contracts.WorkItem>
+     */
+    getWorkItem(id: number, fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand): IPromise<Contracts.WorkItem>;
+    /**
+     * Returns a list of work items.
+     *
+     * @param {number[]} ids - The comma-separated list of requested work item ids
+     * @param {string[]} fields - Comma-separated list of requested fields
+     * @param {Date} asOf - AsOf UTC date time string
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
+     * @param {Contracts.WorkItemErrorPolicy} errorPolicy - The flag to control error policy in a bulk get work items request. Possible options are {Fail, Omit}.
+     * @return IPromise<Contracts.WorkItem[]>
+     */
+    getWorkItems(ids: number[], fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand, errorPolicy?: Contracts.WorkItemErrorPolicy): IPromise<Contracts.WorkItem[]>;
+    /**
+     * Updates a single work item.
+     *
+     * @param {VSS_Common_Contracts.JsonPatchDocument} document - The JSON Patch document representing the update
+     * @param {number} id - The id of the work item to update
+     * @param {boolean} validateOnly - Indicate if you only want to validate the changes without saving the work item
+     * @param {boolean} bypassRules - Do not enforce the work item type rules on this update
+     * @param {boolean} suppressNotifications - Do not fire any notifications for this change
+     * @return IPromise<Contracts.WorkItem>
+     */
+    updateWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, id: number, validateOnly?: boolean, bypassRules?: boolean, suppressNotifications?: boolean): IPromise<Contracts.WorkItem>;
+    /**
+     * Returns the dependent fields for the corresponding workitem type and fieldname.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} type - The work item type name
+     * @param {string} field
+     * @return IPromise<Contracts.FieldDependentRule>
+     */
+    getDependentFields(project: string, type: string, field: string): IPromise<Contracts.FieldDependentRule>;
 }
 export class WorkItemTrackingHttpClient2_3 extends CommonMethods2_2To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
+     * Uploads an attachment.
+     *
+     * @param {any} content - Content to upload
+     * @param {string} fileName - The name of the file
+     * @param {string} uploadType - Attachment upload type: Simple or Chunked
+     * @param {string} areaPath - Target project Area Path
+     * @return IPromise<Contracts.AttachmentReference>
+     */
+    createAttachment(content: any, fileName?: string, uploadType?: string, areaPath?: string): IPromise<Contracts.AttachmentReference>;
+    /**
+     * Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentContent(id: string, fileName?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentZip(id: string, fileName?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
      * Returns history of all revision for a given work item ID
      *
      * @param {number} id
@@ -25445,10 +28221,104 @@ export class WorkItemTrackingHttpClient2_3 extends CommonMethods2_2To4_1 {
      * @return IPromise<Contracts.WorkItemHistory>
      */
     getHistoryById(id: number, revisionNumber: number): IPromise<Contracts.WorkItemHistory>;
+    /**
+     * Gets a list of the IDs and the URLs of the deleted the work items in the Recycle Bin.
+     *
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemReference[]>
+     */
+    getDeletedWorkItemReferences(project?: string): IPromise<Contracts.WorkItemReference[]>;
+    /**
+     * Get a batch of work item links
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
+     * @param {string} continuationToken - Specifies the continuationToken to start the batch from. Omit this parameter to get the first batch of links.
+     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
+     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
+     */
+    getReportingLinks(project?: string, types?: string[], continuationToken?: string, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
+    /**
+     * Deletes the specified work item and sends it to the Recycle Bin, so that it can be restored back, if required. Optionally, if the destroy parameter has been set to true, it destroys the work item permanently.
+     *
+     * @param {number} id - ID of the work item to be deleted
+     * @param {boolean} destroy - Optional parameter, if set to true, the work item is deleted permanently
+     * @return IPromise<Contracts.WorkItemDelete>
+     */
+    deleteWorkItem(id: number, destroy?: boolean): IPromise<Contracts.WorkItemDelete>;
+    /**
+     * Returns a single work item.
+     *
+     * @param {number} id - The work item id
+     * @param {string[]} fields - Comma-separated list of requested fields
+     * @param {Date} asOf - AsOf UTC date time string
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
+     * @return IPromise<Contracts.WorkItem>
+     */
+    getWorkItem(id: number, fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand): IPromise<Contracts.WorkItem>;
+    /**
+     * Returns a list of work items.
+     *
+     * @param {number[]} ids - The comma-separated list of requested work item ids
+     * @param {string[]} fields - Comma-separated list of requested fields
+     * @param {Date} asOf - AsOf UTC date time string
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
+     * @param {Contracts.WorkItemErrorPolicy} errorPolicy - The flag to control error policy in a bulk get work items request. Possible options are {Fail, Omit}.
+     * @return IPromise<Contracts.WorkItem[]>
+     */
+    getWorkItems(ids: number[], fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand, errorPolicy?: Contracts.WorkItemErrorPolicy): IPromise<Contracts.WorkItem[]>;
+    /**
+     * Updates a single work item.
+     *
+     * @param {VSS_Common_Contracts.JsonPatchDocument} document - The JSON Patch document representing the update
+     * @param {number} id - The id of the work item to update
+     * @param {boolean} validateOnly - Indicate if you only want to validate the changes without saving the work item
+     * @param {boolean} bypassRules - Do not enforce the work item type rules on this update
+     * @param {boolean} suppressNotifications - Do not fire any notifications for this change
+     * @return IPromise<Contracts.WorkItem>
+     */
+    updateWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, id: number, validateOnly?: boolean, bypassRules?: boolean, suppressNotifications?: boolean): IPromise<Contracts.WorkItem>;
+    /**
+     * Returns the dependent fields for the corresponding workitem type and fieldname.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} type - The work item type name
+     * @param {string} field
+     * @return IPromise<Contracts.FieldDependentRule>
+     */
+    getDependentFields(project: string, type: string, field: string): IPromise<Contracts.FieldDependentRule>;
 }
 export class WorkItemTrackingHttpClient2_2 extends CommonMethods2_2To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
+     * Uploads an attachment.
+     *
+     * @param {any} content - Content to upload
+     * @param {string} fileName - The name of the file
+     * @param {string} uploadType - Attachment upload type: Simple or Chunked
+     * @param {string} areaPath - Target project Area Path
+     * @return IPromise<Contracts.AttachmentReference>
+     */
+    createAttachment(content: any, fileName?: string, uploadType?: string, areaPath?: string): IPromise<Contracts.AttachmentReference>;
+    /**
+     * Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentContent(id: string, fileName?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentZip(id: string, fileName?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
      * Returns history of all revision for a given work item ID
      *
      * @param {number} id
@@ -25465,10 +28335,104 @@ export class WorkItemTrackingHttpClient2_2 extends CommonMethods2_2To4_1 {
      * @return IPromise<Contracts.WorkItemHistory>
      */
     getHistoryById(id: number, revisionNumber: number): IPromise<Contracts.WorkItemHistory>;
+    /**
+     * Gets a list of the IDs and the URLs of the deleted the work items in the Recycle Bin.
+     *
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemReference[]>
+     */
+    getDeletedWorkItemReferences(project?: string): IPromise<Contracts.WorkItemReference[]>;
+    /**
+     * Get a batch of work item links
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
+     * @param {string} continuationToken - Specifies the continuationToken to start the batch from. Omit this parameter to get the first batch of links.
+     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
+     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
+     */
+    getReportingLinks(project?: string, types?: string[], continuationToken?: string, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
+    /**
+     * Deletes the specified work item and sends it to the Recycle Bin, so that it can be restored back, if required. Optionally, if the destroy parameter has been set to true, it destroys the work item permanently.
+     *
+     * @param {number} id - ID of the work item to be deleted
+     * @param {boolean} destroy - Optional parameter, if set to true, the work item is deleted permanently
+     * @return IPromise<Contracts.WorkItemDelete>
+     */
+    deleteWorkItem(id: number, destroy?: boolean): IPromise<Contracts.WorkItemDelete>;
+    /**
+     * Returns a single work item.
+     *
+     * @param {number} id - The work item id
+     * @param {string[]} fields - Comma-separated list of requested fields
+     * @param {Date} asOf - AsOf UTC date time string
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
+     * @return IPromise<Contracts.WorkItem>
+     */
+    getWorkItem(id: number, fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand): IPromise<Contracts.WorkItem>;
+    /**
+     * Returns a list of work items.
+     *
+     * @param {number[]} ids - The comma-separated list of requested work item ids
+     * @param {string[]} fields - Comma-separated list of requested fields
+     * @param {Date} asOf - AsOf UTC date time string
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
+     * @param {Contracts.WorkItemErrorPolicy} errorPolicy - The flag to control error policy in a bulk get work items request. Possible options are {Fail, Omit}.
+     * @return IPromise<Contracts.WorkItem[]>
+     */
+    getWorkItems(ids: number[], fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand, errorPolicy?: Contracts.WorkItemErrorPolicy): IPromise<Contracts.WorkItem[]>;
+    /**
+     * Updates a single work item.
+     *
+     * @param {VSS_Common_Contracts.JsonPatchDocument} document - The JSON Patch document representing the update
+     * @param {number} id - The id of the work item to update
+     * @param {boolean} validateOnly - Indicate if you only want to validate the changes without saving the work item
+     * @param {boolean} bypassRules - Do not enforce the work item type rules on this update
+     * @param {boolean} suppressNotifications - Do not fire any notifications for this change
+     * @return IPromise<Contracts.WorkItem>
+     */
+    updateWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, id: number, validateOnly?: boolean, bypassRules?: boolean, suppressNotifications?: boolean): IPromise<Contracts.WorkItem>;
+    /**
+     * Returns the dependent fields for the corresponding workitem type and fieldname.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} type - The work item type name
+     * @param {string} field
+     * @return IPromise<Contracts.FieldDependentRule>
+     */
+    getDependentFields(project: string, type: string, field: string): IPromise<Contracts.FieldDependentRule>;
 }
 export class WorkItemTrackingHttpClient2_1 extends CommonMethods2_1To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
+     * Uploads an attachment.
+     *
+     * @param {any} content - Content to upload
+     * @param {string} fileName - The name of the file
+     * @param {string} uploadType - Attachment upload type: Simple or Chunked
+     * @param {string} areaPath - Target project Area Path
+     * @return IPromise<Contracts.AttachmentReference>
+     */
+    createAttachment(content: any, fileName?: string, uploadType?: string, areaPath?: string): IPromise<Contracts.AttachmentReference>;
+    /**
+     * Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentContent(id: string, fileName?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentZip(id: string, fileName?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
      * Returns history of all revision for a given work item ID
      *
      * @param {number} id
@@ -25485,6 +28449,13 @@ export class WorkItemTrackingHttpClient2_1 extends CommonMethods2_1To4_1 {
      * @return IPromise<Contracts.WorkItemHistory>
      */
     getHistoryById(id: number, revisionNumber: number): IPromise<Contracts.WorkItemHistory>;
+    /**
+     * Gets a list of the IDs and the URLs of the deleted the work items in the Recycle Bin.
+     *
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemReference[]>
+     */
+    getDeletedWorkItemReferences(project?: string): IPromise<Contracts.WorkItemReference[]>;
     /**
      * Get a batch of work item links
      *
@@ -25518,10 +28489,87 @@ export class WorkItemTrackingHttpClient2_1 extends CommonMethods2_1To4_1 {
      * @return IPromise<Contracts.ReportingWorkItemRevisionsBatch>
      */
     readReportingRevisionsPost(filter: Contracts.ReportingWorkItemRevisionsFilter, project?: string, watermark?: number, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemRevisionsBatch>;
+    /**
+     * Deletes the specified work item and sends it to the Recycle Bin, so that it can be restored back, if required. Optionally, if the destroy parameter has been set to true, it destroys the work item permanently.
+     *
+     * @param {number} id - ID of the work item to be deleted
+     * @param {boolean} destroy - Optional parameter, if set to true, the work item is deleted permanently
+     * @return IPromise<Contracts.WorkItemDelete>
+     */
+    deleteWorkItem(id: number, destroy?: boolean): IPromise<Contracts.WorkItemDelete>;
+    /**
+     * Returns a single work item.
+     *
+     * @param {number} id - The work item id
+     * @param {string[]} fields - Comma-separated list of requested fields
+     * @param {Date} asOf - AsOf UTC date time string
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
+     * @return IPromise<Contracts.WorkItem>
+     */
+    getWorkItem(id: number, fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand): IPromise<Contracts.WorkItem>;
+    /**
+     * Returns a list of work items.
+     *
+     * @param {number[]} ids - The comma-separated list of requested work item ids
+     * @param {string[]} fields - Comma-separated list of requested fields
+     * @param {Date} asOf - AsOf UTC date time string
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
+     * @param {Contracts.WorkItemErrorPolicy} errorPolicy - The flag to control error policy in a bulk get work items request. Possible options are {Fail, Omit}.
+     * @return IPromise<Contracts.WorkItem[]>
+     */
+    getWorkItems(ids: number[], fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand, errorPolicy?: Contracts.WorkItemErrorPolicy): IPromise<Contracts.WorkItem[]>;
+    /**
+     * Updates a single work item.
+     *
+     * @param {VSS_Common_Contracts.JsonPatchDocument} document - The JSON Patch document representing the update
+     * @param {number} id - The id of the work item to update
+     * @param {boolean} validateOnly - Indicate if you only want to validate the changes without saving the work item
+     * @param {boolean} bypassRules - Do not enforce the work item type rules on this update
+     * @param {boolean} suppressNotifications - Do not fire any notifications for this change
+     * @return IPromise<Contracts.WorkItem>
+     */
+    updateWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, id: number, validateOnly?: boolean, bypassRules?: boolean, suppressNotifications?: boolean): IPromise<Contracts.WorkItem>;
+    /**
+     * Returns the dependent fields for the corresponding workitem type and fieldname.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} type - The work item type name
+     * @param {string} field
+     * @return IPromise<Contracts.FieldDependentRule>
+     */
+    getDependentFields(project: string, type: string, field: string): IPromise<Contracts.FieldDependentRule>;
 }
 export class WorkItemTrackingHttpClient2 extends CommonMethods2To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
+     * Uploads an attachment.
+     *
+     * @param {any} content - Content to upload
+     * @param {string} fileName - The name of the file
+     * @param {string} uploadType - Attachment upload type: Simple or Chunked
+     * @param {string} areaPath - Target project Area Path
+     * @return IPromise<Contracts.AttachmentReference>
+     */
+    createAttachment(content: any, fileName?: string, uploadType?: string, areaPath?: string): IPromise<Contracts.AttachmentReference>;
+    /**
+     * Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentContent(id: string, fileName?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
+     * Downloads an attachment.
+     *
+     * @param {string} id - Attachment ID
+     * @param {string} fileName - Name of the file
+     * @param {boolean} download - If set to <c>true</c> always download attachment
+     * @return IPromise<ArrayBuffer>
+     */
+    getAttachmentZip(id: string, fileName?: string, download?: boolean): IPromise<ArrayBuffer>;
+    /**
      * Returns history of all revision for a given work item ID
      *
      * @param {number} id
@@ -25571,6 +28619,55 @@ export class WorkItemTrackingHttpClient2 extends CommonMethods2To4_1 {
      * @return IPromise<Contracts.ReportingWorkItemRevisionsBatch>
      */
     readReportingRevisionsPost(filter: Contracts.ReportingWorkItemRevisionsFilter, project?: string, watermark?: number, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemRevisionsBatch>;
+    /**
+     * Deletes the specified work item and sends it to the Recycle Bin, so that it can be restored back, if required. Optionally, if the destroy parameter has been set to true, it destroys the work item permanently.
+     *
+     * @param {number} id - ID of the work item to be deleted
+     * @param {boolean} destroy - Optional parameter, if set to true, the work item is deleted permanently
+     * @return IPromise<Contracts.WorkItemDelete>
+     */
+    deleteWorkItem(id: number, destroy?: boolean): IPromise<Contracts.WorkItemDelete>;
+    /**
+     * Returns a single work item.
+     *
+     * @param {number} id - The work item id
+     * @param {string[]} fields - Comma-separated list of requested fields
+     * @param {Date} asOf - AsOf UTC date time string
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
+     * @return IPromise<Contracts.WorkItem>
+     */
+    getWorkItem(id: number, fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand): IPromise<Contracts.WorkItem>;
+    /**
+     * Returns a list of work items.
+     *
+     * @param {number[]} ids - The comma-separated list of requested work item ids
+     * @param {string[]} fields - Comma-separated list of requested fields
+     * @param {Date} asOf - AsOf UTC date time string
+     * @param {Contracts.WorkItemExpand} expand - The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }.
+     * @param {Contracts.WorkItemErrorPolicy} errorPolicy - The flag to control error policy in a bulk get work items request. Possible options are {Fail, Omit}.
+     * @return IPromise<Contracts.WorkItem[]>
+     */
+    getWorkItems(ids: number[], fields?: string[], asOf?: Date, expand?: Contracts.WorkItemExpand, errorPolicy?: Contracts.WorkItemErrorPolicy): IPromise<Contracts.WorkItem[]>;
+    /**
+     * Updates a single work item.
+     *
+     * @param {VSS_Common_Contracts.JsonPatchDocument} document - The JSON Patch document representing the update
+     * @param {number} id - The id of the work item to update
+     * @param {boolean} validateOnly - Indicate if you only want to validate the changes without saving the work item
+     * @param {boolean} bypassRules - Do not enforce the work item type rules on this update
+     * @param {boolean} suppressNotifications - Do not fire any notifications for this change
+     * @return IPromise<Contracts.WorkItem>
+     */
+    updateWorkItem(document: VSS_Common_Contracts.JsonPatchDocument, id: number, validateOnly?: boolean, bypassRules?: boolean, suppressNotifications?: boolean): IPromise<Contracts.WorkItem>;
+    /**
+     * Returns the dependent fields for the corresponding workitem type and fieldname.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} type - The work item type name
+     * @param {string} field
+     * @return IPromise<Contracts.FieldDependentRule>
+     */
+    getDependentFields(project: string, type: string, field: string): IPromise<Contracts.FieldDependentRule>;
 }
 export class WorkItemTrackingHttpClient extends WorkItemTrackingHttpClient4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -25578,9 +28675,9 @@ export class WorkItemTrackingHttpClient extends WorkItemTrackingHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return WorkItemTrackingHttpClient4
+ * @return WorkItemTrackingHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkItemTrackingHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkItemTrackingHttpClient4_1;
 }
 declare module "TFS/WorkItemTracking/Services" {
 import Contracts_Platform = require("VSS/Common/Contracts/Platform");
@@ -25724,11 +28821,18 @@ export interface IWorkItemFormService {
     */
     reset(): IPromise<void>;
     /**
-    * Gets invalid fields who are in an invalid state according to the work item rules. These fields need to be changed before the work item can be saved.
+    * Gets fields who are in an invalid state according to the work item rules. These fields need to be changed before the work item can be saved.
     *
     * @returns {IPromise<WorkItemField[]>} A promise that returns an array of invalid work item fields.
     */
     getInvalidFields(): IPromise<WitContracts.WorkItemField[]>;
+    /**
+    * Gets fields that have been changed either by user or by a work item rule and are in a dirty state.
+    *
+    * @param {boolean} includeSystemChanges A boolean value indicating if the result should include changes set by work item rules.
+    * @returns {IPromise<WorkItemField[]>} A promise that returns an array of dirty work item fields.
+    */
+    getDirtyFields(includeSystemChanges?: boolean): IPromise<WitContracts.WorkItemField[]>;
     /**
     * Adds links of another work items or artifacts (e.g. commits, hyperlinks) to the work item. Attachment is currently not supported by this function.
     *
@@ -25896,6 +29000,10 @@ export interface BacklogLevelConfiguration {
      */
     id: string;
     /**
+     * Indicates whether the backlog level is hidden
+     */
+    isHidden: boolean;
+    /**
      * Backlog Name
      */
     name: string;
@@ -25904,6 +29012,10 @@ export interface BacklogLevelConfiguration {
      */
     rank: number;
     /**
+     * The type of this backlog level
+     */
+    type: BacklogType;
+    /**
      * Max number of work items to show in the given backlog
      */
     workItemCountLimit: number;
@@ -25911,6 +29023,32 @@ export interface BacklogLevelConfiguration {
      * Work Item types participating in this backlog as known by the project/Process, can be overridden by team settings for bugs
      */
     workItemTypes: TFS_WorkItemTracking_Contracts.WorkItemTypeReference[];
+}
+/**
+ * Represents work items in a backlog level
+ */
+export interface BacklogLevelWorkItems {
+    /**
+     * A list of work items within a backlog level
+     */
+    workItems: TFS_WorkItemTracking_Contracts.WorkItemLink[];
+}
+/**
+ * Definition of the type of backlog level
+ */
+export enum BacklogType {
+    /**
+     * Portfolio backlog level
+     */
+    Portfolio = 0,
+    /**
+     * Requirement backlog level
+     */
+    Requirement = 1,
+    /**
+     * Task backlog level
+     */
+    Task = 2,
 }
 export interface Board extends BoardReference {
     _links: any;
@@ -26141,7 +29279,7 @@ export interface DeliveryViewData extends PlanViewData {
 /**
  * Collection of properties, specific to the DeliveryTimelineView
  */
-export interface DeliveryViewPropertyCollection extends PlanPropertyCollection {
+export interface DeliveryViewPropertyCollection {
     /**
      * Card settings
      */
@@ -26232,6 +29370,15 @@ export enum IdentityDisplayFormat {
      * Display Avatar and Full name
      */
     AvatarAndFullName = 2,
+}
+/**
+ * Represents work items in an iteration backlog
+ */
+export interface IterationWorkItems extends TeamSettingsDataContractBase {
+    /**
+     * Work item relations
+     */
+    workItemRelations: TFS_WorkItemTracking_Contracts.WorkItemLink[];
 }
 /**
  * Client serialization contract for Delivery Timeline Markers.
@@ -26335,11 +29482,6 @@ export interface PlanMetadata {
      * Bit flag indicating set of permissions a user has to the plan.
      */
     userPermissions: PlanUserPermissions;
-}
-/**
- * Base class for properties of a scaled agile plan
- */
-export interface PlanPropertyCollection {
 }
 /**
  * Enum for the various types of plans
@@ -26765,6 +29907,14 @@ export interface WorkItemTypeStateInfo {
 }
 export var TypeInfo: {
     BacklogConfiguration: any;
+    BacklogLevelConfiguration: any;
+    BacklogType: {
+        enumValues: {
+            "portfolio": number;
+            "requirement": number;
+            "task": number;
+        };
+    };
     Board: any;
     BoardColumn: any;
     BoardColumnType: {
@@ -27255,6 +30405,37 @@ export class CommonMethods3To4_1 extends CommonMethods2To4_1 {
  */
 export class WorkHttpClient4_1 extends CommonMethods3To4_1 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Get a list of work items within a backlog level
+     *
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} backlogId
+     * @return IPromise<Contracts.BacklogLevelWorkItems>
+     */
+    getBacklogLevelWorkItems(teamContext: TFS_Core_Contracts.TeamContext, backlogId: string): IPromise<Contracts.BacklogLevelWorkItems>;
+    /**
+     * [Preview API] Get a backlog level
+     *
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} id - The id of the backlog level
+     * @return IPromise<Contracts.BacklogLevelConfiguration>
+     */
+    getBacklog(teamContext: TFS_Core_Contracts.TeamContext, id: string): IPromise<Contracts.BacklogLevelConfiguration>;
+    /**
+     * [Preview API] List all backlog levels
+     *
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @return IPromise<Contracts.BacklogLevelConfiguration[]>
+     */
+    getBacklogs(teamContext: TFS_Core_Contracts.TeamContext): IPromise<Contracts.BacklogLevelConfiguration[]>;
+    /**
+     * [Preview API] Get work items for iteration
+     *
+     * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
+     * @param {string} iterationId - ID of the iteration
+     * @return IPromise<Contracts.IterationWorkItems>
+     */
+    getIterationWorkItems(teamContext: TFS_Core_Contracts.TeamContext, iterationId: string): IPromise<Contracts.IterationWorkItems>;
 }
 /**
  * @exemptedapi
@@ -27310,7 +30491,7 @@ export class WorkHttpClient extends WorkHttpClient4_1 {
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return WorkHttpClient4
+ * @return WorkHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkHttpClient4_1;
 }
