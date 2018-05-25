@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v131.20180314.1425
+// Type definitions for Microsoft Visual Studio Services v134.20180525.1750
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -3221,7 +3221,7 @@ export var TypeInfo: {
 declare module "VSS/Accounts/RestClient" {
 import Contracts = require("VSS/Accounts/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected accountsApiVersion: string;
     protected settingsApiVersion: string;
@@ -3247,7 +3247,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      */
     createAccount(info: Contracts.AccountCreateInfoInternal, usePrecreated?: boolean): IPromise<Contracts.Account>;
 }
-export class CommonMethods3_2To4_1 extends CommonMethods2To4_1 {
+export class CommonMethods3_2To5 extends CommonMethods2To5 {
     protected accountsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -3263,32 +3263,28 @@ export class CommonMethods3_2To4_1 extends CommonMethods2To4_1 {
 /**
  * @exemptedapi
  */
-export class AccountsHttpClient4_1 extends CommonMethods3_2To4_1 {
+export class AccountsHttpClient5 extends CommonMethods3_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class AccountsHttpClient4 extends CommonMethods3_2To4_1 {
+export class AccountsHttpClient4_1 extends CommonMethods3_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class AccountsHttpClient3_2 extends CommonMethods3_2To4_1 {
+export class AccountsHttpClient4 extends CommonMethods3_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class AccountsHttpClient3_1 extends CommonMethods2To4_1 {
+/**
+ * @exemptedapi
+ */
+export class AccountsHttpClient3_2 extends CommonMethods3_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * @param {string} ownerId
-     * @param {string} memberId
-     * @param {string} properties
-     * @return IPromise<Contracts.Account[]>
-     */
-    getAccounts(ownerId?: string, memberId?: string, properties?: string): IPromise<Contracts.Account[]>;
 }
-export class AccountsHttpClient3 extends CommonMethods2To4_1 {
+export class AccountsHttpClient3_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @param {string} ownerId
@@ -3298,7 +3294,7 @@ export class AccountsHttpClient3 extends CommonMethods2To4_1 {
      */
     getAccounts(ownerId?: string, memberId?: string, properties?: string): IPromise<Contracts.Account[]>;
 }
-export class AccountsHttpClient2_3 extends CommonMethods2To4_1 {
+export class AccountsHttpClient3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @param {string} ownerId
@@ -3308,7 +3304,7 @@ export class AccountsHttpClient2_3 extends CommonMethods2To4_1 {
      */
     getAccounts(ownerId?: string, memberId?: string, properties?: string): IPromise<Contracts.Account[]>;
 }
-export class AccountsHttpClient2_2 extends CommonMethods2To4_1 {
+export class AccountsHttpClient2_3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @param {string} ownerId
@@ -3318,7 +3314,7 @@ export class AccountsHttpClient2_2 extends CommonMethods2To4_1 {
      */
     getAccounts(ownerId?: string, memberId?: string, properties?: string): IPromise<Contracts.Account[]>;
 }
-export class AccountsHttpClient2_1 extends CommonMethods2To4_1 {
+export class AccountsHttpClient2_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @param {string} ownerId
@@ -3328,7 +3324,7 @@ export class AccountsHttpClient2_1 extends CommonMethods2To4_1 {
      */
     getAccounts(ownerId?: string, memberId?: string, properties?: string): IPromise<Contracts.Account[]>;
 }
-export class AccountsHttpClient2 extends CommonMethods2To4_1 {
+export class AccountsHttpClient2_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * @param {string} ownerId
@@ -3338,7 +3334,17 @@ export class AccountsHttpClient2 extends CommonMethods2To4_1 {
      */
     getAccounts(ownerId?: string, memberId?: string, properties?: string): IPromise<Contracts.Account[]>;
 }
-export class AccountsHttpClient extends AccountsHttpClient4_1 {
+export class AccountsHttpClient2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * @param {string} ownerId
+     * @param {string} memberId
+     * @param {string} properties
+     * @return IPromise<Contracts.Account[]>
+     */
+    getAccounts(ownerId?: string, memberId?: string, properties?: string): IPromise<Contracts.Account[]>;
+}
+export class AccountsHttpClient extends AccountsHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -3656,7 +3662,7 @@ export var TypeInfo: {
 declare module "VSS/Authentication/RestClient" {
 import Contracts = require("VSS/Authentication/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     protected sessionTokenApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -3670,58 +3676,64 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class AuthenticationHttpClient4_1 extends CommonMethods2To4_1 {
+export class AuthenticationHttpClient5 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class AuthenticationHttpClient4 extends CommonMethods2To4_1 {
+export class AuthenticationHttpClient4_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class AuthenticationHttpClient3_2 extends CommonMethods2To4_1 {
+export class AuthenticationHttpClient4 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class AuthenticationHttpClient3_1 extends CommonMethods2To4_1 {
+export class AuthenticationHttpClient3_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class AuthenticationHttpClient3 extends CommonMethods2To4_1 {
+export class AuthenticationHttpClient3_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class AuthenticationHttpClient2_3 extends CommonMethods2To4_1 {
+export class AuthenticationHttpClient3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class AuthenticationHttpClient2_2 extends CommonMethods2To4_1 {
+export class AuthenticationHttpClient2_3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class AuthenticationHttpClient2_1 extends CommonMethods2To4_1 {
+export class AuthenticationHttpClient2_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class AuthenticationHttpClient2 extends CommonMethods2To4_1 {
+export class AuthenticationHttpClient2_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class AuthenticationHttpClient extends AuthenticationHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class AuthenticationHttpClient2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class AuthenticationHttpClient extends AuthenticationHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 }
@@ -3953,10 +3965,8 @@ export var TypeInfo: {
 declare module "VSS/ClientTrace/RestClient" {
 import Contracts = require("VSS/ClientTrace/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-/**
- * @exemptedapi
- */
-export class ClientTraceHttpClient4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
+    protected eventsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
@@ -3966,7 +3976,19 @@ export class ClientTraceHttpClient4_1 extends VSS_WebApi.VssHttpClient {
      */
     publishEvents(events: Contracts.ClientTraceEvent[]): IPromise<void>;
 }
-export class ClientTraceHttpClient extends ClientTraceHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class ClientTraceHttpClient5 extends CommonMethods4_1To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class ClientTraceHttpClient4_1 extends CommonMethods4_1To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class ClientTraceHttpClient extends ClientTraceHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -4864,101 +4886,6 @@ export enum ResourceStatusReason {
     MaximumQuantityReached = 16,
 }
 /**
- * The subscription account. Add Sub Type and Owner email later.
- */
-export interface SubscriptionAccount {
-    /**
-     * Gets or sets the account host type.
-     */
-    accountHostType: number;
-    /**
-     * Gets or sets the account identifier. Usually a guid.
-     */
-    accountId: string;
-    /**
-     * Gets or sets the name of the account.
-     */
-    accountName: string;
-    /**
-     * Gets or sets the account tenantId.
-     */
-    accountTenantId: string;
-    /**
-     * Purchase Error Reason
-     */
-    failedPurchaseReason: PurchaseErrorReason;
-    /**
-     * Gets or sets the geo location.
-     */
-    geoLocation: string;
-    /**
-     * Gets or sets a value indicating whether the calling user identity owns or is a PCA of the account.
-     */
-    isAccountOwner: boolean;
-    /**
-     * Gets or set the flag to enable purchase via subscription.
-     */
-    isEligibleForPurchase: boolean;
-    /**
-     * get or set IsPrepaidFundSubscription
-     */
-    isPrepaidFundSubscription: boolean;
-    /**
-     * get or set IsPricingPricingAvailable
-     */
-    isPricingAvailable: boolean;
-    /**
-     * Gets or sets the subscription address country code
-     */
-    locale: string;
-    /**
-     * Gets or sets the Offer Type of this subscription.
-     */
-    offerType: AzureOfferType;
-    /**
-     * Gets or sets the subscription address country display name
-     */
-    regionDisplayName: string;
-    /**
-     * Gets or sets the resource group.
-     */
-    resourceGroupName: string;
-    /**
-     * Gets or sets the azure resource name.
-     */
-    resourceName: string;
-    /**
-     * A dictionary of service urls, mapping the service owner to the service owner url
-     */
-    serviceUrls: {
-        [key: string]: string;
-    };
-    /**
-     * Gets or sets the subscription identifier.
-     */
-    subscriptionId: string;
-    /**
-     * Gets or sets the azure subscription name
-     */
-    subscriptionName: string;
-    /**
-     * object id of subscruption admin
-     */
-    subscriptionObjectId: string;
-    /**
-     * get or set subscription offer code
-     */
-    subscriptionOfferCode: string;
-    /**
-     * Gets or sets the subscription status.
-     */
-    subscriptionStatus: SubscriptionStatus;
-    /**
-     * tenant id of subscription
-     */
-    subscriptionTenantId: string;
-}
-/**
  * Information about a resource associated with a subscription.
  */
 export interface SubscriptionResource {
@@ -5233,7 +5160,6 @@ export var TypeInfo: {
             "maximumQuantityReached": number;
         };
     };
-    SubscriptionAccount: any;
     SubscriptionResource: any;
     SubscriptionSource: {
         enumValues: {
@@ -5259,7 +5185,7 @@ export var TypeInfo: {
 declare module "VSS/Commerce/RestClient" {
 import Contracts = require("VSS/Commerce/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected metersApiVersion: string;
     protected offerMeterApiVersion: string;
@@ -5311,9 +5237,9 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      *
      * @param {Contracts.AccountProviderNamespace} providerNamespaceId
      * @param {string} accountId
-     * @return IPromise<Contracts.SubscriptionAccount>
+     * @return IPromise<Contracts.ISubscriptionAccount>
      */
-    getSubscriptionAccount(providerNamespaceId: Contracts.AccountProviderNamespace, accountId: string): IPromise<Contracts.SubscriptionAccount>;
+    getSubscriptionAccount(providerNamespaceId: Contracts.AccountProviderNamespace, accountId: string): IPromise<Contracts.ISubscriptionAccount>;
     /**
      * [Preview API]
      *
@@ -5569,7 +5495,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      */
     getResourceStatus(nextBillingPeriod?: boolean): IPromise<Contracts.ISubscriptionResource[]>;
 }
-export class CommonMethods3To4_1 extends CommonMethods2To4_1 {
+export class CommonMethods3To5 extends CommonMethods2To5 {
     protected commercePackageApiVersion: string;
     protected connectedServerApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -5588,7 +5514,7 @@ export class CommonMethods3To4_1 extends CommonMethods2To4_1 {
      */
     getCommercePackage(version?: string): IPromise<Contracts.ICommercePackage>;
 }
-export class CommonMethods3_2To4_1 extends CommonMethods3To4_1 {
+export class CommonMethods3_2To5 extends CommonMethods3To5 {
     protected reportingEventsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -5603,7 +5529,7 @@ export class CommonMethods3_2To4_1 extends CommonMethods3To4_1 {
      */
     getReportingEvents(viewName: string, resourceName: string, startTime: Date, endTime: Date, filter?: string): IPromise<Contracts.ICommerceEvent[]>;
 }
-export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
+export class CommonMethods4To5 extends CommonMethods3_2To5 {
     protected purchaseRequestApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -5621,61 +5547,81 @@ export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
      */
     createPurchaseRequest(request: Contracts.PurchaseRequest): IPromise<void>;
 }
+export class CommonMethods4_1To5 extends CommonMethods4To5 {
+    protected infrastructureOrganizationApiVersion: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {string} resourceName
+     * @param {string} collectionHostName
+     * @param {string} hostRegion
+     * @param {string} tags
+     * @return IPromise<string>
+     */
+    createInfrastructureOrganization(resourceName: string, collectionHostName: string, hostRegion: string, tags: string): IPromise<string>;
+}
 /**
  * @exemptedapi
  */
-export class CommerceHttpClient4_1 extends CommonMethods4To4_1 {
+export class CommerceHttpClient5 extends CommonMethods4_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CommerceHttpClient4 extends CommonMethods4To4_1 {
+export class CommerceHttpClient4_1 extends CommonMethods4_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CommerceHttpClient3_2 extends CommonMethods3_2To4_1 {
+export class CommerceHttpClient4 extends CommonMethods4To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CommerceHttpClient3_1 extends CommonMethods3To4_1 {
+export class CommerceHttpClient3_2 extends CommonMethods3_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CommerceHttpClient3 extends CommonMethods3To4_1 {
+export class CommerceHttpClient3_1 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CommerceHttpClient2_3 extends CommonMethods2To4_1 {
+export class CommerceHttpClient3 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CommerceHttpClient2_2 extends CommonMethods2To4_1 {
+export class CommerceHttpClient2_3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CommerceHttpClient2_1 extends CommonMethods2To4_1 {
+export class CommerceHttpClient2_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CommerceHttpClient2 extends CommonMethods2To4_1 {
+export class CommerceHttpClient2_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class CommerceHttpClient extends CommerceHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class CommerceHttpClient2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class CommerceHttpClient extends CommerceHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -6147,6 +6093,10 @@ export interface ConfigurationContext {
     * Server resource paths
     */
     paths: ConfigurationContextPaths;
+    /**
+    * Indicates what URL format to use.
+    */
+    useCodexDomainUrls: boolean;
 }
 /**
 * MVC api configuration
@@ -8744,11 +8694,12 @@ export function overrideData(contributionId: string, data: any): void;
 export function getSharedData<T>(sharedDataKey: string, contractMetadata?: Serialization.ContractMetadata): T;
 }
 declare module "VSS/Contributions/PageEvents" {
+export {};
 }
 declare module "VSS/Contributions/RestClient" {
 import VSS_Contributions_Contracts = require("VSS/Contributions/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     protected installedAppsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -8761,7 +8712,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      */
     getInstalledExtensions(contributionIds?: string[], includeDisabledApps?: boolean, assetTypes?: string[]): IPromise<VSS_Contributions_Contracts.InstalledExtension[]>;
 }
-export class CommonMethods2_1To4_1 extends CommonMethods2To4_1 {
+export class CommonMethods2_1To5 extends CommonMethods2To5 {
     protected installedAppsApiVersion_3e2f6668: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -8774,7 +8725,7 @@ export class CommonMethods2_1To4_1 extends CommonMethods2To4_1 {
      */
     getInstalledExtensionByName(publisherName: string, extensionName: string, assetTypes?: string[]): IPromise<VSS_Contributions_Contracts.InstalledExtension>;
 }
-export class CommonMethods2_2To4_1 extends CommonMethods2_1To4_1 {
+export class CommonMethods2_2To5 extends CommonMethods2_1To5 {
     protected dataProvidersQueryApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -8787,7 +8738,7 @@ export class CommonMethods2_2To4_1 extends CommonMethods2_1To4_1 {
      */
     queryDataProviders(query: VSS_Contributions_Contracts.DataProviderQuery, scopeName?: string, scopeValue?: string): IPromise<VSS_Contributions_Contracts.DataProviderResult>;
 }
-export class CommonMethods3_1To4_1 extends CommonMethods2_2To4_1 {
+export class CommonMethods3_1To5 extends CommonMethods2_2To5 {
     protected contributionNodeQueryApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -8801,58 +8752,64 @@ export class CommonMethods3_1To4_1 extends CommonMethods2_2To4_1 {
 /**
  * @exemptedapi
  */
-export class ContributionsHttpClient4_1 extends CommonMethods3_1To4_1 {
+export class ContributionsHttpClient5 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ContributionsHttpClient4 extends CommonMethods3_1To4_1 {
+export class ContributionsHttpClient4_1 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ContributionsHttpClient3_2 extends CommonMethods3_1To4_1 {
+export class ContributionsHttpClient4 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ContributionsHttpClient3_1 extends CommonMethods3_1To4_1 {
+export class ContributionsHttpClient3_2 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ContributionsHttpClient3 extends CommonMethods2_2To4_1 {
+export class ContributionsHttpClient3_1 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ContributionsHttpClient2_3 extends CommonMethods2_2To4_1 {
+export class ContributionsHttpClient3 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ContributionsHttpClient2_2 extends CommonMethods2_2To4_1 {
+export class ContributionsHttpClient2_3 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ContributionsHttpClient2_1 extends CommonMethods2_1To4_1 {
+export class ContributionsHttpClient2_2 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ContributionsHttpClient2 extends CommonMethods2To4_1 {
+export class ContributionsHttpClient2_1 extends CommonMethods2_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class ContributionsHttpClient extends ContributionsHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class ContributionsHttpClient2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class ContributionsHttpClient extends ContributionsHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -9117,6 +9074,13 @@ export enum WebPageDataSource {
     LocalStorage = 2,
 }
 /**
+ * Represents an error returned from a data provider resolved asynchronously
+ */
+export class WebPageDataProviderError extends Error {
+    exceptionDetails: DataProviderExceptionDetails;
+    constructor(message: string, exceptionDetails: DataProviderExceptionDetails);
+}
+/**
 * Service for obtaining web page data from contributed data providers
 */
 export class WebPageDataService extends Service.VssService {
@@ -9127,7 +9091,7 @@ export class WebPageDataService extends Service.VssService {
     private _resolvedProviders;
     private _contributionPromises;
     private _contributionIdsByDataType;
-    private _ensureInitialized();
+    private _ensureInitialized(additionalContributions?);
     /**
      * Register the given data provider data with this instance of the contribution service
      *
@@ -9184,13 +9148,24 @@ export class WebPageDataService extends Service.VssService {
      */
     getPageDataByDataType<T>(dataType: string, contractMetadata?: Serialization.ContractMetadata): IDictionaryStringTo<T>;
     /**
-    * Ensure that all data providers have been resolved for all of the given data-provider contributions
-    *
-    * @param contributions The data provider contributions to resolve
-    * @param refreshIfExpired If true, force a server request to re-populate the data provider data if the data has expired.  Default is it is always expired.
-    */
+     * getDataAsync is used to retrieve data via a data-provider through a promise. In contrast to `ensureDataProvidersResolved`
+     * nothing is cached every time `getDataAsync` is called a request is made. If you make multiple calls at the same time, multiple
+     * requests will be sent.
+     *
+     * @param contributionId The contributionId of the data provider.
+     * @param serviceInstanceId Id of the service instance, the current one will be used if not given
+     * @param requestParameters Parameters to use when fetching data.
+     */
+    getDataAsync<T>(contributionId: string, serviceInstanceId?: string, requestParameters?: any): Promise<T | undefined>;
+    /**
+     * Ensure that all data providers have been resolved for all of the given data-provider contributions
+     *
+     * @param contributions The data provider contributions to resolve
+     * @param refreshIfExpired If true, force a server request to re-populate the data provider data if the data has expired.  Default is it is always expired.
+     */
     ensureDataProvidersResolved(contributions: Contributions_Contracts.Contribution[], refreshIfExpired?: boolean, properties?: any): IPromise<any>;
     private fetchPageDataForService(serviceInstanceId, contributions, properties?);
+    private getPageSource();
     /**
      * Get page data from a data provider contribution that is cached, optionally queueing an update of the data
      * after reading from the cache
@@ -10861,6 +10836,7 @@ export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<
     private _secondOverlay;
     private _closeTooltip;
     protected _closedByNavigation: boolean;
+    private _resizing;
     private static RESIZE_STEP;
     /**
      * Creates a new dialog with the provided options
@@ -10994,6 +10970,7 @@ export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<
      */
     private _onDialogMove(e?, ui?);
     private _onDialogResizeStart(e?, ui?);
+    private _onDialogResizeStop(e?, ui?);
     private _ensureDialogContentHeight();
     /**
      * Set the css maximum height of the dialog.
@@ -11606,9 +11583,9 @@ export class ExternalHub extends Controls.BaseControl {
     private preXhrHubNavigate(hub);
     prepareForHubNavigate(): void;
     hubNavigateStarting(): void;
-    private postXhrHubNavigate(hub, pageData, navigateId, previousStaticContentVersions);
+    private postXhrHubNavigate(hub, pageData, navigateId, previousStaticContentVersions, contributionId);
     private finishNavigateToNewHub(hub, url, navigateId);
-    handleNewPlatformFps(xhrData: Contracts_Platform.PageXHRData, newPageContext: PageContext): IPromise<any>;
+    handleNewPlatformFps(xhrData: Contracts_Platform.PageXHRData, newPageContext: PageContext, contributionId?: string): IPromise<any>;
     private showSpinner();
     private hideSpinner();
     private hasStaticContentVersionChanged(previousVersions, currentVersions);
@@ -11915,7 +11892,7 @@ export class FilterControlO<TOptions extends IFilterControlOptions> extends Cont
      * @param options
      */
     initializeOptions(options?: IFilterControlOptions): void;
-    setFilter(filter: any): void;
+    setFilter(filter: IFilter): void;
     protected _createClauseTable(): void;
     private _createHeaderRow();
     _getInsertClauseTooltipText(): string;
@@ -15719,6 +15696,7 @@ export class AjaxPanel extends AjaxPanelO<IAjaxPanelOptions> {
 }
 }
 declare module "VSS/Controls/PerfBar" {
+export {};
 }
 declare module "VSS/Controls/PopupContent" {
 import Controls = require("VSS/Controls");
@@ -15987,6 +15965,10 @@ export interface IRichEditorOptions extends Controls.EnhancementOptions {
      */
     ariaLabel?: string;
     /**
+     * Value for help text for accessibility
+     */
+    helpText?: string;
+    /**
      * Function callback when the richeditor gains focus
      */
     focusIn?: Function;
@@ -16056,7 +16038,7 @@ export class RichEditor extends Controls.Control<IRichEditorOptions> {
     _enhance(element: JQuery): void;
     ready(fn: any): void;
     isReady(): boolean;
-    setEnabled(value: any): void;
+    setEnabled(value: boolean): void;
     getValue(): string;
     /**
      * Checks whether rich editor is visually empty.
@@ -18182,7 +18164,7 @@ export class RangeValidator<TOptions extends BaseValidatorOptions> extends BaseV
     getMessage(): string;
 }
 export interface RegexValidatorOptions extends BaseValidatorOptions {
-    regex?: string;
+    regex?: string | RegExp;
 }
 export class RegexValidator<TOptions extends RegexValidatorOptions> extends BaseValidator<TOptions> {
     static optionsPrefix: string;
@@ -18530,6 +18512,7 @@ export interface RefreshTokenGrant extends AuthorizationGrant {
 export interface Registration {
     clientType: ClientType;
     identityId: string;
+    issuer: string;
     isValid: boolean;
     isWellKnown: boolean;
     organizationLocation: string;
@@ -18591,6 +18574,7 @@ export enum TokenError {
     AuthorizationGrantScopeMissing = 27,
     InvalidPublicAccessTokenKey = 28,
     InvalidPublicAccessToken = 29,
+    PublicFeatureFlagNotEnabled = 30,
 }
 export var TypeInfo: {
     AccessTokenResult: any;
@@ -18704,6 +18688,7 @@ export var TypeInfo: {
             "authorizationGrantScopeMissing": number;
             "invalidPublicAccessTokenKey": number;
             "invalidPublicAccessToken": number;
+            "publicFeatureFlagNotEnabled": number;
         };
     };
 };
@@ -18712,7 +18697,7 @@ declare module "VSS/DelegatedAuthorization/RestClient" {
 import Contracts = require("VSS/DelegatedAuthorization/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     protected authorizationsApiVersion: string;
     protected hostAuthorizationApiVersion: string;
     protected registrationApiVersion: string;
@@ -18808,58 +18793,64 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class DelegatedAuthorizationHttpClient4_1 extends CommonMethods2To4_1 {
+export class DelegatedAuthorizationHttpClient5 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class DelegatedAuthorizationHttpClient4 extends CommonMethods2To4_1 {
+export class DelegatedAuthorizationHttpClient4_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class DelegatedAuthorizationHttpClient3_2 extends CommonMethods2To4_1 {
+export class DelegatedAuthorizationHttpClient4 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class DelegatedAuthorizationHttpClient3_1 extends CommonMethods2To4_1 {
+export class DelegatedAuthorizationHttpClient3_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class DelegatedAuthorizationHttpClient3 extends CommonMethods2To4_1 {
+export class DelegatedAuthorizationHttpClient3_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class DelegatedAuthorizationHttpClient2_3 extends CommonMethods2To4_1 {
+export class DelegatedAuthorizationHttpClient3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class DelegatedAuthorizationHttpClient2_2 extends CommonMethods2To4_1 {
+export class DelegatedAuthorizationHttpClient2_3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class DelegatedAuthorizationHttpClient2_1 extends CommonMethods2To4_1 {
+export class DelegatedAuthorizationHttpClient2_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class DelegatedAuthorizationHttpClient2 extends CommonMethods2To4_1 {
+export class DelegatedAuthorizationHttpClient2_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class DelegatedAuthorizationHttpClient extends DelegatedAuthorizationHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class DelegatedAuthorizationHttpClient2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class DelegatedAuthorizationHttpClient extends DelegatedAuthorizationHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -19285,10 +19276,11 @@ export class ActivityStatsCollector implements Service.ILocalService {
 }
 }
 declare module "VSS/Error" {
+import { Level } from "VSS/ClientTrace/Contracts";
 /**
  * publish error to telemetry service
  */
-export function publishErrorToTelemetry(error: TfsError, immediate?: boolean): void;
+export function publishErrorToTelemetry(error: TfsError, immediate?: boolean, level?: Level, additionalProperties?: IDictionaryStringTo<any>): void;
 }
 declare module "VSS/Events/Action" {
 import Service = require("VSS/Service");
@@ -20392,7 +20384,7 @@ declare module "VSS/ExtensionManagement/RestClient" {
 import Contracts = require("VSS/Contributions/Contracts");
 import VSS_Gallery_Contracts = require("VSS/Gallery/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected installedExtensionsApiVersion: string;
     protected requestedExtensionsApiVersion: string;
@@ -20469,7 +20461,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      */
     getInstalledExtensions(includeDisabledExtensions?: boolean, includeErrors?: boolean, assetTypes?: string[], includeInstallationIssues?: boolean): IPromise<Contracts.InstalledExtension[]>;
 }
-export class CommonMethods2_1To4_1 extends CommonMethods2To4_1 {
+export class CommonMethods2_1To5 extends CommonMethods2To5 {
     protected dataApiVersion: string;
     protected extensionStatesApiVersion: string;
     protected installedExtensionQueryApiVersion: string;
@@ -20591,7 +20583,7 @@ export class CommonMethods2_1To4_1 extends CommonMethods2To4_1 {
      */
     createDocumentByName(doc: any, publisherName: string, extensionName: string, scopeType: string, scopeValue: string, collectionName: string): IPromise<any>;
 }
-export class CommonMethods2_2To4_1 extends CommonMethods2_1To4_1 {
+export class CommonMethods2_2To5 extends CommonMethods2_1To5 {
     protected extensionDataCollectionQueryApiVersion: string;
     protected policiesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -20612,7 +20604,7 @@ export class CommonMethods2_2To4_1 extends CommonMethods2_1To4_1 {
      */
     queryCollectionsByName(collectionQuery: Contracts.ExtensionDataCollectionQuery, publisherName: string, extensionName: string): IPromise<Contracts.ExtensionDataCollection[]>;
 }
-export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
+export class CommonMethods3To5 extends CommonMethods2_2To5 {
     protected acquisitionOptionsApiVersion: string;
     protected acquisitionRequestsApiVersion: string;
     protected authorizationsApiVersion: string;
@@ -20640,65 +20632,74 @@ export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
      * @param {boolean} testCommerce
      * @param {boolean} isFreeOrTrialInstall
      * @param {boolean} isAccountOwner
+     * @param {boolean} isLinked
+     * @param {boolean} isConnectedServer
+     * @param {boolean} isBuyOperationValid
      * @return IPromise<Contracts.AcquisitionOptions>
      */
-    getAcquisitionOptions(itemId: string, testCommerce?: boolean, isFreeOrTrialInstall?: boolean, isAccountOwner?: boolean): IPromise<Contracts.AcquisitionOptions>;
+    getAcquisitionOptions(itemId: string, testCommerce?: boolean, isFreeOrTrialInstall?: boolean, isAccountOwner?: boolean, isLinked?: boolean, isConnectedServer?: boolean, isBuyOperationValid?: boolean): IPromise<Contracts.AcquisitionOptions>;
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient4_1 extends CommonMethods3To4_1 {
+export class ExtensionManagementHttpClient5 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient4 extends CommonMethods3To4_1 {
+export class ExtensionManagementHttpClient4_1 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient3_2 extends CommonMethods3To4_1 {
+export class ExtensionManagementHttpClient4 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient3_1 extends CommonMethods3To4_1 {
+export class ExtensionManagementHttpClient3_2 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient3 extends CommonMethods3To4_1 {
+export class ExtensionManagementHttpClient3_1 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient2_3 extends CommonMethods2_2To4_1 {
+export class ExtensionManagementHttpClient3 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient2_2 extends CommonMethods2_2To4_1 {
+export class ExtensionManagementHttpClient2_3 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient2_1 extends CommonMethods2_1To4_1 {
+export class ExtensionManagementHttpClient2_2 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ExtensionManagementHttpClient2 extends CommonMethods2To4_1 {
+export class ExtensionManagementHttpClient2_1 extends CommonMethods2_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class ExtensionManagementHttpClient extends ExtensionManagementHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class ExtensionManagementHttpClient2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class ExtensionManagementHttpClient extends ExtensionManagementHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -20737,7 +20738,7 @@ export interface FeatureFlagPatch {
 declare module "VSS/FeatureAvailability/RestClient" {
 import Contracts = require("VSS/FeatureAvailability/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     protected featureFlagsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -20785,58 +20786,64 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class FeatureAvailabilityHttpClient4_1 extends CommonMethods2To4_1 {
+export class FeatureAvailabilityHttpClient5 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureAvailabilityHttpClient4 extends CommonMethods2To4_1 {
+export class FeatureAvailabilityHttpClient4_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureAvailabilityHttpClient3_2 extends CommonMethods2To4_1 {
+export class FeatureAvailabilityHttpClient4 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureAvailabilityHttpClient3_1 extends CommonMethods2To4_1 {
+export class FeatureAvailabilityHttpClient3_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureAvailabilityHttpClient3 extends CommonMethods2To4_1 {
+export class FeatureAvailabilityHttpClient3_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureAvailabilityHttpClient2_3 extends CommonMethods2To4_1 {
+export class FeatureAvailabilityHttpClient3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureAvailabilityHttpClient2_2 extends CommonMethods2To4_1 {
+export class FeatureAvailabilityHttpClient2_3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureAvailabilityHttpClient2_1 extends CommonMethods2To4_1 {
+export class FeatureAvailabilityHttpClient2_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureAvailabilityHttpClient2 extends CommonMethods2To4_1 {
+export class FeatureAvailabilityHttpClient2_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class FeatureAvailabilityHttpClient extends FeatureAvailabilityHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class FeatureAvailabilityHttpClient2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class FeatureAvailabilityHttpClient extends FeatureAvailabilityHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -20907,9 +20914,17 @@ export interface ContributedFeature {
      */
     description: string;
     /**
+     * Handler for listening to setter calls on feature value. These listeners are only invoked after a successful set has occured
+     */
+    featureStateChangedListeners: ContributedFeatureListener[];
+    /**
      * The full contribution id of the feature
      */
     id: string;
+    /**
+     * If this is set to true, then the id for this feature will be added to the list of claims for the request.
+     */
+    includeAsClaim: boolean;
     /**
      * The friendly name of the feature
      */
@@ -20926,6 +20941,10 @@ export interface ContributedFeature {
      * The service instance id of the service that owns this feature
      */
     serviceInstanceType: string;
+    /**
+     * Tags associated with the feature.
+     */
+    tags: string[];
 }
 /**
  * The current state of a feature within a given scope
@@ -20943,6 +20962,23 @@ export enum ContributedFeatureEnabledValue {
      * The feature is enabled at the specified scope
      */
     Enabled = 1,
+}
+export interface ContributedFeatureHandlerSettings {
+    /**
+     * Name of the handler to run
+     */
+    name: string;
+    /**
+     * Properties to feed to the handler
+     */
+    properties: {
+        [key: string]: any;
+    };
+}
+/**
+ * An identifier and properties used to pass into a handler for a listener or plugin
+ */
+export interface ContributedFeatureListener extends ContributedFeatureHandlerSettings {
 }
 /**
  * The scope to which a feature setting applies
@@ -21006,17 +21042,7 @@ export interface ContributedFeatureStateQuery {
 /**
  * A rule for dynamically getting the enabled/disabled state of a feature
  */
-export interface ContributedFeatureValueRule {
-    /**
-     * Name of the IContributedFeatureValuePlugin to run
-     */
-    name: string;
-    /**
-     * Properties to feed to the IContributedFeatureValuePlugin
-     */
-    properties: {
-        [key: string]: any;
-    };
+export interface ContributedFeatureValueRule extends ContributedFeatureHandlerSettings {
 }
 export var TypeInfo: {
     ContributedFeatureEnabledValue: {
@@ -21033,7 +21059,7 @@ export var TypeInfo: {
 declare module "VSS/FeatureManagement/RestClient" {
 import Contracts = require("VSS/FeatureManagement/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods3To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods3To5 extends VSS_WebApi.VssHttpClient {
     protected featuresApiVersion: string;
     protected featureStatesApiVersion: string;
     protected featureStatesApiVersion_98911314: string;
@@ -21095,7 +21121,7 @@ export class CommonMethods3To4_1 extends VSS_WebApi.VssHttpClient {
      */
     getFeature(featureId: string): IPromise<Contracts.ContributedFeature>;
 }
-export class CommonMethods3_1To4_1 extends CommonMethods3To4_1 {
+export class CommonMethods3_1To5 extends CommonMethods3To5 {
     protected featureStatesQueryApiVersion: string;
     protected featureStatesQueryApiVersion_2b4486ad: string;
     protected featureStatesQueryApiVersion_3f810f28: string;
@@ -21129,34 +21155,40 @@ export class CommonMethods3_1To4_1 extends CommonMethods3To4_1 {
 /**
  * @exemptedapi
  */
-export class FeatureManagementHttpClient4_1 extends CommonMethods3_1To4_1 {
+export class FeatureManagementHttpClient5 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureManagementHttpClient4 extends CommonMethods3_1To4_1 {
+export class FeatureManagementHttpClient4_1 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureManagementHttpClient3_2 extends CommonMethods3_1To4_1 {
+export class FeatureManagementHttpClient4 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureManagementHttpClient3_1 extends CommonMethods3_1To4_1 {
+export class FeatureManagementHttpClient3_2 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FeatureManagementHttpClient3 extends CommonMethods3To4_1 {
+export class FeatureManagementHttpClient3_1 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class FeatureManagementHttpClient extends FeatureManagementHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class FeatureManagementHttpClient3 extends CommonMethods3To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class FeatureManagementHttpClient extends FeatureManagementHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -21379,7 +21411,7 @@ declare module "VSS/FileContainer/RestClient" {
 import Contracts = require("VSS/FileContainer/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     protected containersApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -21436,58 +21468,64 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class FileContainerHttpClient4_1 extends CommonMethods2To4_1 {
+export class FileContainerHttpClient5 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FileContainerHttpClient4 extends CommonMethods2To4_1 {
+export class FileContainerHttpClient4_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FileContainerHttpClient3_2 extends CommonMethods2To4_1 {
+export class FileContainerHttpClient4 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FileContainerHttpClient3_1 extends CommonMethods2To4_1 {
+export class FileContainerHttpClient3_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FileContainerHttpClient3 extends CommonMethods2To4_1 {
+export class FileContainerHttpClient3_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FileContainerHttpClient2_3 extends CommonMethods2To4_1 {
+export class FileContainerHttpClient3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FileContainerHttpClient2_2 extends CommonMethods2To4_1 {
+export class FileContainerHttpClient2_3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FileContainerHttpClient2_1 extends CommonMethods2To4_1 {
+export class FileContainerHttpClient2_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class FileContainerHttpClient2 extends CommonMethods2To4_1 {
+export class FileContainerHttpClient2_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class FileContainerHttpClient extends FileContainerHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class FileContainerHttpClient2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class FileContainerHttpClient extends FileContainerHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -21528,11 +21566,17 @@ export class FileContainerService extends Service.VssService {
 declare module "VSS/Flux/Action" {
 export class Action<T> {
     /**
-     * A mutex to ensure that only one action is executing at any time.
+     * A mutex to ensure that only one action in a given scope is executing at any time.
      * This prevents cascading actions.
      */
-    private static executing;
+    private static executingScopes;
     private _listeners;
+    private _scope;
+    /**
+     * Create a new action
+     * @param scope The scope that this action should execute in. Actions with the same scope cannot be invoked within each other
+     */
+    constructor(scope?: string);
     invoke(payload: T): void;
     /**
      * Add listener to the action
@@ -21581,6 +21625,13 @@ export class Component<TProps extends Props, TState extends State = {}> extends 
     componentDidMount(): void;
     componentWillUnmount(): void;
 }
+}
+declare module "VSS/Flux/Diag" {
+/**
+ * Apply to an ActionsHub to register it with the perf panel actions monitor
+ * @param originalConstructor ActionsHub that contains public Action<T> properties
+ */
+export const registerDiagActions: <T>(originalConstructor: new (...args: any[]) => T) => new (...args: any[]) => T;
 }
 declare module "VSS/Flux/PlatformComponent" {
 import Component_Base = require("VSS/Flux/Component");
@@ -22331,6 +22382,14 @@ export enum ExtensionQueryFilterType {
      * Filter to get extensions published by all publishers having supplied display name
      */
     PublisherDisplayName = 19,
+    /**
+     * When retrieving extensions from a query, include the extensions which have a publisher having the given flags. The value specified for this filter should be a string representing the integer values of the flags to be included. In case of mulitple flags to be specified, a logical OR of the interger values should be given as value for this filter There should be at most one filter of this type. This only acts as a restrictive filter after. In case of multiple flags given in IncludeWithFlags in ORed fashion, extensions having any of the given flags will be included.
+     */
+    IncludeWithPublisherFlags = 20,
+    /**
+     * Filter to get extensions shared with particular organization
+     */
+    OrganizationSharedWith = 21,
 }
 /**
  * Set of flags used to determine which set of information is retrieved when reading published extensions
@@ -22353,7 +22412,7 @@ export enum ExtensionQueryFlags {
      */
     IncludeCategoryAndTags = 4,
     /**
-     * Include the details about which accounts the extension has been shared with if the extesion is a private extension.
+     * Include the details about which accounts the extension has been shared with if the extension is a private extension.
      */
     IncludeSharedAccounts = 8,
     /**
@@ -22397,9 +22456,13 @@ export enum ExtensionQueryFlags {
      */
     IncludeLcids = 8192,
     /**
+     * Include the details about which organizations the extension has been shared with if the extesion is a private extension.
+     */
+    IncludeSharedOrganizations = 16384,
+    /**
      * AllAttributes is designed to be a mask that defines all sub-elements of the extension should be returned.  NOTE: This is not actually All flags. This is now locked to the set defined since changing this enum would be a breaking change and would change the behavior of anyone using it. Try not to use this value when making calls to the service, instead be explicit about the options required.
      */
-    AllAttributes = 479,
+    AllAttributes = 16863,
 }
 /**
  * This is the set of extensions that matched a supplied query through the filters given.
@@ -22653,6 +22716,10 @@ export enum PublishedExtensionFlags {
      * The Locked flag indicates that extension has been locked from Marketplace. Further updates/acquisitions are not allowed on the extension until this is present. This should be used along with making the extension private/unpublished.
      */
     Locked = 16384,
+    /**
+     * This flag is set for extensions we want to hide from Marketplace home and search pages. This will be used to override the exposure of builtIn flags.
+     */
+    Hidden = 32768,
 }
 export interface Publisher extends PublisherBase {
     _links: any;
@@ -22670,6 +22737,7 @@ export interface PublisherBase {
     publisherId: string;
     publisherName: string;
     shortDescription: string;
+    state: PublisherState;
 }
 /**
  * High-level information about the publisher, like id's and names
@@ -22707,9 +22775,13 @@ export enum PublisherFlags {
      */
     Verified = 2,
     /**
+     * A Certified publisher is one that is Microsoft verified and in addition meets a set of requirements for its published extensions. The requirements to become a certified publisher are not listed here.  They can be found in public documentation (TBD).
+     */
+    Certified = 4,
+    /**
      * This is the set of flags that can't be supplied by the developer and is managed by the service itself.
      */
-    ServiceFlags = 3,
+    ServiceFlags = 7,
 }
 export enum PublisherPermissions {
     /**
@@ -22799,6 +22871,28 @@ export interface PublisherQueryResult {
      * For each filter supplied in the query, a filter result will be returned in the query result.
      */
     results: PublisherFilterResult[];
+}
+export enum PublisherState {
+    /**
+     * No state exists for this publisher.
+     */
+    None = 0,
+    /**
+     * This state indicates that publisher has applied for Marketplace verification (via UI) and still not been certified. This state would be reset once the publisher is verified.
+     */
+    VerificationPending = 1,
+    /**
+     * This state indicates that publisher has applied for Marketplace certification (via UI) and still not been certified. This state would be reset once the publisher is certified.
+     */
+    CertificationPending = 2,
+    /**
+     * This state indicates that publisher had applied for Marketplace certification (via UI) but his/her certification got rejected. This state would be reset if and when the publisher is certified.
+     */
+    CertificationRejected = 4,
+    /**
+     * This state indicates that publisher was certified on the Marketplace, but his/her certification got revoked. This state would never be reset, even after publisher gets re-certified. It would indicate that the publisher certification was revoked at least once.
+     */
+    CertificationRevoked = 8,
 }
 /**
  * The core structure of a QnA item
@@ -23455,6 +23549,8 @@ export var TypeInfo: {
             "vsixMetadata": number;
             "publisherName": number;
             "publisherDisplayName": number;
+            "includeWithPublisherFlags": number;
+            "organizationSharedWith": number;
         };
     };
     ExtensionQueryFlags: {
@@ -23474,6 +23570,7 @@ export var TypeInfo: {
             "includeMetadata": number;
             "includeMinimalPayloadForVsIde": number;
             "includeLcids": number;
+            "includeSharedOrganizations": number;
             "allAttributes": number;
         };
     };
@@ -23531,6 +23628,7 @@ export var TypeInfo: {
             "unpublished": number;
             "trial": number;
             "locked": number;
+            "hidden": number;
         };
     };
     Publisher: any;
@@ -23543,6 +23641,7 @@ export var TypeInfo: {
             "none": number;
             "disabled": number;
             "verified": number;
+            "certified": number;
             "serviceFlags": number;
         };
     };
@@ -23571,6 +23670,15 @@ export var TypeInfo: {
         };
     };
     PublisherQueryResult: any;
+    PublisherState: {
+        enumValues: {
+            "none": number;
+            "verificationPending": number;
+            "certificationPending": number;
+            "certificationRejected": number;
+            "certificationRevoked": number;
+        };
+    };
     QnAItem: any;
     QnAItemStatus: {
         enumValues: {
@@ -23659,7 +23767,7 @@ export var TypeInfo: {
 declare module "VSS/Gallery/RestClient" {
 import Contracts = require("VSS/Gallery/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected accountsApiVersion: string;
     protected accountsbynameApiVersion: string;
@@ -23890,7 +23998,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      */
     shareExtensionById(extensionId: string, accountName: string): IPromise<void>;
 }
-export class CommonMethods2_1To4_1 extends CommonMethods2To4_1 {
+export class CommonMethods2_1To5 extends CommonMethods2To5 {
     protected acquisitionrequestsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -23901,7 +24009,7 @@ export class CommonMethods2_1To4_1 extends CommonMethods2To4_1 {
      */
     requestAcquisition(acquisitionRequest: Contracts.ExtensionAcquisitionRequest): IPromise<Contracts.ExtensionAcquisitionRequest>;
 }
-export class CommonMethods2_2To4_1 extends CommonMethods2_1To4_1 {
+export class CommonMethods2_2To5 extends CommonMethods2_1To5 {
     protected acquisitionoptionsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -23915,7 +24023,7 @@ export class CommonMethods2_2To4_1 extends CommonMethods2_1To4_1 {
      */
     getAcquisitionOptions(itemId: string, installationTarget: string, testCommerce?: boolean, isFreeOrTrialInstall?: boolean): IPromise<Contracts.AcquisitionOptions>;
 }
-export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
+export class CommonMethods3To5 extends CommonMethods2_2To5 {
     protected authenticatedassetApiVersion: string;
     protected azurepublisherApiVersion: string;
     protected extensionValidatorApiVersion: string;
@@ -24014,7 +24122,7 @@ export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
      */
     getAssetAuthenticated(publisherName: string, extensionName: string, version: string, assetType: string, accountToken?: string): IPromise<ArrayBuffer>;
 }
-export class CommonMethods3_1To4_1 extends CommonMethods3To4_1 {
+export class CommonMethods3_1To5 extends CommonMethods3To5 {
     protected categoriesApiVersion_1102bb42: string;
     protected categoriesApiVersion_31fba831: string;
     protected eventsApiVersion: string;
@@ -24130,7 +24238,7 @@ export class CommonMethods3_1To4_1 extends CommonMethods3To4_1 {
      */
     getCategoryTree(product: string, categoryId: string, lcid?: number, source?: string, productVersion?: string, skus?: string, subSkus?: string): IPromise<Contracts.ProductCategory>;
 }
-export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
+export class CommonMethods3_2To5 extends CommonMethods3_1To5 {
     protected extensionsApiVersion: string;
     protected extensionsApiVersion_a41192c8: string;
     protected notificationsApiVersion: string;
@@ -24279,40 +24387,99 @@ export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
      */
     createExtension(content: any): IPromise<Contracts.PublishedExtension>;
 }
-/**
- * @exemptedapi
- */
-export class GalleryHttpClient4_1 extends CommonMethods3_2To4_1 {
+export class CommonMethods4_1To5 extends CommonMethods3_2To5 {
+    protected draftsApiVersion: string;
+    protected draftsApiVersion_02b33873: string;
+    protected draftsApiVersion_b3ab127d: string;
+    protected draftsApiVersion_f1db9c47: string;
+    protected publisherassetApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
-     * [Preview API]
+     * [Preview API] Update publisher asset like logo. It accepts asset file as an octet stream and file name is passed in header values.
      *
-     * @param {string} publisherName
-     * @param {string} extensionName
-     * @return IPromise<Contracts.ExtensionDraft>
+     * @param {any} content - Content to upload
+     * @param {string} publisherName - Internal name of the publisher
+     * @param {string} assetType - Type of asset. Default value is 'logo'.
+     * @param {String} fileName - Header to pass the filename of the uploaded data
+     * @return IPromise<{ [key: string] : string; }>
      */
-    createDraftForEditExtension(publisherName: string, extensionName: string): IPromise<Contracts.ExtensionDraft>;
+    updatePublisherAsset(content: any, publisherName: string, assetType?: string, fileName?: String): IPromise<{
+        [key: string]: string;
+    }>;
+    /**
+     * [Preview API] Get publisher asset like logo as a stream
+     *
+     * @param {string} publisherName - Internal name of the publisher
+     * @param {string} assetType - Type of asset. Default value is 'logo'.
+     * @return IPromise<ArrayBuffer>
+     */
+    getPublisherAsset(publisherName: string, assetType?: string): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API] Delete publisher asset like logo
+     *
+     * @param {string} publisherName - Internal name of the publisher
+     * @param {string} assetType - Type of asset. Default value is 'logo'.
+     * @return IPromise<void>
+     */
+    deletePublisherAsset(publisherName: string, assetType?: string): IPromise<void>;
     /**
      * [Preview API]
      *
-     * @param {Contracts.ExtensionDraftPatch} draftPatch
      * @param {string} publisherName
-     * @param {string} extensionName
      * @param {string} draftId
-     * @return IPromise<Contracts.ExtensionDraft>
+     * @param {string} assetType
+     * @return IPromise<ArrayBuffer>
      */
-    performEditExtensionDraftOperation(draftPatch: Contracts.ExtensionDraftPatch, publisherName: string, extensionName: string, draftId: string): IPromise<Contracts.ExtensionDraft>;
+    getAssetFromNewExtensionDraft(publisherName: string, draftId: string, assetType: string): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} draftId
+     * @param {string} assetType
+     * @param {string} extensionName
+     * @return IPromise<ArrayBuffer>
+     */
+    getAssetFromEditExtensionDraft(publisherName: string, draftId: string, assetType: string, extensionName: string): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} content - Content to upload
+     * @param {string} publisherName
+     * @param {string} draftId
+     * @param {string} assetType
+     * @return IPromise<Contracts.ExtensionDraftAsset>
+     */
+    addAssetForNewExtensionDraft(content: string, publisherName: string, draftId: string, assetType: string): IPromise<Contracts.ExtensionDraftAsset>;
     /**
      * [Preview API]
      *
      * @param {any} content - Content to upload
      * @param {string} publisherName
-     * @param {string} extensionName
      * @param {string} draftId
      * @param {String} fileName - Header to pass the filename of the uploaded data
      * @return IPromise<Contracts.ExtensionDraft>
      */
-    updatePayloadInDraftForEditExtension(content: any, publisherName: string, extensionName: string, draftId: string, fileName?: String): IPromise<Contracts.ExtensionDraft>;
+    updatePayloadInDraftForNewExtension(content: any, publisherName: string, draftId: string, fileName?: String): IPromise<Contracts.ExtensionDraft>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ExtensionDraftPatch} draftPatch
+     * @param {string} publisherName
+     * @param {string} draftId
+     * @return IPromise<Contracts.ExtensionDraft>
+     */
+    performNewExtensionDraftOperation(draftPatch: Contracts.ExtensionDraftPatch, publisherName: string, draftId: string): IPromise<Contracts.ExtensionDraft>;
+    /**
+     * [Preview API]
+     *
+     * @param {any} content - Content to upload
+     * @param {string} publisherName
+     * @param {String} product - Header to pass the product type of the payload file
+     * @param {String} fileName - Header to pass the filename of the uploaded data
+     * @return IPromise<Contracts.ExtensionDraft>
+     */
+    createDraftForNewExtension(content: any, publisherName: string, product: String, fileName?: String): IPromise<Contracts.ExtensionDraft>;
     /**
      * [Preview API]
      *
@@ -24329,104 +24496,79 @@ export class GalleryHttpClient4_1 extends CommonMethods3_2To4_1 {
      *
      * @param {any} content - Content to upload
      * @param {string} publisherName
-     * @param {String} product - Header to pass the product type of the payload file
+     * @param {string} extensionName
+     * @param {string} draftId
      * @param {String} fileName - Header to pass the filename of the uploaded data
      * @return IPromise<Contracts.ExtensionDraft>
      */
-    createDraftForNewExtension(content: any, publisherName: string, product: String, fileName?: String): IPromise<Contracts.ExtensionDraft>;
+    updatePayloadInDraftForEditExtension(content: any, publisherName: string, extensionName: string, draftId: string, fileName?: String): IPromise<Contracts.ExtensionDraft>;
     /**
      * [Preview API]
      *
      * @param {Contracts.ExtensionDraftPatch} draftPatch
      * @param {string} publisherName
-     * @param {string} draftId
-     * @return IPromise<Contracts.ExtensionDraft>
-     */
-    performNewExtensionDraftOperation(draftPatch: Contracts.ExtensionDraftPatch, publisherName: string, draftId: string): IPromise<Contracts.ExtensionDraft>;
-    /**
-     * [Preview API]
-     *
-     * @param {any} content - Content to upload
-     * @param {string} publisherName
-     * @param {string} draftId
-     * @param {String} fileName - Header to pass the filename of the uploaded data
-     * @return IPromise<Contracts.ExtensionDraft>
-     */
-    updatePayloadInDraftForNewExtension(content: any, publisherName: string, draftId: string, fileName?: String): IPromise<Contracts.ExtensionDraft>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} content - Content to upload
-     * @param {string} publisherName
-     * @param {string} draftId
-     * @param {string} assetType
-     * @return IPromise<Contracts.ExtensionDraftAsset>
-     */
-    addAssetForNewExtensionDraft(content: string, publisherName: string, draftId: string, assetType: string): IPromise<Contracts.ExtensionDraftAsset>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} publisherName
-     * @param {string} draftId
-     * @param {string} assetType
      * @param {string} extensionName
-     * @return IPromise<ArrayBuffer>
+     * @param {string} draftId
+     * @return IPromise<Contracts.ExtensionDraft>
      */
-    getAssetFromEditExtensionDraft(publisherName: string, draftId: string, assetType: string, extensionName: string): IPromise<ArrayBuffer>;
+    performEditExtensionDraftOperation(draftPatch: Contracts.ExtensionDraftPatch, publisherName: string, extensionName: string, draftId: string): IPromise<Contracts.ExtensionDraft>;
     /**
      * [Preview API]
      *
      * @param {string} publisherName
-     * @param {string} draftId
-     * @param {string} assetType
-     * @return IPromise<ArrayBuffer>
+     * @param {string} extensionName
+     * @return IPromise<Contracts.ExtensionDraft>
      */
-    getAssetFromNewExtensionDraft(publisherName: string, draftId: string, assetType: string): IPromise<ArrayBuffer>;
+    createDraftForEditExtension(publisherName: string, extensionName: string): IPromise<Contracts.ExtensionDraft>;
+}
+/**
+ * @exemptedapi
+ */
+export class GalleryHttpClient5 extends CommonMethods4_1To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
-     * [Preview API] Delete publisher asset like logo
+     * [Preview API]
      *
-     * @param {string} publisherName - Internal name of the publisher
-     * @param {string} assetType - Type of asset. Default value is 'logo'.
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} hostType
+     * @param {string} hostName
      * @return IPromise<void>
      */
-    deletePublisherAsset(publisherName: string, assetType?: string): IPromise<void>;
+    shareExtensionWithHost(publisherName: string, extensionName: string, hostType: string, hostName: string): IPromise<void>;
     /**
-     * [Preview API] Get publisher asset like logo as a stream
+     * [Preview API]
      *
-     * @param {string} publisherName - Internal name of the publisher
-     * @param {string} assetType - Type of asset. Default value is 'logo'.
-     * @return IPromise<ArrayBuffer>
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @param {string} hostType
+     * @param {string} hostName
+     * @return IPromise<void>
      */
-    getPublisherAsset(publisherName: string, assetType?: string): IPromise<ArrayBuffer>;
-    /**
-     * [Preview API] Update publisher asset like logo. It accepts asset file as an octet stream and file name is passed in header values.
-     *
-     * @param {any} content - Content to upload
-     * @param {string} publisherName - Internal name of the publisher
-     * @param {string} assetType - Type of asset. Default value is 'logo'.
-     * @param {String} fileName - Header to pass the filename of the uploaded data
-     * @return IPromise<{ [key: string] : string; }>
-     */
-    updatePublisherAsset(content: any, publisherName: string, assetType?: string, fileName?: String): IPromise<{
-        [key: string]: string;
-    }>;
+    unshareExtensionWithHost(publisherName: string, extensionName: string, hostType: string, hostName: string): IPromise<void>;
 }
 /**
  * @exemptedapi
  */
-export class GalleryHttpClient4 extends CommonMethods3_2To4_1 {
+export class GalleryHttpClient4_1 extends CommonMethods4_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class GalleryHttpClient3_2 extends CommonMethods3_2To4_1 {
+export class GalleryHttpClient4 extends CommonMethods3_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class GalleryHttpClient3_1 extends CommonMethods3_1To4_1 {
+export class GalleryHttpClient3_2 extends CommonMethods3_2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class GalleryHttpClient3_1 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
@@ -24464,7 +24606,7 @@ export class GalleryHttpClient3_1 extends CommonMethods3_1To4_1 {
 /**
  * @exemptedapi
  */
-export class GalleryHttpClient3 extends CommonMethods3To4_1 {
+export class GalleryHttpClient3 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
@@ -24502,7 +24644,7 @@ export class GalleryHttpClient3 extends CommonMethods3To4_1 {
 /**
  * @exemptedapi
  */
-export class GalleryHttpClient2_3 extends CommonMethods2_2To4_1 {
+export class GalleryHttpClient2_3 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
@@ -24540,7 +24682,7 @@ export class GalleryHttpClient2_3 extends CommonMethods2_2To4_1 {
 /**
  * @exemptedapi
  */
-export class GalleryHttpClient2_2 extends CommonMethods2_2To4_1 {
+export class GalleryHttpClient2_2 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
@@ -24578,7 +24720,7 @@ export class GalleryHttpClient2_2 extends CommonMethods2_2To4_1 {
 /**
  * @exemptedapi
  */
-export class GalleryHttpClient2_1 extends CommonMethods2_1To4_1 {
+export class GalleryHttpClient2_1 extends CommonMethods2_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
@@ -24616,7 +24758,7 @@ export class GalleryHttpClient2_1 extends CommonMethods2_1To4_1 {
 /**
  * @exemptedapi
  */
-export class GalleryHttpClient2 extends CommonMethods2To4_1 {
+export class GalleryHttpClient2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API]
@@ -24651,7 +24793,7 @@ export class GalleryHttpClient2 extends CommonMethods2To4_1 {
      */
     updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
 }
-export class GalleryHttpClient extends GalleryHttpClient4_1 {
+export class GalleryHttpClient extends GalleryHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -24675,6 +24817,31 @@ export interface GraphDescriptorResult {
      */
     _links: any;
     value: string;
+}
+/**
+ * Represents a set of data used to communicate with a federated provider on behalf of a particular user.
+ */
+export interface GraphFederatedProviderData {
+    /**
+     * The access token that can be used to communicated with the federated provider on behalf on the target identity, if we were able to successfully acquire one, otherwise <code>null</code>, if we were not.
+     */
+    accessToken: string;
+    /**
+     * Whether or not the immediate provider (i.e. AAD) has indicated that we can call them to attempt to get an access token to communicate with the federated provider on behalf of the target identity.
+     */
+    canQueryAccessToken: boolean;
+    /**
+     * The name of the federated provider, e.g. "github.com".
+     */
+    providerName: string;
+    /**
+     * The descriptor of the graph subject to which this federated provider data corresponds.
+     */
+    subjectDescriptor: string;
+    /**
+     * The version number of this federated provider data, which corresponds to when it was last updated. Can be used to prevent returning stale provider data from the cache when the caller is aware of a newer version, such as to prevent local cache poisoning from a remote cache or store. This is the app layer equivalent of the data layer sequence ID.
+     */
+    version: number;
 }
 export interface GraphGlobalExtendedPropertyBatch {
     propertyNameFilters: string[];
@@ -24750,10 +24917,6 @@ export interface GraphGroupVstsCreationContext extends GraphGroupCreationContext
     specialGroupType: string;
 }
 export interface GraphMember extends GraphSubject {
-    /**
-     * The Consistently Unique Identifier of the subject
-     */
-    cuid: string;
     /**
      * This represents the name of the container of origin for a graph member. (For MSA this is "Windows Live ID", for AD the name of the domain, for AAD the tenantID of the directory, for VSTS groups the ScopeId, etc)
      */
@@ -24837,6 +25000,27 @@ export interface GraphMembershipTraversal {
      * Subject descriptors of the traversed members
      */
     traversedSubjects: string[];
+}
+/**
+ * Who is the provider for this user and what is the identifier and domain that is used to uniquely identify the user.
+ */
+export interface GraphProviderInfo {
+    /**
+     * The descriptor is the primary way to reference the graph subject while the system is running. This field will uniquely identify the same graph subject across both Accounts and Organizations.
+     */
+    descriptor: string;
+    /**
+     * This represents the name of the container of origin for a graph member. (For MSA this is "Windows Live ID", for AAD the tenantID of the directory.)
+     */
+    domain: string;
+    /**
+     * The type of source provider for the origin identifier (ex: "aad", "msa")
+     */
+    origin: string;
+    /**
+     * The unique identifier from the system of origin. (For MSA this is the PUID in hex notation, for AAD this is the object id.)
+     */
+    originId: string;
 }
 export interface GraphScope extends GraphSubject {
     /**
@@ -24946,6 +25130,7 @@ export enum GraphTraversalDirection {
     Up = 2,
 }
 export interface GraphUser extends GraphMember {
+    metadataUpdateDate: Date;
     /**
      * The meta type of the user in the origin, such as "member", "guest", etc. See UserMetaType for the set of possible values.
      */
@@ -24983,11 +25168,6 @@ export interface GraphUserPrincipalNameCreationContext extends GraphUserCreation
      * This should be the principal name or upn of the user in the source AD or AAD provider. Example: jamal@contoso.com Team Services will communicate with the source provider to fill all other fields on creation.
      */
     principalName: string;
-}
-export interface IdentityKeyMap {
-    cuid: string;
-    storageKey: string;
-    subjectType: string;
 }
 export enum IdentityShardingState {
     Undefined = 0,
@@ -25036,6 +25216,7 @@ export var TypeInfo: {
             "up": number;
         };
     };
+    GraphUser: any;
     IdentityShardingState: {
         enumValues: {
             "undefined": number;
@@ -25043,13 +25224,14 @@ export var TypeInfo: {
             "disabled": number;
         };
     };
+    PagedGraphUsers: any;
 };
 }
 declare module "VSS/Graph/RestClient" {
 import Contracts = require("VSS/Graph/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods3_1To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods3_1To5 extends VSS_WebApi.VssHttpClient {
     protected descriptorsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -25060,11 +25242,10 @@ export class CommonMethods3_1To4_1 extends VSS_WebApi.VssHttpClient {
      */
     getDescriptor(storageKey: string): IPromise<Contracts.GraphDescriptorResult>;
 }
-export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
+export class CommonMethods3_2To5 extends CommonMethods3_1To5 {
     protected cachePoliciesApiVersion: string;
     protected graphGlobalExtendedPropertyBatchApiVersion: string;
     protected groupsApiVersion: string;
-    protected idsApiVersion: string;
     protected memberLookupApiVersion: string;
     protected membersApiVersion: string;
     protected membersApiVersion_42939f1e: string;
@@ -25215,31 +25396,48 @@ export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
      */
     createGroup(creationContext: Contracts.GraphGroupCreationContext, scopeDescriptor?: string, groupDescriptors?: string[]): IPromise<Contracts.GraphGroup>;
 }
+export class CommonMethods4To5 extends CommonMethods3_2To5 {
+    protected providerInfoApiVersion: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {string} userDescriptor
+     * @return IPromise<Contracts.GraphProviderInfo>
+     */
+    getProviderInfo(userDescriptor: string): IPromise<Contracts.GraphProviderInfo>;
+}
 /**
  * @exemptedapi
  */
-export class GraphHttpClient4_1 extends CommonMethods3_2To4_1 {
+export class GraphHttpClient5 extends CommonMethods4To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class GraphHttpClient4 extends CommonMethods3_2To4_1 {
+export class GraphHttpClient4_1 extends CommonMethods4To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class GraphHttpClient3_2 extends CommonMethods3_2To4_1 {
+export class GraphHttpClient4 extends CommonMethods4To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class GraphHttpClient3_1 extends CommonMethods3_1To4_1 {
+export class GraphHttpClient3_2 extends CommonMethods3_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class GraphHttpClient extends GraphHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class GraphHttpClient3_1 extends CommonMethods3_1To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class GraphHttpClient extends GraphHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -25477,7 +25675,7 @@ export interface MruIdentitiesUpdateData extends JsonPatchOperationData<string[]
 declare module "VSS/Identities/Mru/RestClient" {
 import Contracts = require("VSS/Identities/Mru/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     protected mruIdentitiesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -25510,58 +25708,64 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class IdentityMruHttpClient4_1 extends CommonMethods2To4_1 {
+export class IdentityMruHttpClient5 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentityMruHttpClient4 extends CommonMethods2To4_1 {
+export class IdentityMruHttpClient4_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentityMruHttpClient3_2 extends CommonMethods2To4_1 {
+export class IdentityMruHttpClient4 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentityMruHttpClient3_1 extends CommonMethods2To4_1 {
+export class IdentityMruHttpClient3_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentityMruHttpClient3 extends CommonMethods2To4_1 {
+export class IdentityMruHttpClient3_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentityMruHttpClient2_3 extends CommonMethods2To4_1 {
+export class IdentityMruHttpClient3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentityMruHttpClient2_2 extends CommonMethods2To4_1 {
+export class IdentityMruHttpClient2_3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentityMruHttpClient2_1 extends CommonMethods2To4_1 {
+export class IdentityMruHttpClient2_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentityMruHttpClient2 extends CommonMethods2To4_1 {
+export class IdentityMruHttpClient2_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class IdentityMruHttpClient extends IdentityMruHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class IdentityMruHttpClient2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class IdentityMruHttpClient extends IdentityMruHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -26023,6 +26227,7 @@ export class IdentityPickerDropdownControl extends Controls.Control<IIdentityPic
     private _isDropdownVisibleInitially;
     private _entityOperationsFacade;
     private _isFiltered;
+    private _isRepositioning;
     constructor(options?: IIdentityPickerDropdownOptions);
     /**
     *   For internal / unit testing use only
@@ -26080,6 +26285,7 @@ export class IdentityPickerDropdownControl extends Controls.Control<IIdentityPic
     private _getDirectoryEntities(prefix, entityDeferred, quickSearch?);
     private _getImagesForDisplayedEntities();
     private _showPostLoad();
+    private _handleScrollAndResize(event);
     private _constructDropdown(keepIndex?, setupDom?, selectFirstByDefault?);
     /**
     * Removes the identity from the querying identity's MRU
@@ -26732,6 +26938,7 @@ export interface DefaultAbridgedCardProps extends Component_Base.Props {
 }
 export class DefaultAbridgedCard extends React.Component<DefaultAbridgedCardProps, {}> {
     render(): JSX.Element;
+    private _verifySignInAddress();
 }
 }
 declare module "VSS/Identities/Picker/DefaultCard" {
@@ -27378,7 +27585,7 @@ import Contracts = require("VSS/Identities/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_DelegatedAuthorization_Contracts = require("VSS/DelegatedAuthorization/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     protected claimsApiVersion: string;
     protected descriptorsApiVersion: string;
     protected groupsApiVersion: string;
@@ -27636,58 +27843,64 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class IdentitiesHttpClient4_1 extends CommonMethods2To4_1 {
+export class IdentitiesHttpClient5 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentitiesHttpClient4 extends CommonMethods2To4_1 {
+export class IdentitiesHttpClient4_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentitiesHttpClient3_2 extends CommonMethods2To4_1 {
+export class IdentitiesHttpClient4 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentitiesHttpClient3_1 extends CommonMethods2To4_1 {
+export class IdentitiesHttpClient3_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentitiesHttpClient3 extends CommonMethods2To4_1 {
+export class IdentitiesHttpClient3_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentitiesHttpClient2_3 extends CommonMethods2To4_1 {
+export class IdentitiesHttpClient3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentitiesHttpClient2_2 extends CommonMethods2To4_1 {
+export class IdentitiesHttpClient2_3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentitiesHttpClient2_1 extends CommonMethods2To4_1 {
+export class IdentitiesHttpClient2_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class IdentitiesHttpClient2 extends CommonMethods2To4_1 {
+export class IdentitiesHttpClient2_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class IdentitiesHttpClient extends IdentitiesHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class IdentitiesHttpClient2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class IdentitiesHttpClient extends IdentitiesHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -27735,11 +27948,9 @@ export var TypeInfo: {
 declare module "VSS/Invitation/RestClient" {
 import Contracts = require("VSS/Invitation/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-/**
- * @exemptedapi
- */
-export class InvitationHttpClient4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
+    protected invitationsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API] Send Account Invitation to a user
@@ -27750,7 +27961,19 @@ export class InvitationHttpClient4_1 extends VSS_WebApi.VssHttpClient {
      */
     sendAccountInvitation(invitationData: Contracts.InvitationData, userId: string): IPromise<void>;
 }
-export class InvitationHttpClient extends InvitationHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class InvitationHttpClient5 extends CommonMethods4_1To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class InvitationHttpClient4_1 extends CommonMethods4_1To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class InvitationHttpClient extends InvitationHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -28054,7 +28277,7 @@ declare module "VSS/LicensingRule/RestClient" {
 import Contracts = require("VSS/LicensingRule/Contracts");
 import VSS_Operations_Contracts = require("VSS/Operations/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected groupLicensingRulesApiVersion: string;
     protected groupLicensingRulesApplicationApiVersion: string;
@@ -28140,58 +28363,64 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class LicensingRuleHttpClient4_1 extends CommonMethods2To4_1 {
+export class LicensingRuleHttpClient5 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class LicensingRuleHttpClient4 extends CommonMethods2To4_1 {
+export class LicensingRuleHttpClient4_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class LicensingRuleHttpClient3_2 extends CommonMethods2To4_1 {
+export class LicensingRuleHttpClient4 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class LicensingRuleHttpClient3_1 extends CommonMethods2To4_1 {
+export class LicensingRuleHttpClient3_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class LicensingRuleHttpClient3 extends CommonMethods2To4_1 {
+export class LicensingRuleHttpClient3_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class LicensingRuleHttpClient2_3 extends CommonMethods2To4_1 {
+export class LicensingRuleHttpClient3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class LicensingRuleHttpClient2_2 extends CommonMethods2To4_1 {
+export class LicensingRuleHttpClient2_3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class LicensingRuleHttpClient2_1 extends CommonMethods2To4_1 {
+export class LicensingRuleHttpClient2_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class LicensingRuleHttpClient2 extends CommonMethods2To4_1 {
+export class LicensingRuleHttpClient2_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class LicensingRuleHttpClient extends LicensingRuleHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class LicensingRuleHttpClient2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class LicensingRuleHttpClient extends LicensingRuleHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -28645,7 +28874,7 @@ export var TypeInfo: {
 declare module "VSS/Licensing/RestClient" {
 import Contracts = require("VSS/Licensing/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     protected certificateApiVersion: string;
     protected clientRightsApiVersion: string;
     protected entitlementsApiVersion: string;
@@ -28797,7 +29026,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      */
     getCertificate(): IPromise<ArrayBuffer>;
 }
-export class CommonMethods3To4_1 extends CommonMethods2To4_1 {
+export class CommonMethods3To5 extends CommonMethods2To5 {
     protected extensionEntitlementsApiVersion: string;
     protected extensionEntitlementsApiVersion_5434f182: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -28842,7 +29071,7 @@ export class CommonMethods3To4_1 extends CommonMethods2To4_1 {
      */
     assignExtensionToAllEligibleUsers(extensionId: string): IPromise<Contracts.ExtensionOperationResult[]>;
 }
-export class CommonMethods3_1To4_1 extends CommonMethods3To4_1 {
+export class CommonMethods3_1To5 extends CommonMethods3To5 {
     protected accountAssignedExtensionsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -28855,58 +29084,64 @@ export class CommonMethods3_1To4_1 extends CommonMethods3To4_1 {
 /**
  * @exemptedapi
  */
-export class LicensingHttpClient4_1 extends CommonMethods3_1To4_1 {
+export class LicensingHttpClient5 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class LicensingHttpClient4 extends CommonMethods3_1To4_1 {
+export class LicensingHttpClient4_1 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class LicensingHttpClient3_2 extends CommonMethods3_1To4_1 {
+export class LicensingHttpClient4 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class LicensingHttpClient3_1 extends CommonMethods3_1To4_1 {
+export class LicensingHttpClient3_2 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class LicensingHttpClient3 extends CommonMethods3To4_1 {
+export class LicensingHttpClient3_1 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class LicensingHttpClient2_3 extends CommonMethods2To4_1 {
+export class LicensingHttpClient3 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class LicensingHttpClient2_2 extends CommonMethods2To4_1 {
+export class LicensingHttpClient2_3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class LicensingHttpClient2_1 extends CommonMethods2To4_1 {
+export class LicensingHttpClient2_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class LicensingHttpClient2 extends CommonMethods2To4_1 {
+export class LicensingHttpClient2_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class LicensingHttpClient extends LicensingHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class LicensingHttpClient2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class LicensingHttpClient extends LicensingHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -28918,6 +29153,8 @@ export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): Licensing
 }
 declare module "VSS/Locations" {
 import Contracts_Platform = require("VSS/Common/Contracts/Platform");
+import Locations_Contracts = require("VSS/Locations/Contracts");
+import Locations_RestClient = require("VSS/Locations/RestClient");
 /**
 * Options for generating content urls
 */
@@ -29030,6 +29267,10 @@ export class UrlHelper {
 */
 export var urlHelper: UrlHelper;
 /**
+* Get the preferred url for the given service definition
+*/
+export function getUrlForServiceDefinition(serviceDefinition: Locations_Contracts.ServiceDefinition): string;
+/**
 * Get the url for the given service if its location has already been cached
 *
 * @param serviceInstanceId Unique id for the service
@@ -29047,6 +29288,14 @@ export function getCachedServiceLocation(serviceInstanceId: string, hostType: Co
 */
 export function addServiceLocation(url: string, serviceInstanceId: string, hostType: Contracts_Platform.ContextHostType): void;
 /**
+* Get the SPS url at the given host type level.
+*/
+export function getSpsLocation(hostType: Contracts_Platform.ContextHostType, webContext?: Contracts_Platform.WebContext, authTokenManager?: IAuthTokenManager<any>): IPromise<string>;
+/**
+* Create a Locations HttpClient pointed to the given SPS location
+*/
+export function getSpsLocationClient(spsLocationUrl: string, hostType: Contracts_Platform.ContextHostType, authTokenManager?: IAuthTokenManager<any>): Locations_RestClient.LocationsHttpClient;
+/**
 * Get the url for the given service
 * @param serviceInstanceId Unique id for the service
 * @param hostType The host level to get the url for
@@ -29058,6 +29307,7 @@ export function addServiceLocation(url: string, serviceInstanceId: string, hostT
 export function beginGetServiceLocation(serviceInstanceId: string, hostType: Contracts_Platform.ContextHostType, webContext?: Contracts_Platform.WebContext, faultInMissingHost?: boolean, authTokenManager?: IAuthTokenManager<any>): IPromise<string>;
 }
 declare module "VSS/Locations/Contracts" {
+import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_Identities_Contracts = require("VSS/Identities/Contracts");
 export interface AccessMapping {
     accessPoint: string;
@@ -29088,6 +29338,10 @@ export interface ConnectionData {
      * The id for the server.
      */
     deploymentId: string;
+    /**
+     * The type for the server Hosted/OnPremises.
+     */
+    deploymentType: VSS_Common_Contracts.DeploymentFlags;
     /**
      * The instance id for this host.
      */
@@ -29609,10 +29863,11 @@ export interface INavigationHistoryService {
      * @param url Optional url to update the address bar with. If not specified, computed from the given state (and current page's route template).
      * @param routeId Optional route id to set for this entry. If not specified, the current page's route id is used.
      * @param navigationElementId Optional id of the navigation element that this entry targets. If not specified the current page's hub id is used.
+     * @param forcePush Optional boolean to push state even when the url is same
      */
     pushState(state: {
         [key: string]: string;
-    }, url?: string, routeId?: string, navigationElementId?: string): any;
+    }, url?: string, routeId?: string, navigationElementId?: string, forcePush?: boolean): any;
     /**
      * Get the current dictionary of all URL state parameters. This includes route values as well as query parameters.
      */
@@ -29895,6 +30150,39 @@ export function getDefaultPageTitle(title: string): string;
 */
 export function getDefaultPageTitleFormatString(): string;
 }
+declare module "VSS/NewDomainUrlMigration/RestClient" {
+import VSS_ReparentCollection_Contracts = require("VSS/ReparentCollection/Contracts");
+import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
+export class NewDomainUrlOrchestrationHttpClient5 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @return IPromise<VSS_ReparentCollection_Contracts.ServicingOrchestrationRequestStatus>
+     */
+    getStatus(): IPromise<VSS_ReparentCollection_Contracts.ServicingOrchestrationRequestStatus>;
+    /**
+     * [Preview API]
+     *
+     * @param {boolean} codexDomainUrls
+     * @return IPromise<void>
+     */
+    queueMigration(codexDomainUrls: boolean): IPromise<void>;
+}
+export class NewDomainUrlOrchestrationHttpClient extends NewDomainUrlOrchestrationHttpClient5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * Gets an http client targeting the latest released version of the APIs.
+ *
+ * @return NewDomainUrlOrchestrationHttpClient5
+ */
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): NewDomainUrlOrchestrationHttpClient5;
+}
 declare module "VSS/Operations/Contracts" {
 /**
  * Contains information about the progress or result of an async operation.
@@ -29991,7 +30279,7 @@ export var TypeInfo: {
 declare module "VSS/Operations/RestClient" {
 import Contracts = require("VSS/Operations/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     protected operationsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -30006,58 +30294,64 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class OperationsHttpClient4_1 extends CommonMethods2To4_1 {
+export class OperationsHttpClient5 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OperationsHttpClient4 extends CommonMethods2To4_1 {
+export class OperationsHttpClient4_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OperationsHttpClient3_2 extends CommonMethods2To4_1 {
+export class OperationsHttpClient4 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OperationsHttpClient3_1 extends CommonMethods2To4_1 {
+export class OperationsHttpClient3_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OperationsHttpClient3 extends CommonMethods2To4_1 {
+export class OperationsHttpClient3_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OperationsHttpClient2_3 extends CommonMethods2To4_1 {
+export class OperationsHttpClient3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OperationsHttpClient2_2 extends CommonMethods2To4_1 {
+export class OperationsHttpClient2_3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OperationsHttpClient2_1 extends CommonMethods2To4_1 {
+export class OperationsHttpClient2_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OperationsHttpClient2 extends CommonMethods2To4_1 {
+export class OperationsHttpClient2_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class OperationsHttpClient extends OperationsHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class OperationsHttpClient2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class OperationsHttpClient extends OperationsHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -30077,7 +30371,7 @@ declare module "VSS/OrganizationPolicy/Contracts" {
  *   https://vsowiki.com/index.php?title=Rest_Client_Generation
  *
  * Configuration file:
- *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\organizationpolicy.genclient.json
  */
 export interface Policy {
     effectiveValue: any;
@@ -30097,7 +30391,7 @@ declare module "VSS/OrganizationPolicy/RestClient" {
 import Contracts = require("VSS/Organization/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods3To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods3To5 extends VSS_WebApi.VssHttpClient {
     protected policiesApiVersion: string;
     protected policiesBatchApiVersion: string;
     protected policyInformationApiVersion: string;
@@ -30148,34 +30442,40 @@ export class CommonMethods3To4_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class OrganizationPolicyHttpClient4_1 extends CommonMethods3To4_1 {
+export class OrganizationPolicyHttpClient5 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OrganizationPolicyHttpClient4 extends CommonMethods3To4_1 {
+export class OrganizationPolicyHttpClient4_1 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OrganizationPolicyHttpClient3_2 extends CommonMethods3To4_1 {
+export class OrganizationPolicyHttpClient4 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OrganizationPolicyHttpClient3_1 extends CommonMethods3To4_1 {
+export class OrganizationPolicyHttpClient3_2 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OrganizationPolicyHttpClient3 extends CommonMethods3To4_1 {
+export class OrganizationPolicyHttpClient3_1 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class OrganizationPolicyHttpClient extends OrganizationPolicyHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class OrganizationPolicyHttpClient3 extends CommonMethods3To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class OrganizationPolicyHttpClient extends OrganizationPolicyHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -30352,7 +30652,7 @@ declare module "VSS/Organization/RestClient" {
 import Contracts = require("VSS/Organization/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods3To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods3To5 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected collectionPropertiesApiVersion: string;
     protected collectionsApiVersion: string;
@@ -30467,9 +30767,11 @@ export class CommonMethods3To4_1 extends VSS_WebApi.VssHttpClient {
      * [Preview API]
      *
      * @param {string} collectionId
+     * @param {number} gracePeriodToRestoreInHours
+     * @param {boolean} violatedTerms
      * @return IPromise<boolean>
      */
-    deleteCollection(collectionId: string): IPromise<boolean>;
+    deleteCollection(collectionId: string, gracePeriodToRestoreInHours?: number, violatedTerms?: boolean): IPromise<boolean>;
     /**
      * [Preview API]
      *
@@ -30489,34 +30791,40 @@ export class CommonMethods3To4_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class OrganizationHttpClient4_1 extends CommonMethods3To4_1 {
+export class OrganizationHttpClient5 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OrganizationHttpClient4 extends CommonMethods3To4_1 {
+export class OrganizationHttpClient4_1 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OrganizationHttpClient3_2 extends CommonMethods3To4_1 {
+export class OrganizationHttpClient4 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OrganizationHttpClient3_1 extends CommonMethods3To4_1 {
+export class OrganizationHttpClient3_2 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class OrganizationHttpClient3 extends CommonMethods3To4_1 {
+export class OrganizationHttpClient3_1 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class OrganizationHttpClient extends OrganizationHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class OrganizationHttpClient3 extends CommonMethods3To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class OrganizationHttpClient extends OrganizationHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -30558,13 +30866,14 @@ export interface IScenarioManager {
     abortScenario(featureArea: string, name: string): void;
     /**
      * Start new scenario beginning at the browser's navigationStart event
-     * @param area Feature area name for CI event.
+     * @param featureArea Feature area name for CI event.
      * @param name Name of scenario.
      * @param isPageInteractive Optional: Whether or not the scenario is the primary one for the page, indicating whether or not hte page is yet interactive (TTI)
+     * @param includePageLoadScenarioData Include the default page load scenario data
      *
      * @returns Scenario descriptor
      */
-    startScenarioFromNavigation(featureArea: string, name: string, isPageInteractive?: boolean): IScenarioDescriptor;
+    startScenarioFromNavigation(featureArea: string, name: string, isPageInteractive?: boolean, includePageLoadScenarioData?: boolean): IScenarioDescriptor;
     /**
      * Record a page load scenario.
      * @param area Feature area name for CI event.
@@ -30603,6 +30912,14 @@ export interface IScenarioManager {
      * @returns boolean indicating whether the page load scenario is active
      */
     isPageLoadScenarioActive(): boolean;
+    /**
+     * Resets page interactive event and starts default scenario
+     */
+    resetPageLoadScenario(): void;
+    /**
+     * Indicate whether the page load scenario is full navigation (i.e. not an FPS navigate).
+     */
+    isPageLoadScenarioFullNavigation(): boolean;
 }
 /** Describes split timing within scenarios */
 export interface ISplitTiming {
@@ -31181,6 +31498,7 @@ export class ExtensionDataService implements IExtensionDataService {
     queryCollections(collections: Contributions_Contracts.ExtensionDataCollection[]): IPromise<Contributions_Contracts.ExtensionDataCollection[]>;
     private _checkDocument(document);
     private _checkDocumentOptions(documentOptions);
+    private _checkForClient(emsClient);
     private _createDictionaryForArray(docs);
 }
 }
@@ -31635,7 +31953,7 @@ export var TypeInfo: {
 declare module "VSS/SecurityRoles/RestClient" {
 import Contracts = require("VSS/SecurityRoles/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2_2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2_2To5 extends VSS_WebApi.VssHttpClient {
     protected roleassignmentsApiVersion: string;
     protected roledefinitionsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -31705,46 +32023,52 @@ export class CommonMethods2_2To4_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class SecurityRolesHttpClient4_1 extends CommonMethods2_2To4_1 {
+export class SecurityRolesHttpClient5 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityRolesHttpClient4 extends CommonMethods2_2To4_1 {
+export class SecurityRolesHttpClient4_1 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityRolesHttpClient3_2 extends CommonMethods2_2To4_1 {
+export class SecurityRolesHttpClient4 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityRolesHttpClient3_1 extends CommonMethods2_2To4_1 {
+export class SecurityRolesHttpClient3_2 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityRolesHttpClient3 extends CommonMethods2_2To4_1 {
+export class SecurityRolesHttpClient3_1 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityRolesHttpClient2_3 extends CommonMethods2_2To4_1 {
+export class SecurityRolesHttpClient3 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityRolesHttpClient2_2 extends CommonMethods2_2To4_1 {
+export class SecurityRolesHttpClient2_3 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class SecurityRolesHttpClient extends SecurityRolesHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class SecurityRolesHttpClient2_2 extends CommonMethods2_2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class SecurityRolesHttpClient extends SecurityRolesHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -31949,7 +32273,7 @@ declare module "VSS/Security/RestClient" {
 import Contracts = require("VSS/Security/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     protected accessControlEntriesApiVersion: string;
     protected accessControlListsApiVersion: string;
     protected permissionsApiVersion: string;
@@ -32017,7 +32341,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      */
     removeAccessControlEntries(securityNamespaceId: string, token?: string, descriptors?: string): IPromise<boolean>;
 }
-export class CommonMethods2_2To4_1 extends CommonMethods2To4_1 {
+export class CommonMethods2_2To5 extends CommonMethods2To5 {
     protected permissionsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -32032,7 +32356,7 @@ export class CommonMethods2_2To4_1 extends CommonMethods2To4_1 {
      */
     hasPermissions(securityNamespaceId: string, permissions?: number, tokens?: string, alwaysAllowAdministrators?: boolean, delimiter?: string): IPromise<boolean[]>;
 }
-export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
+export class CommonMethods3To5 extends CommonMethods2_2To5 {
     protected permissionEvaluationBatchApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -32046,46 +32370,52 @@ export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
 /**
  * @exemptedapi
  */
-export class SecurityHttpClient4_1 extends CommonMethods3To4_1 {
+export class SecurityHttpClient5 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityHttpClient4 extends CommonMethods3To4_1 {
+export class SecurityHttpClient4_1 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityHttpClient3_2 extends CommonMethods3To4_1 {
+export class SecurityHttpClient4 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityHttpClient3_1 extends CommonMethods3To4_1 {
+export class SecurityHttpClient3_2 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityHttpClient3 extends CommonMethods3To4_1 {
+export class SecurityHttpClient3_1 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityHttpClient2_3 extends CommonMethods2_2To4_1 {
+export class SecurityHttpClient3 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SecurityHttpClient2_2 extends CommonMethods2_2To4_1 {
+export class SecurityHttpClient2_3 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class SecurityHttpClient2_1 extends CommonMethods2To4_1 {
+/**
+ * @exemptedapi
+ */
+export class SecurityHttpClient2_2 extends CommonMethods2_2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class SecurityHttpClient2_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * Evaluates whether the caller has the specified permissions.
@@ -32098,7 +32428,7 @@ export class SecurityHttpClient2_1 extends CommonMethods2To4_1 {
      */
     hasPermission(securityNamespaceId: string, permissions?: number, token?: string, alwaysAllowAdministrators?: boolean): IPromise<boolean>;
 }
-export class SecurityHttpClient2 extends CommonMethods2To4_1 {
+export class SecurityHttpClient2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * Evaluates whether the caller has the specified permissions.
@@ -32111,7 +32441,7 @@ export class SecurityHttpClient2 extends CommonMethods2To4_1 {
      */
     hasPermission(securityNamespaceId: string, permissions?: number, token?: string, alwaysAllowAdministrators?: boolean): IPromise<boolean>;
 }
-export class SecurityHttpClient extends SecurityHttpClient4_1 {
+export class SecurityHttpClient extends SecurityHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -32410,7 +32740,7 @@ export class LocalSettingsService implements Service.ILocalService {
 }
 declare module "VSS/Settings/RestClient" {
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods3To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods3To5 extends VSS_WebApi.VssHttpClient {
     protected entriesApiVersion: string;
     protected entriesApiVersion_cd006711: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -32480,34 +32810,40 @@ export class CommonMethods3To4_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class SettingsHttpClient4_1 extends CommonMethods3To4_1 {
+export class SettingsHttpClient5 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SettingsHttpClient4 extends CommonMethods3To4_1 {
+export class SettingsHttpClient4_1 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SettingsHttpClient3_2 extends CommonMethods3To4_1 {
+export class SettingsHttpClient4 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SettingsHttpClient3_1 extends CommonMethods3To4_1 {
+export class SettingsHttpClient3_2 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class SettingsHttpClient3 extends CommonMethods3To4_1 {
+export class SettingsHttpClient3_1 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class SettingsHttpClient extends SettingsHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class SettingsHttpClient3 extends CommonMethods3To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class SettingsHttpClient extends SettingsHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -32634,7 +32970,7 @@ export interface CustomerIntelligenceEvent {
 declare module "VSS/Telemetry/RestClient" {
 import Contracts = require("VSS/Telemetry/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     protected eventsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -32648,58 +32984,64 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class CustomerIntelligenceHttpClient4_1 extends CommonMethods2To4_1 {
+export class CustomerIntelligenceHttpClient5 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CustomerIntelligenceHttpClient4 extends CommonMethods2To4_1 {
+export class CustomerIntelligenceHttpClient4_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CustomerIntelligenceHttpClient3_2 extends CommonMethods2To4_1 {
+export class CustomerIntelligenceHttpClient4 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CustomerIntelligenceHttpClient3_1 extends CommonMethods2To4_1 {
+export class CustomerIntelligenceHttpClient3_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CustomerIntelligenceHttpClient3 extends CommonMethods2To4_1 {
+export class CustomerIntelligenceHttpClient3_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CustomerIntelligenceHttpClient2_3 extends CommonMethods2To4_1 {
+export class CustomerIntelligenceHttpClient3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CustomerIntelligenceHttpClient2_2 extends CommonMethods2To4_1 {
+export class CustomerIntelligenceHttpClient2_3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CustomerIntelligenceHttpClient2_1 extends CommonMethods2To4_1 {
+export class CustomerIntelligenceHttpClient2_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class CustomerIntelligenceHttpClient2 extends CommonMethods2To4_1 {
+export class CustomerIntelligenceHttpClient2_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class CustomerIntelligenceHttpClient extends CustomerIntelligenceHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class CustomerIntelligenceHttpClient2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class CustomerIntelligenceHttpClient extends CustomerIntelligenceHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -32720,6 +33062,7 @@ export class TelemetryEventData {
         [key: string]: any;
     };
     elapsedTime: number;
+    serviceInstanceType?: string;
     /**
      * Constructor for CIPublishPropertiesOptions.
      *
@@ -32728,14 +33071,27 @@ export class TelemetryEventData {
      * @param properties The key:value list of event properties.
      * @param elapsedTime The elapsedTime for the event. Defaults to Date.now() - startTime if startTime is supplied.
      * @param startTime The Date.now() at the start of the event process.
+     * @param serviceInstanceType The id of the service instance type to send the telemetry to
      */
     constructor(area: string, feature: string, properties: {
         [key: string]: any;
-    }, startTime?: number, elapsedTime?: number);
+    }, startTime?: number, elapsedTime?: number, serviceInstanceType?: string);
     /**
      * Create Telemetry event data from a single property
      */
     static fromProperty(area: string, feature: string, property: string, value: any, startTime?: number, elapsedTime?: number): TelemetryEventData;
+    /**
+     * Create telemetry event data for an explicit service instance type
+     */
+    static forService(area: string, feature: string, serviceInstanceType: string, properties?: {
+        [key: string]: any;
+    }): TelemetryEventData;
+}
+/**
+ * Handler that can modify properties of telemetry events before they are sent to the server
+ */
+export interface ITelemetryEventHandler {
+    (event: TelemetryEventData): void;
 }
 /**
  * Gets all the events published to the service.
@@ -32754,6 +33110,18 @@ export function publishEvent(eventData: TelemetryEventData, immediate?: boolean)
  * Flush queued event data to be sent to CustomerIntelligence service and App Insights
  */
 export function flush(): IPromise<void>;
+/**
+ * Register a function to be called each time an event is published
+ *
+ * @param handler Handler that can modify properties of telemetry events before they are sent to the server
+ */
+export function addTelemetryEventHandler(handler: ITelemetryEventHandler): void;
+/**
+ * Unregister a function called each time an event is published
+ *
+ * @param handler Handler to remove
+ */
+export function removeTelemetryEventHandler(handler: ITelemetryEventHandler): void;
 }
 declare module "VSS/Token/Contracts" {
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
@@ -32901,6 +33269,7 @@ export enum TokenError {
     AuthorizationGrantScopeMissing = 27,
     InvalidPublicAccessTokenKey = 28,
     InvalidPublicAccessToken = 29,
+    PublicFeatureFlagNotEnabled = 30,
 }
 export var TypeInfo: {
     AccessToken: any;
@@ -32992,6 +33361,7 @@ export var TypeInfo: {
             "authorizationGrantScopeMissing": number;
             "invalidPublicAccessTokenKey": number;
             "invalidPublicAccessToken": number;
+            "publicFeatureFlagNotEnabled": number;
         };
     };
 };
@@ -32999,7 +33369,7 @@ export var TypeInfo: {
 declare module "VSS/Token/RestClient" {
 import Contracts = require("VSS/Token/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     protected accessTokensApiVersion: string;
     protected appSessionTokensApiVersion: string;
     protected appTokenPairsApiVersion: string;
@@ -33103,58 +33473,64 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class TokenHttpClient4_1 extends CommonMethods2To4_1 {
+export class TokenHttpClient5 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class TokenHttpClient4 extends CommonMethods2To4_1 {
+export class TokenHttpClient4_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class TokenHttpClient3_2 extends CommonMethods2To4_1 {
+export class TokenHttpClient4 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class TokenHttpClient3_1 extends CommonMethods2To4_1 {
+export class TokenHttpClient3_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class TokenHttpClient3 extends CommonMethods2To4_1 {
+export class TokenHttpClient3_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class TokenHttpClient2_3 extends CommonMethods2To4_1 {
+export class TokenHttpClient3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class TokenHttpClient2_2 extends CommonMethods2To4_1 {
+export class TokenHttpClient2_3 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class TokenHttpClient2_1 extends CommonMethods2To4_1 {
+export class TokenHttpClient2_2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class TokenHttpClient2 extends CommonMethods2To4_1 {
+export class TokenHttpClient2_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class TokenHttpClient extends TokenHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class TokenHttpClient2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class TokenHttpClient extends TokenHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -33165,7 +33541,7 @@ export class TokenHttpClient extends TokenHttpClient4_1 {
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TokenHttpClient4_1;
 }
 declare module "VSS/UserAccountMapping/Contracts" {
-export enum UserAccountMappingType {
+export enum UserRole {
     Member = 1,
     Owner = 2,
 }
@@ -33175,7 +33551,7 @@ export enum VisualStudioLevel {
     TestManager = 2,
 }
 export var TypeInfo: {
-    UserAccountMappingType: {
+    UserRole: {
         enumValues: {
             "member": number;
             "owner": number;
@@ -33207,7 +33583,7 @@ export var TypeInfo: {
 declare module "VSS/UserMapping/RestClient" {
 import Contracts = require("VSS/UserMapping/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods3_1To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods3_1To5 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected userAccountMappingsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -33234,28 +33610,34 @@ export class CommonMethods3_1To4_1 extends VSS_WebApi.VssHttpClient {
 /**
  * @exemptedapi
  */
-export class UserMappingHttpClient4_1 extends CommonMethods3_1To4_1 {
+export class UserMappingHttpClient5 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class UserMappingHttpClient4 extends CommonMethods3_1To4_1 {
+export class UserMappingHttpClient4_1 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class UserMappingHttpClient3_2 extends CommonMethods3_1To4_1 {
+export class UserMappingHttpClient4 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class UserMappingHttpClient3_1 extends CommonMethods3_1To4_1 {
+export class UserMappingHttpClient3_2 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class UserMappingHttpClient extends UserMappingHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class UserMappingHttpClient3_1 extends CommonMethods3_1To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class UserMappingHttpClient extends UserMappingHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -33605,6 +33987,10 @@ export interface ProgressAnnouncerOptions {
      * announcement.
      */
     announceErrorMessage?: string;
+    /**
+     * Always announce the end message.
+     */
+    alwaysAnnounceEnd?: boolean;
 }
 /**
  * Class for announcing, through a screen reader, when a single operation begins and ends. Supports
@@ -33627,7 +34013,7 @@ export class ProgressAnnouncer {
     private _start();
     /**
      * Call this method when the operation has completed. This will cause the end message to be
-     * announced if the start message was announced.
+     * announced if the start message was announced or if alwaysAnnounceEnd is set to true.
      */
     announceCompleted(): void;
     /**
@@ -33821,6 +34207,12 @@ export function intersectUniqueSorted<T>(sortedUniqueArray1: T[], sortedUniqueAr
  * It's like Linq.SelectMany.
  */
 export function flatten<T>(listOfLists: T[][]): T[];
+/** Merges two sorted lists of T into one sorted list of T
+* @param listA The first list
+* @param listB The second list
+* @param comparer The comparer to use
+*/
+export function mergeSorted<T>(listA: T[], listB: T[], comparer?: IComparer<T>): T[];
 export class StableSorter<T> {
     private cmpFunc;
     constructor(cmpFunc: (a: T, b: T) => number);
@@ -34507,6 +34899,7 @@ export function isGivenDayInFuture(date: Date): boolean;
 export function friendly(date: Date, now?: Date): string;
 }
 declare module "VSS/Utils/Draggable" {
+export {};
 }
 declare module "VSS/Utils/File" {
 /**
@@ -34547,6 +34940,7 @@ export function ensureTrailingSeparator(path: string, pathSeparator?: string): s
  * @param pathSeparator Path separator (default '/').
  */
 export function getPathParts(path: string, pathSeparator?: string): string[];
+export function getRootDirectory(path: string, pathSeparator?: string): string;
 /**
  * Gets the directory part of the specified path.
  *
@@ -34563,6 +34957,12 @@ export function getDirectoryName(path: string, pathSeparator?: string): string;
  * @returns {string}
  */
 export function getFileName(path: string, pathSeparator?: string): string;
+/**
+ * Normalize a path by using correct slash characters, removing duplicate slashes, and trimming trailing slashes
+ * @param path The path to normalize
+ * @param useBackslash Normalize to a backslash path if true. @default false
+ */
+export function normalizePath(path: string, useBackslash?: boolean): string;
 }
 declare module "VSS/Utils/Html" {
 export module HtmlNormalizer {
@@ -35152,6 +35552,7 @@ export enum KeyCode {
     S = 83,
     E = 69,
     A = 65,
+    B = 66,
     C = 67,
     D = 68,
     H = 72,
@@ -35159,6 +35560,7 @@ export enum KeyCode {
     J = 74,
     K = 75,
     T = 84,
+    U = 85,
     QUESTION_MARK = 191,
     CONTEXT_MENU = 93,
 }
@@ -35549,6 +35951,11 @@ export class Uri {
     * The uri scheme such as http or https
     */
     scheme: string;
+    /**
+     * If true, do not emit the "//" separator after the scheme:
+     * Set to true for schemes like mailto (e.g. mailto:foo@bar)
+     */
+    noSchemeSeparator: boolean;
     /**
     * The uri hostname (does not include port or scheme)
     */
@@ -36009,6 +36416,8 @@ export module AccessMappingConstants {
     var AzureInstanceMappingMoniker: string;
     var ServicePathMappingMoniker: string;
     var ServiceDomainMappingMoniker: string;
+    var ServiceAccessMappingMoniker: string;
+    var MultiInstanceAccessMappingMoniker: string;
 }
 export module AuthenticationResourceIds {
     var AuthenticationLocationId: string;
@@ -36116,6 +36525,11 @@ export module FeatureManagementResourceIds {
     var FeatureStatesQueryForScopeLocationIdString: string;
     var FeatureStatesQueryForDefaultScopeLocationIdString: string;
 }
+export module GraphProfileResourceIds {
+    var AreaIdGuid: string;
+    var AreaId: string;
+    var AreaName: string;
+}
 export module IdentityMruResourceIds {
     var MruIdentitiesLocationId: string;
     var AreaId: string;
@@ -36178,6 +36592,8 @@ export module ServiceInstanceTypes {
     var TFSOnPremisesString: string;
     var SpsExtensionString: string;
     var SDKSampleString: string;
+    var BlobStore: string;
+    var Artifact: string;
 }
 export module SettingsApiResourceIds {
     var SettingEntriesLocationId: string;
@@ -36190,6 +36606,9 @@ export module SettingsApiResourceIds {
 export module SubjectKind {
     var Group: string;
     var User: string;
+}
+export module SubjectType {
+    var AadGroup: string;
 }
 export module UserMetaType {
     var Guest: string;
@@ -36275,6 +36694,11 @@ export enum ConnectOptions {
      * When true will only return non inherited definitions. Only valid at non-deployment host.
      */
     IncludeNonInheritedDefinitionsOnly = 8,
+}
+export enum DeploymentFlags {
+    None = 0,
+    Hosted = 1,
+    OnPremises = 2,
 }
 /**
  * Defines an "actor" for an event.
@@ -36515,6 +36939,13 @@ export var TypeInfo: {
             "includeLastUserAccess": number;
             "includeInheritedDefinitionsOnly": number;
             "includeNonInheritedDefinitionsOnly": number;
+        };
+    };
+    DeploymentFlags: {
+        enumValues: {
+            "none": number;
+            "hosted": number;
+            "onPremises": number;
         };
     };
     JsonPatchOperation: any;

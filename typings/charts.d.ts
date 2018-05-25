@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v131.20180313.2116
+// Type definitions for Microsoft Visual Studio Services v134.20180525.1751
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -39,7 +39,6 @@ export interface ColorPair {
 }
 /** (Deprecated) Legacy Compat API… We don’t want 3rd parties dealing with this mess. They can support their own color customization without touching this. */
 export interface FeatureColorProvider {
-    init(dimension: string): void;
     getFeatureColor(key: string, isSubdued?: boolean): ColorPair;
 }
 /** (Deprecated) Manages Colors of Charts */
@@ -48,21 +47,20 @@ export interface ColorDictionary {
     getColorPair(key: string, colorIndex: number, isSubduedPalette?: boolean): ColorPair;
     /** Allows the caller to add color customization for the specified color */
     setColorPair(key: string, colorPair: ColorPair): void;
-    /** Allows the caller to remove color customization on the specified color */
-    unsetColorPair(key: string): void;
     /**Indicates if a user-customized Color Pair is associated with the requested key */
     hasCustomColorPair(key: string): boolean;
     /** Indicates if any user-customizations of color pairs are present. */
     hasCustomColors(): boolean;
     clearCustomColors(): void;
 }
+/**
+ * A key value pair for a user selected color preference.
+ * Foreground color is omitted because it is mapped from matching background Color.
+ */
 export interface ColorEntry {
-    /**
-     * A key value pair for a user selected color preference.
-     * Foreground color is omitted because it is mapped from matching background Color.
-     * Invalid color selections are rejected as policy on server.
-     */
+    /** The key for the color entry */
     value: string;
+    /** The background hex color value for this entry */
     backgroundColor: string;
 }
 /** Provides context about the click event.

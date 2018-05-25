@@ -1,7 +1,6 @@
-// Type definitions for Microsoft Visual Studio Services v131.20180312.1914
+// Type definitions for Microsoft Visual Studio Services v134.20180525.1751
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
-
 
 /// <reference types='knockout' />
 /// <reference types='jquery' />
@@ -32,7 +31,6 @@ export module ArtifactDefinitionConstants {
     var LatestWithBuildDefinitionBranchAndTagsType: string;
     var SpecificVersionType: string;
     var SelectDuringReleaseCreationType: string;
-    var CreateReleaseOnTaggingExistingBuild: string;
     var RepositoryId: string;
     var BranchId: string;
     var MappingsId: string;
@@ -58,6 +56,7 @@ export module ArtifactDefinitionConstants {
     var Feed: string;
     var RegistryUrl: string;
     var IsTriggeringArtifact: string;
+    var ConnectedServiceId: string;
 }
 export module ArtifactDownloadInputConstants {
     var All: string;
@@ -85,6 +84,9 @@ export module BuildVersionConstants {
     var SourceVersionKey: string;
     var RepositoryIdKey: string;
     var RepositoryTypeKey: string;
+    var PullRequestSourceBranchCommitIdKey: string;
+    var PullRequestIdKey: string;
+    var CommitMessageKey: string;
 }
 export module DeploymentHealthOptionConstants {
     var AllTargetsInParallel: string;
@@ -106,6 +108,10 @@ export module FavoriteItemTypes {
 }
 export module FavoritesScopeNames {
     var ReleaseDefinitionScopeName: string;
+}
+export module RedeployTriggerAction {
+    var LatestSuccessfulDeployment: string;
+    var SpecificRelease: string;
 }
 export module RunOptionsConstants {
     var EnvironmentOwnerEmailNotificationValueAlways: string;
@@ -131,6 +137,12 @@ export module WellKnownMetrics {
 export module WellKnownPullRequestVariables {
     var PullRequestSystemType: string;
     var PullRequestId: string;
+    var PullRequestSourceBranchCommitId: string;
+    var PullRequestMergeCommitId: string;
+    var TfsGitRepositoryId: string;
+    var TfsGitProjectId: string;
+    var GitHubRepositoryName: string;
+    var GitHubConnection: string;
 }
 export module WellKnownReleaseVariables {
     var AgentReleaseDirectory: string;
@@ -294,6 +306,7 @@ export interface ArtifactDownloadInputBase {
     artifactType: string;
 }
 export interface ArtifactFilter {
+    createReleaseOnBuildTagging: boolean;
     sourceBranch: string;
     tags: string[];
     useBuildDefinitionBranch: boolean;
@@ -343,6 +356,7 @@ export interface ArtifactSourceTrigger extends ReleaseTriggerBase {
 }
 export interface ArtifactTypeDefinition {
     displayName: string;
+    endpointTypeId: string;
     inputDescriptors: VSS_FormInput_Contracts.InputDescriptor[];
     name: string;
     uniqueSourceIdentifier: string;
@@ -402,13 +416,11 @@ export interface BuildArtifactDownloadInput extends ArtifactDownloadInputBase {
     artifactItems: string[];
 }
 export interface BuildVersion {
+    commitMessage: string;
     id: string;
     name: string;
     sourceBranch: string;
-    /**
-     * PullRequestId or Commit Id for the Pull Request for which the release will publish status
-     */
-    sourcePullRequestId: string;
+    sourcePullRequestVersion: SourcePullRequestVersion;
     sourceRepositoryId: string;
     sourceRepositoryType: string;
     sourceVersion: string;
@@ -449,6 +461,15 @@ export interface Change {
      * A timestamp for the change.
      */
     timestamp: Date;
+}
+export interface CodeRepositoryReference {
+    repositoryReference: {
+        [key: string]: ReleaseManagementInputValue;
+    };
+    /**
+     * It can have value as ‘GitHub’, ‘Vsts’.
+     */
+    systemType: PullRequestSystemType;
 }
 export interface Condition {
     /**
@@ -578,6 +599,10 @@ export interface Deployment {
      */
     preDeployApprovals: ReleaseApproval[];
     /**
+     * Gets or sets project reference.
+     */
+    projectReference: ProjectReference;
+    /**
      * Gets the date on which deployment is queued.
      */
     queuedOn: Date;
@@ -644,6 +669,10 @@ export interface DeploymentAttempt {
      */
     hasStarted: boolean;
     id: number;
+    /**
+     * All the issues related to the deployment
+     */
+    issues: Issue[];
     job: ReleaseTask;
     lastModifiedBy: VSS_Common_Contracts.IdentityRef;
     lastModifiedOn: Date;
@@ -821,6 +850,10 @@ export enum DeploymentReason {
      * The deployment reason is scheduled.
      */
     Scheduled = 4,
+    /**
+     * The deployment reason is RedeployTrigger.
+     */
+    RedeployTrigger = 8,
 }
 export enum DeploymentsQueryType {
     Regular = 1,
@@ -903,10 +936,12 @@ export interface EnvironmentExecutionPolicy {
 }
 export interface EnvironmentOptions {
     autoLinkWorkItems: boolean;
+    badgeEnabled: boolean;
     emailNotificationType: string;
     emailRecipients: string;
     enableAccessToken: boolean;
     publishDeploymentStatus: boolean;
+    pullRequestDeploymentEnabled: boolean;
     skipArtifactsDownload: boolean;
     timeoutInMinutes: number;
 }
@@ -925,6 +960,20 @@ export enum EnvironmentStatus {
     Queued = 32,
     Scheduled = 64,
     PartiallySucceeded = 128,
+}
+export interface EnvironmentTrigger {
+    definitionEnvironmentId: number;
+    releaseDefinitionId: number;
+    triggerContent: string;
+    triggerType: EnvironmentTriggerType;
+}
+export interface EnvironmentTriggerContent {
+    action: string;
+    eventTypes: string[];
+}
+export enum EnvironmentTriggerType {
+    Undefined = 0,
+    DeploymentGroupRedeploy = 1,
 }
 export interface ExecutionInput {
     parallelExecutionType: ParallelExecutionTypes;
@@ -984,6 +1033,9 @@ export interface GitArtifactDownloadInput extends ArtifactDownloadInputBase {
 export interface GitHubArtifactDownloadInput extends ArtifactDownloadInputBase {
 }
 export interface Issue {
+    data: {
+        [key: string]: string;
+    };
     issueType: string;
     message: string;
 }
@@ -1163,12 +1215,38 @@ export enum PropertySelectorType {
     Inclusion = 0,
     Exclusion = 1,
 }
+export interface PullRequestConfiguration {
+    codeRepositoryReference: CodeRepositoryReference;
+    /**
+     * In case of Source based artifacts, Code reference will be present in Artifact details.
+     */
+    useArtifactReference: boolean;
+}
+export interface PullRequestFilter {
+    tags: string[];
+    targetBranch: string;
+}
+export enum PullRequestSystemType {
+    None = 0,
+    TfsGit = 1,
+    GitHub = 2,
+}
+export interface PullRequestTrigger extends ReleaseTriggerBase {
+    artifactAlias: string;
+    pullRequestConfiguration: PullRequestConfiguration;
+    triggerConditions: PullRequestFilter[];
+}
 export interface QueuedReleaseData {
     projectId: string;
     queuePosition: number;
     releaseId: number;
 }
+export interface RealtimeReleaseDefinitionEvent {
+    definitionId: number;
+    projectId: string;
+}
 export interface RealtimeReleaseEvent {
+    environmentId: number;
     projectId: string;
     releaseId: number;
 }
@@ -1388,11 +1466,7 @@ export interface ReleaseCreatedEvent {
     project: ProjectReference;
     release: Release;
 }
-export interface ReleaseDefinition {
-    /**
-     * Gets links to access the release definition.
-     */
-    _links: any;
+export interface ReleaseDefinition extends ReleaseDefinitionShallowReference {
     /**
      * Gets or sets the list of artifacts.
      */
@@ -1418,10 +1492,6 @@ export interface ReleaseDefinition {
      */
     environments: ReleaseDefinitionEnvironment[];
     /**
-     * Gets the unique identifier of this field.
-     */
-    id: number;
-    /**
      * Whether release definition is deleted.
      */
     isDeleted: boolean;
@@ -1437,18 +1507,6 @@ export interface ReleaseDefinition {
      * Gets date on which it got modified.
      */
     modifiedOn: Date;
-    /**
-     * Gets or sets the name.
-     */
-    name: string;
-    /**
-     * Gets or sets the path.
-     */
-    path: string;
-    /**
-     * Gets or sets pipeline process.
-     */
-    pipelineProcess: PipelineProcess;
     /**
      * Gets or sets properties.
      */
@@ -1474,10 +1532,6 @@ export interface ReleaseDefinition {
      * Gets or sets the list of triggers.
      */
     triggers: ReleaseTriggerBase[];
-    /**
-     * Gets url to access the release definition.
-     */
-    url: string;
     /**
      * Gets or sets the list of variable groups.
      */
@@ -1506,11 +1560,14 @@ export interface ReleaseDefinitionDeployStep extends ReleaseDefinitionEnvironmen
     tasks: WorkflowTask[];
 }
 export interface ReleaseDefinitionEnvironment {
+    badgeUrl: string;
     conditions: Condition[];
+    currentRelease: ReleaseShallowReference;
     demands: any[];
     deployPhases: DeployPhase[];
     deployStep: ReleaseDefinitionDeployStep;
     environmentOptions: EnvironmentOptions;
+    environmentTriggers: EnvironmentTrigger[];
     executionPolicy: EnvironmentExecutionPolicy;
     id: number;
     name: string;
@@ -1629,6 +1686,14 @@ export interface ReleaseDefinitionShallowReference {
      */
     name: string;
     /**
+     * Gets or sets the path of the release definition.
+     */
+    path: string;
+    /**
+     * Gets or sets project reference.
+     */
+    projectReference: ProjectReference;
+    /**
      * Gets the REST API url to access the release definition.
      */
     url: string;
@@ -1656,6 +1721,8 @@ export interface ReleaseDeployPhase {
     errorLog: string;
     id: number;
     manualInterventions: ManualIntervention[];
+    name: string;
+    phaseId: string;
     phaseType: DeployPhaseTypes;
     rank: number;
     runPlanId: string;
@@ -1828,6 +1895,11 @@ export interface ReleaseEnvironmentShallowReference {
      */
     url: string;
 }
+export interface ReleaseEnvironmentStatusUpdatedEvent extends RealtimeReleaseDefinitionEvent {
+    environmentId: number;
+    environmentStatus: EnvironmentStatus;
+    releaseId: number;
+}
 export interface ReleaseEnvironmentUpdateMetadata {
     /**
      * Gets or sets comment.
@@ -1860,6 +1932,16 @@ export interface ReleaseGates {
     startedOn: Date;
     status: GateStatus;
 }
+export interface ReleaseManagementInputValue {
+    /**
+     * The text to show for the display of this value
+     */
+    displayValue: string;
+    /**
+     * The value to store for this input
+     */
+    value: string;
+}
 export enum ReleaseQueryOrder {
     Descending = 0,
     Ascending = 1,
@@ -1869,6 +1951,7 @@ export enum ReleaseReason {
     Manual = 1,
     ContinuousIntegration = 2,
     Schedule = 3,
+    PullRequest = 4,
 }
 export interface ReleaseReference {
     /**
@@ -2016,13 +2099,22 @@ export interface ReleaseTask {
     task: WorkflowTaskReference;
     timelineRecordId: string;
 }
+export interface ReleaseTaskAttachment {
+    _links: any;
+    createdOn: Date;
+    modifiedBy: VSS_Common_Contracts.IdentityRef;
+    modifiedOn: Date;
+    name: string;
+    recordId: string;
+    timelineId: string;
+    type: string;
+}
 export interface ReleaseTaskLogUpdatedEvent extends RealtimeReleaseEvent {
-    environmentId: number;
     lines: string[];
+    stepRecordId: string;
     timelineRecordId: string;
 }
 export interface ReleaseTasksUpdatedEvent extends RealtimeReleaseEvent {
-    environmentId: number;
     job: ReleaseTask;
     planId: string;
     releaseDeployPhaseId: number;
@@ -2105,9 +2197,23 @@ export enum SenderType {
 export interface ServerDeploymentInput extends BaseDeploymentInput {
     parallelExecution: ExecutionInput;
 }
+export enum SingleReleaseExpands {
+    None = 0,
+    Tasks = 1,
+}
 export interface SourceIdInput {
     id: string;
     name: string;
+}
+export interface SourcePullRequestVersion {
+    /**
+     * Pull Request Id for which the release will publish status
+     */
+    pullRequestId: string;
+    /**
+     * Source branch commit Id of the Pull Request for which the release will publish status
+     */
+    sourceBranchCommitId: string;
 }
 export interface SourceRepoTrigger extends ReleaseTriggerBase {
     alias: string;
@@ -2299,6 +2405,7 @@ export var TypeInfo: {
     AzureKeyVaultVariableGroupProviderData: any;
     AzureKeyVaultVariableValue: any;
     Change: any;
+    CodeRepositoryReference: any;
     Condition: any;
     ConditionType: {
         enumValues: {
@@ -2364,6 +2471,7 @@ export var TypeInfo: {
             "manual": number;
             "automated": number;
             "scheduled": number;
+            "redeployTrigger": number;
         };
     };
     DeploymentsQueryType: {
@@ -2417,6 +2525,13 @@ export var TypeInfo: {
             "queued": number;
             "scheduled": number;
             "partiallySucceeded": number;
+        };
+    };
+    EnvironmentTrigger: any;
+    EnvironmentTriggerType: {
+        enumValues: {
+            "undefined": number;
+            "deploymentGroupRedeploy": number;
         };
     };
     ExecutionInput: any;
@@ -2492,6 +2607,15 @@ export var TypeInfo: {
             "exclusion": number;
         };
     };
+    PullRequestConfiguration: any;
+    PullRequestSystemType: {
+        enumValues: {
+            "none": number;
+            "tfsGit": number;
+            "gitHub": number;
+        };
+    };
+    PullRequestTrigger: any;
     Release: any;
     ReleaseAbandonedEvent: any;
     ReleaseApproval: any;
@@ -2536,6 +2660,7 @@ export var TypeInfo: {
     ReleaseDeployPhase: any;
     ReleaseEnvironment: any;
     ReleaseEnvironmentCompletedEvent: any;
+    ReleaseEnvironmentStatusUpdatedEvent: any;
     ReleaseEnvironmentUpdateMetadata: any;
     ReleaseExpands: {
         enumValues: {
@@ -2561,6 +2686,7 @@ export var TypeInfo: {
             "manual": number;
             "continuousIntegration": number;
             "schedule": number;
+            "pullRequest": number;
         };
     };
     ReleaseReference: any;
@@ -2576,6 +2702,7 @@ export var TypeInfo: {
         };
     };
     ReleaseTask: any;
+    ReleaseTaskAttachment: any;
     ReleaseTasksUpdatedEvent: any;
     ReleaseTriggerBase: any;
     ReleaseTriggerType: {
@@ -2613,6 +2740,12 @@ export var TypeInfo: {
         };
     };
     ServerDeploymentInput: any;
+    SingleReleaseExpands: {
+        enumValues: {
+            "none": number;
+            "tasks": number;
+        };
+    };
     SourceRepoTrigger: any;
     SummaryMailSection: any;
     TaskStatus: {
@@ -2758,12 +2891,31 @@ export interface IReleaseEnvironmentReference {
     releaseId: number;
     environmentId: number;
 }
+/**
+ * Context for extensions contributing on environment nodes
+ */
+export interface IReleaseEnvironmentNodeExtensionContext extends IExtensionContext {
+    releaseId: number;
+    releaseEnvironmentId: number;
+    /**
+     * Initial status of the environment node
+     */
+    initialStatus: number;
+    /**
+     * The event name to which the extension should listen for while using Event Services
+     */
+    hostEventUpdateId: string;
+    /**
+     * Use this to set visibility state of the contribution, whether the contribution is to be seen or not
+     */
+    setVisibilityState: (isVisible: boolean) => void;
+}
 }
 declare module "ReleaseManagement/Core/RestClient" {
 import Contracts = require("ReleaseManagement/Core/Contracts");
 import VSS_FormInput_Contracts = require("VSS/Common/Contracts/FormInput");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected agentartifactsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -2776,7 +2928,7 @@ export class CommonMethods2To4_1 extends VSS_WebApi.VssHttpClient {
      */
     getAgentArtifactDefinitions(project: string, releaseId: number): IPromise<Contracts.AgentArtifactDefinition[]>;
 }
-export class CommonMethods2_2To4_1 extends CommonMethods2To4_1 {
+export class CommonMethods2_2To5 extends CommonMethods2To5 {
     protected approvalsApiVersion: string;
     protected approvalsApiVersion_250c7158: string;
     protected approvalsApiVersion_b47c6458: string;
@@ -3130,16 +3282,29 @@ export class CommonMethods2_2To4_1 extends CommonMethods2To4_1 {
      */
     getApprovals(project: string, assignedToFilter?: string, statusFilter?: Contracts.ApprovalStatus, releaseIdsFilter?: number[], typeFilter?: Contracts.ApprovalType, top?: number, continuationToken?: number, queryOrder?: Contracts.ReleaseQueryOrder, includeMyGroupApprovals?: boolean): IPromise<Contracts.ReleaseApproval[]>;
 }
-export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
+export class CommonMethods3To5 extends CommonMethods2_2To5 {
     protected deploymentsApiVersion: string;
     protected logsApiVersion_17c91af7: string;
+    protected logsApiVersion_2577e6c3: string;
     protected logsApiVersion_dec7ca5a: string;
     protected manualInterventionsApiVersion: string;
     protected releasesApiVersion: string;
     protected releasesettingsApiVersion: string;
     protected sourcebranchesApiVersion: string;
     protected tasksApiVersion_4259191d: string;
+    protected tasksApiVersion_4259291d: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} environmentId
+     * @param {number} attemptId
+     * @param {string} timelineId
+     * @return IPromise<Contracts.ReleaseTask[]>
+     */
+    getTasks2(project: string, releaseId: number, environmentId: number, attemptId: number, timelineId: string): IPromise<Contracts.ReleaseTask[]>;
     /**
      * [Preview API]
      *
@@ -3189,9 +3354,10 @@ export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
      * @param {number} releaseId - Id of the release.
      * @param {Contracts.ApprovalFilters} approvalFilters - A filter which would allow fetching approval steps selectively based on whether it is automated, or manual. This would also decide whether we should fetch pre and post approval snapshots. Assumes All by default
      * @param {string[]} propertyFilters - A comma-delimited list of properties to include in the results.
+     * @param {Contracts.SingleReleaseExpands} expand - A property that should be expanded in the release.
      * @return IPromise<Contracts.Release>
      */
-    getRelease(project: string, releaseId: number, approvalFilters?: Contracts.ApprovalFilters, propertyFilters?: string[]): IPromise<Contracts.Release>;
+    getRelease(project: string, releaseId: number, approvalFilters?: Contracts.ApprovalFilters, propertyFilters?: string[], expand?: Contracts.SingleReleaseExpands): IPromise<Contracts.Release>;
     /**
      * [Preview API] Update manual intervention.
      *
@@ -3227,9 +3393,25 @@ export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
      * @param {number} environmentId - Id of release environment.
      * @param {number} releaseDeployPhaseId - Release deploy phase Id.
      * @param {number} taskId - ReleaseTask Id for the log.
+     * @param {number} startLine - Starting line number for logs
+     * @param {number} endLine - Ending line number for logs
      * @return IPromise<string>
      */
-    getTaskLog(project: string, releaseId: number, environmentId: number, releaseDeployPhaseId: number, taskId: number): IPromise<string>;
+    getTaskLog(project: string, releaseId: number, environmentId: number, releaseDeployPhaseId: number, taskId: number, startLine?: number, endLine?: number): IPromise<string>;
+    /**
+     * [Preview API] Gets the task log of a release as a plain text file.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId - Id of the release.
+     * @param {number} environmentId - Id of release environment.
+     * @param {number} attemptId
+     * @param {string} timelineId
+     * @param {number} taskId - ReleaseTask Id for the log.
+     * @param {number} startLine - Starting line number for logs
+     * @param {number} endLine - Ending line number for logs
+     * @return IPromise<string>
+     */
+    getTaskLog2(project: string, releaseId: number, environmentId: number, attemptId: number, timelineId: string, taskId: number, startLine?: number, endLine?: number): IPromise<string>;
     /**
      * [Preview API] Gets gate logs
      *
@@ -3265,11 +3447,13 @@ export class CommonMethods3To4_1 extends CommonMethods2_2To4_1 {
      * @param {number} top
      * @param {number} continuationToken
      * @param {string} createdFor
+     * @param {Date} minStartedTime
+     * @param {Date} maxStartedTime
      * @return IPromise<Contracts.Deployment[]>
      */
-    getDeployments(project: string, definitionId?: number, definitionEnvironmentId?: number, createdBy?: string, minModifiedTime?: Date, maxModifiedTime?: Date, deploymentStatus?: Contracts.DeploymentStatus, operationStatus?: Contracts.DeploymentOperationStatus, latestAttemptsOnly?: boolean, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, createdFor?: string): IPromise<Contracts.Deployment[]>;
+    getDeployments(project: string, definitionId?: number, definitionEnvironmentId?: number, createdBy?: string, minModifiedTime?: Date, maxModifiedTime?: Date, deploymentStatus?: Contracts.DeploymentStatus, operationStatus?: Contracts.DeploymentOperationStatus, latestAttemptsOnly?: boolean, queryOrder?: Contracts.ReleaseQueryOrder, top?: number, continuationToken?: number, createdFor?: string, minStartedTime?: Date, maxStartedTime?: Date): IPromise<Contracts.Deployment[]>;
 }
-export class CommonMethods3_1To4_1 extends CommonMethods3To4_1 {
+export class CommonMethods3_1To5 extends CommonMethods3To5 {
     protected favoritesApiVersion: string;
     protected foldersApiVersion: string;
     protected metricsApiVersion: string;
@@ -3384,7 +3568,7 @@ export class CommonMethods3_1To4_1 extends CommonMethods3To4_1 {
      */
     createFavorites(favoriteItems: Contracts.FavoriteItem[], project: string, scope: string, identityId?: string): IPromise<Contracts.FavoriteItem[]>;
 }
-export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
+export class CommonMethods3_2To5 extends CommonMethods3_1To5 {
     protected definitionEnvironmentsApiVersion: string;
     protected issuesApiVersion: string;
     protected tagsApiVersion: string;
@@ -3487,7 +3671,7 @@ export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
      */
     getDefinitionEnvironments(project: string, taskGroupId?: string, propertyFilters?: string[]): IPromise<Contracts.DefinitionEnvironmentReference[]>;
 }
-export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
+export class CommonMethods4To5 extends CommonMethods3_2To5 {
     protected approvalsApiVersion_c957584a: string;
     protected autotriggerissuesApiVersion: string;
     protected definitionsApiVersion: string;
@@ -3516,9 +3700,10 @@ export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
      * @param {string} artifactType
      * @param {string} sourceId
      * @param {string} artifactVersionId
+     * @param {string} project - Project ID or project name
      * @return IPromise<Contracts.AutoTriggerIssue[]>
      */
-    getAutoTriggerIssues(artifactType: string, sourceId: string, artifactVersionId: string): IPromise<Contracts.AutoTriggerIssue[]>;
+    getAutoTriggerIssues(artifactType: string, sourceId: string, artifactVersionId: string, project?: string): IPromise<Contracts.AutoTriggerIssue[]>;
     /**
      * [Preview API]
      *
@@ -3528,28 +3713,76 @@ export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
      */
     updateReleaseApprovals(approvals: Contracts.ReleaseApproval[], project: string): IPromise<Contracts.ReleaseApproval[]>;
 }
+export class CommonMethods4_1To5 extends CommonMethods4To5 {
+    protected attachmentsApiVersion: string;
+    protected attachmentsApiVersion_c4071f6d: string;
+    protected badgeApiVersion: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Gets a badge that indicates the status of the most recent deployment for an environment.
+     *
+     * @param {string} projectId - The ID of the Project.
+     * @param {number} releaseDefinitionId - The ID of the Release Definition.
+     * @param {number} environmentId - The ID of the Environment.
+     * @param {string} branchName - The name of the branch.
+     * @return IPromise<string>
+     */
+    getDeploymentBadge(projectId: string, releaseDefinitionId: number, environmentId: number, branchName?: string): IPromise<string>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} environmentId
+     * @param {number} attemptId
+     * @param {string} timelineId
+     * @param {string} type
+     * @return IPromise<Contracts.ReleaseTaskAttachment[]>
+     */
+    getTaskAttachments(project: string, releaseId: number, environmentId: number, attemptId: number, timelineId: string, type: string): IPromise<Contracts.ReleaseTaskAttachment[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} environmentId
+     * @param {number} attemptId
+     * @param {string} timelineId
+     * @param {string} recordId
+     * @param {string} type
+     * @param {string} name
+     * @return IPromise<ArrayBuffer>
+     */
+    getTaskAttachmentContent(project: string, releaseId: number, environmentId: number, attemptId: number, timelineId: string, recordId: string, type: string, name: string): IPromise<ArrayBuffer>;
+}
 /**
  * @exemptedapi
  */
-export class ReleaseHttpClient4_1 extends CommonMethods4To4_1 {
+export class ReleaseHttpClient5 extends CommonMethods4_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ReleaseHttpClient4 extends CommonMethods4To4_1 {
+export class ReleaseHttpClient4_1 extends CommonMethods4_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ReleaseHttpClient3_2 extends CommonMethods3_2To4_1 {
+export class ReleaseHttpClient4 extends CommonMethods4To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ReleaseHttpClient3_1 extends CommonMethods3_1To4_1 {
+export class ReleaseHttpClient3_2 extends CommonMethods3_2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class ReleaseHttpClient3_1 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API] Returns throttled queue as per the task hub license of parallel releases
@@ -3563,7 +3796,7 @@ export class ReleaseHttpClient3_1 extends CommonMethods3_1To4_1 {
 /**
  * @exemptedapi
  */
-export class ReleaseHttpClient3 extends CommonMethods3To4_1 {
+export class ReleaseHttpClient3 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API] Get Releases
@@ -3604,7 +3837,7 @@ export class ReleaseHttpClient3 extends CommonMethods3To4_1 {
 /**
  * @exemptedapi
  */
-export class ReleaseHttpClient2_3 extends CommonMethods2_2To4_1 {
+export class ReleaseHttpClient2_3 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API] Get A Release
@@ -3613,9 +3846,10 @@ export class ReleaseHttpClient2_3 extends CommonMethods2_2To4_1 {
      * @param {number} releaseId - Id of the release.
      * @param {Contracts.ApprovalFilters} approvalFilters - A filter which would allow fetching approval steps selectively based on whether it is automated, or manual. This would also decide whether we should fetch pre and post approval snapshots. Assumes All by default
      * @param {string[]} propertyFilters - A comma-delimited list of properties to include in the results.
+     * @param {Contracts.SingleReleaseExpands} expand - A property that should be expanded in the release.
      * @return IPromise<Contracts.Release>
      */
-    getRelease(project: string, releaseId: number, approvalFilters?: Contracts.ApprovalFilters, propertyFilters?: string[]): IPromise<Contracts.Release>;
+    getRelease(project: string, releaseId: number, approvalFilters?: Contracts.ApprovalFilters, propertyFilters?: string[], expand?: Contracts.SingleReleaseExpands): IPromise<Contracts.Release>;
     /**
      * [Preview API] Get a list of releases
      *
@@ -3647,7 +3881,7 @@ export class ReleaseHttpClient2_3 extends CommonMethods2_2To4_1 {
 /**
  * @exemptedapi
  */
-export class ReleaseHttpClient2_2 extends CommonMethods2_2To4_1 {
+export class ReleaseHttpClient2_2 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * [Preview API] Get A Release
@@ -3656,9 +3890,10 @@ export class ReleaseHttpClient2_2 extends CommonMethods2_2To4_1 {
      * @param {number} releaseId - Id of the release.
      * @param {Contracts.ApprovalFilters} approvalFilters - A filter which would allow fetching approval steps selectively based on whether it is automated, or manual. This would also decide whether we should fetch pre and post approval snapshots. Assumes All by default
      * @param {string[]} propertyFilters - A comma-delimited list of properties to include in the results.
+     * @param {Contracts.SingleReleaseExpands} expand - A property that should be expanded in the release.
      * @return IPromise<Contracts.Release>
      */
-    getRelease(project: string, releaseId: number, approvalFilters?: Contracts.ApprovalFilters, propertyFilters?: string[]): IPromise<Contracts.Release>;
+    getRelease(project: string, releaseId: number, approvalFilters?: Contracts.ApprovalFilters, propertyFilters?: string[], expand?: Contracts.SingleReleaseExpands): IPromise<Contracts.Release>;
     /**
      * [Preview API] Get a list of releases
      *
@@ -3690,24 +3925,24 @@ export class ReleaseHttpClient2_2 extends CommonMethods2_2To4_1 {
 /**
  * @exemptedapi
  */
-export class ReleaseHttpClient2_1 extends CommonMethods2To4_1 {
+export class ReleaseHttpClient2_1 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class ReleaseHttpClient2 extends CommonMethods2To4_1 {
+export class ReleaseHttpClient2 extends CommonMethods2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class ReleaseHttpClient extends ReleaseHttpClient4_1 {
+export class ReleaseHttpClient extends ReleaseHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return ReleaseHttpClient4
+ * @return ReleaseHttpClient4_1
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ReleaseHttpClient4;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ReleaseHttpClient4_1;
 }
 declare module "ReleaseManagement/Core/Utils" {
 import RMContracts = require("ReleaseManagement/Core/Contracts");

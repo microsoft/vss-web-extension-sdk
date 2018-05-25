@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v131.20180312.1912
+// Type definitions for Microsoft Visual Studio Services v134.20180525.1750
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -51,6 +51,9 @@ export interface DiagnosticNotification {
         [key: string]: DiagnosticRecipient;
     };
     result: string;
+    stats: {
+        [key: string]: number;
+    };
     subscriptionId: string;
 }
 export interface DiagnosticRecipient {
@@ -111,10 +114,14 @@ export interface EventBatch {
     eventCounts: {
         [key: string]: number;
     };
-    firstEventId: number;
+    eventIds: string;
     notificationCounts: {
         [key: string]: number;
     };
+    preProcessEndTime: any;
+    preProcessStartTime: any;
+    processEndTime: any;
+    processStartTime: any;
     startTime: any;
     subscriptionCounts: {
         [key: string]: number;
@@ -146,6 +153,38 @@ export interface EventsEvaluationResult {
      * Count of matched events.
      */
     matchedCount: number;
+}
+/**
+ * A transform request specify the properties of a notification event to be transformed.
+ */
+export interface EventTransformRequest {
+    /**
+     * Event payload.
+     */
+    eventPayload: string;
+    /**
+     * Event type.
+     */
+    eventType: string;
+}
+/**
+ * Result of transforming a notification event.
+ */
+export interface EventTransformResult {
+    /**
+     * Transformed html content.
+     */
+    content: string;
+    /**
+     * Calculated data.
+     */
+    data: any;
+    /**
+     * Calculated system inputs.
+     */
+    systemInputs: {
+        [key: string]: string;
+    };
 }
 /**
  * Set of flags used to determine which set of information is retrieved when querying for eventtypes
@@ -261,6 +300,9 @@ export interface NotificationAdminSettings {
      */
     defaultGroupDeliveryPreference: NotificationSubscriberDeliveryPreference;
 }
+export interface NotificationAdminSettingsUpdateParameters {
+    defaultGroupDeliveryPreference: NotificationSubscriberDeliveryPreference;
+}
 export interface NotificationBacklogStatus {
     channel: string;
     maxUnprocessedNotificationAgeMs: number;
@@ -270,8 +312,8 @@ export interface NotificationBacklogStatus {
 }
 export interface NotificationBatch {
     endTime: any;
-    firstNotificationId: number;
     notificationCount: number;
+    notificationIds: string;
     problematicNotifications: DiagnosticNotification[];
     startTime: any;
 }
@@ -1129,6 +1171,10 @@ export enum SubscriptionStatus {
      */
     PendingDeletion = -100,
     /**
+     * Subscription is disabled because the identity does not have the appropriate permissions
+     */
+    DisabledMissingPermissions = -10,
+    /**
      * Subscription is disabled service due to failures.
      */
     DisabledBySystem = -9,
@@ -1320,6 +1366,7 @@ export var TypeInfo: {
     };
     INotificationDiagnosticLog: any;
     NotificationAdminSettings: any;
+    NotificationAdminSettingsUpdateParameters: any;
     NotificationCommonViewData: any;
     NotificationDeliveryLog: any;
     NotificationDiagnosticLog: any;
@@ -1468,6 +1515,7 @@ export var TypeInfo: {
         enumValues: {
             "jailedByNotificationsVolume": number;
             "pendingDeletion": number;
+            "disabledMissingPermissions": number;
             "disabledBySystem": number;
             "disabledInactiveIdentity": number;
             "disabledMessageQueueNotSupported": number;
@@ -1569,7 +1617,7 @@ declare module "Notifications/RestClient" {
 import Contracts = require("Notifications/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods3To4_1 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods3To5 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected eventsApiVersion: string;
     protected eventTypeFieldValuesQueryApiVersion: string;
@@ -1668,11 +1716,11 @@ export class CommonMethods3To4_1 extends VSS_WebApi.VssHttpClient {
      */
     publishEvent(notificationEvent: VSS_Common_Contracts.VssNotificationEvent): IPromise<VSS_Common_Contracts.VssNotificationEvent>;
 }
-export class CommonMethods3_1To4_1 extends CommonMethods3To4_1 {
+export class CommonMethods3_1To5 extends CommonMethods3To5 {
     protected batchNotificationOperationsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
+export class CommonMethods3_2To5 extends CommonMethods3_1To5 {
     protected userSettingsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -1685,7 +1733,7 @@ export class CommonMethods3_2To4_1 extends CommonMethods3_1To4_1 {
      */
     updateSubscriptionUserSettings(userSettings: Contracts.SubscriptionUserSettings, subscriptionId: string, userId: string): IPromise<Contracts.SubscriptionUserSettings>;
 }
-export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
+export class CommonMethods4To5 extends CommonMethods3_2To5 {
     protected notificationReasonsApiVersion: string;
     protected subscribersApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -1705,11 +1753,25 @@ export class CommonMethods4To4_1 extends CommonMethods3_2To4_1 {
      */
     getSubscriber(subscriberId: string): IPromise<Contracts.NotificationSubscriber>;
 }
-/**
- * @exemptedapi
- */
-export class NotificationHttpClient4_1 extends CommonMethods4To4_1 {
+export class CommonMethods4_1To5 extends CommonMethods4To5 {
+    protected diagnosticLogsApiVersion: string;
+    protected diagnosticsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.UpdateSubscripitonDiagnosticsParameters} updateParameters
+     * @param {string} subscriptionId
+     * @return IPromise<Contracts.SubscriptionDiagnostics>
+     */
+    updateSubscriptionDiagnostics(updateParameters: Contracts.UpdateSubscripitonDiagnosticsParameters, subscriptionId: string): IPromise<Contracts.SubscriptionDiagnostics>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} subscriptionId
+     * @return IPromise<Contracts.SubscriptionDiagnostics>
+     */
+    getSubscriptionDiagnostics(subscriptionId: string): IPromise<Contracts.SubscriptionDiagnostics>;
     /**
      * [Preview API] List diagnostic logs this service.
      *
@@ -1720,47 +1782,64 @@ export class NotificationHttpClient4_1 extends CommonMethods4To4_1 {
      * @return IPromise<Contracts.INotificationDiagnosticLog[]>
      */
     listLogs(source: string, entryId?: string, startTime?: Date, endTime?: Date): IPromise<Contracts.INotificationDiagnosticLog[]>;
+}
+/**
+ * @exemptedapi
+ */
+export class NotificationHttpClient5 extends CommonMethods4_1To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Tranform a notification event.
+     *
+     * @param {Contracts.EventTransformRequest} transformRequest - Object to be transformed.
+     * @return IPromise<Contracts.EventTransformResult>
+     */
+    transformEvent(transformRequest: Contracts.EventTransformRequest): IPromise<Contracts.EventTransformResult>;
     /**
      * [Preview API]
      *
-     * @param {string} subscriptionId
-     * @return IPromise<Contracts.SubscriptionDiagnostics>
+     * @return IPromise<Contracts.NotificationAdminSettings>
      */
-    getSubscriptionDiagnostics(subscriptionId: string): IPromise<Contracts.SubscriptionDiagnostics>;
+    getSettings(): IPromise<Contracts.NotificationAdminSettings>;
     /**
      * [Preview API]
      *
-     * @param {Contracts.UpdateSubscripitonDiagnosticsParameters} updateParameters
-     * @param {string} subscriptionId
-     * @return IPromise<Contracts.SubscriptionDiagnostics>
+     * @param {Contracts.NotificationAdminSettingsUpdateParameters} updateParameters
+     * @return IPromise<Contracts.NotificationAdminSettings>
      */
-    updateSubscriptionDiagnostics(updateParameters: Contracts.UpdateSubscripitonDiagnosticsParameters, subscriptionId: string): IPromise<Contracts.SubscriptionDiagnostics>;
+    updateSettings(updateParameters: Contracts.NotificationAdminSettingsUpdateParameters): IPromise<Contracts.NotificationAdminSettings>;
 }
 /**
  * @exemptedapi
  */
-export class NotificationHttpClient4 extends CommonMethods4To4_1 {
+export class NotificationHttpClient4_1 extends CommonMethods4_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class NotificationHttpClient3_2 extends CommonMethods3_2To4_1 {
+export class NotificationHttpClient4 extends CommonMethods4To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class NotificationHttpClient3_1 extends CommonMethods3_1To4_1 {
+export class NotificationHttpClient3_2 extends CommonMethods3_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class NotificationHttpClient3 extends CommonMethods3To4_1 {
+export class NotificationHttpClient3_1 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class NotificationHttpClient extends NotificationHttpClient4_1 {
+/**
+ * @exemptedapi
+ */
+export class NotificationHttpClient3 extends CommonMethods3To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class NotificationHttpClient extends NotificationHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
@@ -1807,6 +1886,7 @@ export class FollowsService extends Service.VssService {
     static FOLLOWS_STATE_CHANGING: string;
     static FOLLOWS_TYPE: string;
     private static LAYER;
+    initializeConnection(tfsConnection: Service.VssConnection, serviceInstanceId?: string): void;
     clearCache(): void;
     getSubscription(artifact: ArtifactSubscription, subscriberId?: string): IPromise<ArtifactSubscription>;
     followArtifact(artifact: ArtifactSubscription, telemetryData?: IFollowsTelemetryData): IPromise<ArtifactSubscription>;
@@ -1814,7 +1894,6 @@ export class FollowsService extends Service.VssService {
     refresh(artifact: ArtifactSubscription): void;
     private _getNotificationSubscriptionObject(artifactSubscription);
     private _handlePromise(artifact, isFollow, promise);
-    private _ensureInitialized();
     private _artifactSubscriptionFromNotificationSubscription(subscription);
     private _makePromiseKey(artifactId, artifactType);
     private _fireChanging(artifact, state);
