@@ -4,11 +4,11 @@
   "description": "Visual Studio Team Services web extension JavaScript library and types.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Microsoft/vss-web-extension-sdk.git"
+    "url": "git+https://github.com/Microsoft/vss-web-extension-sdk.git"
   },
   "scripts": {
     "build": "tsc -p .",
-    "prepublish": "npm run build"
+    "prepare": "npm run build"
   },
   "keywords": [
     "extensions",
