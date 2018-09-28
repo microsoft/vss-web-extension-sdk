@@ -1,23 +1,11 @@
-// Type definitions for Microsoft Visual Studio Services v134.20180525.1750
+// Type definitions for Microsoft Visual Studio Services v121.20170727.2106
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
-/// <reference types='knockout' />
-/// <reference types='jquery' />
-/// <reference types='jqueryui' />
-/// <reference types='q' />
-/// <reference types='requirejs' />
-/// <reference types='react' />
-/// <reference types='mousetrap' />
 /// <reference path='vss.d.ts' />
 declare module "Notifications/Contracts" {
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_FormInput_Contracts = require("VSS/Common/Contracts/FormInput");
-export interface ActorFilter extends RoleBasedFilter {
-}
-export interface ActorNotificationReason extends NotificationReason {
-    matchedRoles: string[];
-}
 export interface ArtifactFilter extends BaseSubscriptionFilter {
     artifactId: string;
     artifactType: string;
@@ -31,40 +19,6 @@ export interface BaseSubscriptionFilter {
 export interface BatchNotificationOperation {
     notificationOperation: NotificationOperation;
     notificationQueryConditions: NotificationQueryCondition[];
-}
-export interface BlockFilter extends RoleBasedFilter {
-}
-export interface BlockSubscriptionChannel {
-    type: string;
-}
-export interface DiagnosticIdentity {
-    displayName: string;
-    emailAddress: string;
-    id: string;
-}
-export interface DiagnosticNotification {
-    eventId: number;
-    eventType: string;
-    id: number;
-    messages: NotificationDiagnosticLogMessage[];
-    recipients: {
-        [key: string]: DiagnosticRecipient;
-    };
-    result: string;
-    stats: {
-        [key: string]: number;
-    };
-    subscriptionId: string;
-}
-export interface DiagnosticRecipient {
-    recipient: DiagnosticIdentity;
-    status: string;
-}
-export interface EmailHtmlSubscriptionChannel extends SubscriptionChannelWithAddress {
-    type: string;
-}
-export interface EmailPlaintextSubscriptionChannel extends SubscriptionChannelWithAddress {
-    type: string;
 }
 /**
  * Describes the subscription evaluation operation status.
@@ -103,44 +57,6 @@ export enum EvaluationOperationStatus {
      */
     NotFound = 7,
 }
-export interface EventBacklogStatus {
-    maxUnprocessedEventAgeMs: number;
-    publisher: string;
-    timeSinceLastProcessedEventMs: number;
-    unprocessedEvents: number;
-}
-export interface EventBatch {
-    endTime: any;
-    eventCounts: {
-        [key: string]: number;
-    };
-    eventIds: string;
-    notificationCounts: {
-        [key: string]: number;
-    };
-    preProcessEndTime: any;
-    preProcessStartTime: any;
-    processEndTime: any;
-    processStartTime: any;
-    startTime: any;
-    subscriptionCounts: {
-        [key: string]: number;
-    };
-}
-export interface EventProcessingLog extends NotificationJobDiagnosticLog {
-    batches: EventBatch[];
-    matcherResults: MatcherResult[];
-}
-/**
- * Set of flags used to determine which set of information is retrieved when querying for event publishers
- */
-export enum EventPublisherQueryFlags {
-    None = 0,
-    /**
-     * Include event types from the remote services too
-     */
-    IncludeRemoteServices = 2,
-}
 /**
  * Encapsulates events result properties. It defines the total number of events used and the number of matched events.
  */
@@ -153,52 +69,6 @@ export interface EventsEvaluationResult {
      * Count of matched events.
      */
     matchedCount: number;
-}
-/**
- * A transform request specify the properties of a notification event to be transformed.
- */
-export interface EventTransformRequest {
-    /**
-     * Event payload.
-     */
-    eventPayload: string;
-    /**
-     * Event type.
-     */
-    eventType: string;
-}
-/**
- * Result of transforming a notification event.
- */
-export interface EventTransformResult {
-    /**
-     * Transformed html content.
-     */
-    content: string;
-    /**
-     * Calculated data.
-     */
-    data: any;
-    /**
-     * Calculated system inputs.
-     */
-    systemInputs: {
-        [key: string]: string;
-    };
-}
-/**
- * Set of flags used to determine which set of information is retrieved when querying for eventtypes
- */
-export enum EventTypeQueryFlags {
-    None = 0,
-    /**
-     * IncludeFields will include all fields and their types
-     */
-    IncludeFields = 1,
-}
-export interface ExpressionFilter extends BaseSubscriptionFilter {
-    criteria: ExpressionFilterModel;
-    type: string;
 }
 /**
  * Subscription Filter Clause represents a single clause in a subscription filter e.g. If the subscription has the following criteria "Project Name = [Current Project] AND Assigned To = [Me] it will be represented as two Filter Clauses Clause 1: Index = 1, Logical Operator: NULL  , FieldName = 'Project Name', Operator = '=', Value = '[Current Project]' Clause 2: Index = 2, Logical Operator: 'AND' , FieldName = 'Assigned To' , Operator = '=', Value = '[Me]'
@@ -254,28 +124,6 @@ export interface FieldValuesQuery extends VSS_FormInput_Contracts.InputValuesQue
     inputValues: FieldInputValues[];
     scope: string;
 }
-export interface GeneratedNotification {
-    recipients: DiagnosticIdentity[];
-}
-export interface GroupSubscriptionChannel extends SubscriptionChannelWithAddress {
-    type: string;
-}
-/**
- * Abstraction interface for the diagnostic log.  Primarily for deserialization.
- */
-export interface INotificationDiagnosticLog {
-    activityId: string;
-    description: string;
-    endTime: Date;
-    id: string;
-    logType: string;
-    messages: NotificationDiagnosticLogMessage[];
-    properties: {
-        [key: string]: string;
-    };
-    source: string;
-    startTime: Date;
-}
 export interface ISubscriptionChannel {
     type: string;
 }
@@ -283,49 +131,11 @@ export interface ISubscriptionFilter {
     eventType: string;
     type: string;
 }
-export interface MatcherResult {
-    matcher: string;
-    stats: {
-        [key: string]: {
-            [key: string]: number;
-        };
-    };
-}
-export interface MessageQueueSubscriptionChannel {
-    type: string;
-}
-export interface NotificationAdminSettings {
-    /**
-     * The default group delivery preference for groups in this collection
-     */
-    defaultGroupDeliveryPreference: NotificationSubscriberDeliveryPreference;
-}
-export interface NotificationAdminSettingsUpdateParameters {
-    defaultGroupDeliveryPreference: NotificationSubscriberDeliveryPreference;
-}
-export interface NotificationBacklogStatus {
-    channel: string;
-    maxUnprocessedNotificationAgeMs: number;
-    publisher: string;
-    timeSinceLastProcessedNotificationMs: number;
-    unprocessedNotifications: number;
-}
-export interface NotificationBatch {
-    endTime: any;
-    notificationCount: number;
-    notificationIds: string;
-    problematicNotifications: DiagnosticNotification[];
-    startTime: any;
-}
 export interface NotificationCommonViewData {
     /**
      * The Url to the admin page
      */
     adminPageUrl: string;
-    /**
-     * Admin notification settings
-     */
-    adminSettings: NotificationAdminSettings;
     /**
      * Default service instance type, currently it is Tfs, it used if there is no publisher passed
      */
@@ -357,48 +167,6 @@ export interface NotificationCommonViewData {
      * Subscriber to use when creating new subscriptions in the view
      */
     subscriberIdentity: VSS_Common_Contracts.IdentityRef;
-}
-export interface NotificationDeliveryLog extends NotificationJobDiagnosticLog {
-    batches: NotificationBatch[];
-}
-/**
- * Abstract base class for all of the diagnostic logs.
- */
-export interface NotificationDiagnosticLog {
-    /**
-     * Identifier used for correlating to other diagnostics that may have been recorded elsewhere.
-     */
-    activityId: string;
-    description: string;
-    endTime: Date;
-    errors: number;
-    /**
-     * Unique instance identifier.
-     */
-    id: string;
-    logType: string;
-    messages: NotificationDiagnosticLogMessage[];
-    properties: {
-        [key: string]: string;
-    };
-    /**
-     * This identifier depends on the logType.  For notification jobs, this will be the job Id. For subscription tracing, this will be a special root Guid with the subscription Id encoded.
-     */
-    source: string;
-    startTime: Date;
-    warnings: number;
-}
-export interface NotificationDiagnosticLogMessage {
-    /**
-     * Corresponds to .Net TraceLevel enumeration
-     */
-    level: number;
-    message: string;
-    time: any;
-}
-export interface NotificationEventBacklogStatus {
-    eventBacklogStatus: EventBacklogStatus[];
-    notificationBacklogStatus: NotificationBacklogStatus[];
 }
 /**
  * Encapsulates the properties of a filterable field. A filterable field is a field in an event that can used to filter notifications for a certain event type.
@@ -532,14 +300,6 @@ export interface NotificationEventTypeCategory {
      */
     name: string;
 }
-export interface NotificationJobDiagnosticLog extends NotificationDiagnosticLog {
-    result: string;
-    stats: {
-        [key: string]: {
-            [key: string]: number;
-        };
-    };
-}
 export enum NotificationOperation {
     None = 0,
     SuspendUnprocessed = 1,
@@ -549,24 +309,6 @@ export interface NotificationQueryCondition {
     eventType: string;
     subscriber: string;
     subscriptionId: string;
-}
-export interface NotificationReason {
-    notificationReasonType: NotificationReasonType;
-    targetIdentities: VSS_Common_Contracts.IdentityRef[];
-}
-export enum NotificationReasonType {
-    Unknown = 0,
-    Follows = 1,
-    Personal = 2,
-    PersonalAlias = 3,
-    DirectMember = 4,
-    IndirectMember = 5,
-    GroupAlias = 6,
-    SubscriptionAlias = 7,
-    SingleRole = 8,
-    DirectMemberGroupRole = 9,
-    InDirectMemberGroupRole = 10,
-    AliasMemberGroupRole = 11,
 }
 /**
  * Encapsulates notifications result properties. It defines the number of notifications and the recipients of notifications.
@@ -603,7 +345,6 @@ export enum NotificationStatisticType {
     NotificationByEventTypePerUser = 4,
     Events = 5,
     Notifications = 6,
-    NotificationFailureBySubscription = 7,
     UnprocessedRangeStart = 100,
     UnprocessedEventsByPublisher = 101,
     UnprocessedEventDelayByPublisher = 102,
@@ -691,17 +432,13 @@ export interface NotificationSubscription {
      */
     description: string;
     /**
-     * Diagnostics for this subscription.
-     */
-    diagnostics: SubscriptionDiagnostics;
-    /**
      * Any extra properties like detailed description for different contexts, user/group contexts
      */
     extendedProperties: {
         [key: string]: string;
     };
     /**
-     * Matching criteria for the subscription. ExpressionFilter
+     * Matching criteria for the subscription.
      */
     filter: ISubscriptionFilter;
     /**
@@ -762,7 +499,7 @@ export interface NotificationSubscriptionCreateParameters {
      */
     description: string;
     /**
-     * Matching criteria for the new subscription. ExpressionFilter
+     * Matching criteria for the new subscription.
      */
     filter: ISubscriptionFilter;
     /**
@@ -826,7 +563,7 @@ export interface NotificationSubscriptionUpdateParameters {
      */
     description: string;
     /**
-     * Matching criteria for the subscription. ExpressionFilter
+     * Matching criteria for the subscription.
      */
     filter: ISubscriptionFilter;
     /**
@@ -856,73 +593,15 @@ export interface OperatorConstraint {
      */
     supportedScopes: string[];
 }
-export interface ProcessedEvent {
-    /**
-     * All of the users that were associtated with this event and their role.
-     */
-    actors: VSS_Common_Contracts.EventActor[];
-    allowedChannels: string;
-    artifactUri: string;
-    /**
-     * Evaluations for each user
-     */
-    evaluations: {
-        [key: string]: SubscriptionEvaluation;
-    };
-    eventId: number;
-    /**
-     * Which members were excluded from evaluation (only applies to ActorMatcher subscriptions)
-     */
-    exclusions: VSS_Common_Contracts.EventActor[];
-    /**
-     * Which members were included for evaluation (only applies to ActorMatcher subscriptions)
-     */
-    inclusions: VSS_Common_Contracts.EventActor[];
-    notifications: GeneratedNotification[];
-}
-export interface RoleBasedFilter extends ExpressionFilter {
-    exclusions: string[];
-    inclusions: string[];
-}
-export interface ServiceBusSubscriptionChannel {
-    type: string;
-}
-export interface ServiceHooksSubscriptionChannel {
-    type: string;
-}
-export interface SoapSubscriptionChannel extends SubscriptionChannelWithAddress {
-    type: string;
-}
 export enum SubscriberFlags {
+    /**
+     * None
+     */
     None = 0,
     /**
      * Subscriber's delivery preferences could be updated
      */
-    DeliveryPreferencesEditable = 2,
-    /**
-     * Subscriber's delivery preferences supports email delivery
-     */
-    SupportsPreferredEmailAddressDelivery = 4,
-    /**
-     * Subscriber's delivery preferences supports individual members delivery(group expansion)
-     */
-    SupportsEachMemberDelivery = 8,
-    /**
-     * Subscriber's delivery preferences supports no delivery
-     */
-    SupportsNoDelivery = 16,
-    /**
-     * Subscriber is a user
-     */
-    IsUser = 32,
-    /**
-     * Subscriber is a group
-     */
-    IsGroup = 64,
-    /**
-     * Subscriber is a team
-     */
-    IsTeam = 128,
+    DeliveryPreferencesEditable = 1,
 }
 /**
  * Admin-managed settings for a group subscription.
@@ -937,20 +616,6 @@ export interface SubscriptionChannelWithAddress {
     address: string;
     type: string;
     useCustomAddress: boolean;
-}
-export interface SubscriptionDiagnostics {
-    deliveryResults: SubscriptionTracing;
-    deliveryTracing: SubscriptionTracing;
-    evaluationTracing: SubscriptionTracing;
-}
-export interface SubscriptionEvaluation {
-    clauses: SubscriptionEvaluationClause[];
-    user: DiagnosticIdentity;
-}
-export interface SubscriptionEvaluationClause {
-    clause: string;
-    order: number;
-    result: boolean;
 }
 /**
  * Encapsulates the properties of a SubscriptionEvaluationRequest. It defines the subscription to be evaluated and time interval for events used in evaluation.
@@ -1141,6 +806,7 @@ export enum SubscriptionQueryFlags {
  * A resource, typically an account or project, in which events are published from.
  */
 export interface SubscriptionScope extends VSS_Common_Contracts.EventScope {
+    name: string;
 }
 export interface SubscriptionStatisticViewData {
     events: {
@@ -1170,10 +836,6 @@ export enum SubscriptionStatus {
      * Subscription is disabled and will be deleted.
      */
     PendingDeletion = -100,
-    /**
-     * Subscription is disabled because the identity does not have the appropriate permissions
-     */
-    DisabledMissingPermissions = -10,
     /**
      * Subscription is disabled service due to failures.
      */
@@ -1219,76 +881,11 @@ export enum SubscriptionStatus {
      */
     EnabledOnProbation = 1,
 }
-/**
- * Set of flags used to determine which set of templates is retrieved when querying for subscription templates
- */
-export enum SubscriptionTemplateQueryFlags {
-    None = 0,
-    /**
-     * Include user templates
-     */
-    IncludeUser = 1,
-    /**
-     * Include group templates
-     */
-    IncludeGroup = 2,
-    /**
-     * Include user and group templates
-     */
-    IncludeUserAndGroup = 4,
-    /**
-     * Include the event type details like the fields and operators
-     */
-    IncludeEventTypeInformation = 22,
-}
 export enum SubscriptionTemplateType {
     User = 0,
     Team = 1,
     Both = 2,
     None = 3,
-}
-export interface SubscriptionTraceDiagnosticLog extends NotificationDiagnosticLog {
-    /**
-     * Indicates the job Id that processed or delivered this subscription
-     */
-    jobId: string;
-    /**
-     * Indicates unique instance identifier for the job that processed or delivered this subscription
-     */
-    jobInstanceId: string;
-    subscriptionId: string;
-}
-export interface SubscriptionTraceEventProcessingLog extends SubscriptionTraceDiagnosticLog {
-    channel: string;
-    /**
-     * Which members opted out from receiving notifications from this subscription
-     */
-    optedOut: DiagnosticIdentity[];
-    processedEvents: {
-        [key: number]: ProcessedEvent;
-    };
-}
-export interface SubscriptionTraceNotificationDeliveryLog extends SubscriptionTraceDiagnosticLog {
-    notifications: DiagnosticNotification[];
-}
-export interface SubscriptionTracing {
-    enabled: boolean;
-    /**
-     * Trace until the specified end date.
-     */
-    endDate: Date;
-    /**
-     * The maximum number of result details to trace.
-     */
-    maxTracedEntries: number;
-    /**
-     * The date and time tracing started.
-     */
-    startDate: Date;
-    /**
-     * Trace until remaining count reaches 0.
-     */
-    tracedEntries: number;
 }
 /**
  * User-managed settings for a group subscription.
@@ -1298,26 +895,6 @@ export interface SubscriptionUserSettings {
      * Indicates whether the user will receive notifications for the associated group subscription.
      */
     optedOut: boolean;
-}
-export interface UnsupportedFilter extends BaseSubscriptionFilter {
-    type: string;
-}
-export interface UnsupportedSubscriptionChannel {
-    type: string;
-}
-export interface UpdateSubscripitonDiagnosticsParameters {
-    deliveryResults: UpdateSubscripitonTracingParameters;
-    deliveryTracing: UpdateSubscripitonTracingParameters;
-    evaluationTracing: UpdateSubscripitonTracingParameters;
-}
-export interface UpdateSubscripitonTracingParameters {
-    enabled: boolean;
-}
-export interface UserSubscriptionChannel extends SubscriptionChannelWithAddress {
-    type: string;
-}
-export interface UserSystemSubscriptionChannel extends SubscriptionChannelWithAddress {
-    type: string;
 }
 /**
  * Encapsulates the properties of a field value definition. It has the information needed to retrieve the list of possible values for a certain field and how to handle that field values in the UI. This information includes what type of object this value represents, which property to use for UI display and which property to use for saving the subscription
@@ -1337,7 +914,6 @@ export interface ValueDefinition {
     resultTemplate: string;
 }
 export var TypeInfo: {
-    ActorNotificationReason: any;
     BatchNotificationOperation: any;
     EvaluationOperationStatus: {
         enumValues: {
@@ -1351,50 +927,14 @@ export var TypeInfo: {
             "notFound": number;
         };
     };
-    EventProcessingLog: any;
-    EventPublisherQueryFlags: {
-        enumValues: {
-            "none": number;
-            "includeRemoteServices": number;
-        };
-    };
-    EventTypeQueryFlags: {
-        enumValues: {
-            "none": number;
-            "includeFields": number;
-        };
-    };
-    INotificationDiagnosticLog: any;
-    NotificationAdminSettings: any;
-    NotificationAdminSettingsUpdateParameters: any;
     NotificationCommonViewData: any;
-    NotificationDeliveryLog: any;
-    NotificationDiagnosticLog: any;
     NotificationEventField: any;
     NotificationEventFieldType: any;
     NotificationEventType: any;
-    NotificationJobDiagnosticLog: any;
     NotificationOperation: {
         enumValues: {
             "none": number;
             "suspendUnprocessed": number;
-        };
-    };
-    NotificationReason: any;
-    NotificationReasonType: {
-        enumValues: {
-            "unknown": number;
-            "follows": number;
-            "personal": number;
-            "personalAlias": number;
-            "directMember": number;
-            "indirectMember": number;
-            "groupAlias": number;
-            "subscriptionAlias": number;
-            "singleRole": number;
-            "directMemberGroupRole": number;
-            "inDirectMemberGroupRole": number;
-            "aliasMemberGroupRole": number;
         };
     };
     NotificationStatistic: any;
@@ -1409,7 +949,6 @@ export var TypeInfo: {
             "notificationByEventTypePerUser": number;
             "events": number;
             "notifications": number;
-            "notificationFailureBySubscription": number;
             "unprocessedRangeStart": number;
             "unprocessedEventsByPublisher": number;
             "unprocessedEventDelayByPublisher": number;
@@ -1452,15 +991,8 @@ export var TypeInfo: {
         enumValues: {
             "none": number;
             "deliveryPreferencesEditable": number;
-            "supportsPreferredEmailAddressDelivery": number;
-            "supportsEachMemberDelivery": number;
-            "supportsNoDelivery": number;
-            "isUser": number;
-            "isGroup": number;
-            "isTeam": number;
         };
     };
-    SubscriptionDiagnostics: any;
     SubscriptionEvaluationRequest: any;
     SubscriptionEvaluationResult: any;
     SubscriptionFieldType: {
@@ -1515,7 +1047,6 @@ export var TypeInfo: {
         enumValues: {
             "jailedByNotificationsVolume": number;
             "pendingDeletion": number;
-            "disabledMissingPermissions": number;
             "disabledBySystem": number;
             "disabledInactiveIdentity": number;
             "disabledMessageQueueNotSupported": number;
@@ -1529,15 +1060,6 @@ export var TypeInfo: {
             "enabledOnProbation": number;
         };
     };
-    SubscriptionTemplateQueryFlags: {
-        enumValues: {
-            "none": number;
-            "includeUser": number;
-            "includeGroup": number;
-            "includeUserAndGroup": number;
-            "includeEventTypeInformation": number;
-        };
-    };
     SubscriptionTemplateType: {
         enumValues: {
             "user": number;
@@ -1546,24 +1068,7 @@ export var TypeInfo: {
             "none": number;
         };
     };
-    SubscriptionTraceDiagnosticLog: any;
-    SubscriptionTraceEventProcessingLog: any;
-    SubscriptionTraceNotificationDeliveryLog: any;
-    SubscriptionTracing: any;
 };
-}
-declare module "Notifications/Extensions" {
-import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
-/**
- * Service instance type id for the Extension Management Service
- */
-export const ExtensionManagementServiceInstaceTypeId = "00000028-0000-8888-8000-000000000000";
-/**
- * Publish the specified notification event
- *
- * @param notificationEvent Notification event to publish to the extension management service
- */
-export function publishEvent(notificationEvent: VSS_Common_Contracts.VssNotificationEvent): IPromise<VSS_Common_Contracts.VssNotificationEvent>;
 }
 declare module "Notifications/Resources" {
 export module BatchNotificationOperationsResource {
@@ -1615,9 +1120,8 @@ export module SubscriptionTemplatesResource {
 }
 declare module "Notifications/RestClient" {
 import Contracts = require("Notifications/Contracts");
-import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
-export class CommonMethods3To5 extends VSS_WebApi.VssHttpClient {
+export class CommonMethods3To4 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected eventsApiVersion: string;
     protected eventTypeFieldValuesQueryApiVersion: string;
@@ -1627,12 +1131,6 @@ export class CommonMethods3To5 extends VSS_WebApi.VssHttpClient {
     protected subscriptionsApiVersion: string;
     protected subscriptionTemplatesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API] Get available subscription templates.
-     *
-     * @return IPromise<Contracts.NotificationSubscriptionTemplate[]>
-     */
-    getSubscriptionTemplates(): IPromise<Contracts.NotificationSubscriptionTemplate[]>;
     /**
      * [Preview API] Update an existing subscription. Depending on the type of subscription and permissions, the caller can update the description, filter settings, channel (delivery) settings and more.
      *
@@ -1708,35 +1206,51 @@ export class CommonMethods3To5 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.NotificationEventField[]>
      */
     queryEventTypes(inputValuesQuery: Contracts.FieldValuesQuery, eventType: string): IPromise<Contracts.NotificationEventField[]>;
-    /**
-     * [Preview API] Publish an event.
-     *
-     * @param {VSS_Common_Contracts.VssNotificationEvent} notificationEvent
-     * @return IPromise<VSS_Common_Contracts.VssNotificationEvent>
-     */
-    publishEvent(notificationEvent: VSS_Common_Contracts.VssNotificationEvent): IPromise<VSS_Common_Contracts.VssNotificationEvent>;
 }
-export class CommonMethods3_1To5 extends CommonMethods3To5 {
+export class CommonMethods3_1To4 extends CommonMethods3To4 {
     protected batchNotificationOperationsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-export class CommonMethods3_2To5 extends CommonMethods3_1To5 {
+export class CommonMethods3_2To4 extends CommonMethods3_1To4 {
+    protected subscriptionEvaluationRequestsApiVersion: string;
     protected userSettingsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
-     * [Preview API] Update the specified user's settings for the specified subscription. This API is typically used to opt in or out of a shared subscription. User settings can only be applied to shared subscriptions, like team subscriptions or default subscriptions.
+     * [Preview API] Update the specified users' settings for the specified subscription. User settings can only be applied to shared subscriptions, like team subscriptions or default subscriptions. This API is typically used to opt in or out of a shared subscription.
      *
      * @param {Contracts.SubscriptionUserSettings} userSettings
      * @param {string} subscriptionId
-     * @param {string} userId - ID of the user
+     * @param {string} userId - ID of the user or "me" to indicate the calling user
      * @return IPromise<Contracts.SubscriptionUserSettings>
      */
-    updateSubscriptionUserSettings(userSettings: Contracts.SubscriptionUserSettings, subscriptionId: string, userId: string): IPromise<Contracts.SubscriptionUserSettings>;
+    updateSubscriptionUserSettings(userSettings: Contracts.SubscriptionUserSettings, subscriptionId: string, userId?: string): IPromise<Contracts.SubscriptionUserSettings>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} requestId
+     * @return IPromise<Contracts.SubscriptionEvaluationResult>
+     */
+    getSubscriptionEvaluationResults(requestId: string): IPromise<Contracts.SubscriptionEvaluationResult>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.SubscriptionEvaluationRequest} subscriptionEvaluationRequest
+     * @return IPromise<Contracts.SubscriptionEvaluationResult>
+     */
+    evaluateSubscription(subscriptionEvaluationRequest: Contracts.SubscriptionEvaluationRequest): IPromise<Contracts.SubscriptionEvaluationResult>;
 }
-export class CommonMethods4To5 extends CommonMethods3_2To5 {
-    protected notificationReasonsApiVersion: string;
-    protected subscribersApiVersion: string;
+/**
+ * @exemptedapi
+ */
+export class NotificationHttpClient4 extends CommonMethods3_2To4 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {string} subscriberId
+     * @return IPromise<Contracts.NotificationSubscriber>
+     */
+    getSubscriber(subscriberId: string): IPromise<Contracts.NotificationSubscriber>;
     /**
      * [Preview API]
      *
@@ -1745,109 +1259,34 @@ export class CommonMethods4To5 extends CommonMethods3_2To5 {
      * @return IPromise<Contracts.NotificationSubscriber>
      */
     updateSubscriber(updateParameters: Contracts.NotificationSubscriberUpdateParameters, subscriberId: string): IPromise<Contracts.NotificationSubscriber>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} subscriberId
-     * @return IPromise<Contracts.NotificationSubscriber>
-     */
-    getSubscriber(subscriberId: string): IPromise<Contracts.NotificationSubscriber>;
-}
-export class CommonMethods4_1To5 extends CommonMethods4To5 {
-    protected diagnosticLogsApiVersion: string;
-    protected diagnosticsApiVersion: string;
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.UpdateSubscripitonDiagnosticsParameters} updateParameters
-     * @param {string} subscriptionId
-     * @return IPromise<Contracts.SubscriptionDiagnostics>
-     */
-    updateSubscriptionDiagnostics(updateParameters: Contracts.UpdateSubscripitonDiagnosticsParameters, subscriptionId: string): IPromise<Contracts.SubscriptionDiagnostics>;
-    /**
-     * [Preview API]
-     *
-     * @param {string} subscriptionId
-     * @return IPromise<Contracts.SubscriptionDiagnostics>
-     */
-    getSubscriptionDiagnostics(subscriptionId: string): IPromise<Contracts.SubscriptionDiagnostics>;
-    /**
-     * [Preview API] List diagnostic logs this service.
-     *
-     * @param {string} source
-     * @param {string} entryId
-     * @param {Date} startTime
-     * @param {Date} endTime
-     * @return IPromise<Contracts.INotificationDiagnosticLog[]>
-     */
-    listLogs(source: string, entryId?: string, startTime?: Date, endTime?: Date): IPromise<Contracts.INotificationDiagnosticLog[]>;
 }
 /**
  * @exemptedapi
  */
-export class NotificationHttpClient5 extends CommonMethods4_1To5 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API] Tranform a notification event.
-     *
-     * @param {Contracts.EventTransformRequest} transformRequest - Object to be transformed.
-     * @return IPromise<Contracts.EventTransformResult>
-     */
-    transformEvent(transformRequest: Contracts.EventTransformRequest): IPromise<Contracts.EventTransformResult>;
-    /**
-     * [Preview API]
-     *
-     * @return IPromise<Contracts.NotificationAdminSettings>
-     */
-    getSettings(): IPromise<Contracts.NotificationAdminSettings>;
-    /**
-     * [Preview API]
-     *
-     * @param {Contracts.NotificationAdminSettingsUpdateParameters} updateParameters
-     * @return IPromise<Contracts.NotificationAdminSettings>
-     */
-    updateSettings(updateParameters: Contracts.NotificationAdminSettingsUpdateParameters): IPromise<Contracts.NotificationAdminSettings>;
-}
-/**
- * @exemptedapi
- */
-export class NotificationHttpClient4_1 extends CommonMethods4_1To5 {
+export class NotificationHttpClient3_2 extends CommonMethods3_2To4 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class NotificationHttpClient4 extends CommonMethods4To5 {
+export class NotificationHttpClient3_1 extends CommonMethods3_1To4 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * @exemptedapi
  */
-export class NotificationHttpClient3_2 extends CommonMethods3_2To5 {
+export class NotificationHttpClient3 extends CommonMethods3To4 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
-/**
- * @exemptedapi
- */
-export class NotificationHttpClient3_1 extends CommonMethods3_1To5 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-}
-/**
- * @exemptedapi
- */
-export class NotificationHttpClient3 extends CommonMethods3To5 {
-    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-}
-export class NotificationHttpClient extends NotificationHttpClient5 {
+export class NotificationHttpClient extends NotificationHttpClient4 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
  *
- * @return NotificationHttpClient4_1
+ * @return NotificationHttpClient3_2
  */
-export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): NotificationHttpClient4_1;
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): NotificationHttpClient3_2;
 }
 declare module "Notifications/Services" {
 import Service = require("VSS/Service");
@@ -1886,14 +1325,14 @@ export class FollowsService extends Service.VssService {
     static FOLLOWS_STATE_CHANGING: string;
     static FOLLOWS_TYPE: string;
     private static LAYER;
-    initializeConnection(tfsConnection: Service.VssConnection, serviceInstanceId?: string): void;
     clearCache(): void;
-    getSubscription(artifact: ArtifactSubscription, subscriberId?: string): IPromise<ArtifactSubscription>;
+    getSubscription(artifact: ArtifactSubscription): IPromise<ArtifactSubscription>;
     followArtifact(artifact: ArtifactSubscription, telemetryData?: IFollowsTelemetryData): IPromise<ArtifactSubscription>;
-    unfollowArtifact(artifact: ArtifactSubscription, subscriberId?: string, telemetryData?: IFollowsTelemetryData): IPromise<ArtifactSubscription>;
+    unfollowArtifact(artifact: ArtifactSubscription, telemetryData?: IFollowsTelemetryData): IPromise<ArtifactSubscription>;
     refresh(artifact: ArtifactSubscription): void;
     private _getNotificationSubscriptionObject(artifactSubscription);
     private _handlePromise(artifact, isFollow, promise);
+    private _ensureInitialized();
     private _artifactSubscriptionFromNotificationSubscription(subscription);
     private _makePromiseKey(artifactId, artifactType);
     private _fireChanging(artifact, state);

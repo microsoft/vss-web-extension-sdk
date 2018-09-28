@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v134.20180525.1751
+// Type definitions for Microsoft Visual Studio Services v141.20180928.1723
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -17,7 +17,7 @@ declare module "TFS/Admin/Scripts/Generated/ConnectedService" {
  * ---------------------------------------------------------
  *
  * See following wiki page for instructions on how to regenerate:
- *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
  *
  * Configuration file:
  *   tfs\client\connectedservice\clientgeneratorconfigs\genclient.json
@@ -26,22 +26,47 @@ export interface AuthRequest {
     errorMessage: string;
     url: string;
 }
+export interface Installation {
+    imageUrl: string;
+    installationId: string;
+    name: string;
+    signature: string;
+}
 }
 declare module "TFS/Admin/Scripts/Generated/ConnectedServiceHttpClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\connectedservice\clientgeneratorconfigs\genclient.json
+ */
 import ConnectedService = require("TFS/Admin/Scripts/Generated/ConnectedService");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     protected authRequestsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
+     * @param {string} project - Project ID or project name
+     * @param {string} providerId
+     * @param {string} oauthTokenKey
+     * @return IPromise<ConnectedService.Installation[]>
+     */
+    getAppInstallations(project: string, providerId: string, oauthTokenKey: string): IPromise<ConnectedService.Installation[]>;
+    /**
      * @param {ConnectedService.AuthRequest} authRequest
      * @param {string} project - Project ID or project name
      * @param {string} providerId
      * @param {string} configurationId
      * @param {string} scope
+     * @param {string} callbackQueryParams
      * @return IPromise<ConnectedService.AuthRequest>
      */
-    createAuthRequest(authRequest: ConnectedService.AuthRequest, project: string, providerId: string, configurationId?: string, scope?: string): IPromise<ConnectedService.AuthRequest>;
+    createAuthRequest(authRequest: ConnectedService.AuthRequest, project: string, providerId: string, configurationId?: string, scope?: string, callbackQueryParams?: string): IPromise<ConnectedService.AuthRequest>;
 }
 /**
  * @exemptedapi
@@ -113,7 +138,548 @@ export class ConnectedServiceHttpClient extends ConnectedServiceHttpClient5 {
  */
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ConnectedServiceHttpClient4_1;
 }
+declare module "TFS/Boards/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\boards\clientgeneratorconfigs\genclient.json
+ */
+export interface Board extends BoardReference {
+    /**
+     * Links to other related objects.
+     */
+    _links: any;
+    /**
+     * Description of the board.
+     */
+    description: string;
+}
+/**
+ * Provides properties that describe a column in a board.
+ */
+export interface BoardColumn extends BoardColumnReference {
+    /**
+     * Links to other related objects.
+     */
+    _links: any;
+    /**
+     * Board column description.
+     */
+    description: string;
+    /**
+     * Order of this board column with respect to other columns in the board.
+     */
+    order: number;
+    /**
+     * Board column properties.
+     */
+    properties: {
+        [key: string]: string;
+    };
+}
+/**
+ * Response collection for board column actions.
+ */
+export interface BoardColumnCollectionResponse {
+    /**
+     * The resulting collection of BoardColumn.
+     */
+    boardColumns: BoardColumn[];
+    /**
+     * The last change date and time for all the columns in the collection.
+     */
+    eTag: string[];
+}
+/**
+ * Describes a column to create on a board.
+ */
+export interface BoardColumnCreate {
+    /**
+     * New column description.
+     */
+    description: string;
+    /**
+     * New column name.
+     */
+    name: string;
+    /**
+     * New column order with respect to other columns in the board.
+     */
+    order: number;
+}
+export interface BoardColumnReference extends EntityReference {
+    /**
+     * Id of the resource.
+     */
+    id: string;
+}
+/**
+ * Response for board column actions.
+ */
+export interface BoardColumnResponse {
+    /**
+     * The resulting BoardColumn.
+     */
+    boardColumn: BoardColumn;
+    /**
+     * The last change date and time for all the columns in the collection.
+     */
+    eTag: string[];
+}
+/**
+ * Describes a column to update on a board.
+ */
+export interface BoardColumnUpdate extends BoardColumnCreate {
+}
+/**
+ * Provides properties that describe an item in a board.
+ */
+export interface BoardItem extends BoardItemReference {
+    /**
+     * Links to other related objects.
+     */
+    _links: any;
+    /**
+     * Board id for this item.
+     */
+    boardid: number;
+    /**
+     * Board column id for this item.
+     */
+    column: string;
+    /**
+     * Item type.
+     */
+    itemType: string;
+    /**
+     * Board row id for this item.
+     */
+    row: string;
+}
+export interface BoardItemReference {
+    /**
+     * Board's item identifier.
+     */
+    id: string;
+    /**
+     * Full http link to the resource.
+     */
+    url: string;
+}
+/**
+ * Provides a response for board item actions.
+ */
+export interface BoardItemResponse {
+    /**
+     * The last changed date for the board item.
+     */
+    eTag: string[];
+    /**
+     * The resulting BoardItem.
+     */
+    item: BoardItem;
+}
+export interface BoardReference extends EntityReference {
+    /**
+     * Id of the resource.
+     */
+    id: number;
+}
+/**
+ * Response for board column actions.
+ */
+export interface BoardResponse {
+    /**
+     * The resulting Board.
+     */
+    board: Board;
+    /**
+     * The last date and time the board was changed.
+     */
+    eTag: string[];
+}
+/**
+ * Provides properties that describe a row in a board.
+ */
+export interface BoardRow extends BoardRowReference {
+    /**
+     * Links to other related objects.
+     */
+    _links: any;
+    /**
+     * Order of this row with respect to other rows in the board.
+     */
+    order: number;
+}
+/**
+ * Response collection for board row actions.
+ */
+export interface BoardRowCollectionResponse {
+    /**
+     * The resulting collection of BoardRow.
+     */
+    boardRows: BoardRow[];
+    /**
+     * The last change date and time for all the rows in the collection.
+     */
+    eTag: string[];
+}
+/**
+ * Describes a row to create on a board.
+ */
+export interface BoardRowCreate {
+    /**
+     * New row name.
+     */
+    name: string;
+    /**
+     * New row order with respect to other rows in the board.
+     */
+    order: number;
+}
+export interface BoardRowReference extends EntityReference {
+    /**
+     * Id of the resource.
+     */
+    id: string;
+}
+/**
+ * Response for board row actions.
+ */
+export interface BoardRowResponse {
+    /**
+     * The resulting collection of BoardRow.
+     */
+    boardRow: BoardRow;
+    /**
+     * The last change date and time for all the rows in the collection.
+     */
+    eTag: string[];
+}
+/**
+ * Describes a row to update on a board.
+ */
+export interface BoardRowUpdate extends BoardRowCreate {
+}
+export enum BoardTypeEnum {
+    IdBoundBoard = 1,
+    QueryBoundBoard = 2,
+    KanbanBoard = 3,
+    TaskBoard = 4
+}
+export interface CreateBoard {
+    /**
+     * Description of the board.
+     */
+    description: string;
+    /**
+     * Name of the board to create.
+     */
+    name: string;
+}
+export interface EntityReference {
+    /**
+     * Name of the resource.
+     */
+    name: string;
+    /**
+     * Full http link to the resource.
+     */
+    url: string;
+}
+export interface NewBoardItem {
+    /**
+     * Board column identifier.
+     */
+    columnId: string;
+    /**
+     * Item identifier.
+     */
+    id: string;
+    /**
+     * Item type.
+     */
+    itemType: string;
+    /**
+     * Next item identifier or supported directive: $top or $bottom.
+     */
+    nextItemId: string;
+    /**
+     * Next item type.
+     */
+    nextItemType: string;
+    /**
+     * Board row identifier.
+     */
+    rowId: string;
+}
+/**
+ * Response containing ETag header with no content
+ */
+export interface NoContentResponse {
+    /**
+     * The place holder to stop genclient from creating invalid client code
+     */
+    data: any;
+    /**
+     * The last change date and time for all the rows/columns in the collection.
+     */
+    eTag: string[];
+}
+export interface UpdateBoard {
+    /**
+     * New description of the board.
+     */
+    description: string;
+    /**
+     * New name of the board.
+     */
+    name: string;
+}
+export interface UpdateBoardItem {
+    /**
+     * Board column identifier.
+     */
+    columnId: string;
+    /**
+     * Next item identifier or supported directive: $top or $bottom.
+     */
+    nextItemId: string;
+    /**
+     * Next item type.
+     */
+    nextItemType: string;
+    /**
+     * Board row identifier.
+     */
+    rowId: string;
+}
+export var TypeInfo: {
+    BoardTypeEnum: {
+        enumValues: {
+            "idBoundBoard": number;
+            "queryBoundBoard": number;
+            "kanbanBoard": number;
+            "taskBoard": number;
+        };
+    };
+};
+}
+declare module "TFS/Boards/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\boards\clientgeneratorconfigs\genclient.json
+ */
+import Contracts = require("TFS/Boards/Contracts");
+import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
+export class BoardsHttpClient5 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Add a new board for the project.
+     *
+     * @param {Contracts.CreateBoard} postedBoard - Board definition.
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.BoardResponse>
+     */
+    createBoard(postedBoard: Contracts.CreateBoard, project: string): IPromise<Contracts.BoardResponse>;
+    /**
+     * [Preview API] Returns information for a board given its unique identifier.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} id - Board's unique identifier.
+     * @return IPromise<Contracts.BoardResponse>
+     */
+    getBoard(project: string, id: number): IPromise<Contracts.BoardResponse>;
+    /**
+     * [Preview API] Get boards.
+     *
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.BoardReference[]>
+     */
+    getBoards(project: string): IPromise<Contracts.BoardReference[]>;
+    /**
+     * [Preview API] Updates a board.
+     *
+     * @param {Contracts.UpdateBoard} updatedBoard - New board data.
+     * @param {string} project - Project ID or project name
+     * @param {number} id - Id of the board to update.
+     * @param {String} eTag - Board Latest Changed Date
+     * @return IPromise<Contracts.NoContentResponse>
+     */
+    updateBoard(updatedBoard: Contracts.UpdateBoard, project: string, id: number, eTag: String): IPromise<Contracts.NoContentResponse>;
+    /**
+     * [Preview API] Creates a new column on a board.
+     *
+     * @param {Contracts.BoardColumnCreate} boardColumn - Column data.
+     * @param {string} project - Project ID or project name
+     * @param {number} board - Board identifier.
+     * @param {String} eTag - Column Latest Changed Date
+     * @return IPromise<Contracts.BoardColumnResponse>
+     */
+    createBoardColumn(boardColumn: Contracts.BoardColumnCreate, project: string, board: number, eTag: String): IPromise<Contracts.BoardColumnResponse>;
+    /**
+     * [Preview API] Deletes a column from a board.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} board - Board identifier.
+     * @param {string} id - Column identifier.
+     * @param {String} eTag - Column Latest Changed Date
+     * @return IPromise<Contracts.NoContentResponse>
+     */
+    deleteBoardColumn(project: string, board: number, id: string, eTag: String): IPromise<Contracts.NoContentResponse>;
+    /**
+     * [Preview API] Gets column data for a board given its identifier.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} board - Board identifier.
+     * @param {string} id - Column identifier.
+     * @return IPromise<Contracts.BoardColumnResponse>
+     */
+    getBoardColumn(project: string, board: number, id: string): IPromise<Contracts.BoardColumnResponse>;
+    /**
+     * [Preview API] Get columns in a board.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} board - Board identifier.
+     * @return IPromise<Contracts.BoardColumnCollectionResponse>
+     */
+    getBoardColumns(project: string, board: number): IPromise<Contracts.BoardColumnCollectionResponse>;
+    /**
+     * [Preview API] Updates a board column.
+     *
+     * @param {Contracts.BoardColumnUpdate} boardColumn - Column data.
+     * @param {string} project - Project ID or project name
+     * @param {number} board - Board identifier.
+     * @param {string} id - Column identifier.
+     * @param {String} eTag - Column Latest Changed Date
+     * @return IPromise<Contracts.BoardColumnResponse>
+     */
+    updateBoardColumn(boardColumn: Contracts.BoardColumnUpdate, project: string, board: number, id: string, eTag: String): IPromise<Contracts.BoardColumnResponse>;
+    /**
+     * [Preview API] Adds a single item to a board.
+     *
+     * @param {Contracts.NewBoardItem} item - Item to add to the board.
+     * @param {string} project - Project ID or project name
+     * @param {number} board - Board identifier.
+     * @return IPromise<Contracts.BoardItemResponse>
+     */
+    createBoardItem(item: Contracts.NewBoardItem, project: string, board: number): IPromise<Contracts.BoardItemResponse>;
+    /**
+     * [Preview API] Gets data for a single board's item.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} board - Board identifier.
+     * @param {string} id - Item identifier.
+     * @return IPromise<Contracts.BoardItem>
+     */
+    getBoardItem(project: string, board: number, id: string): IPromise<Contracts.BoardItem>;
+    /**
+     * [Preview API] Get items information for a board given its identifier.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} board - Board identifier.
+     * @return IPromise<Contracts.BoardItemReference[]>
+     */
+    getBoardItems(project: string, board: number): IPromise<Contracts.BoardItemReference[]>;
+    /**
+     * [Preview API] Updates a single item in a board.
+     *
+     * @param {Contracts.UpdateBoardItem} updateItemDef
+     * @param {string} project - Project ID or project name
+     * @param {number} board - Board identifier.
+     * @param {string} id
+     * @param {String} eTag - Item Latest Changed Date
+     * @return IPromise<Contracts.BoardItemResponse>
+     */
+    updateBoardItem(updateItemDef: Contracts.UpdateBoardItem, project: string, board: number, id: string, eTag: String): IPromise<Contracts.BoardItemResponse>;
+    /**
+     * [Preview API] Creates a new row on a board.
+     *
+     * @param {Contracts.BoardRowCreate} boardRow - Row data.
+     * @param {string} project - Project ID or project name
+     * @param {number} board - Board identifier.
+     * @param {String} eTag - Row Latest Changed Date
+     * @return IPromise<Contracts.BoardRowResponse>
+     */
+    createBoardRow(boardRow: Contracts.BoardRowCreate, project: string, board: number, eTag: String): IPromise<Contracts.BoardRowResponse>;
+    /**
+     * [Preview API] Deletes a row from a board.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} board - Board identifier.
+     * @param {string} id - Row identifier.
+     * @param {String} eTag - Row Latest Changed Date
+     * @return IPromise<Contracts.NoContentResponse>
+     */
+    deleteBoardRow(project: string, board: number, id: string, eTag: String): IPromise<Contracts.NoContentResponse>;
+    /**
+     * [Preview API] Gets a row given its identifier and board.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} board - Board identifier.
+     * @param {string} id - Board row identifier.
+     * @return IPromise<Contracts.BoardRowResponse>
+     */
+    getBoardRow(project: string, board: number, id: string): IPromise<Contracts.BoardRowResponse>;
+    /**
+     * [Preview API] Get rows in a board given its identifier.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} board - Board identifier.
+     * @return IPromise<Contracts.BoardRowCollectionResponse>
+     */
+    getBoardRows(project: string, board: number): IPromise<Contracts.BoardRowCollectionResponse>;
+    /**
+     * [Preview API] Updates a board row.
+     *
+     * @param {Contracts.BoardRowUpdate} boardRow - Row data.
+     * @param {string} project - Project ID or project name
+     * @param {number} board - Board identifier.
+     * @param {string} id - Row identifier.
+     * @param {String} eTag - Row Latest Changed Date
+     * @return IPromise<Contracts.BoardRowResponse>
+     */
+    updateBoardRow(boardRow: Contracts.BoardRowUpdate, project: string, board: number, id: string, eTag: String): IPromise<Contracts.BoardRowResponse>;
+}
+export class BoardsHttpClient extends BoardsHttpClient5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * Gets an http client targeting the latest released version of the APIs.
+ *
+ * @return BoardsHttpClient5
+ */
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): BoardsHttpClient5;
+}
 declare module "TFS/Build/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\build2\api\clientgeneratorconfigs\genclient.json
+ */
 import TFS_Core_Contracts = require("TFS/Core/Contracts");
 import TFS_DistributedTask_Common_Contracts = require("TFS/DistributedTaskCommon/Contracts");
 import TFS_SourceControl_Contracts = require("TFS/VersionControl/Contracts");
@@ -180,7 +746,7 @@ export enum AgentStatus {
     /**
      * Indicates that the build agent has taken itself offline.
      */
-    Offline = 2,
+    Offline = 2
 }
 /**
  * Additional options for running phases against an agent queue.
@@ -233,7 +799,7 @@ export interface Attachment {
 export enum AuditAction {
     Add = 1,
     Update = 2,
-    Delete = 3,
+    Delete = 3
 }
 /**
  * Data representation of a build.
@@ -461,7 +1027,7 @@ export enum BuildAuthorizationScope {
     /**
      * The identity used should have build service account permissions scoped to the project in which the build definition resides. This is useful for isolation of build jobs to a particular team project to avoid any unintentional escalation of privilege attacks during a build.
      */
-    Project = 2,
+    Project = 2
 }
 /**
  * Represents a build badge.
@@ -481,6 +1047,10 @@ export interface BuildCompletedEvent extends BuildUpdatedEvent {
      * Changes associated with a build used for build notifications
      */
     changes: Change[];
+    /**
+     * Pull request for the build used for build notifications
+     */
+    pullRequest: PullRequest;
     /**
      * Test results associated with a build used for build notifications
      */
@@ -1060,7 +1630,7 @@ export enum BuildOptionInputType {
     Radio = 3,
     PickList = 4,
     MultiLine = 5,
-    BranchFilter = 6,
+    BranchFilter = 6
 }
 export enum BuildPhaseStatus {
     /**
@@ -1074,7 +1644,7 @@ export enum BuildPhaseStatus {
     /**
      * The build phase completed successfully.
      */
-    Succeeded = 2,
+    Succeeded = 2
 }
 /**
  * Represents a build process.
@@ -1119,21 +1689,21 @@ export enum BuildQueryOrder {
      */
     FinishTimeDescending = 3,
     /**
-     * Order by finish time descending.
+     * Order by queue time descending.
      */
     QueueTimeDescending = 4,
     /**
-     * Order by finish time descending.
+     * Order by queue time ascending.
      */
     QueueTimeAscending = 5,
     /**
-     * Order by finish time descending.
+     * Order by start time descending.
      */
     StartTimeDescending = 6,
     /**
-     * Order by finish time descending.
+     * Order by start time ascending.
      */
-    StartTimeAscending = 7,
+    StartTimeAscending = 7
 }
 export enum BuildReason {
     /**
@@ -1183,7 +1753,7 @@ export enum BuildReason {
     /**
      * All reasons.
      */
-    All = 1007,
+    All = 1007
 }
 /**
  * Represents a reference to a build.
@@ -1341,7 +1911,7 @@ export enum BuildResult {
     /**
      * The build was canceled before starting.
      */
-    Canceled = 32,
+    Canceled = 32
 }
 export interface BuildsDeletedEvent extends BuildsDeletedEvent1 {
 }
@@ -1415,7 +1985,7 @@ export enum BuildStatus {
     /**
      * All status.
      */
-    All = 47,
+    All = 47
 }
 export interface BuildSummary {
     build: XamlBuildReference;
@@ -1550,11 +2120,11 @@ export enum ControllerStatus {
     /**
      * Indicates that the build controller has taken itself offline.
      */
-    Offline = 2,
+    Offline = 2
 }
 export enum DefinitionQuality {
     Definition = 1,
-    Draft = 2,
+    Draft = 2
 }
 /**
  * Specifies the desired ordering of definitions.
@@ -1579,7 +2149,7 @@ export enum DefinitionQueryOrder {
     /**
      * Order by definition name descending.
      */
-    DefinitionNameDescending = 4,
+    DefinitionNameDescending = 4
 }
 export enum DefinitionQueueStatus {
     /**
@@ -1593,7 +2163,7 @@ export enum DefinitionQueueStatus {
     /**
      * When disabled the definition queue will not allow builds to be queued by users and the system will not queue scheduled, gated or continuous integration builds. Builds already in the queue will not be started by the system.
      */
-    Disabled = 2,
+    Disabled = 2
 }
 /**
  * Represents a reference to a definition.
@@ -1640,6 +2210,24 @@ export interface DefinitionReference {
      */
     url: string;
 }
+export interface DefinitionResourceReference {
+    /**
+     * Indicates whether the resource is authorized for use.
+     */
+    authorized: boolean;
+    /**
+     * The id of the resource.
+     */
+    id: string;
+    /**
+     * A friendly name for the resource.
+     */
+    name: string;
+    /**
+     * The type of the resource.
+     */
+    type: string;
+}
 export enum DefinitionTriggerType {
     /**
      * Manual builds only.
@@ -1676,11 +2264,11 @@ export enum DefinitionTriggerType {
     /**
      * All types.
      */
-    All = 255,
+    All = 255
 }
 export enum DefinitionType {
     Xaml = 1,
-    Build = 2,
+    Build = 2
 }
 export enum DeleteOptions {
     /**
@@ -1710,7 +2298,7 @@ export enum DeleteOptions {
     /**
      * All data should be deleted.
      */
-    All = 31,
+    All = 31
 }
 /**
  * Represents a dependency.
@@ -1754,6 +2342,8 @@ export interface DeploymentTest extends Deployment {
  */
 export interface DesignerProcess extends BuildProcess {
     phases: Phase[];
+}
+export interface DockerProcess extends BuildProcess {
 }
 /**
  * Represents a folder that contains build definitions.
@@ -1803,7 +2393,7 @@ export enum FolderQueryOrder {
     /**
      * Order by folder name and path descending.
      */
-    FolderDescending = 2,
+    FolderDescending = 2
 }
 /**
  * Represents the ability to build forks of the selected repository.
@@ -1844,7 +2434,7 @@ export enum GetOption {
     /**
      * A user-specified version has been supplied.
      */
-    Custom = 2,
+    Custom = 2
 }
 /**
  * Data representation of an information node associated with a build
@@ -1899,7 +2489,7 @@ export interface Issue {
 }
 export enum IssueType {
     Error = 1,
-    Warning = 2,
+    Warning = 2
 }
 /**
  * Represents an entry in a workspace mapping.
@@ -1990,7 +2580,56 @@ export enum ProcessTemplateType {
     /**
      * Indicates an upgrade template.
      */
-    Upgrade = 2,
+    Upgrade = 2
+}
+/**
+ * Represents a pull request object.  These are retrieved from Source Providers.
+ */
+export interface PullRequest {
+    /**
+     * The links to other objects related to this object.
+     */
+    _links: any;
+    /**
+     * Author of the pull request.
+     */
+    author: VSS_Common_Contracts.IdentityRef;
+    /**
+     * Current state of the pull request, e.g. open, merged, closed, conflicts, etc.
+     */
+    currentState: string;
+    /**
+     * Description for the pull request.
+     */
+    description: string;
+    /**
+     * Unique identifier for the pull request
+     */
+    id: string;
+    /**
+     * The name of the provider this pull request is associated with.
+     */
+    providerName: string;
+    /**
+     * Source branch ref of this pull request
+     */
+    sourceBranchRef: string;
+    /**
+     * Owner of the source repository of this pull request
+     */
+    sourceRepositoryOwner: string;
+    /**
+     * Target branch ref of this pull request
+     */
+    targetBranchRef: string;
+    /**
+     * Owner of the target repository of this pull request
+     */
+    targetRepositoryOwner: string;
+    /**
+     * Title of the pull request.
+     */
+    title: string;
 }
 /**
  * Represents a pull request trigger.
@@ -1998,6 +2637,8 @@ export enum ProcessTemplateType {
 export interface PullRequestTrigger extends BuildTrigger {
     branchFilters: string[];
     forks: Forks;
+    isCommentRequiredForPullRequest: boolean;
+    pathFilters: string[];
 }
 export enum QueryDeletedOption {
     /**
@@ -2011,7 +2652,7 @@ export enum QueryDeletedOption {
     /**
      * Include only deleted builds.
      */
-    OnlyDeleted = 2,
+    OnlyDeleted = 2
 }
 export enum QueueOptions {
     /**
@@ -2021,7 +2662,7 @@ export enum QueueOptions {
     /**
      * Create a plan Id for the build, do not run it
      */
-    DoNotRun = 1,
+    DoNotRun = 1
 }
 export enum QueuePriority {
     /**
@@ -2043,7 +2684,7 @@ export enum QueuePriority {
     /**
      * High priority.
      */
-    High = 1,
+    High = 1
 }
 export interface RealtimeBuildEvent {
     buildId: number;
@@ -2058,7 +2699,7 @@ export enum RepositoryCleanOptions {
     /**
      * Re-create $(agnet.buildDirectory) which contains $(build.sourcesDirectory), $(build.binariesDirectory) and any folders that left from previous build.
      */
-    AllBuildDir = 3,
+    AllBuildDir = 3
 }
 /**
  * Represents a repository's webhook returned from a source provider.
@@ -2091,7 +2732,7 @@ export enum ResultSet {
     /**
      * Include most relevant repositories for user
      */
-    Top = 1,
+    Top = 1
 }
 /**
  * Represents a retention policy for a build definition.
@@ -2180,7 +2821,7 @@ export enum ScheduleDays {
     /**
      * Run on all days of the week.
      */
-    All = 127,
+    All = 127
 }
 /**
  * Represents a schedule trigger.
@@ -2232,7 +2873,7 @@ export enum ServiceHostStatus {
     /**
      * The service host is currently disconnected and not accepting commands.
      */
-    Offline = 2,
+    Offline = 2
 }
 export interface SourceProviderAttributes {
     /**
@@ -2262,7 +2903,7 @@ export enum SourceProviderAvailability {
     /**
      * The source provider is available in all environments.
      */
-    All = 3,
+    All = 3
 }
 /**
  * Represents a work item related to some source item. These are retrieved from Source Providers.
@@ -2404,7 +3045,7 @@ export enum SupportLevel {
     /**
      * The functionality is required.
      */
-    Required = 2,
+    Required = 2
 }
 /**
  * Represents a Subversion mapping entry.
@@ -2523,7 +3164,7 @@ export enum TaskResult {
     Failed = 2,
     Canceled = 3,
     Skipped = 4,
-    Abandoned = 5,
+    Abandoned = 5
 }
 /**
  * Represents the timeline of a build.
@@ -2633,7 +3274,7 @@ export interface TimelineRecord {
 export enum TimelineRecordState {
     Pending = 0,
     InProgress = 1,
-    Completed = 2,
+    Completed = 2
 }
 export interface TimelineRecordsUpdatedEvent extends RealtimeBuildEvent {
     timelineRecords: TimelineRecord[];
@@ -2658,7 +3299,7 @@ export interface TimelineReference {
 export enum ValidationResult {
     OK = 0,
     Warning = 1,
-    Error = 2,
+    Error = 2
 }
 /**
  * Represents a variable group.
@@ -2684,6 +3325,10 @@ export interface VariableGroup extends VariableGroupReference {
  * Represents a reference to a variable group.
  */
 export interface VariableGroupReference {
+    /**
+     * The Name of the variable group.
+     */
+    alias: string;
     /**
      * The ID of the variable group.
      */
@@ -2754,7 +3399,7 @@ export enum WorkspaceMappingType {
     /**
      * The path is cloaked in the workspace.
      */
-    Cloak = 1,
+    Cloak = 1
 }
 export interface WorkspaceTemplate {
     /**
@@ -3267,6 +3912,17 @@ export var BuildResultsSummaryTabSectionIds: {
 };
 }
 declare module "TFS/Build/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\build2\api\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("TFS/Build/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -3328,15 +3984,17 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * Updates the build settings.
      *
      * @param {Contracts.BuildSettings} settings - The new settings.
+     * @param {string} project - Project ID or project name
      * @return IPromise<Contracts.BuildSettings>
      */
-    updateBuildSettings(settings: Contracts.BuildSettings): IPromise<Contracts.BuildSettings>;
+    updateBuildSettings(settings: Contracts.BuildSettings, project?: string): IPromise<Contracts.BuildSettings>;
     /**
      * Gets the build settings.
      *
+     * @param {string} project - Project ID or project name
      * @return IPromise<Contracts.BuildSettings>
      */
-    getBuildSettings(): IPromise<Contracts.BuildSettings>;
+    getBuildSettings(project?: string): IPromise<Contracts.BuildSettings>;
     /**
      * Gets all revisions of a definition.
      *
@@ -3396,7 +4054,7 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      */
     getBuildBadge(project: string, repoType: string, repoId?: string, branchName?: string): IPromise<Contracts.BuildBadge>;
     /**
-     * Gets a badge that indicates the status of the most recent build for a definition.
+     * [Obsolete - Use StatusBadgeController.GetStatusBadge] Gets a badge that indicates the status of the most recent build for a definition.
      *
      * @param {string} project - The project ID or name.
      * @param {number} definitionId - The ID of the definition.
@@ -3567,9 +4225,10 @@ export class CommonMethods3To5 extends CommonMethods2To5 {
      * @param {Contracts.Build} build - The build.
      * @param {number} buildId - The ID of the build.
      * @param {string} project - Project ID or project name
+     * @param {boolean} retry
      * @return IPromise<Contracts.Build>
      */
-    updateBuild(build: Contracts.Build, buildId: number, project?: string): IPromise<Contracts.Build>;
+    updateBuild(build: Contracts.Build, buildId: number, project?: string, retry?: boolean): IPromise<Contracts.Build>;
     /**
      * Queues a build
      *
@@ -3577,9 +4236,10 @@ export class CommonMethods3To5 extends CommonMethods2To5 {
      * @param {string} project - Project ID or project name
      * @param {boolean} ignoreWarnings
      * @param {string} checkInTicket
+     * @param {number} sourceBuildId
      * @return IPromise<Contracts.Build>
      */
-    queueBuild(build: Contracts.Build, project?: string, ignoreWarnings?: boolean, checkInTicket?: string): IPromise<Contracts.Build>;
+    queueBuild(build: Contracts.Build, project?: string, ignoreWarnings?: boolean, checkInTicket?: string, sourceBuildId?: number): IPromise<Contracts.Build>;
     /**
      * Deletes a build.
      *
@@ -3772,27 +4432,6 @@ export class CommonMethods4To5 extends CommonMethods3_2To5 {
      * @return IPromise<Contracts.BuildDefinition>
      */
     updateDefinition(definition: Contracts.BuildDefinition, definitionId: number, project?: string, secretsSourceDefinitionId?: number, secretsSourceDefinitionRevision?: number): IPromise<Contracts.BuildDefinition>;
-    /**
-     * Gets a list of definitions.
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} name - If specified, filters to definitions whose names match this pattern.
-     * @param {string} repositoryId - A repository ID. If specified, filters to definitions that use this repository.
-     * @param {string} repositoryType - If specified, filters to definitions that have a repository of this type.
-     * @param {Contracts.DefinitionQueryOrder} queryOrder - Indicates the order in which definitions should be returned.
-     * @param {number} top - The maximum number of definitions to return.
-     * @param {string} continuationToken - A continuation token, returned by a previous call to this method, that can be used to return the next set of definitions.
-     * @param {Date} minMetricsTime - If specified, indicates the date from which metrics should be included.
-     * @param {number[]} definitionIds - A comma-delimited list that specifies the IDs of definitions to retrieve.
-     * @param {string} path - If specified, filters to definitions under this folder.
-     * @param {Date} builtAfter - If specified, filters to definitions that have builds after this date.
-     * @param {Date} notBuiltAfter - If specified, filters to definitions that do not have builds after this date.
-     * @param {boolean} includeAllProperties - Indicates whether the full definitions should be returned. By default, shallow representations of the definitions are returned.
-     * @param {boolean} includeLatestBuilds - Indicates whether to return the latest and latest completed builds for this definition.
-     * @param {string} taskIdFilter - If specified, filters to definitions that use the specified task.
-     * @return IPromise<Contracts.BuildDefinitionReference[]>
-     */
-    getDefinitions(project?: string, name?: string, repositoryId?: string, repositoryType?: string, queryOrder?: Contracts.DefinitionQueryOrder, top?: number, continuationToken?: string, minMetricsTime?: Date, definitionIds?: number[], path?: string, builtAfter?: Date, notBuiltAfter?: Date, includeAllProperties?: boolean, includeLatestBuilds?: boolean, taskIdFilter?: string): IPromise<Contracts.BuildDefinitionReference[]>;
     /**
      * Gets a definition, optionally at a specific revision.
      *
@@ -4042,6 +4681,29 @@ export class BuildHttpClient5 extends CommonMethods4_1To5 {
      */
     getFile(buildId: number, artifactName: string, fileId: string, fileName: string, project?: string): IPromise<ArrayBuffer>;
     /**
+     * [Preview API] Gets a list of definitions.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} name - If specified, filters to definitions whose names match this pattern.
+     * @param {string} repositoryId - A repository ID. If specified, filters to definitions that use this repository.
+     * @param {string} repositoryType - If specified, filters to definitions that have a repository of this type.
+     * @param {Contracts.DefinitionQueryOrder} queryOrder - Indicates the order in which definitions should be returned.
+     * @param {number} top - The maximum number of definitions to return.
+     * @param {string} continuationToken - A continuation token, returned by a previous call to this method, that can be used to return the next set of definitions.
+     * @param {Date} minMetricsTime - If specified, indicates the date from which metrics should be included.
+     * @param {number[]} definitionIds - A comma-delimited list that specifies the IDs of definitions to retrieve.
+     * @param {string} path - If specified, filters to definitions under this folder.
+     * @param {Date} builtAfter - If specified, filters to definitions that have builds after this date.
+     * @param {Date} notBuiltAfter - If specified, filters to definitions that do not have builds after this date.
+     * @param {boolean} includeAllProperties - Indicates whether the full definitions should be returned. By default, shallow representations of the definitions are returned.
+     * @param {boolean} includeLatestBuilds - Indicates whether to return the latest and latest completed builds for this definition.
+     * @param {string} taskIdFilter - If specified, filters to definitions that use the specified task.
+     * @param {number} processType - If specified, filters to definitions with the given process type.
+     * @param {string} yamlFilename - If specified, filters to YAML definitions that match the given filename.
+     * @return IPromise<Contracts.BuildDefinitionReference[]>
+     */
+    getDefinitions(project?: string, name?: string, repositoryId?: string, repositoryType?: string, queryOrder?: Contracts.DefinitionQueryOrder, top?: number, continuationToken?: string, minMetricsTime?: Date, definitionIds?: number[], path?: string, builtAfter?: Date, notBuiltAfter?: Date, includeAllProperties?: boolean, includeLatestBuilds?: boolean, taskIdFilter?: string, processType?: number, yamlFilename?: string): IPromise<Contracts.BuildDefinitionReference[]>;
+    /**
      * [Preview API] Restores a deleted definition
      *
      * @param {number} definitionId - The identifier of the definition to restore.
@@ -4050,6 +4712,15 @@ export class BuildHttpClient5 extends CommonMethods4_1To5 {
      * @return IPromise<Contracts.BuildDefinition>
      */
     restoreDefinition(definitionId: number, deleted: boolean, project?: string): IPromise<Contracts.BuildDefinition>;
+    /**
+     * [Preview API] Gets the latest build for a definition, optionally scoped to a specific branch.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} definition - definition name with optional leading folder path, or the definition id
+     * @param {string} branchName - optional parameter that indicates the specific branch to use
+     * @return IPromise<Contracts.Build>
+     */
+    getLatestBuild(project: string, definition: string, branchName?: string): IPromise<Contracts.Build>;
     /**
      * [Preview API] Gets an individual log file for a build.
      *
@@ -4061,6 +4732,17 @@ export class BuildHttpClient5 extends CommonMethods4_1To5 {
      * @return IPromise<ArrayBuffer>
      */
     getBuildLogZip(project: string, buildId: number, logId: number, startLine?: number, endLine?: number): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API] Gets a pull request object from source provider.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} providerName - The name of the source provider.
+     * @param {string} pullRequestId - Vendor-specific id of the pull request.
+     * @param {string} repositoryId - Vendor-specific identifier or the name of the repository that contains the pull request.
+     * @param {string} serviceEndpointId - If specified, the ID of the service endpoint to query. Can only be omitted for providers that do not use service endpoints, e.g. TFVC or TFGit.
+     * @return IPromise<Contracts.PullRequest>
+     */
+    getPullRequest(project: string, providerName: string, pullRequestId: string, repositoryId?: string, serviceEndpointId?: string): IPromise<Contracts.PullRequest>;
     /**
      * [Preview API] Gets a list of related work items for a list of commits.
      *
@@ -4085,12 +4767,60 @@ export class BuildHttpClient5 extends CommonMethods4_1To5 {
      * @return IPromise<Contracts.SourceRelatedWorkItem[]>
      */
     getRelatedWorkItemsForPullRequest(project: string, providerName: string, pullRequestId: string, repositoryId?: string, serviceEndpointId?: string, top?: number): IPromise<Contracts.SourceRelatedWorkItem[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.DefinitionResourceReference[]} resources
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId
+     * @return IPromise<Contracts.DefinitionResourceReference[]>
+     */
+    authorizeDefinitionResources(resources: Contracts.DefinitionResourceReference[], project: string, definitionId: number): IPromise<Contracts.DefinitionResourceReference[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId
+     * @return IPromise<Contracts.DefinitionResourceReference[]>
+     */
+    getDefinitionResources(project: string, definitionId: number): IPromise<Contracts.DefinitionResourceReference[]>;
+    /**
+     * [Preview API] <p>Gets the build status for a definition, optionally scoped to a specific branch, stage, job, and configuration.</p> <p>If there are more than one, then it is required to pass in a stageName value when specifying a jobName, and the same rule then applies for both if passing a configuration parameter.</p>
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} definition - Either the definition name with optional leading folder path, or the definition id.
+     * @param {string} branchName - Only consider the most recent build for this branch.
+     * @param {string} stageName - Use this stage within the pipeline to render the status.
+     * @param {string} jobName - Use this job within a stage of the pipeline to render the status.
+     * @param {string} configuration - Use this job configuration to render the status
+     * @param {string} label - Replaces the default text on the left side of the badge.
+     * @return IPromise<string>
+     */
+    getStatusBadge(project: string, definition: string, branchName?: string, stageName?: string, jobName?: string, configuration?: string, label?: string): IPromise<string>;
 }
-/**
- * @exemptedapi
- */
 export class BuildHttpClient4_1 extends CommonMethods4_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * Gets a list of definitions.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} name - If specified, filters to definitions whose names match this pattern.
+     * @param {string} repositoryId - A repository ID. If specified, filters to definitions that use this repository.
+     * @param {string} repositoryType - If specified, filters to definitions that have a repository of this type.
+     * @param {Contracts.DefinitionQueryOrder} queryOrder - Indicates the order in which definitions should be returned.
+     * @param {number} top - The maximum number of definitions to return.
+     * @param {string} continuationToken - A continuation token, returned by a previous call to this method, that can be used to return the next set of definitions.
+     * @param {Date} minMetricsTime - If specified, indicates the date from which metrics should be included.
+     * @param {number[]} definitionIds - A comma-delimited list that specifies the IDs of definitions to retrieve.
+     * @param {string} path - If specified, filters to definitions under this folder.
+     * @param {Date} builtAfter - If specified, filters to definitions that have builds after this date.
+     * @param {Date} notBuiltAfter - If specified, filters to definitions that do not have builds after this date.
+     * @param {boolean} includeAllProperties - Indicates whether the full definitions should be returned. By default, shallow representations of the definitions are returned.
+     * @param {boolean} includeLatestBuilds - Indicates whether to return the latest and latest completed builds for this definition.
+     * @param {string} taskIdFilter - If specified, filters to definitions that use the specified task.
+     * @return IPromise<Contracts.BuildDefinitionReference[]>
+     */
+    getDefinitions(project?: string, name?: string, repositoryId?: string, repositoryType?: string, queryOrder?: Contracts.DefinitionQueryOrder, top?: number, continuationToken?: string, minMetricsTime?: Date, definitionIds?: number[], path?: string, builtAfter?: Date, notBuiltAfter?: Date, includeAllProperties?: boolean, includeLatestBuilds?: boolean, taskIdFilter?: string): IPromise<Contracts.BuildDefinitionReference[]>;
 }
 export class BuildHttpClient4 extends CommonMethods4To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -4141,6 +4871,27 @@ export class BuildHttpClient4 extends CommonMethods4To5 {
      * @return IPromise<Contracts.Change[]>
      */
     getBuildChanges(project: string, buildId: number, continuationToken?: string, top?: number, includeSourceChange?: boolean): IPromise<Contracts.Change[]>;
+    /**
+     * Gets a list of definitions.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} name - If specified, filters to definitions whose names match this pattern.
+     * @param {string} repositoryId - A repository ID. If specified, filters to definitions that use this repository.
+     * @param {string} repositoryType - If specified, filters to definitions that have a repository of this type.
+     * @param {Contracts.DefinitionQueryOrder} queryOrder - Indicates the order in which definitions should be returned.
+     * @param {number} top - The maximum number of definitions to return.
+     * @param {string} continuationToken - A continuation token, returned by a previous call to this method, that can be used to return the next set of definitions.
+     * @param {Date} minMetricsTime - If specified, indicates the date from which metrics should be included.
+     * @param {number[]} definitionIds - A comma-delimited list that specifies the IDs of definitions to retrieve.
+     * @param {string} path - If specified, filters to definitions under this folder.
+     * @param {Date} builtAfter - If specified, filters to definitions that have builds after this date.
+     * @param {Date} notBuiltAfter - If specified, filters to definitions that do not have builds after this date.
+     * @param {boolean} includeAllProperties - Indicates whether the full definitions should be returned. By default, shallow representations of the definitions are returned.
+     * @param {boolean} includeLatestBuilds - Indicates whether to return the latest and latest completed builds for this definition.
+     * @param {string} taskIdFilter - If specified, filters to definitions that use the specified task.
+     * @return IPromise<Contracts.BuildDefinitionReference[]>
+     */
+    getDefinitions(project?: string, name?: string, repositoryId?: string, repositoryType?: string, queryOrder?: Contracts.DefinitionQueryOrder, top?: number, continuationToken?: string, minMetricsTime?: Date, definitionIds?: number[], path?: string, builtAfter?: Date, notBuiltAfter?: Date, includeAllProperties?: boolean, includeLatestBuilds?: boolean, taskIdFilter?: string): IPromise<Contracts.BuildDefinitionReference[]>;
     /**
      * Gets a timeline for a build.
      *
@@ -5957,6 +6708,17 @@ export class BuildHttpClient extends BuildHttpClient5 {
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): BuildHttpClient4_1;
 }
 declare module "TFS/Core/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\core\clientgeneratorconfigs\genclient.json
+ */
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_Identities_Contracts = require("VSS/Identities/Contracts");
 export enum ConnectedServiceKind {
@@ -5975,7 +6737,7 @@ export enum ConnectedServiceKind {
     /**
      * Generic Connection
      */
-    Generic = 3,
+    Generic = 3
 }
 export interface IdentityData {
     identityIds: string[];
@@ -5994,12 +6756,12 @@ export interface ProcessReference {
 export enum ProcessType {
     System = 0,
     Custom = 1,
-    Inherited = 2,
+    Inherited = 2
 }
 export enum ProjectChangeType {
     Modified = 0,
     Deleted = 1,
-    Added = 2,
+    Added = 2
 }
 /**
  * Contains information of the project
@@ -6030,10 +6792,9 @@ export interface ProjectProperty {
     value: any;
 }
 export enum ProjectVisibility {
-    Unchanged = -1,
     Private = 0,
     Organization = 1,
-    Public = 2,
+    Public = 2
 }
 export interface Proxy {
     authorization: ProxyAuthorization;
@@ -6076,7 +6837,7 @@ export interface ProxyAuthorization {
 }
 export enum SourceControlTypes {
     Tfvc = 1,
-    Git = 2,
+    Git = 2
 }
 /**
  * The Team Context for an operation.
@@ -6132,6 +6893,10 @@ export interface TeamProjectCollection extends TeamProjectCollectionReference {
      * Project collection description.
      */
     description: string;
+    /**
+     * True if collection supports inherited process customization model.
+     */
+    enableInheritedProcessCustomization: boolean;
     /**
      * Project collection state.
      */
@@ -6389,6 +7154,7 @@ export var TypeInfo: {
             "private": number;
             "organization": number;
             "public": number;
+            "systemPrivate": number;
         };
     };
     SourceControlTypes: {
@@ -6406,6 +7172,17 @@ export var TypeInfo: {
 };
 }
 declare module "TFS/Core/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\core\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("TFS/Core/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_Operations_Contracts = require("VSS/Operations/Contracts");
@@ -6470,21 +7247,21 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      */
     updateProject(projectUpdate: Contracts.TeamProject, projectId: string): IPromise<VSS_Operations_Contracts.OperationReference>;
     /**
-     * Queue a project deletion.
+     * Queues a project to be deleted. API only supports soft delete for the hosted clients. Use the [GetOperation](../../operations/operations/get) to periodically check for delete project status.
      *
      * @param {string} projectId - The project id of the project to delete.
      * @return IPromise<VSS_Operations_Contracts.OperationReference>
      */
     queueDeleteProject(projectId: string): IPromise<VSS_Operations_Contracts.OperationReference>;
     /**
-     * Queue a project creation.
+     * Queues a project to be created. Use the [GetOperation](../../operations/operations/get) to periodically check for create project status.
      *
      * @param {Contracts.TeamProject} projectToCreate - The project to create.
      * @return IPromise<VSS_Operations_Contracts.OperationReference>
      */
     queueCreateProject(projectToCreate: Contracts.TeamProject): IPromise<VSS_Operations_Contracts.OperationReference>;
     /**
-     * Get project references with the specified state
+     * Get all projects in the organization that the authenticated user has access to.
      *
      * @param {any} stateFilter - Filter on team projects in a specific team project state (default: WellFormed).
      * @param {number} top
@@ -6900,6 +7677,17 @@ export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CoreHttpC
 }
 declare module "TFS/Dashboards/Contracts" {
 /**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\dashboards\clientgeneratorconfigs\genclient.json
+ */
+/**
  * Model of a Dashboard.
  */
 export interface Dashboard {
@@ -6974,13 +7762,13 @@ export interface DashboardResponse extends DashboardGroupEntry {
  */
 export enum DashboardScope {
     Collection_User = 0,
-    Project_Team = 1,
+    Project_Team = 1
 }
 export enum GroupMemberPermission {
     None = 0,
     Edit = 1,
     Manage = 2,
-    ManagePermissions = 3,
+    ManagePermissions = 3
 }
 /**
  * Lightbox configuration
@@ -7022,7 +7810,7 @@ export enum TeamDashboardPermission {
     Create = 2,
     Edit = 4,
     Delete = 8,
-    ManagePermissions = 16,
+    ManagePermissions = 16
 }
 /**
  * Widget data
@@ -7173,7 +7961,7 @@ export interface WidgetResponse extends Widget {
  */
 export enum WidgetScope {
     Collection_User = 0,
-    Project_Team = 1,
+    Project_Team = 1
 }
 export interface WidgetSize {
     /**
@@ -7245,6 +8033,17 @@ export class Events {
 }
 }
 declare module "TFS/Dashboards/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\dashboards\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("TFS/Dashboards/Contracts");
 import TFS_Core_Contracts = require("TFS/Core/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -7255,16 +8054,18 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * [Preview API] Get all available widget metadata in alphabetical order.
      *
      * @param {Contracts.WidgetScope} scope
+     * @param {string} project - Project ID or project name
      * @return IPromise<Contracts.WidgetTypesResponse>
      */
-    getWidgetTypes(scope: Contracts.WidgetScope): IPromise<Contracts.WidgetTypesResponse>;
+    getWidgetTypes(scope: Contracts.WidgetScope, project?: string): IPromise<Contracts.WidgetTypesResponse>;
     /**
      * [Preview API] Get the widget metadata satisfying the specified contribution ID.
      *
      * @param {string} contributionId - The ID of Contribution for the Widget
+     * @param {string} project - Project ID or project name
      * @return IPromise<Contracts.WidgetMetadataResponse>
      */
-    getWidgetMetadata(contributionId: string): IPromise<Contracts.WidgetMetadataResponse>;
+    getWidgetMetadata(contributionId: string, project?: string): IPromise<Contracts.WidgetMetadataResponse>;
 }
 export class CommonMethods3To5 extends CommonMethods2To5 {
     protected dashboardsApiVersion: string;
@@ -7355,7 +8156,7 @@ export class CommonMethods3To5 extends CommonMethods2To5 {
      */
     replaceDashboards(group: Contracts.DashboardGroup, teamContext: TFS_Core_Contracts.TeamContext): IPromise<Contracts.DashboardGroup>;
     /**
-     * [Preview API] Replace configuration for the specified dashboard.
+     * [Preview API] Replace configuration for the specified dashboard. Replaces Widget list on Dashboard, only if property is supplied.
      *
      * @param {Contracts.Dashboard} dashboard - The Configuration of the dashboard to replace.
      * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
@@ -7765,6 +8566,39 @@ export module WidgetHostService {
     function getService(configuration?: WidgetOptions): IPromise<IWidgetHostService>;
 }
 }
+declare module "TFS/Dashboards/WidgetConfigHelpers" {
+import WidgetContracts = require("TFS/Dashboards/WidgetContracts");
+export class ConfigurationEvent {
+    /**
+    * Configuration has changed. When this event is notified, the preview is updated and Save button is enabled.
+    *
+    * The payload expected when notifying this event: { data: customSettings }
+    *
+    * {customSettings} is the serialized custom config settings pertaining to the widget.
+    */
+    static ConfigurationChange: string;
+    /**
+     * Configuration tries to execute API calls and fails. When this event is notified, the config does not render a view and we pass an error message to the configuration host.
+     *
+     * The payload expected when notifying this event: { data: string }
+     *
+     * {string} is the error message that is displayed at the top of the configuration.
+     */
+    static ConfigurationError: string;
+    /**
+     * Widget configuration general settings changed. When this event is notified, the widget name or widget size is updated.
+     *
+     * The payload expected when notifying this event: { data: { IGeneralSettings } }
+     *
+     * {generalSettings} is the serialized object containing WidgetName and WidgetSize
+     */
+    static GeneralSettingsChanged: string;
+    /**
+     * @param payload the event arguments we pass when we want to notify the configuration.
+     */
+    static Args<T>(payload: T): WidgetContracts.EventArgs<T>;
+}
+}
 declare module "TFS/Dashboards/WidgetContracts" {
 import TFS_Dashboards_Contracts = require("TFS/Dashboards/Contracts");
 /**
@@ -7834,7 +8668,7 @@ export enum WidgetStatusType {
     /**
      * The widget needs to be configured
      */
-    Unconfigured = 2,
+    Unconfigured = 2
 }
 /**
  * The object encapsulating the result for an IWidget/IConfigurableWidget method call. This object is created using the WidgetStatusHelper library.
@@ -7961,7 +8795,7 @@ export interface IWidgetConfigurationContext {
     /**
     * The widget configuration calls this method when it wants to notify any of the WidgetEvents to the host
     * @param {string} type of event
-    * @param {eventArgs} arguments associated with the event.
+    * @param {eventArgs} arguments associated with the event which comes from the widget configuration.
     * @returns a promise with the result of the notification. If arguments are malformed, the promise will be rejected. If multiple notifications are made for the same event
     * only the promise for the latest notification is resolved and the rest are treated as stale. The subscriber of the notification can send back information in a serialized form.
     */
@@ -8044,6 +8878,8 @@ export class WidgetConfigurationSave {
 }
 export class WidgetEvent {
     /**
+    * NOTE: This widget event has been DEPRECATED. Use configuration events from the ConfigurationEvent class in WidgetConfigHelpers.ts
+    *
     * Configuration has changed. When this event is notified, the preview is updated and Save button is enabled.
     */
     static ConfigurationChange: string;
@@ -8053,6 +8889,8 @@ export class WidgetEvent {
     static LightboxResized: string;
     static LightboxOptions: string;
     /**
+    * NOTE: This widget event has been DEPRECATED. Use configuration events from the ConfigurationEvent class in WidgetConfigHelpers.ts
+    *
     * Widget configuration general settings changed
     */
     static GeneralSettingsChanged: string;
@@ -8079,7 +8917,7 @@ export class WidgetSizeConverter {
     * Calculates a dimension in pixels, given widget cell size and grid dimensions
     * @returns size in pixels
     */
-    private static CalculatePixelSize(cellCount, gridCellSize, gridMarginSize);
+    private static CalculatePixelSize;
     /**
     * @returns width in pixels for 1x1 widget
     */
@@ -8115,7 +8953,7 @@ declare module "TFS/DistributedTaskCommon/Contracts" {
  * ---------------------------------------------------------
  *
  * See following wiki page for instructions on how to regenerate:
- *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
  *
  * Configuration file:
  *   distributedtask\shared\common\contracts\clientgeneratorconfigs\genclient.json
@@ -8217,6 +9055,17 @@ export interface TaskSourceDefinitionBase {
 }
 }
 declare module "TFS/DistributedTask/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   distributedtask\client\webapi\clientgeneratorconfigs\genclient.json
+ */
 import TFS_DistributedTask_Common_Contracts = require("TFS/DistributedTaskCommon/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_FormInput_Contracts = require("VSS/Common/Contracts/FormInput");
@@ -8240,7 +9089,7 @@ export enum AadLoginPromptOption {
     /**
      * Force the user to login again with mfa. <remarks> Ignore current authentication state and force the user to authenticate again. This option should be used instead of Login, if MFA is required. </remarks>
      */
-    FreshLoginWithMfa = 4,
+    FreshLoginWithMfa = 4
 }
 export interface AadOauthTokenRequest {
     refresh: boolean;
@@ -8289,7 +9138,7 @@ export enum AuditAction {
     Add = 1,
     Update = 2,
     Delete = 3,
-    Undelete = 4,
+    Undelete = 4
 }
 export interface AuthenticationSchemeReference {
     inputs: {
@@ -8320,6 +9169,40 @@ export interface AzureKeyVaultVariableValue extends VariableValue {
     enabled: boolean;
     expires: Date;
 }
+/**
+ * Azure Management Group
+ */
+export interface AzureManagementGroup {
+    /**
+     * Display name of azure management group
+     */
+    displayName: string;
+    /**
+     * Id of azure management group
+     */
+    id: string;
+    /**
+     * Azure management group name
+     */
+    name: string;
+    /**
+     * Id of tenant from which azure management group belogs
+     */
+    tenantId: string;
+}
+/**
+ * Azure management group query result
+ */
+export interface AzureManagementGroupQueryResult {
+    /**
+     * Error message in case of an exception
+     */
+    errorMessage: string;
+    /**
+     * List of azure management groups
+     */
+    value: AzureManagementGroup[];
+}
 export interface AzurePermission {
     provisioned: boolean;
     resourceProvider: string;
@@ -8349,6 +9232,11 @@ export interface ClientCertificate {
      * Gets or sets the value of client certificate.
      */
     value: string;
+}
+export interface CounterVariable {
+    prefix: string;
+    seed: number;
+    value: number;
 }
 export interface DataSource {
     authenticationScheme: AuthenticationSchemeReference;
@@ -8427,7 +9315,7 @@ export enum DeploymentGroupActionFilter {
     /**
      * Only deployment groups for which caller has **use** permission.
      */
-    Use = 16,
+    Use = 16
 }
 /**
  * Properties to create Deployment group.
@@ -8474,7 +9362,7 @@ export enum DeploymentGroupExpands {
     /**
      * Include unique list of tags across all deployment targets.
      */
-    Tags = 4,
+    Tags = 4
 }
 /**
  * Deployment group metrics.
@@ -8551,7 +9439,7 @@ export interface DeploymentMachineChangedData extends DeploymentMachine {
 export enum DeploymentMachineExpands {
     None = 0,
     Capabilities = 2,
-    AssignedRequest = 4,
+    AssignedRequest = 4
 }
 export interface DeploymentMachineGroup extends DeploymentMachineGroupReference {
     machines: DeploymentMachine[];
@@ -8599,7 +9487,7 @@ export enum DeploymentPoolSummaryExpands {
     /**
      * Include deployment groups referring to the deployment pool.
      */
-    DeploymentGroups = 2,
+    DeploymentGroups = 2
 }
 /**
  * Properties to be included or expanded in deployment target objects. This is useful when getting a single or list of deployment targets.
@@ -8620,7 +9508,7 @@ export enum DeploymentTargetExpands {
     /**
      * Include the last completed job request of the deployment agent.
      */
-    LastCompletedRequest = 8,
+    LastCompletedRequest = 8
 }
 /**
  * Deployment target update parameter.
@@ -8712,7 +9600,7 @@ export interface Issue {
 }
 export enum IssueType {
     Error = 1,
-    Warning = 2,
+    Warning = 2
 }
 export interface JobAssignedEvent extends JobEvent {
     request: TaskAgentJobRequest;
@@ -8781,7 +9669,24 @@ export interface JobStartedEvent extends JobEvent {
 export enum MachineGroupActionFilter {
     None = 0,
     Manage = 2,
-    Use = 16,
+    Use = 16
+}
+/**
+ * Represents a purchase of resource units in a secondary marketplace.
+ */
+export interface MarketplacePurchasedLicense {
+    /**
+     * The Marketplace display name.
+     */
+    marketplaceName: string;
+    /**
+     * The name of the identity making the purchase as seen by the marketplace
+     */
+    purchaserName: string;
+    /**
+     * The quantity purchased.
+     */
+    purchaseUnitCount: number;
 }
 export interface MaskHint {
     type: MaskType;
@@ -8789,7 +9694,7 @@ export interface MaskHint {
 }
 export enum MaskType {
     Variable = 1,
-    Regex = 2,
+    Regex = 2
 }
 /**
  * Meta data for a metrics column.
@@ -8884,12 +9789,12 @@ export interface PlanEnvironment {
 export enum PlanGroupStatus {
     Running = 1,
     Queued = 2,
-    All = 3,
+    All = 3
 }
 export enum PlanGroupStatusFilter {
     Running = 1,
     Queued = 2,
-    All = 3,
+    All = 3
 }
 export interface ProjectReference {
     id: string;
@@ -8903,8 +9808,10 @@ export interface PublishTaskGroupMetadata {
     taskGroupRevision: number;
 }
 export interface ResourceLimit {
+    failedToReachAllProviders: boolean;
     hostId: string;
     isHosted: boolean;
+    isPremium: boolean;
     parallelismTag: string;
     resourceLimitsData: {
         [key: string]: string;
@@ -8936,7 +9843,7 @@ export interface SecureFile {
 export enum SecureFileActionFilter {
     None = 0,
     Manage = 2,
-    Use = 16,
+    Use = 16
 }
 export interface SendJobResponse {
     events: JobEventsConfig;
@@ -8984,6 +9891,10 @@ export interface ServiceEndpoint {
      * EndPoint state indictor
      */
     isReady: boolean;
+    /**
+     * Indicates whether service endpoint is shared with other projects or not.
+     */
+    isShared: boolean;
     /**
      * Gets or sets the friendly name of the endpoint.
      */
@@ -9148,6 +10059,10 @@ export interface ServiceEndpointType {
 }
 export interface TaskAgent extends TaskAgentReference {
     /**
+     * Gets the Agent Cloud Request that's currently associated with this agent
+     */
+    assignedAgentCloudRequest: TaskAgentCloudRequest;
+    /**
      * Gets the request which is currently assigned to this agent.
      */
     assignedRequest: TaskAgentJobRequest;
@@ -9201,24 +10116,49 @@ export interface TaskAgentAuthorization {
     publicKey: TaskAgentPublicKey;
 }
 export interface TaskAgentCloud {
+    /**
+     * Gets or sets a AcquireAgentEndpoint using which a request can be made to acquire new agent
+     */
     acquireAgentEndpoint: string;
     agentCloudId: number;
     getAgentDefinitionEndpoint: string;
     getAgentRequestStatusEndpoint: string;
+    /**
+     * Signifies that this Agent Cloud is internal and should not be user-manageable
+     */
+    internal: boolean;
     name: string;
     releaseAgentEndpoint: string;
+    /**
+     * Gets or sets the type of the endpoint.
+     */
+    type: string;
 }
 export interface TaskAgentCloudRequest {
+    agent: TaskAgentReference;
     agentCloudId: number;
     agentConnectedTime: Date;
     agentData: any;
-    agentId: number;
     agentSpecification: any;
-    poolId: number;
+    pool: TaskAgentPoolReference;
     provisionedTime: Date;
     provisionRequestTime: Date;
     releaseRequestTime: Date;
     requestId: string;
+}
+export interface TaskAgentCloudType {
+    /**
+     * Gets or sets the display name of agnet cloud type.
+     */
+    displayName: string;
+    /**
+     * Gets or sets the input descriptors
+     */
+    inputDescriptors: VSS_FormInput_Contracts.InputDescriptor[];
+    /**
+     * Gets or sets the name of agent cloud type.
+     */
+    name: string;
 }
 export interface TaskAgentDelaySource {
     delays: any[];
@@ -9273,7 +10213,7 @@ export enum TaskAgentJobResultFilter {
     /**
      * All deployment targets.
      */
-    All = 7,
+    All = 7
 }
 export interface TaskAgentManualUpdate extends TaskAgentUpdateReason {
 }
@@ -9305,9 +10245,17 @@ export interface TaskAgentMinAgentVersionRequiredUpdate extends TaskAgentUpdateR
 }
 export interface TaskAgentPool extends TaskAgentPoolReference {
     /**
+     * Gets or sets an agentCloudId
+     */
+    agentCloudId: number;
+    /**
      * Gets or sets a value indicating whether or not a queue should be automatically provisioned for each project collection or not.
      */
     autoProvision: boolean;
+    /**
+     * Gets or sets a value indicating whether or not the pool should autosize itself based on the Agent Cloud Provider settings
+     */
+    autoSize: boolean;
     /**
      * Gets the identity who created this pool. The creator of the pool is automatically added into the administrators group for the pool on creation.
      */
@@ -9325,7 +10273,7 @@ export interface TaskAgentPool extends TaskAgentPoolReference {
 export enum TaskAgentPoolActionFilter {
     None = 0,
     Manage = 2,
-    Use = 16,
+    Use = 16
 }
 export interface TaskAgentPoolMaintenanceDefinition {
     /**
@@ -9410,13 +10358,13 @@ export interface TaskAgentPoolMaintenanceJob {
 export enum TaskAgentPoolMaintenanceJobResult {
     Succeeded = 1,
     Failed = 2,
-    Canceled = 4,
+    Canceled = 4
 }
 export enum TaskAgentPoolMaintenanceJobStatus {
     InProgress = 1,
     Completed = 2,
     Cancelling = 4,
-    Queued = 8,
+    Queued = 8
 }
 export interface TaskAgentPoolMaintenanceJobTargetAgent {
     agent: TaskAgentReference;
@@ -9494,7 +10442,7 @@ export enum TaskAgentPoolMaintenanceScheduleDays {
     /**
      * Run on all days of the week.
      */
-    All = 127,
+    All = 127
 }
 export interface TaskAgentPoolReference {
     id: number;
@@ -9522,7 +10470,7 @@ export interface TaskAgentPoolSummary {
 }
 export enum TaskAgentPoolType {
     Automation = 1,
-    Deployment = 2,
+    Deployment = 2
 }
 /**
  * Represents the public key portion of an RSA asymmetric key.
@@ -9558,7 +10506,7 @@ export interface TaskAgentQueue {
 export enum TaskAgentQueueActionFilter {
     None = 0,
     Manage = 2,
-    Use = 16,
+    Use = 16
 }
 export interface TaskAgentReference {
     _links: any;
@@ -9634,7 +10582,7 @@ export interface TaskAgentSessionKey {
 }
 export enum TaskAgentStatus {
     Offline = 1,
-    Online = 2,
+    Online = 2
 }
 /**
  * This is useful in getting a list of deployment targets, filtered by the deployment agent status.
@@ -9651,7 +10599,7 @@ export enum TaskAgentStatusFilter {
     /**
      * All deployment targets.
      */
-    All = 3,
+    All = 3
 }
 export interface TaskAgentUpdate {
     /**
@@ -9684,7 +10632,7 @@ export interface TaskAgentUpdateReason {
 }
 export enum TaskAgentUpdateReasonType {
     Manual = 1,
-    MinAgentVersionRequired = 2,
+    MinAgentVersionRequired = 2
 }
 export interface TaskAssignedEvent extends TaskEvent {
 }
@@ -9730,11 +10678,18 @@ export interface TaskDefinition {
     outputVariables: TaskOutputVariable[];
     packageLocation: string;
     packageType: string;
+    postJobExecution: {
+        [key: string]: any;
+    };
+    preJobExecution: {
+        [key: string]: any;
+    };
     preview: boolean;
     releaseNotes: string;
     runsOn: string[];
     satisfies: string[];
     serverOwned: boolean;
+    showEnvironmentVariables: boolean;
     sourceDefinitions: TaskSourceDefinition[];
     sourceLocation: string;
     version: TaskVersion;
@@ -9789,7 +10744,7 @@ export enum TaskDefinitionStatus {
     RequestedUpdate = 6,
     Updated = 7,
     AlreadyUpToDate = 8,
-    InlineUpdateReceived = 9,
+    InlineUpdateReceived = 9
 }
 export interface TaskEvent extends JobEvent {
     taskId: string;
@@ -9909,7 +10864,7 @@ export interface TaskGroupDefinition {
 }
 export enum TaskGroupExpands {
     None = 0,
-    Tasks = 2,
+    Tasks = 2
 }
 /**
  * Specifies the desired ordering of taskGroups.
@@ -9922,7 +10877,7 @@ export enum TaskGroupQueryOrder {
     /**
      * Order by createdon descending.
      */
-    CreatedOnDescending = 1,
+    CreatedOnDescending = 1
 }
 export interface TaskGroupRevision {
     changedBy: VSS_Common_Contracts.IdentityRef;
@@ -9957,6 +10912,12 @@ export interface TaskGroupStep {
      * Gets or sets as task is enabled or not.
      */
     enabled: boolean;
+    /**
+     * Gets dictionary of environment variables.
+     */
+    environment: {
+        [key: string]: string;
+    };
     /**
      * Gets or sets dictionary of inputs.
      */
@@ -10036,15 +10997,26 @@ export interface TaskGroupUpdateParameter {
 }
 export interface TaskHubLicenseDetails {
     enterpriseUsersCount: number;
+    failedToReachAllProviders: boolean;
     freeHostedLicenseCount: number;
     freeLicenseCount: number;
     hasLicenseCountEverUpdated: boolean;
     hostedAgentMinutesFreeCount: number;
     hostedAgentMinutesUsedCount: number;
+    hostedLicensesArePremium: boolean;
+    marketplacePurchasedHostedLicenses: MarketplacePurchasedLicense[];
     msdnUsersCount: number;
+    /**
+     * Microsoft-hosted licenses purchased from VSTS directly.
+     */
     purchasedHostedLicenseCount: number;
+    /**
+     * Self-hosted licenses purchased from VSTS directly.
+     */
     purchasedLicenseCount: number;
+    totalHostedLicenseCount: number;
     totalLicenseCount: number;
+    totalPrivateLicenseCount: number;
 }
 export interface TaskInputDefinition extends TFS_DistributedTask_Common_Contracts.TaskInputDefinitionBase {
 }
@@ -10087,7 +11059,7 @@ export interface TaskOrchestrationItem {
 }
 export enum TaskOrchestrationItemType {
     Container = 0,
-    Job = 1,
+    Job = 1
 }
 export interface TaskOrchestrationJob extends TaskOrchestrationItem {
     demands: any[];
@@ -10142,7 +11114,7 @@ export interface TaskOrchestrationPlanReference {
 export enum TaskOrchestrationPlanState {
     InProgress = 1,
     Queued = 2,
-    Completed = 4,
+    Completed = 4
 }
 export interface TaskOrchestrationQueuedPlan {
     assignTime: Date;
@@ -10195,7 +11167,7 @@ export enum TaskResult {
     Failed = 2,
     Canceled = 3,
     Skipped = 4,
-    Abandoned = 5,
+    Abandoned = 5
 }
 export interface TaskSourceDefinition extends TFS_DistributedTask_Common_Contracts.TaskSourceDefinitionBase {
 }
@@ -10212,13 +11184,33 @@ export interface Timeline extends TimelineReference {
     lastChangedOn: Date;
     records: TimelineRecord[];
 }
+export interface TimelineAttempt {
+    /**
+     * Gets or sets the attempt of the record.
+     */
+    attempt: number;
+    /**
+     * Gets or sets the unique identifier for the record.
+     */
+    identifier: string;
+    /**
+     * Gets or sets the record identifier located within the specified timeline.
+     */
+    recordId: string;
+    /**
+     * Gets or sets the timeline identifier which owns the record representing this attempt.
+     */
+    timelineId: string;
+}
 export interface TimelineRecord {
+    attempt: number;
     changeId: number;
     currentOperation: string;
     details: TimelineReference;
     errorCount: number;
     finishTime: Date;
     id: string;
+    identifier: string;
     issues: Issue[];
     lastModified: Date;
     location: string;
@@ -10227,6 +11219,7 @@ export interface TimelineRecord {
     order: number;
     parentId: string;
     percentComplete: number;
+    previousAttempts: TimelineAttempt[];
     refName: string;
     result: TaskResult;
     resultCode: string;
@@ -10248,7 +11241,7 @@ export interface TimelineRecordFeedLinesWrapper {
 export enum TimelineRecordState {
     Pending = 0,
     InProgress = 1,
-    Completed = 2,
+    Completed = 2
 }
 export interface TimelineReference {
     changeId: number;
@@ -10323,7 +11316,7 @@ export interface VariableGroup {
 export enum VariableGroupActionFilter {
     None = 0,
     Manage = 2,
-    Use = 16,
+    Use = 16
 }
 export interface VariableGroupParameters {
     /**
@@ -10365,7 +11358,7 @@ export enum VariableGroupQueryOrder {
     /**
      * Order by id descending.
      */
-    IdDescending = 1,
+    IdDescending = 1
 }
 export interface VariableValue {
     isSecret: boolean;
@@ -10499,6 +11492,7 @@ export var TypeInfo: {
     ServiceEndpointType: any;
     TaskAgent: any;
     TaskAgentCloudRequest: any;
+    TaskAgentCloudType: any;
     TaskAgentDelaySource: any;
     TaskAgentJobRequest: any;
     TaskAgentJobResultFilter: {
@@ -10716,10 +11710,23 @@ export interface ServiceEndpointUiExtensionDetails {
 }
 }
 declare module "TFS/DistributedTask/TaskAgentRestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   distributedtask\client\webapi\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("TFS/DistributedTask/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
+    protected agentcloudtypesApiVersion: string;
     protected agentsApiVersion: string;
+    protected azurermmanagementgroupsApiVersion: string;
     protected azurermsubscriptionsApiVersion: string;
     protected endpointApiVersion: string;
     protected jobrequestsApiVersion: string;
@@ -10940,6 +11947,13 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      */
     getAzureSubscriptions(): IPromise<Contracts.AzureSubscriptionQueryResult>;
     /**
+     * @exemptedapi
+     * [Preview API] Returns list of azure subscriptions
+     *
+     * @return IPromise<Contracts.AzureManagementGroupQueryResult>
+     */
+    getAzureManagementGroups(): IPromise<Contracts.AzureManagementGroupQueryResult>;
+    /**
      * @param {Contracts.TaskAgent} agent
      * @param {number} poolId
      * @param {number} agentId
@@ -10984,6 +11998,13 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.TaskAgent>
      */
     addAgent(agent: Contracts.TaskAgent, poolId: number): IPromise<Contracts.TaskAgent>;
+    /**
+     * @exemptedapi
+     * [Preview API] Get agent cloud types.
+     *
+     * @return IPromise<Contracts.TaskAgentCloudType[]>
+     */
+    getAgentCloudTypes(): IPromise<Contracts.TaskAgentCloudType[]>;
 }
 export class CommonMethods2_1To5 extends CommonMethods2To5 {
     protected tasksApiVersion: string;
@@ -11843,9 +12864,10 @@ export class CommonMethods4_1To5 extends CommonMethods4To5 {
      * @param {Contracts.TaskAgentJobResultFilter} agentJobResult - Get only deployment targets that have this last job result.
      * @param {string} continuationToken - Get deployment targets with names greater than this continuationToken lexicographically.
      * @param {number} top - Maximum number of deployment targets to return. Default is **1000**.
+     * @param {boolean} enabled - Get only deployment targets that are enabled or disabled. Default is 'null' which returns all the targets.
      * @return IPromise<Contracts.DeploymentMachine[]>
      */
-    getDeploymentTargets(project: string, deploymentGroupId: number, tags?: string[], name?: string, partialNameMatch?: boolean, expand?: Contracts.DeploymentTargetExpands, agentStatus?: Contracts.TaskAgentStatusFilter, agentJobResult?: Contracts.TaskAgentJobResultFilter, continuationToken?: string, top?: number): IPromise<Contracts.DeploymentMachine[]>;
+    getDeploymentTargets(project: string, deploymentGroupId: number, tags?: string[], name?: string, partialNameMatch?: boolean, expand?: Contracts.DeploymentTargetExpands, agentStatus?: Contracts.TaskAgentStatusFilter, agentJobResult?: Contracts.TaskAgentJobResultFilter, continuationToken?: string, top?: number, enabled?: boolean): IPromise<Contracts.DeploymentMachine[]>;
     /**
      * [Preview API] Get a deployment target by its ID in a deployment group
      *
@@ -11904,10 +12926,12 @@ export class CommonMethods4_1To5 extends CommonMethods4To5 {
      * @param {string} project - Project ID or project name
      * @param {number} deploymentGroupId - ID of the deployment group to which the targets belong.
      * @param {number[]} targetIds - Comma separated list of IDs of the deployment targets.
+     * @param {number} ownerId - Id of owner of agent job request.
+     * @param {Date} completedOn - Datetime to return request after this time.
      * @param {number} completedRequestCount - Maximum number of completed requests to return for each target. Default is **50**
      * @return IPromise<Contracts.TaskAgentJobRequest[]>
      */
-    getAgentRequestsForDeploymentTargets(project: string, deploymentGroupId: number, targetIds?: number[], completedRequestCount?: number): IPromise<Contracts.TaskAgentJobRequest[]>;
+    getAgentRequestsForDeploymentTargets(project: string, deploymentGroupId: number, targetIds?: number[], ownerId?: number, completedOn?: Date, completedRequestCount?: number): IPromise<Contracts.TaskAgentJobRequest[]>;
     /**
      * [Preview API] Get agent requests for a deployment target.
      *
@@ -11960,6 +12984,13 @@ export class TaskAgentHttpClient5 extends CommonMethods4_1To5 {
      * @param {number} agentCloudId
      * @return IPromise<Contracts.TaskAgentCloud>
      */
+    deleteAgentCloud(agentCloudId: number): IPromise<Contracts.TaskAgentCloud>;
+    /**
+     * [Preview API]
+     *
+     * @param {number} agentCloudId
+     * @return IPromise<Contracts.TaskAgentCloud>
+     */
     getAgentCloud(agentCloudId: number): IPromise<Contracts.TaskAgentCloud>;
     /**
      * [Preview API]
@@ -11967,6 +12998,19 @@ export class TaskAgentHttpClient5 extends CommonMethods4_1To5 {
      * @return IPromise<Contracts.TaskAgentCloud[]>
      */
     getAgentClouds(): IPromise<Contracts.TaskAgentCloud[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {number} agentCloudId
+     * @return IPromise<Contracts.TaskAgentCloudRequest[]>
+     */
+    getAgentCloudRequests(agentCloudId: number): IPromise<Contracts.TaskAgentCloudRequest[]>;
+    /**
+     * [Preview API]
+     *
+     * @return IPromise<Contracts.ResourceLimit[]>
+     */
+    getResourceLimits(): IPromise<Contracts.ResourceLimit[]>;
 }
 /**
  * @exemptedapi
@@ -12357,6 +13401,17 @@ export class TaskAgentHttpClient extends TaskAgentHttpClient5 {
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TaskAgentHttpClient4_1;
 }
 declare module "TFS/DistributedTask/TaskRestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   distributedtask\client\webapi\clientgeneratorconfigs\genclient.json
+ */
 import TFS_DistributedTask_Contracts = require("TFS/DistributedTask/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -12627,9 +13682,20 @@ export class TaskHttpClient extends TaskHttpClient5 {
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TaskHttpClient4_1;
 }
 declare module "TFS/ProjectAnalysis/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\projectanalysis\clientgeneratorconfigs\genclient.json
+ */
 export enum AggregationType {
     Hourly = 0,
-    Daily = 1,
+    Daily = 1
 }
 export interface AnalyzerDescriptor {
     description: string;
@@ -12684,7 +13750,7 @@ export interface RepositoryLanguageAnalytics extends LanguageMetricsSecuredObjec
 }
 export enum ResultPhase {
     Preliminary = 0,
-    Full = 1,
+    Full = 1
 }
 export var TypeInfo: {
     AggregationType: {
@@ -12707,6 +13773,17 @@ export var TypeInfo: {
 };
 }
 declare module "TFS/ProjectAnalysis/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\projectanalysis\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("TFS/ProjectAnalysis/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods4To5 extends VSS_WebApi.VssHttpClient {
@@ -12782,13 +13859,24 @@ export class ProjectAnalysisHttpClient extends ProjectAnalysisHttpClient5 {
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ProjectAnalysisHttpClient4_1;
 }
 declare module "TFS/ServiceEndpoint/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   serviceendpoints\client\webapi\clientgeneratorconfigs\genclient.json
+ */
 import TFS_DistributedTask_Common_Contracts = require("TFS/DistributedTaskCommon/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_FormInput_Contracts = require("VSS/Common/Contracts/FormInput");
 export enum AccessTokenRequestType {
     None = 0,
     Oauth = 1,
-    Direct = 2,
+    Direct = 2
 }
 export interface AuthenticationSchemeReference {
     inputs: {
@@ -12809,6 +13897,67 @@ export interface AuthorizationHeader {
      */
     value: string;
 }
+export interface AzureKeyVaultPermission extends AzureResourcePermission {
+    vault: string;
+}
+/**
+ * Azure Management Group
+ */
+export interface AzureManagementGroup {
+    /**
+     * Display name of azure management group
+     */
+    displayName: string;
+    /**
+     * Id of azure management group
+     */
+    id: string;
+    /**
+     * Azure management group name
+     */
+    name: string;
+    /**
+     * Id of tenant from which azure management group belogs
+     */
+    tenantId: string;
+}
+/**
+ * Azure management group query result
+ */
+export interface AzureManagementGroupQueryResult {
+    /**
+     * Error message in case of an exception
+     */
+    errorMessage: string;
+    /**
+     * List of azure management groups
+     */
+    value: AzureManagementGroup[];
+}
+export interface AzurePermission {
+    provisioned: boolean;
+    resourceProvider: string;
+}
+export interface AzureResourcePermission extends AzurePermission {
+    resourceGroup: string;
+}
+export interface AzureRoleAssignmentPermission extends AzurePermission {
+    roleAssignmentId: string;
+}
+export interface AzureSpnOperationStatus {
+    state: string;
+    statusMessage: string;
+}
+export interface AzureSubscription {
+    displayName: string;
+    subscriptionId: string;
+    subscriptionTenantId: string;
+    subscriptionTenantName: string;
+}
+export interface AzureSubscriptionQueryResult {
+    errorMessage: string;
+    value: AzureSubscription[];
+}
 export interface ClientCertificate {
     /**
      * Gets or sets the value of client certificate.
@@ -12823,6 +13972,8 @@ export interface DataSource {
     headers: AuthorizationHeader[];
     initialContextTemplate: string;
     name: string;
+    requestContent: string;
+    requestVerb: string;
     resourceUrl: string;
     resultSelector: string;
 }
@@ -12844,6 +13995,10 @@ export interface DataSourceDetails {
      * Gets or sets the request headers.
      */
     headers: AuthorizationHeader[];
+    /**
+     * Gets or sets the initialization context used for the initial call to the data source
+     */
+    initialContextTemplate: string;
     /**
      * Gets the parameters of data source.
      */
@@ -12974,7 +14129,7 @@ export interface OAuthConfiguration {
 export enum OAuthConfigurationActionFilter {
     None = 0,
     Manage = 2,
-    Use = 16,
+    Use = 16
 }
 export interface OAuthConfigurationParams {
     /**
@@ -12997,6 +14152,14 @@ export interface OAuthConfigurationParams {
      * Gets or sets the Url
      */
     url: string;
+}
+export interface OAuthEndpointStatus {
+    state: string;
+    statusMessage: string;
+}
+export interface ProjectReference {
+    id: string;
+    name: string;
 }
 /**
  * Represents template to tranform the result data.
@@ -13047,6 +14210,10 @@ export interface ServiceEndpoint {
      * EndPoint state indictor
      */
     isReady: boolean;
+    /**
+     * Indicates whether service endpoint is shared with other projects or not.
+     */
+    isShared: boolean;
     /**
      * Gets or sets the friendly name of the endpoint.
      */
@@ -13185,11 +14352,12 @@ export enum ServiceEndpointExecutionResult {
     Failed = 2,
     Canceled = 3,
     Skipped = 4,
-    Abandoned = 5,
+    Abandoned = 5
 }
 export interface ServiceEndpointOAuthConfigurationReference {
     configurationId: string;
     serviceEndpointId: string;
+    serviceEndpointProjectId: string;
 }
 export interface ServiceEndpointRequest {
     /**
@@ -13321,7 +14489,19 @@ export var TypeInfo: {
 };
 }
 declare module "TFS/ServiceEndpoint/ServiceEndpointRestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   serviceendpoints\client\webapi\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("TFS/ServiceEndpoint/Contracts");
+import TFS_DistributedTask_Contracts = require("TFS/DistributedTask/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
     protected endpointproxyApiVersion: string;
@@ -13446,6 +14626,18 @@ export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
 export class ServiceEndpointHttpClient5 extends CommonMethods4_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
+     * [Preview API] Returns list of azure subscriptions
+     *
+     * @return IPromise<TFS_DistributedTask_Contracts.AzureManagementGroupQueryResult>
+     */
+    getAzureManagementGroups(): IPromise<TFS_DistributedTask_Contracts.AzureManagementGroupQueryResult>;
+    /**
+     * [Preview API] Returns list of azure subscriptions
+     *
+     * @return IPromise<TFS_DistributedTask_Contracts.AzureSubscriptionQueryResult>
+     */
+    getAzureSubscriptions(): IPromise<TFS_DistributedTask_Contracts.AzureSubscriptionQueryResult>;
+    /**
      * [Preview API]
      *
      * @param {Contracts.OAuthConfigurationParams} configurationParams
@@ -13482,6 +14674,23 @@ export class ServiceEndpointHttpClient5 extends CommonMethods4_1To5 {
      * @return IPromise<Contracts.OAuthConfiguration>
      */
     updateOAuthConfiguration(configurationParams: Contracts.OAuthConfigurationParams, configurationId: string): IPromise<Contracts.OAuthConfiguration>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} endpointId
+     * @param {string} project
+     * @return IPromise<Contracts.ProjectReference[]>
+     */
+    querySharedProjects(endpointId: string, project: string): IPromise<Contracts.ProjectReference[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} endpointId
+     * @param {string} fromProject
+     * @param {string} withProject
+     * @return IPromise<void>
+     */
+    shareEndpointWithProject(endpointId: string, fromProject: string, withProject: string): IPromise<void>;
 }
 /**
  * @exemptedapi
@@ -13500,10 +14709,21 @@ export class ServiceEndpointHttpClient extends ServiceEndpointHttpClient5 {
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): ServiceEndpointHttpClient4_1;
 }
 declare module "TFS/TestImpact/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\testimpact\clientgeneratorconfigs\genclient.json
+ */
 export enum BuildType {
     TestImpactOff = 0,
     BaseLine = 1,
-    TestImpactOn = 2,
+    TestImpactOn = 2
 }
 /**
  * Represents a code change in a build.
@@ -13552,7 +14772,7 @@ export interface DefinitionRunInfo {
  */
 export enum DefinitionType {
     Build = 0,
-    Release = 1,
+    Release = 1
 }
 export interface ImpactedTests {
     areAllTestsImpacted: boolean;
@@ -13564,7 +14784,7 @@ export interface ImpactedTests {
 export enum SignatureType {
     Method = 0,
     File = 1,
-    Assembly = 2,
+    Assembly = 2
 }
 export interface Test {
     /**
@@ -13589,7 +14809,7 @@ export interface TestImpactBuildData {
  */
 export enum TestInclusionOptions {
     None = 0,
-    Failed = 1,
+    Failed = 1
 }
 /**
  * Represents a test result's code signature indexes.
@@ -13665,6 +14885,17 @@ export var TypeInfo: {
 };
 }
 declare module "TFS/TestImpact/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\testimpact\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("TFS/TestImpact/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
@@ -13787,8 +15018,76 @@ export class TestHttpClient extends TestHttpClient5 {
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TestHttpClient4_1;
 }
 declare module "TFS/TestManagement/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\testmanagement\clientgeneratorconfigs\genclient.json
+ */
+import SystemData = require("VSS/Common/Contracts/System.Data");
 import TFS_Core_Contracts = require("TFS/Core/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
+export interface AbortTestRunRequest {
+    options: number;
+    projectName: string;
+    revision: number;
+    testRunId: number;
+}
+export interface AfnStrip {
+    /**
+     * Auxiliary Url to be consumed by MTM
+     */
+    auxiliaryUrl: string;
+    /**
+     * Creation date of the AfnStrip
+     */
+    creationDate: Date;
+    /**
+     * File name of the attachment created
+     */
+    fileName: string;
+    /**
+     * ID of AfnStrip. This is same as the attachment ID.
+     */
+    id: number;
+    /**
+     * Project identifier which contains AfnStrip
+     */
+    project: string;
+    /**
+     * Service in which this attachment is stored in
+     */
+    storedIn: string;
+    /**
+     * Afn strip stream.
+     */
+    stream: string;
+    /**
+     * ID of the testcase.
+     */
+    testCaseId: number;
+    /**
+     * Backing test result id.
+     */
+    testResultId: number;
+    /**
+     * Backing test run id.
+     */
+    testRunId: number;
+    /**
+     * Byte stream (uncompressed) length of Afn strip.
+     */
+    unCompressedStreamLength: number;
+    /**
+     * Url of the attachment created.
+     */
+    url: string;
+}
 export interface AggregatedDataForResultTrend {
     /**
      * This is tests execution duration.
@@ -13862,7 +15161,7 @@ export enum AttachmentType {
     TmiTestRunReverseDeploymentFiles = 8,
     TmiTestResultDetail = 9,
     TmiTestRunSummary = 10,
-    ConsoleLog = 11,
+    ConsoleLog = 11
 }
 export interface BatchResponse {
     error: string;
@@ -13961,6 +15260,10 @@ export interface BuildReference2 {
     repoType: string;
     sourceVersion: string;
 }
+export interface BulkResultUpdateRequest {
+    projectName: string;
+    requests: ResultUpdateRequest[];
+}
 /**
  * Detail About Clone Operation.
  */
@@ -14041,7 +15344,7 @@ export enum CloneOperationState {
     /**
      * value for Success state
      */
-    Succeeded = 3,
+    Succeeded = 3
 }
 export interface CloneOptions {
     /**
@@ -14156,6 +15459,21 @@ export interface CodeCoverageSummary {
      */
     deltaBuild: ShallowReference;
 }
+export interface CodeCoverageSummary2 {
+    buildConfigurationId: number;
+    covered: number;
+    label: string;
+    position: number;
+    projectId: string;
+    total: number;
+}
+export interface Coverage2 {
+    coverageId: number;
+    dateCreated: Date;
+    dateModified: Date;
+    lastError: string;
+    state: number;
+}
 /**
  * Used to choose which coverage data is returned by a QueryXXXCoverage() call.
  */
@@ -14171,7 +15489,7 @@ export enum CoverageQueryFlags {
     /**
      * If set, the ModuleCoverage.CoverageData field will be populated.
      */
-    BlockData = 4,
+    BlockData = 4
 }
 export interface CoverageStatistics {
     blocksCovered: number;
@@ -14179,6 +15497,21 @@ export interface CoverageStatistics {
     linesCovered: number;
     linesNotCovered: number;
     linesPartiallyCovered: number;
+}
+export interface CreateTestMessageLogEntryRequest {
+    projectName: string;
+    testMessageLogEntry: TestMessageLogEntry[];
+    testRunId: number;
+}
+export interface CreateTestResultsRequest {
+    projectName: string;
+    results: LegacyTestCaseResult[];
+}
+export interface CreateTestRunRequest {
+    projectName: string;
+    results: LegacyTestCaseResult[];
+    testRun: LegacyTestRun;
+    testSettings: LegacyTestSettings;
 }
 /**
  * A custom field information.
@@ -14204,7 +15537,7 @@ export enum CustomTestFieldScope {
     TestRun = 1,
     TestResult = 2,
     System = 4,
-    All = 7,
+    All = 7
 }
 export enum CustomTestFieldType {
     Bit = 2,
@@ -14212,7 +15545,20 @@ export enum CustomTestFieldType {
     Int = 8,
     Float = 6,
     String = 12,
-    Guid = 14,
+    Guid = 14
+}
+export interface DatedTestFieldData {
+    date: Date;
+    value: TestFieldData;
+}
+export interface DefaultAfnStripBinding {
+    testCaseId: number;
+    testResultId: number;
+    testRunId: number;
+}
+export interface DeleteTestRunRequest {
+    projectName: string;
+    testRunIds: number[];
 }
 /**
  * This is a temporary class to provide the details for the test run environment.
@@ -14239,6 +15585,18 @@ export interface FailingSince {
      */
     release: ReleaseReference;
 }
+export interface FetchTestResultsRequest {
+    idAndRevs: TestCaseResultIdAndRev[];
+    includeActionResults: boolean;
+    projectName: string;
+}
+export interface FetchTestResultsResponse {
+    actionResults: TestActionResult[];
+    attachments: TestResultAttachment[];
+    deletedIds: LegacyTestCaseResultIdentifier[];
+    results: LegacyTestCaseResult[];
+    testParameters: TestResultParameter[];
+}
 export interface FieldDetailsForTestResults {
     /**
      * Group by field name
@@ -14256,10 +15614,221 @@ export interface FunctionCoverage {
     sourceFile: string;
     statistics: CoverageStatistics;
 }
+export interface FunctionCoverage2 {
+    blocksCovered: number;
+    blocksNotCovered: number;
+    class: string;
+    coverageId: number;
+    functionId: number;
+    linesCovered: number;
+    linesNotCovered: number;
+    linesPartiallyCovered: number;
+    moduleId: number;
+    name: string;
+    namespace: string;
+    sourceFile: string;
+}
+export interface HttpPostedTcmAttachment {
+    attachmentContent: string;
+    contentLength: number;
+    contentType: string;
+    fileName: string;
+}
 export interface LastResultDetails {
     dateCompleted: Date;
     duration: number;
     runBy: VSS_Common_Contracts.IdentityRef;
+}
+export interface LegacyBuildConfiguration {
+    branchName: string;
+    buildConfigurationId: number;
+    buildDefinitionId: number;
+    buildDefinitionName: string;
+    buildFlavor: string;
+    buildId: number;
+    buildNumber: string;
+    buildPlatform: string;
+    buildQuality: string;
+    buildSystem: string;
+    buildUri: string;
+    completedDate: Date;
+    createdDate: Date;
+    oldBuildConfigurationId: number;
+    repositoryId: string;
+    repositoryType: string;
+    sourceVersion: string;
+    teamProjectName: string;
+}
+export interface LegacyReleaseReference {
+    attempt: number;
+    environmentCreationDate: Date;
+    primaryArtifactBuildId: number;
+    primaryArtifactProjectId: string;
+    primaryArtifactType: string;
+    releaseCreationDate: Date;
+    releaseDefId: number;
+    releaseEnvDefId: number;
+    releaseEnvId: number;
+    releaseEnvName: string;
+    releaseEnvUri: string;
+    releaseId: number;
+    releaseName: string;
+    releaseRefId: number;
+    releaseUri: string;
+}
+export interface LegacyTestCaseResult {
+    afnStripId: number;
+    areaId: number;
+    areaUri: string;
+    automatedTestId: string;
+    automatedTestName: string;
+    automatedTestStorage: string;
+    automatedTestType: string;
+    automatedTestTypeId: string;
+    buildNumber: string;
+    buildReference: LegacyBuildConfiguration;
+    comment: string;
+    computerName: string;
+    configurationId: number;
+    configurationName: string;
+    creationDate: Date;
+    customFields: TestExtensionField[];
+    dateCompleted: Date;
+    dateStarted: Date;
+    duration: number;
+    errorMessage: string;
+    failingSince: FailingSince;
+    failureType: number;
+    id: LegacyTestCaseResultIdentifier;
+    isRerun: boolean;
+    lastUpdated: Date;
+    lastUpdatedBy: string;
+    lastUpdatedByName: string;
+    outcome: number;
+    owner: string;
+    ownerName: string;
+    priority: number;
+    releaseReference: LegacyReleaseReference;
+    resetCount: number;
+    resolutionStateId: number;
+    resultGroupType: ResultGroupType;
+    revision: number;
+    runBy: string;
+    runByName: string;
+    sequenceId: number;
+    stackTrace: TestExtensionField;
+    state: number;
+    subResultCount: number;
+    suiteName: string;
+    testCaseArea: string;
+    testCaseAreaUri: string;
+    testCaseId: number;
+    testCaseReferenceId: number;
+    testCaseRevision: number;
+    testCaseTitle: string;
+    testPlanId: number;
+    testPointId: number;
+    testResultId: number;
+    testRunId: number;
+    testRunTitle: string;
+    testSuiteId: number;
+}
+export interface LegacyTestCaseResultIdentifier {
+    areaUri: string;
+    testResultId: number;
+    testRunId: number;
+}
+export interface LegacyTestRun {
+    bugsCount: number;
+    buildConfigurationId: number;
+    buildFlavor: string;
+    buildNumber: string;
+    buildPlatform: string;
+    buildReference: LegacyBuildConfiguration;
+    buildUri: string;
+    comment: string;
+    completeDate: Date;
+    configurationIds: number[];
+    controller: string;
+    creationDate: Date;
+    csmContent: string;
+    csmParameters: string;
+    customFields: TestExtensionField[];
+    dropLocation: string;
+    dtlAutEnvironment: ShallowReference;
+    dtlTestEnvironment: ShallowReference;
+    dueDate: Date;
+    errorMessage: string;
+    filter: RunFilter;
+    incompleteTests: number;
+    isAutomated: boolean;
+    isBvt: boolean;
+    iteration: string;
+    iterationId: number;
+    lastUpdated: Date;
+    lastUpdatedBy: string;
+    lastUpdatedByName: string;
+    legacySharePath: string;
+    notApplicableTests: number;
+    owner: string;
+    ownerName: string;
+    passedTests: number;
+    postProcessState: number;
+    publicTestSettingsId: number;
+    releaseEnvironmentUri: string;
+    releaseReference: LegacyReleaseReference;
+    releaseUri: string;
+    revision: number;
+    rowVersion: number[];
+    runHasDtlEnvironment: boolean;
+    runTimeout: any;
+    serviceVersion: string;
+    sourceWorkflow: string;
+    startDate: Date;
+    state: number;
+    subscriptionName: string;
+    substate: number;
+    teamProject: string;
+    teamProjectUri: string;
+    testConfigurationsMapping: string;
+    testEnvironmentId: string;
+    testMessageLogEntries: TestMessageLogDetails[];
+    testMessageLogId: number;
+    testPlanId: number;
+    testRunId: number;
+    testRunStatistics: LegacyTestRunStatistic[];
+    testSettingsId: number;
+    title: string;
+    totalTests: number;
+    type: number;
+    unanalyzedTests: number;
+    version: number;
+}
+export interface LegacyTestRunStatistic {
+    count: number;
+    outcome: number;
+    resolutionState: TestResolutionState;
+    state: number;
+    testRunId: number;
+}
+export interface LegacyTestSettings {
+    areaId: number;
+    areaPath: string;
+    createdBy: string;
+    createdByName: string;
+    createdDate: Date;
+    description: string;
+    id: number;
+    isAutomated: boolean;
+    isPublic: boolean;
+    lastUpdated: Date;
+    lastUpdatedBy: string;
+    lastUpdatedByName: string;
+    machineRoles: TestSettingsMachineRole[];
+    name: string;
+    revision: number;
+    settings: string;
+    teamProjectUri: string;
 }
 export interface LinkedWorkItemsQuery {
     automatedTestNames: string[];
@@ -14280,11 +15849,31 @@ export interface LinkedWorkItemsQueryResult {
 export interface ModuleCoverage {
     blockCount: number;
     blockData: number[];
+    /**
+     * Code Coverage File Url
+     */
+    fileUrl: string;
     functions: FunctionCoverage[];
     name: string;
     signature: string;
     signatureAge: number;
     statistics: CoverageStatistics;
+}
+export interface ModuleCoverage2 {
+    blockCount: number;
+    blockData: number[];
+    blockDataLength: number;
+    blocksCovered: number;
+    blocksNotCovered: number;
+    coverageFileUrl: string;
+    coverageId: number;
+    linesCovered: number;
+    linesNotCovered: number;
+    linesPartiallyCovered: number;
+    moduleId: number;
+    name: string;
+    signature: string;
+    signatureAge: number;
 }
 export interface NameValuePair {
     name: string;
@@ -14347,6 +15936,10 @@ export interface PlanUpdateModel {
      */
     state: string;
     status: string;
+    /**
+     * Test Outcome settings
+     */
+    testOutcomeSettings: TestOutcomeSettings;
 }
 /**
  * Adding test cases to a suite creates one of more test points based on the default configurations and testers assigned to the test suite. PointAssignment is the list of test points that were created for each of the test cases that were added to the test suite.
@@ -14415,8 +16008,53 @@ export interface PropertyBag {
         [key: string]: string;
     };
 }
+export interface QueryByPointRequest {
+    projectName: string;
+    testPlanId: number;
+    testPointId: number;
+}
+export interface QueryByRunRequest {
+    includeActionResults: boolean;
+    outcome: number;
+    owner: string;
+    pageSize: number;
+    projectName: string;
+    state: number;
+    testRunId: number;
+}
 export interface QueryModel {
     query: string;
+}
+export interface QueryTestActionResultRequest {
+    identifier: LegacyTestCaseResultIdentifier;
+    projectName: string;
+}
+export interface QueryTestActionResultResponse {
+    testActionResults: TestActionResult[];
+    testAttachments: TestResultAttachment[];
+    testResultParameters: TestResultParameter[];
+}
+export interface QueryTestMessageLogEntryRequest {
+    projectName: string;
+    testMessageLogId: number;
+    testRunId: number;
+}
+export interface QueryTestRuns2Request {
+    includeStatistics: boolean;
+    query: ResultsStoreQuery;
+}
+export interface QueryTestRunsRequest {
+    buildUri: string;
+    owner: string;
+    planId: number;
+    skip: number;
+    teamProjectName: string;
+    testRunId: number;
+    top: number;
+}
+export interface QueryTestRunStatsRequest {
+    teamProjectName: string;
+    testRunId: number;
 }
 /**
  * Reference to release environment resource.
@@ -14482,6 +16120,20 @@ export interface ReleaseReference2 {
     releaseRefId: number;
     releaseUri: string;
 }
+export interface RequirementsToTestsMapping2 {
+    createdBy: string;
+    creationDate: Date;
+    deletedBy: string;
+    deletionDate: Date;
+    isMigratedToWIT: boolean;
+    projectId: string;
+    testMetadataId: number;
+    workItemId: number;
+}
+export interface ResetTestResultsRequest {
+    ids: LegacyTestCaseResultIdentifier[];
+    projectName: string;
+}
 export interface Response {
     error: string;
     id: string;
@@ -14511,7 +16163,7 @@ export enum ResultDetails {
     /**
      * Point and plan detail in a test result.
      */
-    Point = 8,
+    Point = 8
 }
 /**
  * Hierarchy type of the result/subresults.
@@ -14536,7 +16188,7 @@ export enum ResultGroupType {
     /**
      * Unknown hierarchy type.
      */
-    Generic = 4,
+    Generic = 4
 }
 /**
  * The top level entity that is being cloned as part of a Clone operation
@@ -14549,7 +16201,7 @@ export enum ResultObjectType {
     /**
      * Plan Clone
      */
-    TestPlan = 1,
+    TestPlan = 1
 }
 /**
  * Test result retention settings
@@ -14572,15 +16224,44 @@ export interface ResultRetentionSettings {
      */
     manualResultsRetentionDuration: number;
 }
+export interface ResultsByQueryRequest {
+    pageSize: number;
+    query: ResultsStoreQuery;
+}
+export interface ResultsByQueryResponse {
+    excessIds: LegacyTestCaseResultIdentifier[];
+    testResults: LegacyTestCaseResult[];
+}
 export interface ResultsFilter {
     automatedTestName: string;
     branch: string;
+    executedIn: Service;
     groupBy: string;
     maxCompleteDate: Date;
     resultsCount: number;
+    testCaseId: number;
     testCaseReferenceIds: number[];
+    testPlanId: number;
+    testPointIds: number[];
     testResultsContext: TestResultsContext;
     trendDays: number;
+}
+export interface ResultsStoreQuery {
+    dayPrecision: boolean;
+    queryText: string;
+    teamProjectName: string;
+    timeZone: string;
+}
+export interface ResultUpdateRequest {
+    actionResultDeletes: TestActionResult[];
+    actionResults: TestActionResult[];
+    attachmentDeletes: TestResultAttachmentIdentity[];
+    attachments: TestResultAttachment[];
+    parameterDeletes: TestResultParameter[];
+    parameters: TestResultParameter[];
+    testCaseResult: LegacyTestCaseResult;
+    testResultId: number;
+    testRunId: number;
 }
 export interface ResultUpdateRequestModel {
     actionResultDeletes: TestActionResultModel[];
@@ -14588,6 +16269,15 @@ export interface ResultUpdateRequestModel {
     parameterDeletes: TestResultParameterModel[];
     parameters: TestResultParameterModel[];
     testCaseResult: TestCaseResultUpdateModel;
+}
+export interface ResultUpdateResponse {
+    attachmentIds: number[];
+    lastUpdated: Date;
+    lastUpdatedBy: string;
+    lastUpdatedByName: string;
+    maxReservedSubResultId: number;
+    revision: number;
+    testResultId: number;
 }
 export interface ResultUpdateResponseModel {
     revision: number;
@@ -14798,6 +16488,11 @@ export interface RunUpdateModel {
      */
     testSettings: ShallowReference;
 }
+export enum Service {
+    Any = 0,
+    Tcm = 1,
+    Tfs = 2
+}
 /**
  * An abstracted reference to some other resource. This class is used to provide the build data contracts with a uniform way to reference other resources in a way that provides easy traversal through links.
  */
@@ -14817,6 +16512,7 @@ export interface ShallowReference {
 }
 export interface ShallowTestCaseResult {
     automatedTestStorage: string;
+    durationInMs: number;
     id: number;
     isReRun: boolean;
     outcome: string;
@@ -14909,7 +16605,7 @@ export enum SuiteExpand {
     /**
      * Include default testers in response.
      */
-    DefaultTesters = 2,
+    DefaultTesters = 2
 }
 /**
  * Test case for the suite.
@@ -14923,6 +16619,15 @@ export interface SuiteTestCase {
      * Test case workItem reference.
      */
     testCase: WorkItemReference;
+}
+/**
+ * Test suite update model.
+ */
+export interface SuiteTestCaseUpdateModel {
+    /**
+     * Shallow reference of configurations for the test cases in the suite.
+     */
+    configurations: ShallowReference[];
 }
 /**
  * Test suite update model.
@@ -14952,6 +16657,44 @@ export interface SuiteUpdateModel {
      * For query based suites, the new query string.
      */
     queryString: string;
+}
+export interface TCMPropertyBag2 {
+    artifactId: number;
+    artifactType: number;
+    name: string;
+    value: string;
+}
+export interface TestActionResult {
+    actionPath: string;
+    comment: string;
+    creationDate: Date;
+    dateCompleted: Date;
+    dateStarted: Date;
+    duration: number;
+    errorMessage: string;
+    id: LegacyTestCaseResultIdentifier;
+    iterationId: number;
+    lastUpdated: Date;
+    lastUpdatedBy: string;
+    outcome: number;
+    sharedStepId: number;
+    sharedStepRevision: number;
+}
+export interface TestActionResult2 {
+    actionPath: string;
+    comment: string;
+    creationDate: Date;
+    dateCompleted: Date;
+    dateStarted: Date;
+    duration: number;
+    errorMessage: string;
+    iterationId: number;
+    lastUpdated: Date;
+    outcome: number;
+    sharedStepId: number;
+    sharedStepRevision: number;
+    testResultId: number;
+    testRunId: number;
 }
 /**
  * Represents a test step result.
@@ -15041,6 +16784,39 @@ export interface TestAttachmentRequestModel {
      * Base64 encoded file stream
      */
     stream: string;
+}
+export interface TestAuthoringDetails {
+    configurationId: number;
+    pointId: number;
+    suiteId: number;
+    testerId: string;
+}
+export interface TestCaseMetadata2 {
+    container: string;
+    name: string;
+    projectId: string;
+    testMetadataId: number;
+}
+export interface TestCaseReference2 {
+    areaId: number;
+    automatedTestId: string;
+    automatedTestName: string;
+    automatedTestNameHash: number[];
+    automatedTestStorage: string;
+    automatedTestStorageHash: number[];
+    automatedTestType: string;
+    configurationId: number;
+    createdBy: string;
+    creationDate: Date;
+    lastRefTestRunDate: Date;
+    owner: string;
+    priority: number;
+    projectId: string;
+    testCaseId: number;
+    testCaseRefId: number;
+    testCaseRevision: number;
+    testCaseTitle: string;
+    testPointId: number;
 }
 /**
  * Represents a test result.
@@ -15211,6 +16987,10 @@ export interface TestCaseResult {
     /**
      * Name of test.
      */
+    testCaseRevision: number;
+    /**
+     * Name of test.
+     */
     testCaseTitle: string;
     /**
      * Reference to test plan test case workitem is part of.
@@ -15238,6 +17018,10 @@ export interface TestCaseResult {
  */
 export interface TestCaseResultAttachmentModel {
     /**
+     * Path identifier test step in test case workitem.
+     */
+    actionPath: string;
+    /**
      * Attachment ID.
      */
     id: number;
@@ -15257,6 +17041,10 @@ export interface TestCaseResultAttachmentModel {
      * Url to attachment.
      */
     url: string;
+}
+export interface TestCaseResultIdAndRev {
+    id: LegacyTestCaseResultIdentifier;
+    revision: number;
 }
 /**
  * Reference to a test result.
@@ -15355,11 +17143,26 @@ export enum TestConfigurationState {
     /**
      * The configuration has been retired and should not be used for new test runs.
      */
-    Inactive = 2,
+    Inactive = 2
 }
 export interface TestEnvironment {
     environmentId: string;
     environmentName: string;
+}
+export interface TestExecutionReportData {
+    reportData: DatedTestFieldData[];
+}
+export interface TestExtensionField {
+    field: TestExtensionFieldDetails;
+    value: any;
+}
+export interface TestExtensionFieldDetails {
+    id: number;
+    isResultScoped: boolean;
+    isRunScoped: boolean;
+    isSystemField: boolean;
+    name: string;
+    type: SystemData.SqlDbType;
 }
 export interface TestFailureDetails {
     count: number;
@@ -15375,6 +17178,62 @@ export interface TestFailureType {
     id: number;
     name: string;
     project: ShallowReference;
+}
+export interface TestFieldData {
+    dimensions: {
+        [key: string]: any;
+    };
+    measure: number;
+}
+export interface TestFieldsEx2 {
+    fieldId: number;
+    fieldName: string;
+    fieldType: number;
+    isResultScoped: boolean;
+    isRunScoped: boolean;
+    isSystemField: boolean;
+    projectId: string;
+}
+/**
+ * Filter to get TestCase result history.
+ */
+export interface TestHistoryQuery {
+    /**
+     * Automated test name of the TestCase.
+     */
+    automatedTestName: string;
+    /**
+     * Results to be get for a particular branches.
+     */
+    branch: string;
+    /**
+     * Get the results history only for this BuildDefinationId. This to get used in query GroupBy should be Branch. If this is provided, Branch will have no use.
+     */
+    buildDefinitionId: number;
+    /**
+     * It will be filled by server. If not null means there are some results still to be get, and we need to call this REST API with this ContinuousToken.
+     */
+    continuationToken: string;
+    /**
+     * Group the result on the basis of TestResultGroupBy. This can be Branch, Environment or null(if results are fetched by BuildDefinitionId)
+     */
+    groupBy: TestResultGroupBy;
+    /**
+     * History to get between time interval MaxCompleteDate and  (MaxCompleteDate - TrendDays). Default is current date time.
+     */
+    maxCompleteDate: Date;
+    /**
+     * Get the results history only for this ReleaseEnvDefinitionId. This to get used in query GroupBy should be Environment.
+     */
+    releaseEnvDefinitionId: number;
+    /**
+     * List of TestResultHistoryForGroup which are grouped by GroupBy
+     */
+    resultsForGroup: TestResultHistoryForGroup[];
+    /**
+     * Number of days for which history to collect. Maximum supported value is 7 days. Default is 7 days.
+     */
+    trendDays: number;
 }
 /**
  * Represents a test iteration result.
@@ -15426,6 +17285,150 @@ export interface TestIterationDetailsModel {
     url: string;
 }
 /**
+ * Represents Test Log Result object.
+ */
+export interface TestLog {
+    /**
+     * Test Log Context run, build
+     */
+    logReference: TestLogReference;
+    metaData: {
+        [key: string]: string;
+    };
+    /**
+     * LastUpdatedDate for Log file
+     */
+    modifiedOn: Date;
+    /**
+     * Size in Bytes for Log file
+     */
+    size: number;
+}
+export interface TestLogReference {
+    /**
+     * BuildId for test log, if context is build
+     */
+    buildId: number;
+    /**
+     * FileName for log file
+     */
+    filePath: string;
+    /**
+     * Resultid for test log, if context is run and log is related to result
+     */
+    resultId: number;
+    /**
+     * runid for test log, if context is run
+     */
+    runId: number;
+    /**
+     * Test Log Reference object
+     */
+    scope: TestLogScope;
+    /**
+     * SubResultid for test log, if context is run and log is related to subresult
+     */
+    subResultId: number;
+    /**
+     * Log Type
+     */
+    type: TestLogType;
+}
+/**
+ * Test Log Context
+ */
+export enum TestLogScope {
+    /**
+     * Log file is associated with Run, result, subresult
+     */
+    Run = 0,
+    /**
+     * Log File associated with Build
+     */
+    Build = 1
+}
+/**
+ * Represents Test Log Status object.
+ */
+export interface TestLogStatus {
+    /**
+     * Exception message
+     */
+    exception: string;
+    /**
+     * Test Log Status code
+     */
+    status: TestLogStatusCode;
+    /**
+     * Blob Transfer Error code
+     */
+    transferFailureType: string;
+}
+/**
+ * Test Log Status codes.
+ */
+export enum TestLogStatusCode {
+    Success = 0,
+    Failed = 1,
+    FileAlreadyExists = 2,
+    InvalidInput = 3,
+    InvalidFileName = 4,
+    InvalidContainer = 5,
+    TransferFailed = 6,
+    FeatureDisabled = 7,
+    BuildNotExist = 8,
+    RunNotExist = 9,
+    ContainerNotCreated = 10,
+    APINotSupported = 11,
+    FileSizeExceed = 12
+}
+/**
+ * Represents Test Log store endpoint details.
+ */
+export interface TestLogStoreEndpointDetails {
+    /**
+     * Test log store connection Uri.
+     */
+    endpointSASUri: string;
+    /**
+     * Test log store endpoint type.
+     */
+    endpointType: TestLogStoreEndpointType;
+}
+export enum TestLogStoreEndpointType {
+    Root = 1,
+    File = 2
+}
+export enum TestLogStoreOperationType {
+    Read = 1,
+    Create = 2,
+    ReadAndCreate = 3
+}
+/**
+ * Test Log Types
+ */
+export enum TestLogType {
+    /**
+     * Any gereric attachment.
+     */
+    GeneralAttachment = 1,
+    /**
+     * Code Coverage files
+     */
+    CodeCoverage = 2,
+    /**
+     * Test Impact details.
+     */
+    TestImpact = 3,
+    /**
+     * Temporary files
+     */
+    Intermediate = 4
+}
+export interface TestMessageLog2 {
+    testMessageLogId: number;
+}
+/**
  * An abstracted reference to some other resource. This class is used to provide the build data contracts with a uniform way to reference other resources in a way that provides easy traversal through links.
  */
 export interface TestMessageLogDetails {
@@ -15441,6 +17444,23 @@ export interface TestMessageLogDetails {
      * Message of the resource
      */
     message: string;
+}
+export interface TestMessageLogEntry {
+    dateCreated: Date;
+    entryId: number;
+    logLevel: number;
+    logUser: string;
+    logUserName: string;
+    message: string;
+    testMessageLogId: number;
+}
+export interface TestMessageLogEntry2 {
+    dateCreated: Date;
+    entryId: number;
+    logLevel: number;
+    logUser: string;
+    message: string;
+    testMessageLogId: number;
 }
 export interface TestMethod {
     container: string;
@@ -15515,7 +17535,25 @@ export enum TestOutcome {
      * Test is not impacted. Added fot TIA.
      */
     NotImpacted = 14,
-    MaxValue = 14,
+    MaxValue = 14
+}
+export interface TestOutcomeSettings {
+    /**
+     * Value to configure how test outcomes for the same tests across suites are shown
+     */
+    syncOutcomeAcrossSuites: boolean;
+}
+export interface TestParameter2 {
+    actionPath: string;
+    actual: number[];
+    creationDate: Date;
+    dataType: number;
+    dateModified: Date;
+    expected: number[];
+    iterationId: number;
+    parameterName: string;
+    testResultId: number;
+    testRunId: number;
 }
 /**
  * The test plan resource.
@@ -15587,6 +17625,10 @@ export interface TestPlan {
      * State of the test plan.
      */
     state: string;
+    /**
+     * Value to configure how same tests across test suites under a test plan need to behave
+     */
+    testOutcomeSettings: TestOutcomeSettings;
     updatedBy: VSS_Common_Contracts.IdentityRef;
     updatedDate: Date;
     /**
@@ -15704,6 +17746,14 @@ export interface TestPoint {
      */
     workItemProperties: any[];
 }
+export interface TestPointReference {
+    id: number;
+    state: TestPointState;
+}
+export interface TestPointsEvent {
+    projectName: string;
+    testPoints: TestPointReference[];
+}
 /**
  * Test point query class.
  */
@@ -15725,10 +17775,83 @@ export interface TestPointsQuery {
      */
     witFields: string[];
 }
+export enum TestPointState {
+    /**
+     * Default
+     */
+    None = 0,
+    /**
+     * The test point needs to be executed in order for the test pass to be considered complete.  Either the test has not been run before or the previous run failed.
+     */
+    Ready = 1,
+    /**
+     * The test has passed successfully and does not need to be re-run for the test pass to be considered complete.
+     */
+    Completed = 2,
+    /**
+     * The test point needs to be executed but is not able to.
+     */
+    NotReady = 3,
+    /**
+     * The test is being executed.
+     */
+    InProgress = 4,
+    MaxValue = 4
+}
+export interface TestPointsUpdatedEvent extends TestPointsEvent {
+}
 export interface TestResolutionState {
     id: number;
     name: string;
     project: ShallowReference;
+}
+export interface TestResult2 {
+    afnStripId: number;
+    computerName: string;
+    creationDate: Date;
+    dateCompleted: Date;
+    dateStarted: Date;
+    effectivePointState: number;
+    failureType: number;
+    lastUpdated: Date;
+    lastUpdatedBy: string;
+    outcome: number;
+    owner: string;
+    projectId: string;
+    resetCount: number;
+    resolutionStateId: number;
+    revision: number;
+    runBy: string;
+    state: number;
+    testCaseRefId: number;
+    testResultId: number;
+    testRunId: number;
+}
+export interface TestResultAcrossProjectResponse {
+    projectName: string;
+    testResult: LegacyTestCaseResult;
+}
+export interface TestResultAttachment {
+    actionPath: string;
+    attachmentType: AttachmentType;
+    comment: string;
+    creationDate: Date;
+    downloadQueryString: string;
+    fileName: string;
+    id: number;
+    isComplete: boolean;
+    iterationId: number;
+    length: number;
+    sessionId: number;
+    testResultId: number;
+    testRunId: number;
+    tmiRunId: string;
+}
+export interface TestResultAttachmentIdentity {
+    attachmentId: number;
+    sessionId: number;
+    testResultId: number;
+    testRunId: number;
 }
 export interface TestResultCreateModel {
     area: ShallowReference;
@@ -15762,6 +17885,19 @@ export interface TestResultDocument {
     operationReference: TestOperationReference;
     payload: TestResultPayload;
 }
+/**
+ * Group by for results
+ */
+export enum TestResultGroupBy {
+    /**
+     * Group the results by branches
+     */
+    Branch = 1,
+    /**
+     * Group the results by environment
+     */
+    Environment = 2
+}
 export interface TestResultHistory {
     groupByField: string;
     resultsForGroup: TestResultHistoryDetailsForGroup[];
@@ -15769,6 +17905,52 @@ export interface TestResultHistory {
 export interface TestResultHistoryDetailsForGroup {
     groupByValue: any;
     latestResult: TestCaseResult;
+}
+/**
+ * List of test results filtered on the basis of GroupByValue
+ */
+export interface TestResultHistoryForGroup {
+    /**
+     * Display name of the group.
+     */
+    displayName: string;
+    /**
+     * Name or Id of the group identifier by which results are grouped together.
+     */
+    groupByValue: string;
+    /**
+     * List of results for GroupByValue
+     */
+    results: TestCaseResult[];
+}
+/**
+ * Represents a Meta Data of a test result.
+ */
+export interface TestResultMetaData {
+    /**
+     * AutomatedTestName of test result.
+     */
+    automatedTestName: string;
+    /**
+     * AutomatedTestStorage of test result.
+     */
+    automatedTestStorage: string;
+    /**
+     * Owner of test result.
+     */
+    owner: string;
+    /**
+     * Priority of test result.
+     */
+    priority: number;
+    /**
+     * ID of TestCaseReference.
+     */
+    testCaseReferenceId: number;
+    /**
+     * TestCaseTitle of test result.
+     */
+    testCaseTitle: string;
 }
 export interface TestResultModelBase {
     /**
@@ -15795,6 +17977,15 @@ export interface TestResultModelBase {
      * Time when execution started.
      */
     startedDate: Date;
+}
+export interface TestResultParameter {
+    actionPath: string;
+    actual: number[];
+    expected: number[];
+    iterationId: number;
+    parameterName: string;
+    testResultId: number;
+    testRunId: number;
 }
 /**
  * Test parameter information in a test iteration.
@@ -15830,6 +18021,15 @@ export interface TestResultPayload {
     name: string;
     stream: string;
 }
+export interface TestResultReset2 {
+    auditIdentity: string;
+    dateModified: Date;
+    projectId: string;
+    revision: number;
+    testResultId: number;
+    testResultRV: number[];
+    testRunId: number;
+}
 export interface TestResultsContext {
     build: BuildReference;
     contextType: TestResultsContextType;
@@ -15837,7 +18037,7 @@ export interface TestResultsContext {
 }
 export enum TestResultsContextType {
     Build = 1,
-    Release = 2,
+    Release = 2
 }
 export interface TestResultsDetails {
     groupByField: string;
@@ -15849,6 +18049,20 @@ export interface TestResultsDetailsForGroup {
     resultsCountByOutcome: {
         [key: number]: AggregatedResultsByOutcome;
     };
+}
+export interface TestResultsEx2 {
+    bitValue: boolean;
+    creationDate: Date;
+    dateTimeValue: Date;
+    fieldId: number;
+    fieldName: string;
+    floatValue: number;
+    guidValue: string;
+    intValue: number;
+    projectId: string;
+    stringValue: string;
+    testResultId: number;
+    testRunId: number;
 }
 export interface TestResultsGroupsForBuild {
     /**
@@ -16006,7 +18220,57 @@ export interface TestRun {
     url: string;
     webAccessUrl: string;
 }
+export interface TestRun2 {
+    buildConfigurationId: number;
+    buildNumber: string;
+    comment: string;
+    completeDate: Date;
+    controller: string;
+    coverageId: number;
+    creationDate: Date;
+    dropLocation: string;
+    dueDate: Date;
+    errorMessage: string;
+    incompleteTests: number;
+    isAutomated: boolean;
+    isBvt: boolean;
+    isMigrated: boolean;
+    iterationId: number;
+    lastUpdated: Date;
+    lastUpdatedBy: string;
+    legacySharePath: string;
+    maxReservedResultId: number;
+    notApplicableTests: number;
+    owner: string;
+    passedTests: number;
+    postProcessState: number;
+    projectId: string;
+    publicTestSettingsId: number;
+    releaseEnvironmentUri: string;
+    releaseUri: string;
+    revision: number;
+    startDate: Date;
+    state: number;
+    testEnvironmentId: string;
+    testMessageLogId: number;
+    testPlanId: number;
+    testRunContextId: number;
+    testRunId: number;
+    testSettingsId: number;
+    title: string;
+    totalTests: number;
+    type: number;
+    unanalyzedTests: number;
+    version: number;
+}
 export interface TestRunCanceledEvent extends TestRunEvent {
+}
+export interface TestRunContext2 {
+    buildRefId: number;
+    projectId: string;
+    releaseRefId: number;
+    sourceWorkflow: string;
+    testRunContextId: number;
 }
 /**
  * Test Run Code Coverage Details
@@ -16034,6 +18298,31 @@ export interface TestRunCreatedEvent extends TestRunEvent {
 export interface TestRunEvent {
     testRun: TestRun;
 }
+export interface TestRunEx2 {
+    bitValue: boolean;
+    createdDate: Date;
+    dateTimeValue: Date;
+    fieldId: number;
+    fieldName: string;
+    floatValue: number;
+    guidValue: string;
+    intValue: number;
+    projectId: string;
+    stringValue: string;
+    testRunId: number;
+}
+export interface TestRunExtended2 {
+    autEnvironmentUrl: string;
+    csmContent: string;
+    csmParameters: string;
+    projectId: string;
+    sourceFilter: string;
+    subscriptionName: string;
+    substate: number;
+    testCaseFilter: string;
+    testEnvironmentUrl: string;
+    testRunId: number;
+}
 /**
  * The types of outcomes for test run.
  */
@@ -16053,7 +18342,7 @@ export enum TestRunOutcome {
     /**
      * Runs with All tests in other category.
      */
-    Others = 3,
+    Others = 3
 }
 /**
  * The types of publish context for run.
@@ -16070,7 +18359,7 @@ export enum TestRunPublishContext {
     /**
      * Run is published for any Context.
      */
-    All = 3,
+    All = 3
 }
 export interface TestRunStartedEvent extends TestRunEvent {
 }
@@ -16105,7 +18394,7 @@ export enum TestRunState {
     /**
      * Run requires investigation because of a test point failure This is a legacy state and should not be used any more
      */
-    NeedsInvestigation = 6,
+    NeedsInvestigation = 6
 }
 /**
  * Test run statistics.
@@ -16126,7 +18415,19 @@ export enum TestRunSubstate {
     TimedOut = 5,
     PendingAnalysis = 6,
     Analyzed = 7,
-    CancellationInProgress = 8,
+    CancellationInProgress = 8
+}
+export interface TestRunSummary2 {
+    isRerun: boolean;
+    projectId: string;
+    resultCount: number;
+    resultDuration: number;
+    runDuration: number;
+    testOutcome: number;
+    testRunCompletedDate: Date;
+    testRunContextId: number;
+    testRunId: number;
+    testRunStatsId: number;
 }
 /**
  * Test Session
@@ -16238,7 +18539,7 @@ export enum TestSessionSource {
     /**
      * To show sessions from all supported sources.
      */
-    SessionInsightsForAll = 6,
+    SessionInsightsForAll = 6
 }
 /**
  * Represents the state of the test session.
@@ -16267,7 +18568,7 @@ export enum TestSessionState {
     /**
      * This is required for Feedback session which are declined
      */
-    Declined = 5,
+    Declined = 5
 }
 export interface TestSessionWorkItemReference {
     /**
@@ -16348,6 +18649,10 @@ export interface TestSettings2 {
      * Test settings name.
      */
     testSettingsName: string;
+}
+export interface TestSettingsMachineRole {
+    isExecution: boolean;
+    name: string;
 }
 /**
  * Represents a sub result of a test result.
@@ -16586,6 +18891,30 @@ export interface TestVariable {
      */
     values: string[];
 }
+export interface UpdatedProperties {
+    id: number;
+    lastUpdated: Date;
+    lastUpdatedBy: string;
+    lastUpdatedByName: string;
+    revision: number;
+}
+export interface UpdateTestRunRequest {
+    attachmentsToAdd: TestResultAttachment[];
+    attachmentsToDelete: TestResultAttachmentIdentity[];
+    projectName: string;
+    shouldHyderate: boolean;
+    testRun: LegacyTestRun;
+}
+export interface UpdateTestRunResponse {
+    attachmentIds: number[];
+    updatedProperties: UpdatedProperties;
+}
+export interface UploadAttachmentsRequest {
+    attachments: HttpPostedTcmAttachment[];
+    requestParams: {
+        [key: string]: string;
+    };
+}
 export interface WorkItemReference {
     id: string;
     name: string;
@@ -16594,10 +18923,12 @@ export interface WorkItemReference {
     webUrl: string;
 }
 export interface WorkItemToTestLinks {
+    executedIn: Service;
     tests: TestMethod[];
     workItem: WorkItemReference;
 }
 export var TypeInfo: {
+    AfnStrip: any;
     AggregatedDataForResultTrend: any;
     AggregatedResultsAnalysis: any;
     AggregatedResultsByOutcome: any;
@@ -16623,6 +18954,7 @@ export var TypeInfo: {
     BuildConfiguration: any;
     BuildCoverage: any;
     BuildReference2: any;
+    BulkResultUpdateRequest: any;
     CloneOperationInformation: any;
     CloneOperationState: {
         enumValues: {
@@ -16632,6 +18964,7 @@ export var TypeInfo: {
             "succeeded": number;
         };
     };
+    Coverage2: any;
     CoverageQueryFlags: {
         enumValues: {
             "modules": number;
@@ -16639,6 +18972,9 @@ export var TypeInfo: {
             "blockData": number;
         };
     };
+    CreateTestMessageLogEntryRequest: any;
+    CreateTestResultsRequest: any;
+    CreateTestRunRequest: any;
     CustomTestFieldDefinition: any;
     CustomTestFieldScope: {
         enumValues: {
@@ -16659,10 +18995,19 @@ export var TypeInfo: {
             "guid": number;
         };
     };
+    DatedTestFieldData: any;
     FailingSince: any;
+    FetchTestResultsResponse: any;
     LastResultDetails: any;
+    LegacyBuildConfiguration: any;
+    LegacyReleaseReference: any;
+    LegacyTestCaseResult: any;
+    LegacyTestRun: any;
+    LegacyTestSettings: any;
+    QueryTestActionResultResponse: any;
     ReleaseReference: any;
     ReleaseReference2: any;
+    RequirementsToTestsMapping2: any;
     Response: any;
     ResultDetails: {
         enumValues: {
@@ -16689,18 +19034,31 @@ export var TypeInfo: {
         };
     };
     ResultRetentionSettings: any;
+    ResultsByQueryResponse: any;
     ResultsFilter: any;
+    ResultUpdateRequest: any;
     ResultUpdateRequestModel: any;
+    ResultUpdateResponse: any;
     RunCreateModel: any;
     RunUpdateModel: any;
+    Service: {
+        enumValues: {
+            "any": number;
+            "tcm": number;
+            "tfs": number;
+        };
+    };
     SuiteExpand: {
         enumValues: {
             "children": number;
             "defaultTesters": number;
         };
     };
+    TestActionResult: any;
+    TestActionResult2: any;
     TestActionResultModel: any;
     TestAttachment: any;
+    TestCaseReference2: any;
     TestCaseResult: any;
     TestConfiguration: any;
     TestConfigurationState: {
@@ -16709,9 +19067,63 @@ export var TypeInfo: {
             "inactive": number;
         };
     };
+    TestExecutionReportData: any;
+    TestExtensionField: any;
+    TestExtensionFieldDetails: any;
     TestFailuresAnalysis: any;
+    TestHistoryQuery: any;
     TestIterationDetailsModel: any;
+    TestLog: any;
+    TestLogReference: any;
+    TestLogScope: {
+        enumValues: {
+            "run": number;
+            "build": number;
+        };
+    };
+    TestLogStatus: any;
+    TestLogStatusCode: {
+        enumValues: {
+            "success": number;
+            "failed": number;
+            "fileAlreadyExists": number;
+            "invalidInput": number;
+            "invalidFileName": number;
+            "invalidContainer": number;
+            "transferFailed": number;
+            "featureDisabled": number;
+            "buildNotExist": number;
+            "runNotExist": number;
+            "containerNotCreated": number;
+            "aPINotSupported": number;
+            "fileSizeExceed": number;
+        };
+    };
+    TestLogStoreEndpointDetails: any;
+    TestLogStoreEndpointType: {
+        enumValues: {
+            "root": number;
+            "file": number;
+        };
+    };
+    TestLogStoreOperationType: {
+        enumValues: {
+            "read": number;
+            "create": number;
+            "readAndCreate": number;
+        };
+    };
+    TestLogType: {
+        enumValues: {
+            "generalAttachment": number;
+            "codeCoverage": number;
+            "testImpact": number;
+            "intermediate": number;
+        };
+    };
     TestMessageLogDetails: any;
+    TestMessageLogEntry: any;
+    TestMessageLogEntry2: any;
     TestOutcome: {
         enumValues: {
             "unspecified": number;
@@ -16732,15 +19144,40 @@ export var TypeInfo: {
             "maxValue": number;
         };
     };
+    TestParameter2: any;
     TestPlan: any;
     TestPlanCloneRequest: any;
     TestPlanHubData: any;
     TestPlansWithSelection: any;
     TestPoint: any;
+    TestPointReference: any;
+    TestPointsEvent: any;
     TestPointsQuery: any;
+    TestPointState: {
+        enumValues: {
+            "none": number;
+            "ready": number;
+            "completed": number;
+            "notReady": number;
+            "inProgress": number;
+            "maxValue": number;
+        };
+    };
+    TestPointsUpdatedEvent: any;
+    TestResult2: any;
+    TestResultAcrossProjectResponse: any;
+    TestResultAttachment: any;
+    TestResultGroupBy: {
+        enumValues: {
+            "branch": number;
+            "environment": number;
+        };
+    };
     TestResultHistory: any;
     TestResultHistoryDetailsForGroup: any;
+    TestResultHistoryForGroup: any;
     TestResultModelBase: any;
+    TestResultReset2: any;
     TestResultsContext: any;
     TestResultsContextType: {
         enumValues: {
@@ -16750,13 +19187,16 @@ export var TypeInfo: {
     };
     TestResultsDetails: any;
     TestResultsDetailsForGroup: any;
+    TestResultsEx2: any;
     TestResultsQuery: any;
     TestResultSummary: any;
     TestResultTrendFilter: any;
     TestRun: any;
+    TestRun2: any;
     TestRunCanceledEvent: any;
     TestRunCreatedEvent: any;
     TestRunEvent: any;
+    TestRunEx2: any;
     TestRunOutcome: {
         enumValues: {
             "passed": number;
@@ -16797,6 +19237,7 @@ export var TypeInfo: {
             "cancellationInProgress": number;
         };
     };
+    TestRunSummary2: any;
     TestSession: any;
     TestSessionExploredWorkItemReference: any;
     TestSessionSource: {
@@ -16824,6 +19265,10 @@ export var TypeInfo: {
     TestSubResult: any;
     TestSuite: any;
     TestSummaryForWorkItem: any;
+    UpdatedProperties: any;
+    UpdateTestRunRequest: any;
+    UpdateTestRunResponse: any;
+    WorkItemToTestLinks: any;
 };
 }
 declare module "TFS/TestManagement/Helper/Utils" {
@@ -17003,6 +19448,17 @@ export class TestBaseHelper {
 }
 }
 declare module "TFS/TestManagement/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\testmanagement\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("TFS/TestManagement/Contracts");
 import TFS_Core_Contracts = require("TFS/Core/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -17190,14 +19646,6 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.TestRun[]>
      */
     getTestRuns(project: string, buildUri?: string, owner?: string, tmiRunId?: string, planId?: number, includeRunDetails?: boolean, automated?: boolean, skip?: number, top?: number): IPromise<Contracts.TestRun[]>;
-    /**
-     * Get a test run by its ID.
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} runId - ID of the run to get.
-     * @return IPromise<Contracts.TestRun>
-     */
-    getTestRunById(project: string, runId: number): IPromise<Contracts.TestRun>;
     /**
      * Delete a test run by its ID.
      *
@@ -17436,7 +19884,7 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      *
      * @param {string} project - Project ID or project name
      * @param {number} runId - ID of the test run for which code coverage data needs to be fetched.
-     * @param {number} flags - Value of flags determine the level of code coverage details to be fetched. Flags are additive. CoverageQueryFlags
+     * @param {number} flags - Value of flags determine the level of code coverage details to be fetched. Flags are additive. Expected Values are 1 for Modules, 2 for Functions, 4 for BlockData.
      * @return IPromise<Contracts.TestRunCoverage[]>
      */
     getTestRunCodeCoverage(project: string, runId: number, flags: number): IPromise<Contracts.TestRunCoverage[]>;
@@ -17466,7 +19914,7 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      *
      * @param {string} project - Project ID or project name
      * @param {number} buildId - ID of the build for which code coverage data needs to be fetched.
-     * @param {number} flags - Value of flags determine the level of code coverage details to be fetched. Flags are additive. CoverageQueryFlags
+     * @param {number} flags - Value of flags determine the level of code coverage details to be fetched. Flags are additive. Expected Values are 1 for Modules, 2 for Functions, 4 for BlockData.
      * @return IPromise<Contracts.BuildCoverage[]>
      */
     getBuildCodeCoverage(project: string, buildId: number, flags: number): IPromise<Contracts.BuildCoverage[]>;
@@ -17823,8 +20271,6 @@ export class CommonMethods3To5 extends CommonMethods2To5 {
     getActionResults(project: string, runId: number, testCaseResultId: number, iterationId: number, actionPath?: string): IPromise<Contracts.TestActionResultModel[]>;
 }
 export class CommonMethods4_1To5 extends CommonMethods3To5 {
-    protected resultGroupsByBuildApiVersion: string;
-    protected resultGroupsByReleaseApiVersion: string;
     protected resultsApiVersion: string;
     protected resultsApiVersion_4637d869: string;
     protected resultsByBuildApiVersion: string;
@@ -17892,6 +20338,17 @@ export class CommonMethods4_1To5 extends CommonMethods3To5 {
      * @return IPromise<Contracts.TestSuite[]>
      */
     createTestSuite(testSuite: Contracts.SuiteCreateModel, project: string, planId: number, suiteId: number): IPromise<Contracts.TestSuite[]>;
+    /**
+     * Updates the properties of the test case association in a suite.
+     *
+     * @param {Contracts.SuiteTestCaseUpdateModel} suiteTestCaseUpdateModel - Model for updation of the properties of test case suite association.
+     * @param {string} project - Project ID or project name
+     * @param {number} planId - ID of the test plan that contains the suite.
+     * @param {number} suiteId - ID of the test suite to which the test cases must be added.
+     * @param {string} testCaseIds - IDs of the test cases to add to the suite. Ids are specified in comma separated format.
+     * @return IPromise<Contracts.SuiteTestCase[]>
+     */
+    updateSuiteTestCases(suiteTestCaseUpdateModel: Contracts.SuiteTestCaseUpdateModel, project: string, planId: number, suiteId: number, testCaseIds: string): IPromise<Contracts.SuiteTestCase[]>;
     /**
      * The test points associated with the test cases are removed from the test suite. The test case work item is not deleted from the system. See test cases resource to delete a test case permanently.
      *
@@ -18003,29 +20460,6 @@ export class CommonMethods4_1To5 extends CommonMethods3To5 {
      * @return IPromise<Contracts.TestCaseResult[]>
      */
     addTestResultsToTestRun(results: Contracts.TestCaseResult[], project: string, runId: number): IPromise<Contracts.TestCaseResult[]>;
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {string} publishContext
-     * @param {number} releaseEnvId
-     * @param {string[]} fields
-     * @return IPromise<Contracts.TestResultsGroupsForRelease>
-     */
-    getResultGroupsByRelease(project: string, releaseId: number, publishContext: string, releaseEnvId?: number, fields?: string[]): IPromise<Contracts.TestResultsGroupsForRelease>;
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} buildId
-     * @param {string} publishContext
-     * @param {string[]} fields
-     * @return IPromise<Contracts.TestResultsGroupsForBuild>
-     */
-    getResultGroupsByBuild(project: string, buildId: number, publishContext: string, fields?: string[]): IPromise<Contracts.TestResultsGroupsForBuild>;
 }
 /**
  * @exemptedapi
@@ -18075,12 +20509,57 @@ export class TestHttpClient5 extends CommonMethods4_1To5 {
      * @return IPromise<ArrayBuffer>
      */
     getTestSubResultAttachmentZip(project: string, runId: number, testCaseResultId: number, attachmentId: number, testSubResultId: number): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API] Get a test run by its ID.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId - ID of the run to get.
+     * @param {boolean} includeDetails - Defualt value is true. It includes details like run statistics,release,build,Test enviornment,Post process state and more
+     * @return IPromise<Contracts.TestRun>
+     */
+    getTestRunById(project: string, runId: number, includeDetails?: boolean): IPromise<Contracts.TestRun>;
+    /**
+     * [Preview API] Get history of a test method using TestHistoryQuery
+     *
+     * @param {Contracts.TestHistoryQuery} filter - TestHistoryQuery to get history
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.TestHistoryQuery>
+     */
+    queryTestHistory(filter: Contracts.TestHistoryQuery, project: string): IPromise<Contracts.TestHistoryQuery>;
 }
-/**
- * @exemptedapi
- */
 export class TestHttpClient4_1 extends CommonMethods4_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId
+     * @param {string} publishContext
+     * @param {string[]} fields
+     * @return IPromise<Contracts.TestResultsGroupsForBuild>
+     */
+    getResultGroupsByBuild(project: string, buildId: number, publishContext: string, fields?: string[]): IPromise<Contracts.TestResultsGroupsForBuild>;
+    /**
+     * @exemptedapi
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {string} publishContext
+     * @param {number} releaseEnvId
+     * @param {string[]} fields
+     * @return IPromise<Contracts.TestResultsGroupsForRelease>
+     */
+    getResultGroupsByRelease(project: string, releaseId: number, publishContext: string, releaseEnvId?: number, fields?: string[]): IPromise<Contracts.TestResultsGroupsForRelease>;
+    /**
+     * Get a test run by its ID.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId - ID of the run to get.
+     * @return IPromise<Contracts.TestRun>
+     */
+    getTestRunById(project: string, runId: number): IPromise<Contracts.TestRun>;
 }
 export class TestHttpClient4 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -18124,6 +20603,14 @@ export class TestHttpClient4 extends CommonMethods3To5 {
      * @return IPromise<Contracts.TestResultsQuery>
      */
     getTestResultsByQuery(query: Contracts.TestResultsQuery, project: string): IPromise<Contracts.TestResultsQuery>;
+    /**
+     * Get a test run by its ID.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId - ID of the run to get.
+     * @return IPromise<Contracts.TestRun>
+     */
+    getTestRunById(project: string, runId: number): IPromise<Contracts.TestRun>;
     /**
      * @param {string} project - Project ID or project name
      * @param {number} planId
@@ -18245,6 +20732,14 @@ export class TestHttpClient3_2 extends CommonMethods3To5 {
      */
     getTestResultsByQuery(query: Contracts.TestResultsQuery, project: string): IPromise<Contracts.TestResultsQuery>;
     /**
+     * Get a test run by its ID.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId - ID of the run to get.
+     * @return IPromise<Contracts.TestRun>
+     */
+    getTestRunById(project: string, runId: number): IPromise<Contracts.TestRun>;
+    /**
      * @param {string} project - Project ID or project name
      * @param {number} planId
      * @param {number} suiteId
@@ -18365,6 +20860,14 @@ export class TestHttpClient3_1 extends CommonMethods3To5 {
      */
     getTestResultsByQuery(query: Contracts.TestResultsQuery, project: string): IPromise<Contracts.TestResultsQuery>;
     /**
+     * Get a test run by its ID.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId - ID of the run to get.
+     * @return IPromise<Contracts.TestRun>
+     */
+    getTestRunById(project: string, runId: number): IPromise<Contracts.TestRun>;
+    /**
      * @param {string} project - Project ID or project name
      * @param {number} planId
      * @param {number} suiteId
@@ -18484,6 +20987,14 @@ export class TestHttpClient3 extends CommonMethods3To5 {
      * @return IPromise<Contracts.TestResultsQuery>
      */
     getTestResultsByQuery(query: Contracts.TestResultsQuery, project: string): IPromise<Contracts.TestResultsQuery>;
+    /**
+     * Get a test run by its ID.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId - ID of the run to get.
+     * @return IPromise<Contracts.TestRun>
+     */
+    getTestRunById(project: string, runId: number): IPromise<Contracts.TestRun>;
     /**
      * @param {string} project - Project ID or project name
      * @param {number} planId
@@ -18688,6 +21199,14 @@ export class TestHttpClient2_3 extends CommonMethods2To5 {
      * @return IPromise<Contracts.TestCaseResult[]>
      */
     getTestResultsByQuery(query: Contracts.QueryModel, project: string, includeResultDetails?: boolean, includeIterationDetails?: boolean, skip?: number, top?: number): IPromise<Contracts.TestCaseResult[]>;
+    /**
+     * Get a test run by its ID.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId - ID of the run to get.
+     * @return IPromise<Contracts.TestRun>
+     */
+    getTestRunById(project: string, runId: number): IPromise<Contracts.TestRun>;
     /**
      * @exemptedapi
      * [Preview API]
@@ -18905,6 +21424,14 @@ export class TestHttpClient2_2 extends CommonMethods2To5 {
      */
     getTestResultsByQuery(query: Contracts.QueryModel, project: string, includeResultDetails?: boolean, includeIterationDetails?: boolean, skip?: number, top?: number): IPromise<Contracts.TestCaseResult[]>;
     /**
+     * Get a test run by its ID.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId - ID of the run to get.
+     * @return IPromise<Contracts.TestRun>
+     */
+    getTestRunById(project: string, runId: number): IPromise<Contracts.TestRun>;
+    /**
      * @exemptedapi
      * [Preview API]
      *
@@ -19120,6 +21647,14 @@ export class TestHttpClient2_1 extends CommonMethods2To5 {
      * @return IPromise<Contracts.TestCaseResult[]>
      */
     getTestResultsByQuery(query: Contracts.QueryModel, project: string, includeResultDetails?: boolean, includeIterationDetails?: boolean, skip?: number, top?: number): IPromise<Contracts.TestCaseResult[]>;
+    /**
+     * Get a test run by its ID.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId - ID of the run to get.
+     * @return IPromise<Contracts.TestRun>
+     */
+    getTestRunById(project: string, runId: number): IPromise<Contracts.TestRun>;
     /**
      * @exemptedapi
      * [Preview API]
@@ -19337,6 +21872,14 @@ export class TestHttpClient2 extends CommonMethods2To5 {
      */
     getTestResultsByQuery(query: Contracts.QueryModel, project: string, includeResultDetails?: boolean, includeIterationDetails?: boolean, skip?: number, top?: number): IPromise<Contracts.TestCaseResult[]>;
     /**
+     * Get a test run by its ID.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId - ID of the run to get.
+     * @return IPromise<Contracts.TestRun>
+     */
+    getTestRunById(project: string, runId: number): IPromise<Contracts.TestRun>;
+    /**
      * @exemptedapi
      * [Preview API]
      *
@@ -19436,7 +21979,426 @@ export class TestHttpClient extends TestHttpClient5 {
  */
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TestHttpClient4_1;
 }
+declare module "TFS/TestManagement/TestPlanning/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\testmanagement\testplanning\clientgeneratorconfigs\genclient.json
+ */
+import TFS_Core_Contracts = require("TFS/Core/Contracts");
+import TFS_TestManagement_Contracts = require("TFS/TestManagement/Contracts");
+import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
+/**
+ * The build definition reference resource
+ */
+export interface BuildDefinitionReference {
+    /**
+     * ID of the build definition
+     */
+    id: number;
+    /**
+     * Name of the build definition
+     */
+    name: string;
+}
+/**
+ * A suite entry defines properties for a test suite.
+ */
+export interface SuiteEntry extends SuiteEntryUpdateParams {
+    /**
+     * Id for the test suite.
+     */
+    suiteId: number;
+}
+export enum SuiteEntryTypes {
+    TestCase = 0,
+    Suite = 1
+}
+/**
+ * A suite entry defines properties for a test suite.
+ */
+export interface SuiteEntryUpdateParams {
+    /**
+     * Id of the suite entry in the test suite: either a test case id or child suite id.
+     */
+    id: number;
+    /**
+     * Sequence number for the suite entry object in the test suite.
+     */
+    sequenceNumber: number;
+    /**
+     * Defines whther the entry is of type test case or suite.
+     */
+    suiteEntryType: SuiteEntryTypes;
+}
+/**
+ * Option to get details in response
+ */
+export enum SuiteExpand {
+    /**
+     * Dont include any of the expansions in output.
+     */
+    None = 0,
+    /**
+     * Include children in response.
+     */
+    Children = 1,
+    /**
+     * Include default testers in response.
+     */
+    DefaultTesters = 2
+}
+/**
+ * Test configuration
+ */
+export interface TestConfiguration extends TestConfigurationCreateUpdateParameters {
+    /**
+     * Id of the configuration
+     */
+    id: number;
+    /**
+     * Id of the test configuration variable
+     */
+    project: TFS_Core_Contracts.TeamProjectReference;
+}
+/**
+ * Test Configuration Create or Update Parameters
+ */
+export interface TestConfigurationCreateUpdateParameters {
+    /**
+     * Description of the configuration
+     */
+    description: string;
+    /**
+     * Is the configuration a default for the test plans
+     */
+    isDefault: boolean;
+    /**
+     * Name of the configuration
+     */
+    name: string;
+    /**
+     * State of the configuration
+     */
+    state: TFS_TestManagement_Contracts.TestConfigurationState;
+    /**
+     * Dictionary of Test Variable, Selected Value
+     */
+    values: TFS_TestManagement_Contracts.NameValuePair[];
+}
+/**
+ * Test Configuration Reference
+ */
+export interface TestConfigurationReference {
+    /**
+     * Id of the configuration
+     */
+    id: number;
+    /**
+     * Name of the configuration
+     */
+    name: string;
+}
+/**
+ * The test plan resource.
+ */
+export interface TestPlan extends TestPlanUpdateParams {
+    /**
+     * Relevant links
+     */
+    _links: any;
+    /**
+     * ID of the test plan.
+     */
+    id: number;
+    previousBuildId: number;
+    /**
+     * Project which contains the test plan.
+     */
+    project: TFS_Core_Contracts.TeamProjectReference;
+    /**
+     * Root test suite of the test plan.
+     */
+    rootSuite: TestSuiteReference;
+    updatedBy: VSS_Common_Contracts.IdentityRef;
+    updatedDate: Date;
+}
+/**
+ * The test plan cerate parameters.
+ */
+export interface TestPlanCreateParams {
+    /**
+     * Area of the test plan.
+     */
+    areaPath: string;
+    automatedTestEnvironment: TFS_TestManagement_Contracts.TestEnvironment;
+    automatedTestSettings: TFS_TestManagement_Contracts.TestSettings;
+    /**
+     * The Build Definition that generates a build associated with this test plan.
+     */
+    buildDefinition: BuildDefinitionReference;
+    /**
+     * Build to be tested.
+     */
+    buildId: number;
+    /**
+     * Description of the test plan.
+     */
+    description: string;
+    /**
+     * End date for the test plan.
+     */
+    endDate: Date;
+    /**
+     * Iteration path of the test plan.
+     */
+    iteration: string;
+    manualTestEnvironment: TFS_TestManagement_Contracts.TestEnvironment;
+    manualTestSettings: TFS_TestManagement_Contracts.TestSettings;
+    /**
+     * Name of the test plan.
+     */
+    name: string;
+    /**
+     * Owner of the test plan.
+     */
+    owner: VSS_Common_Contracts.IdentityRef;
+    /**
+     * Release Environment to be used to deploy the build and run automated tests from this test plan.
+     */
+    releaseEnvironmentDefinition: TFS_TestManagement_Contracts.ReleaseEnvironmentDefinitionReference;
+    /**
+     * Start date for the test plan.
+     */
+    startDate: Date;
+    /**
+     * State of the test plan.
+     */
+    state: string;
+    /**
+     * Value to configure how same tests across test suites under a test plan need to behave
+     */
+    testOutcomeSettings: TFS_TestManagement_Contracts.TestOutcomeSettings;
+}
+/**
+ * The test plan resource.
+ */
+export interface TestPlanReference {
+    /**
+     * ID of the test plan.
+     */
+    id: number;
+    /**
+     * Name of the test plan.
+     */
+    name: string;
+}
+/**
+ * The test plan update parameters.
+ */
+export interface TestPlanUpdateParams extends TestPlanCreateParams {
+    /**
+     * Revision of the test plan.
+     */
+    revision: number;
+}
+/**
+ * Test suite
+ */
+export interface TestSuite extends TestSuiteCreateParams {
+    /**
+     * Links: self, testPoints, testCases, parent
+     */
+    _links: any;
+    /**
+     * Child test suites of current test suite.
+     */
+    children: TestSuite[];
+    /**
+     * Id of test suite.
+     */
+    id: number;
+    /**
+     * Last error for test suite.
+     */
+    lastError: string;
+    /**
+     * Last populated date.
+     */
+    lastPopulatedDate: Date;
+    /**
+     * IdentityRef of user who has updated test suite recently.
+     */
+    lastUpdatedBy: VSS_Common_Contracts.IdentityRef;
+    /**
+     * Last update date.
+     */
+    lastUpdatedDate: Date;
+    /**
+     * Test plan to which the test suite belongs.
+     */
+    plan: TestPlanReference;
+    /**
+     * Test suite project shallow reference.
+     */
+    project: TFS_Core_Contracts.TeamProjectReference;
+    /**
+     * Test suite revision.
+     */
+    revision: number;
+}
+/**
+ * Test suite Create Parameters
+ */
+export interface TestSuiteCreateParams extends TestSuiteCreateUpdateCommonParams {
+    /**
+     * Test suite requirement id.
+     */
+    requirementId: number;
+    /**
+     * Test suite type.
+     */
+    suiteType: TestSuiteType;
+}
+/**
+ * Test Suite Create/Update Common Parameters
+ */
+export interface TestSuiteCreateUpdateCommonParams {
+    /**
+     * Test suite default configurations.
+     */
+    defaultConfigurations: TestConfigurationReference[];
+    /**
+     * Test suite default testers.
+     */
+    defaultTesters: VSS_Common_Contracts.IdentityRef[];
+    /**
+     * Default configuration was inherited or not.
+     */
+    inheritDefaultConfigurations: boolean;
+    /**
+     * Name of test suite.
+     */
+    name: string;
+    /**
+     * Test suite parent shallow reference.
+     */
+    parentSuite: TestSuiteReference;
+    /**
+     * Test suite query string, for dynamic suites.
+     */
+    queryString: string;
+}
+/**
+ * The test suite reference resource.
+ */
+export interface TestSuiteReference {
+    /**
+     * ID of the test suite.
+     */
+    id: number;
+    /**
+     * Name of the test suite.
+     */
+    name: string;
+}
+/**
+ * Type of TestSuite
+ */
+export enum TestSuiteType {
+    None = 0,
+    DynamicTestSuite = 1,
+    StaticTestSuite = 2,
+    RequirementTestSuite = 3
+}
+/**
+ * Test Suite Update Parameters
+ */
+export interface TestSuiteUpdateParams extends TestSuiteCreateUpdateCommonParams {
+    /**
+     * Test suite revision.
+     */
+    revision: number;
+}
+/**
+ * Test Variable
+ */
+export interface TestVariable extends TestVariableCreateUpdateParameters {
+    /**
+     * Id of the test variable
+     */
+    id: number;
+    /**
+     * Id of the test variable
+     */
+    project: TFS_Core_Contracts.TeamProjectReference;
+}
+/**
+ * Test Variable Create or Update Parameters
+ */
+export interface TestVariableCreateUpdateParameters {
+    description: string;
+    /**
+     * Name of the test variable
+     */
+    name: string;
+    /**
+     * List of allowed values
+     */
+    values: string[];
+}
+export var TypeInfo: {
+    SuiteEntry: any;
+    SuiteEntryTypes: {
+        enumValues: {
+            "testCase": number;
+            "suite": number;
+        };
+    };
+    SuiteEntryUpdateParams: any;
+    SuiteExpand: {
+        enumValues: {
+            "none": number;
+            "children": number;
+            "defaultTesters": number;
+        };
+    };
+    TestConfiguration: any;
+    TestConfigurationCreateUpdateParameters: any;
+    TestPlan: any;
+    TestPlanCreateParams: any;
+    TestPlanUpdateParams: any;
+    TestSuite: any;
+    TestSuiteCreateParams: any;
+    TestSuiteType: {
+        enumValues: {
+            "none": number;
+            "dynamicTestSuite": number;
+            "staticTestSuite": number;
+            "requirementTestSuite": number;
+        };
+    };
+    TestVariable: any;
+};
+}
 declare module "TFS/TestManagement/VSS.Tcm.WebApi" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\testmanagement\internal\webapi\clientgeneratorconfigs\legacy.genclient.json
+ */
 import Contracts = require("TFS/TestManagement/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
@@ -19449,8 +22411,6 @@ export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
     protected historyApiVersion: string;
     protected resultdetailsbybuildApiVersion: string;
     protected resultdetailsbyreleaseApiVersion: string;
-    protected resultgroupsbybuildApiVersion: string;
-    protected resultgroupsbyreleaseApiVersion: string;
     protected resultsApiVersion: string;
     protected resultsApiVersion_5645f3b7: string;
     protected resultsbybuildApiVersion: string;
@@ -19462,6 +22422,7 @@ export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
     protected resultTrendByReleaseApiVersion: string;
     protected runsApiVersion: string;
     protected runsApiVersion_86337575: string;
+    protected testHistoryApiVersion: string;
     protected testsettingsApiVersion: string;
     protected workitemsApiVersion: string;
     protected workitemsApiVersion_84ccb084: string;
@@ -19537,6 +22498,15 @@ export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
      */
     createTestSettings(testSettings: Contracts.TestSettings, project: string): IPromise<number>;
     /**
+     * @exemptedapi
+     * [Preview API] Get history of a test method using TestHistoryQuery
+     *
+     * @param {Contracts.TestHistoryQuery} filter - TestHistoryQuery to get history
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.TestHistoryQuery>
+     */
+    queryTestHistory(filter: Contracts.TestHistoryQuery, project: string): IPromise<Contracts.TestHistoryQuery>;
+    /**
      * @param {string} project - Project ID or project name
      * @param {number} runId
      * @return IPromise<Contracts.TestRunStatistic>
@@ -19592,15 +22562,6 @@ export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.TestRun[]>
      */
     getTestRuns(project: string, buildUri?: string, owner?: string, tmiRunId?: string, planId?: number, includeRunDetails?: boolean, automated?: boolean, skip?: number, top?: number): IPromise<Contracts.TestRun[]>;
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} runId
-     * @return IPromise<Contracts.TestRun>
-     */
-    getTestRunById(project: string, runId: number): IPromise<Contracts.TestRun>;
     /**
      * @exemptedapi
      * [Preview API]
@@ -19734,29 +22695,6 @@ export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<Contracts.TestResultsQuery>
      */
     getTestResultsByQuery(query: Contracts.TestResultsQuery, project: string): IPromise<Contracts.TestResultsQuery>;
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} releaseId
-     * @param {string} publishContext
-     * @param {number} releaseEnvId
-     * @param {string[]} fields
-     * @return IPromise<Contracts.TestResultsGroupsForRelease>
-     */
-    getResultGroupsByRelease(project: string, releaseId: number, publishContext: string, releaseEnvId?: number, fields?: string[]): IPromise<Contracts.TestResultsGroupsForRelease>;
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} buildId
-     * @param {string} publishContext
-     * @param {string[]} fields
-     * @return IPromise<Contracts.TestResultsGroupsForBuild>
-     */
-    getResultGroupsByBuild(project: string, buildId: number, publishContext: string, fields?: string[]): IPromise<Contracts.TestResultsGroupsForBuild>;
     /**
      * @exemptedapi
      * [Preview API]
@@ -19982,12 +22920,140 @@ export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
  */
 export class TcmHttpClient5 extends CommonMethods4_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} attachmentId
+     * @param {number} testRunId
+     * @param {number} testResultId
+     * @param {number} subResultId
+     * @param {number} sessionId
+     * @return IPromise<Contracts.TestResultAttachment[]>
+     */
+    getAttachments(project: string, attachmentId: number, testRunId: number, testResultId: number, subResultId: number, sessionId: number): IPromise<Contracts.TestResultAttachment[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} attachmentId
+     * @param {boolean} getSiblingAttachments
+     * @return IPromise<Contracts.TestResultAttachment[]>
+     */
+    getAttachments2(project: string, attachmentId: number, getSiblingAttachments: boolean): IPromise<Contracts.TestResultAttachment[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ResultsStoreQuery} query
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.TestResultAttachment[]>
+     */
+    getAttachmentsByQuery(query: Contracts.ResultsStoreQuery, project: string): IPromise<Contracts.TestResultAttachment[]>;
+    /**
+     * [Preview API] Create a batched test results
+     *
+     * @param {Contracts.LegacyTestCaseResult[]} testCaseResults - Test Case Results
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.LegacyTestCaseResult[]>
+     */
+    createBatchedBlockedResults(testCaseResults: Contracts.LegacyTestCaseResult[], project: string): IPromise<Contracts.LegacyTestCaseResult[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {boolean} includeDetails
+     * @return IPromise<Contracts.TestRun>
+     */
+    getTestRunById(project: string, runId: number, includeDetails?: boolean): IPromise<Contracts.TestRun>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.QueryModel} query
+     * @param {string} project - Project ID or project name
+     * @param {boolean} includeIdsOnly
+     * @param {boolean} includeRunDetails
+     * @param {number} skip
+     * @param {number} top
+     * @return IPromise<Contracts.TestRun[]>
+     */
+    getTestRunsByQuery(query: Contracts.QueryModel, project: string, includeIdsOnly: boolean, includeRunDetails?: boolean, skip?: number, top?: number): IPromise<Contracts.TestRun[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} testSettingsId
+     * @return IPromise<Contracts.LegacyTestSettings>
+     */
+    getTestSettingsCompatById(project: string, testSettingsId: number): IPromise<Contracts.LegacyTestSettings>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.LegacyTestSettings} legacyTestSettings
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.UpdatedProperties>
+     */
+    updateTestSettings(legacyTestSettings: Contracts.LegacyTestSettings, project: string): IPromise<Contracts.UpdatedProperties>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.LegacyTestSettings} legacyTestSettings
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.UpdatedProperties>
+     */
+    createTestSettingsCompat(legacyTestSettings: Contracts.LegacyTestSettings, project: string): IPromise<Contracts.UpdatedProperties>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ResultsStoreQuery} query
+     * @param {string} project - Project ID or project name
+     * @param {boolean} omitSettings
+     * @return IPromise<Contracts.LegacyTestSettings[]>
+     */
+    queryTestSettings(query: Contracts.ResultsStoreQuery, project: string, omitSettings: boolean): IPromise<Contracts.LegacyTestSettings[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ResultsStoreQuery} query
+     * @param {string} project - Project ID or project name
+     * @return IPromise<number>
+     */
+    queryTestSettingsCount(query: Contracts.ResultsStoreQuery, project: string): IPromise<number>;
 }
 /**
  * @exemptedapi
  */
 export class TcmHttpClient4_1 extends CommonMethods4_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId
+     * @param {string} publishContext
+     * @param {string[]} fields
+     * @return IPromise<Contracts.TestResultsGroupsForBuild>
+     */
+    getResultGroupsByBuild(project: string, buildId: number, publishContext: string, fields?: string[]): IPromise<Contracts.TestResultsGroupsForBuild>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {string} publishContext
+     * @param {number} releaseEnvId
+     * @param {string[]} fields
+     * @return IPromise<Contracts.TestResultsGroupsForRelease>
+     */
+    getResultGroupsByRelease(project: string, releaseId: number, publishContext: string, releaseEnvId?: number, fields?: string[]): IPromise<Contracts.TestResultsGroupsForRelease>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @return IPromise<Contracts.TestRun>
+     */
+    getTestRunById(project: string, runId: number): IPromise<Contracts.TestRun>;
 }
 export class TcmHttpClient extends TcmHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -19999,7 +23065,818 @@ export class TcmHttpClient extends TcmHttpClient5 {
  */
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TcmHttpClient4_1;
 }
+declare module "TFS/TestManagement/VSS.TestPlan.WebApi" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\testmanagement\testplanning\clientgeneratorconfigs\genclient.json
+ */
+import Contracts = require("TFS/TestManagement/TestPlanning/Contracts");
+import VSS_WebApi = require("VSS/WebApi/RestClient");
+export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    protected suitesApiVersion: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * Find the list of all test suites in which a given test case is present. This is helpful if you need to find out which test suites are using a test case, when you need to make changes to a test case.
+     *
+     * @param {number} testCaseId - ID of the test case for which suites need to be fetched.
+     * @return IPromise<Contracts.TestSuite[]>
+     */
+    getSuitesByTestCaseId(testCaseId: number): IPromise<Contracts.TestSuite[]>;
+}
+/**
+ * @exemptedapi
+ */
+export class TestPlanHttpClient5 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Create a test configuration.
+     *
+     * @param {Contracts.TestConfigurationCreateUpdateParameters} testConfigurationCreateUpdateParameters - TestConfigurationCreateUpdateParameters
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.TestConfiguration>
+     */
+    createTestConfiguration(testConfigurationCreateUpdateParameters: Contracts.TestConfigurationCreateUpdateParameters, project: string): IPromise<Contracts.TestConfiguration>;
+    /**
+     * [Preview API] Delete a test configuration by its ID.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} testConfiguartionId - ID of the test configuration to delete.
+     * @return IPromise<void>
+     */
+    deleteTestConfguration(project: string, testConfiguartionId: number): IPromise<void>;
+    /**
+     * [Preview API] Get a test configuration
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} testConfigurationId - ID of the test configuration to get.
+     * @return IPromise<Contracts.TestConfiguration>
+     */
+    getTestConfigurationById(project: string, testConfigurationId: number): IPromise<Contracts.TestConfiguration>;
+    /**
+     * [Preview API] Get a list of test configurations.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} continuationToken - If the list of configurations returned is not complete, a continuation token to query next batch of configurations is included in the response header as "x-ms-continuationtoken". Omit this parameter to get the first batch of test configurations.
+     * @return IPromise<Contracts.TestConfiguration[]>
+     */
+    getTestConfigurations(project: string, continuationToken?: string): IPromise<Contracts.TestConfiguration[]>;
+    /**
+     * [Preview API] Update a test configuration by its ID.
+     *
+     * @param {Contracts.TestConfigurationCreateUpdateParameters} testConfigurationCreateUpdateParameters - TestConfigurationCreateUpdateParameters
+     * @param {string} project - Project ID or project name
+     * @param {number} testConfiguartionId - ID of the test configuration to update.
+     * @return IPromise<Contracts.TestConfiguration>
+     */
+    updateTestConfiguration(testConfigurationCreateUpdateParameters: Contracts.TestConfigurationCreateUpdateParameters, project: string, testConfiguartionId: number): IPromise<Contracts.TestConfiguration>;
+    /**
+     * [Preview API] Create a test plan.
+     *
+     * @param {Contracts.TestPlanCreateParams} testPlanCreateParams - A testPlanCreateParams object.TestPlanCreateParams
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.TestPlan>
+     */
+    createTestPlan(testPlanCreateParams: Contracts.TestPlanCreateParams, project: string): IPromise<Contracts.TestPlan>;
+    /**
+     * [Preview API] Delete a test plan.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} planId - ID of the test plan to be deleted.
+     * @return IPromise<void>
+     */
+    deleteTestPlan(project: string, planId: number): IPromise<void>;
+    /**
+     * [Preview API] Get a test plan by Id.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} planId - ID of the test plan to get.
+     * @return IPromise<Contracts.TestPlan>
+     */
+    getTestPlanById(project: string, planId: number): IPromise<Contracts.TestPlan>;
+    /**
+     * [Preview API] Get a list of test plans
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} owner - Filter for test plan by owner ID or name
+     * @param {string} continuationToken - If the list of plans returned is not complete, a continuation token to query next batch of plans is included in the response header as "x-ms-continuationtoken". Omit this parameter to get the first batch of test plans.
+     * @param {boolean} includePlanDetails - Get all properties of the test plan
+     * @param {boolean} filterActivePlans - Get just the active plans
+     * @return IPromise<Contracts.TestPlan[]>
+     */
+    getTestPlans(project: string, owner?: string, continuationToken?: string, includePlanDetails?: boolean, filterActivePlans?: boolean): IPromise<Contracts.TestPlan[]>;
+    /**
+     * [Preview API] Update a test plan.
+     *
+     * @param {Contracts.TestPlanUpdateParams} testPlanUpdateParams - A testPlanUpdateParams object.TestPlanUpdateParams
+     * @param {string} project - Project ID or project name
+     * @param {number} planId - ID of the test plan to be updated.
+     * @return IPromise<Contracts.TestPlan>
+     */
+    updateTestPlan(testPlanUpdateParams: Contracts.TestPlanUpdateParams, project: string, planId: number): IPromise<Contracts.TestPlan>;
+    /**
+     * [Preview API] Get a list of test suite entries in the test suite.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} suiteId - Id of the parent suite.
+     * @param {Contracts.SuiteEntryTypes} suiteEntryType
+     * @return IPromise<Contracts.SuiteEntry[]>
+     */
+    getSuiteEntries(project: string, suiteId: number, suiteEntryType?: Contracts.SuiteEntryTypes): IPromise<Contracts.SuiteEntry[]>;
+    /**
+     * [Preview API] Reorder test suite entries in the test suite.
+     *
+     * @param {Contracts.SuiteEntryUpdateParams[]} suiteEntries - List of SuiteEntry to reorder.
+     * @param {string} project - Project ID or project name
+     * @param {number} suiteId - Id of the parent test suite.
+     * @return IPromise<Contracts.SuiteEntry[]>
+     */
+    reorderSuiteEntries(suiteEntries: Contracts.SuiteEntryUpdateParams[], project: string, suiteId: number): IPromise<Contracts.SuiteEntry[]>;
+    /**
+     * [Preview API] Create test suite.
+     *
+     * @param {Contracts.TestSuiteCreateParams} testSuiteCreateParams - Parameters for suite creation
+     * @param {string} project - Project ID or project name
+     * @param {number} planId - ID of the test plan that contains the suites.
+     * @return IPromise<Contracts.TestSuite>
+     */
+    createTestSuite(testSuiteCreateParams: Contracts.TestSuiteCreateParams, project: string, planId: number): IPromise<Contracts.TestSuite>;
+    /**
+     * [Preview API] Delete test suite.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} planId - ID of the test plan that contains the suite.
+     * @param {number} suiteId - ID of the test suite to delete.
+     * @return IPromise<void>
+     */
+    deleteTestSuite(project: string, planId: number, suiteId: number): IPromise<void>;
+    /**
+     * [Preview API] Get test suite by suite id.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} planId - ID of the test plan that contains the suites.
+     * @param {number} suiteId - ID of the suite to get.
+     * @param {Contracts.SuiteExpand} expand - Include the children suites and testers details
+     * @return IPromise<Contracts.TestSuite>
+     */
+    getTestSuiteById(project: string, planId: number, suiteId: number, expand?: Contracts.SuiteExpand): IPromise<Contracts.TestSuite>;
+    /**
+     * [Preview API] Get test suites for plan.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} planId - ID of the test plan for which suites are requested.
+     * @param {Contracts.SuiteExpand} expand - Include the children suites and testers details.
+     * @param {string} continuationToken - If the list of suites returned is not complete, a continuation token to query next batch of suites is included in the response header as "x-ms-continuationtoken". Omit this parameter to get the first batch of test suites.
+     * @param {boolean} asTreeView - If the suites returned should be in a tree structure.
+     * @return IPromise<Contracts.TestSuite[]>
+     */
+    getTestSuitesForPlan(project: string, planId: number, expand?: Contracts.SuiteExpand, continuationToken?: string, asTreeView?: boolean): IPromise<Contracts.TestSuite[]>;
+    /**
+     * [Preview API] Update test suite.
+     *
+     * @param {Contracts.TestSuiteUpdateParams} testSuiteUpdateParams - Parameters for suite updation
+     * @param {string} project - Project ID or project name
+     * @param {number} planId - ID of the test plan that contains the suites.
+     * @param {number} suiteId - ID of the parent suite.
+     * @return IPromise<Contracts.TestSuite>
+     */
+    updateTestSuite(testSuiteUpdateParams: Contracts.TestSuiteUpdateParams, project: string, planId: number, suiteId: number): IPromise<Contracts.TestSuite>;
+    /**
+     * [Preview API] Delete a test case.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} testCaseId - Id of test case to be deleted.
+     * @return IPromise<void>
+     */
+    deleteTestCase(project: string, testCaseId: number): IPromise<void>;
+    /**
+     * [Preview API] Create a test variable.
+     *
+     * @param {Contracts.TestVariableCreateUpdateParameters} testVariableCreateUpdateParameters - TestVariableCreateUpdateParameters
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.TestVariable>
+     */
+    createTestVariable(testVariableCreateUpdateParameters: Contracts.TestVariableCreateUpdateParameters, project: string): IPromise<Contracts.TestVariable>;
+    /**
+     * [Preview API] Delete a test variable by its ID.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} testVariableId - ID of the test variable to delete.
+     * @return IPromise<void>
+     */
+    deleteTestVariable(project: string, testVariableId: number): IPromise<void>;
+    /**
+     * [Preview API] Get a test variable by its ID.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} testVariableId - ID of the test variable to get.
+     * @return IPromise<Contracts.TestVariable>
+     */
+    getTestVariableById(project: string, testVariableId: number): IPromise<Contracts.TestVariable>;
+    /**
+     * [Preview API] Get a list of test variables.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} continuationToken - If the list of variables returned is not complete, a continuation token to query next batch of variables is included in the response header as "x-ms-continuationtoken". Omit this parameter to get the first batch of test variables.
+     * @return IPromise<Contracts.TestVariable[]>
+     */
+    getTestVariables(project: string, continuationToken?: string): IPromise<Contracts.TestVariable[]>;
+    /**
+     * [Preview API] Update a test variable by its ID.
+     *
+     * @param {Contracts.TestVariableCreateUpdateParameters} testVariableCreateUpdateParameters - TestVariableCreateUpdateParameters
+     * @param {string} project - Project ID or project name
+     * @param {number} testVariableId - ID of the test variable to update.
+     * @return IPromise<Contracts.TestVariable>
+     */
+    updateTestVariable(testVariableCreateUpdateParameters: Contracts.TestVariableCreateUpdateParameters, project: string, testVariableId: number): IPromise<Contracts.TestVariable>;
+}
+/**
+ * @exemptedapi
+ */
+export class TestPlanHttpClient4_1 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class TestPlanHttpClient4 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class TestPlanHttpClient3_2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class TestPlanHttpClient3_1 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class TestPlanHttpClient3 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class TestPlanHttpClient2_3 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class TestPlanHttpClient2_2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class TestPlanHttpClient2_1 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class TestPlanHttpClient2 extends CommonMethods2To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class TestPlanHttpClient extends TestPlanHttpClient5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * Gets an http client targeting the latest released version of the APIs.
+ *
+ * @return TestPlanHttpClient4_1
+ */
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TestPlanHttpClient4_1;
+}
+declare module "TFS/TestManagement/VSS.TestResults.WebApi" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\testmanagement\testresults\webapi\clientgeneratorconfigs\genclient.json
+ */
+import Contracts = require("TFS/TestManagement/Contracts");
+import VSS_WebApi = require("VSS/WebApi/RestClient");
+/**
+ * @exemptedapi
+ */
+export class TestResultsHttpClient5 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.TestAttachmentRequestModel} attachmentRequestModel
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} testCaseResultId
+     * @return IPromise<Contracts.TestAttachmentReference>
+     */
+    createTestResultAttachment(attachmentRequestModel: Contracts.TestAttachmentRequestModel, project: string, runId: number, testCaseResultId: number): IPromise<Contracts.TestAttachmentReference>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.TestAttachmentRequestModel} attachmentRequestModel
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} testCaseResultId
+     * @param {number} testSubResultId
+     * @return IPromise<Contracts.TestAttachmentReference>
+     */
+    createTestSubResultAttachment(attachmentRequestModel: Contracts.TestAttachmentRequestModel, project: string, runId: number, testCaseResultId: number, testSubResultId: number): IPromise<Contracts.TestAttachmentReference>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} testCaseResultId
+     * @param {number} attachmentId
+     * @return IPromise<void>
+     */
+    deleteTestResultAttachment(project: string, runId: number, testCaseResultId: number, attachmentId: number): IPromise<void>;
+    /**
+     * [Preview API] Returns a test result attachment
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} testCaseResultId
+     * @param {number} attachmentId
+     * @return IPromise<ArrayBuffer>
+     */
+    getTestResultAttachmentContent(project: string, runId: number, testCaseResultId: number, attachmentId: number): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} testCaseResultId
+     * @return IPromise<Contracts.TestAttachment[]>
+     */
+    getTestResultAttachments(project: string, runId: number, testCaseResultId: number): IPromise<Contracts.TestAttachment[]>;
+    /**
+     * [Preview API] Returns a test result attachment
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} testCaseResultId
+     * @param {number} attachmentId
+     * @return IPromise<ArrayBuffer>
+     */
+    getTestResultAttachmentZip(project: string, runId: number, testCaseResultId: number, attachmentId: number): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API] Returns a test sub result attachment
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} testCaseResultId
+     * @param {number} attachmentId
+     * @param {number} testSubResultId
+     * @return IPromise<ArrayBuffer>
+     */
+    getTestSubResultAttachmentContent(project: string, runId: number, testCaseResultId: number, attachmentId: number, testSubResultId: number): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API] Returns attachment references for test sub result.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} testCaseResultId
+     * @param {number} testSubResultId
+     * @return IPromise<Contracts.TestAttachment[]>
+     */
+    getTestSubResultAttachments(project: string, runId: number, testCaseResultId: number, testSubResultId: number): IPromise<Contracts.TestAttachment[]>;
+    /**
+     * [Preview API] Returns a test sub result attachment
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} testCaseResultId
+     * @param {number} attachmentId
+     * @param {number} testSubResultId
+     * @return IPromise<ArrayBuffer>
+     */
+    getTestSubResultAttachmentZip(project: string, runId: number, testCaseResultId: number, attachmentId: number, testSubResultId: number): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.TestAttachmentRequestModel} attachmentRequestModel
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @return IPromise<Contracts.TestAttachmentReference>
+     */
+    createTestRunAttachment(attachmentRequestModel: Contracts.TestAttachmentRequestModel, project: string, runId: number): IPromise<Contracts.TestAttachmentReference>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} attachmentId
+     * @return IPromise<void>
+     */
+    deleteTestRunAttachment(project: string, runId: number, attachmentId: number): IPromise<void>;
+    /**
+     * [Preview API] Returns a test run attachment
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} attachmentId
+     * @return IPromise<ArrayBuffer>
+     */
+    getTestRunAttachmentContent(project: string, runId: number, attachmentId: number): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @return IPromise<Contracts.TestAttachment[]>
+     */
+    getTestRunAttachments(project: string, runId: number): IPromise<Contracts.TestAttachment[]>;
+    /**
+     * [Preview API] Returns a test run attachment
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} attachmentId
+     * @return IPromise<ArrayBuffer>
+     */
+    getTestRunAttachmentZip(project: string, runId: number, attachmentId: number): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} testCaseResultId
+     * @return IPromise<Contracts.WorkItemReference[]>
+     */
+    getBugsLinkedToTestResult(project: string, runId: number, testCaseResultId: number): IPromise<Contracts.WorkItemReference[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId
+     * @param {number} flags
+     * @return IPromise<Contracts.BuildCoverage[]>
+     */
+    getBuildCodeCoverage(project: string, buildId: number, flags: number): IPromise<Contracts.BuildCoverage[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId
+     * @param {number} deltaBuildId
+     * @return IPromise<Contracts.CodeCoverageSummary>
+     */
+    getCodeCoverageSummary(project: string, buildId: number, deltaBuildId?: number): IPromise<Contracts.CodeCoverageSummary>;
+    /**
+     * [Preview API] http://(tfsserver):8080/tfs/DefaultCollection/_apis/test/CodeCoverage?buildId=10 Request: Json of code coverage summary
+     *
+     * @param {Contracts.CodeCoverageData} coverageData
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId
+     * @return IPromise<void>
+     */
+    updateCodeCoverageSummary(coverageData: Contracts.CodeCoverageData, project: string, buildId: number): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} flags
+     * @return IPromise<Contracts.TestRunCoverage[]>
+     */
+    getTestRunCodeCoverage(project: string, runId: number, flags: number): IPromise<Contracts.TestRunCoverage[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ResultsFilter} filter
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.TestResultHistory>
+     */
+    queryTestResultHistory(filter: Contracts.ResultsFilter, project: string): IPromise<Contracts.TestResultHistory>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId
+     * @param {string} publishContext
+     * @param {string} groupBy
+     * @param {string} filter
+     * @param {string} orderby
+     * @param {boolean} shouldIncludeResults
+     * @param {boolean} queryRunSummaryForInProgress
+     * @return IPromise<Contracts.TestResultsDetails>
+     */
+    getTestResultDetailsForBuild(project: string, buildId: number, publishContext?: string, groupBy?: string, filter?: string, orderby?: string, shouldIncludeResults?: boolean, queryRunSummaryForInProgress?: boolean): IPromise<Contracts.TestResultsDetails>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} releaseEnvId
+     * @param {string} publishContext
+     * @param {string} groupBy
+     * @param {string} filter
+     * @param {string} orderby
+     * @param {boolean} shouldIncludeResults
+     * @param {boolean} queryRunSummaryForInProgress
+     * @return IPromise<Contracts.TestResultsDetails>
+     */
+    getTestResultDetailsForRelease(project: string, releaseId: number, releaseEnvId: number, publishContext?: string, groupBy?: string, filter?: string, orderby?: string, shouldIncludeResults?: boolean, queryRunSummaryForInProgress?: boolean): IPromise<Contracts.TestResultsDetails>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.TestResultsQuery} query
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.TestResultsQuery>
+     */
+    getTestResultsByQuery(query: Contracts.TestResultsQuery, project: string): IPromise<Contracts.TestResultsQuery>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.TestCaseResult[]} results
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @return IPromise<Contracts.TestCaseResult[]>
+     */
+    addTestResultsToTestRun(results: Contracts.TestCaseResult[], project: string, runId: number): IPromise<Contracts.TestCaseResult[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {number} testResultId
+     * @param {Contracts.ResultDetails} detailsToInclude
+     * @return IPromise<Contracts.TestCaseResult>
+     */
+    getTestResultById(project: string, runId: number, testResultId: number, detailsToInclude?: Contracts.ResultDetails): IPromise<Contracts.TestCaseResult>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {Contracts.ResultDetails} detailsToInclude
+     * @param {number} skip
+     * @param {number} top
+     * @param {Contracts.TestOutcome[]} outcomes
+     * @return IPromise<Contracts.TestCaseResult[]>
+     */
+    getTestResults(project: string, runId: number, detailsToInclude?: Contracts.ResultDetails, skip?: number, top?: number, outcomes?: Contracts.TestOutcome[]): IPromise<Contracts.TestCaseResult[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.TestCaseResult[]} results
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @return IPromise<Contracts.TestCaseResult[]>
+     */
+    updateTestResults(results: Contracts.TestCaseResult[], project: string, runId: number): IPromise<Contracts.TestCaseResult[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} buildId
+     * @param {string} publishContext
+     * @param {boolean} includeFailureDetails
+     * @param {Contracts.BuildReference} buildToCompare
+     * @return IPromise<Contracts.TestResultSummary>
+     */
+    queryTestResultsReportForBuild(project: string, buildId: number, publishContext?: string, includeFailureDetails?: boolean, buildToCompare?: Contracts.BuildReference): IPromise<Contracts.TestResultSummary>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} releaseEnvId
+     * @param {string} publishContext
+     * @param {boolean} includeFailureDetails
+     * @param {Contracts.ReleaseReference} releaseToCompare
+     * @return IPromise<Contracts.TestResultSummary>
+     */
+    queryTestResultsReportForRelease(project: string, releaseId: number, releaseEnvId: number, publishContext?: string, includeFailureDetails?: boolean, releaseToCompare?: Contracts.ReleaseReference): IPromise<Contracts.TestResultSummary>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.ReleaseReference[]} releases
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.TestResultSummary[]>
+     */
+    queryTestResultsSummaryForReleases(releases: Contracts.ReleaseReference[], project: string): IPromise<Contracts.TestResultSummary[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.TestResultsContext} resultsContext
+     * @param {string} project - Project ID or project name
+     * @param {number[]} workItemIds
+     * @return IPromise<Contracts.TestSummaryForWorkItem[]>
+     */
+    queryTestSummaryByRequirement(resultsContext: Contracts.TestResultsContext, project: string, workItemIds?: number[]): IPromise<Contracts.TestSummaryForWorkItem[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.TestResultTrendFilter} filter
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.AggregatedDataForResultTrend[]>
+     */
+    queryResultTrendForBuild(filter: Contracts.TestResultTrendFilter, project: string): IPromise<Contracts.AggregatedDataForResultTrend[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.TestResultTrendFilter} filter
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.AggregatedDataForResultTrend[]>
+     */
+    queryResultTrendForRelease(filter: Contracts.TestResultTrendFilter, project: string): IPromise<Contracts.AggregatedDataForResultTrend[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @return IPromise<Contracts.TestRunStatistic>
+     */
+    getTestRunStatistics(project: string, runId: number): IPromise<Contracts.TestRunStatistic>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.RunCreateModel} testRun
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.TestRun>
+     */
+    createTestRun(testRun: Contracts.RunCreateModel, project: string): IPromise<Contracts.TestRun>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @return IPromise<void>
+     */
+    deleteTestRun(project: string, runId: number): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @param {boolean} includeDetails
+     * @return IPromise<Contracts.TestRun>
+     */
+    getTestRunById(project: string, runId: number, includeDetails?: boolean): IPromise<Contracts.TestRun>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} buildUri
+     * @param {string} owner
+     * @param {string} tmiRunId
+     * @param {number} planId
+     * @param {boolean} includeRunDetails
+     * @param {boolean} automated
+     * @param {number} skip
+     * @param {number} top
+     * @return IPromise<Contracts.TestRun[]>
+     */
+    getTestRuns(project: string, buildUri?: string, owner?: string, tmiRunId?: string, planId?: number, includeRunDetails?: boolean, automated?: boolean, skip?: number, top?: number): IPromise<Contracts.TestRun[]>;
+    /**
+     * [Preview API] Query Test Runs based on filters.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {Date} minLastUpdatedDate - Minimum Last Modified Date of run to be queried (Mandatory).
+     * @param {Date} maxLastUpdatedDate - Maximum Last Modified Date of run to be queried (Mandatory, difference between min and max date can be atmost 7 days).
+     * @param {Contracts.TestRunState} state - Current state of the Runs to be queried.
+     * @param {number[]} planIds - Plan Ids of the Runs to be queried, comma seperated list of valid ids.
+     * @param {boolean} isAutomated - Automation type of the Runs to be queried.
+     * @param {Contracts.TestRunPublishContext} publishContext - PublishContext of the Runs to be queried.
+     * @param {number[]} buildIds - Build Ids of the Runs to be queried, comma seperated list of valid ids.
+     * @param {number[]} buildDefIds - Build Definition Ids of the Runs to be queried, comma seperated list of valid ids.
+     * @param {string} branchName - Source Branch name of the Runs to be queried.
+     * @param {number[]} releaseIds - Release Ids of the Runs to be queried, comma seperated list of valid ids.
+     * @param {number[]} releaseDefIds - Release Definition Ids of the Runs to be queried, comma seperated list of valid ids.
+     * @param {number[]} releaseEnvIds - Release Environment Ids of the Runs to be queried, comma seperated list of valid ids.
+     * @param {number[]} releaseEnvDefIds - Release Environment Definition Ids of the Runs to be queried, comma seperated list of valid ids.
+     * @param {string} runTitle - Run Title of the Runs to be queried.
+     * @param {number} top - Number of runs to be queried. Limit is 100
+     * @param {string} continuationToken - continuationToken received from previous batch or null for first batch.
+     * @return IPromise<Contracts.TestRun[]>
+     */
+    queryTestRuns(project: string, minLastUpdatedDate: Date, maxLastUpdatedDate: Date, state?: Contracts.TestRunState, planIds?: number[], isAutomated?: boolean, publishContext?: Contracts.TestRunPublishContext, buildIds?: number[], buildDefIds?: number[], branchName?: string, releaseIds?: number[], releaseDefIds?: number[], releaseEnvIds?: number[], releaseEnvDefIds?: number[], runTitle?: string, top?: number, continuationToken?: string): IPromise<Contracts.TestRun[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.RunUpdateModel} runUpdateModel
+     * @param {string} project - Project ID or project name
+     * @param {number} runId
+     * @return IPromise<Contracts.TestRun>
+     */
+    updateTestRun(runUpdateModel: Contracts.RunUpdateModel, project: string, runId: number): IPromise<Contracts.TestRun>;
+    /**
+     * [Preview API] Get history of a test method using TestHistoryQuery
+     *
+     * @param {Contracts.TestHistoryQuery} filter - TestHistoryQuery to get history
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.TestHistoryQuery>
+     */
+    queryTestHistory(filter: Contracts.TestHistoryQuery, project: string): IPromise<Contracts.TestHistoryQuery>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.TestSettings} testSettings
+     * @param {string} project - Project ID or project name
+     * @return IPromise<number>
+     */
+    createTestSettings(testSettings: Contracts.TestSettings, project: string): IPromise<number>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} testSettingsId
+     * @return IPromise<void>
+     */
+    deleteTestSettings(project: string, testSettingsId: number): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} testSettingsId
+     * @return IPromise<Contracts.TestSettings>
+     */
+    getTestSettingsById(project: string, testSettingsId: number): IPromise<Contracts.TestSettings>;
+    /**
+     * [Preview API]
+     *
+     * @param {Contracts.WorkItemToTestLinks} workItemToTestLinks
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemToTestLinks>
+     */
+    addWorkItemToTestLinks(workItemToTestLinks: Contracts.WorkItemToTestLinks, project: string): IPromise<Contracts.WorkItemToTestLinks>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} testName
+     * @param {number} workItemId
+     * @return IPromise<boolean>
+     */
+    deleteTestMethodToWorkItemLink(project: string, testName: string, workItemId: number): IPromise<boolean>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} testName
+     * @return IPromise<Contracts.TestToWorkItemLinks>
+     */
+    queryTestMethodLinkedWorkItems(project: string, testName: string): IPromise<Contracts.TestToWorkItemLinks>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} workItemCategory
+     * @param {string} automatedTestName
+     * @param {number} testCaseId
+     * @param {Date} maxCompleteDate
+     * @param {number} days
+     * @param {number} workItemCount
+     * @return IPromise<Contracts.WorkItemReference[]>
+     */
+    queryTestResultWorkItems(project: string, workItemCategory: string, automatedTestName?: string, testCaseId?: number, maxCompleteDate?: Date, days?: number, workItemCount?: number): IPromise<Contracts.WorkItemReference[]>;
+}
+export class TestResultsHttpClient extends TestResultsHttpClient5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * Gets an http client targeting the latest released version of the APIs.
+ *
+ * @return TestResultsHttpClient5
+ */
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TestResultsHttpClient5;
+}
 declare module "TFS/VersionControl/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\sourcecontrol\clientgeneratorconfigs\genclient.json
+ */
 import TFS_Core_Contracts = require("TFS/Core/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 export interface AssociatedWorkItem {
@@ -20363,7 +24240,7 @@ export enum CommentThreadStatus {
     /**
      * The thread status is pending.
      */
-    Pending = 6,
+    Pending = 6
 }
 /**
  * Comment tracking criteria is used to identify which iteration context the thread has been tracked to (if any) along with some detail about the original position and filename.
@@ -20417,7 +24294,7 @@ export enum CommentType {
     /**
      * The comment represents a system message.
      */
-    System = 3,
+    System = 3
 }
 /**
  * Real time event (SignalR) for a completion errors on a pull request
@@ -20491,7 +24368,7 @@ export enum GitAsyncOperationStatus {
     /**
      * The operation has been abandoned.
      */
-    Abandoned = 5,
+    Abandoned = 5
 }
 export interface GitAsyncRefOperation {
     _links: any;
@@ -20576,7 +24453,7 @@ export enum GitAsyncRefOperationFailureStatus {
     /**
      * Initiator of async operation has signature with empty name or email
      */
-    EmptyCommitterSignature = 10,
+    EmptyCommitterSignature = 10
 }
 /**
  * Parameters that are provided in the request body when requesting to cherry pick or revert.
@@ -20684,7 +24561,6 @@ export interface GitCherryPick extends GitAsyncRefOperation {
     cherryPickId: number;
 }
 export interface GitCommit extends GitCommitRef {
-    push: GitPushRef;
     treeId: string;
 }
 export interface GitCommitChanges {
@@ -20743,6 +24619,10 @@ export interface GitCommitRef {
      * An enumeration of the parent commit IDs for this commit.
      */
     parents: string[];
+    /**
+     * The push associated with this commit.
+     */
+    push: GitPushRef;
     /**
      * Remote URL path to the commit.
      */
@@ -20963,7 +24843,7 @@ export enum GitConflictType {
     /**
      * Rename destination on both source and target; content differs
      */
-    RenameRename = 14,
+    RenameRename = 14
 }
 export interface GitConflictUpdateResult {
     /**
@@ -21006,7 +24886,7 @@ export enum GitConflictUpdateStatus {
     /**
      * Indicates that the conflict could not be found
      */
-    NotFound = 4,
+    NotFound = 4
 }
 export interface GitDeletedRepository {
     createdDate: Date;
@@ -21083,6 +24963,8 @@ export interface GitForkSyncRequestParameters {
      */
     sourceToTargetRefs: SourceToTargetRef[];
 }
+export interface GitForkTeamProjectReference extends TFS_Core_Contracts.TeamProjectReference {
+}
 /**
  * Accepted types of version
  */
@@ -21102,7 +24984,7 @@ export enum GitHistoryMode {
     /**
      * The history mode used by `git log --full-history --simplify-merges`
      */
-    FullHistorySimplifyMerges = 3,
+    FullHistorySimplifyMerges = 3
 }
 export interface GitImportFailedEvent {
     sourceRepositoryName: string;
@@ -21323,7 +25205,7 @@ export enum GitObjectType {
     Tag = 4,
     Ext2 = 5,
     OfsDelta = 6,
-    RefDelta = 7,
+    RefDelta = 7
 }
 export interface GitPathAction {
     action: GitPathActions;
@@ -21337,7 +25219,7 @@ export enum GitPathActions {
     Edit = 1,
     Delete = 2,
     Add = 3,
-    Rename = 4,
+    Rename = 4
 }
 export interface GitPathToItemsCollection {
     items: {
@@ -21400,6 +25282,10 @@ export interface GitPullRequest {
      * If this is a PR from a fork this will contain information about its source.
      */
     forkSource: GitForkRef;
+    /**
+     * Draft / WIP pull request.
+     */
+    isDraft: boolean;
     /**
      * The labels associated with the pull request.
      */
@@ -21590,6 +25476,14 @@ export interface GitPullRequestIteration {
      */
     id: number;
     /**
+     * If the iteration reason is Retarget, this is the refName of the new target
+     */
+    newTargetRefName: string;
+    /**
+     * If the iteration reason is Retarget, this is the original target refName
+     */
+    oldTargetRefName: string;
+    /**
      * The Git push information associated with this pull request iteration.
      */
     push: GitPushRef;
@@ -21678,9 +25572,9 @@ export enum GitPullRequestQueryType {
      */
     LastMergeCommit = 1,
     /**
-     * Search for pull requests that merged the suppliest commits.
+     * Search for pull requests that merged the supplied commits.
      */
-    Commit = 2,
+    Commit = 2
 }
 export interface GitPullRequestReviewFileContentInfo {
     _links: any;
@@ -21695,7 +25589,7 @@ export interface GitPullRequestReviewFileContentInfo {
 }
 export enum GitPullRequestReviewFileType {
     ChangeEntry = 0,
-    Attachment = 1,
+    Attachment = 1
 }
 /**
  * Pull requests can be searched for matching this criteria.
@@ -21726,7 +25620,7 @@ export interface GitPullRequestSearchCriteria {
      */
     sourceRepositoryId: string;
     /**
-     * If set, search for pull requests that are in this state.
+     * If set, search for pull requests that are in this state. Defaults to Active if unset.
      */
     status: PullRequestStatus;
     /**
@@ -21796,11 +25690,11 @@ export interface GitQueryCommitsCriteria {
      */
     author: string;
     /**
-     * If provided, the earliest commit in the graph to search
+     * Only applicable when ItemVersion specified. If provided, start walking history starting at this commit.
      */
     compareVersion: GitVersionDescriptor;
     /**
-     * If true, don't include delete history entries
+     * Only applies when an itemPath is specified. This determines whether to exclude delete entries of the specified path.
      */
     excludeDeletes: boolean;
     /**
@@ -21812,7 +25706,7 @@ export interface GitQueryCommitsCriteria {
      */
     fromDate: string;
     /**
-     * What Git history mode should be used. This only applies to the search criteria when Ids = null.
+     * What Git history mode should be used. This only applies to the search criteria when Ids = null and an itemPath is specified.
      */
     historyMode: GitHistoryMode;
     /**
@@ -21823,6 +25717,10 @@ export interface GitQueryCommitsCriteria {
      * Whether to include the _links field on the shallow references
      */
     includeLinks: boolean;
+    /**
+     * Whether to include the push information
+     */
+    includePushData: boolean;
     /**
      * Whether to include the image Url for committers and authors
      */
@@ -21898,7 +25796,7 @@ export interface GitRefFavorite {
 export enum GitRefSearchType {
     Exact = 0,
     StartsWith = 1,
-    Contains = 2,
+    Contains = 2
 }
 export interface GitRefUpdate {
     isLocked: boolean;
@@ -21918,7 +25816,7 @@ export enum GitRefUpdateMode {
     /**
      * Indicates that all ref updates must succeed or none will succeed. All ref updates will be atomically written. If any failure is encountered, previously successful updates will be rolled back and the entire operation will fail.
      */
-    AllOrNone = 1,
+    AllOrNone = 1
 }
 export interface GitRefUpdateResult {
     /**
@@ -22025,7 +25923,7 @@ export enum GitRefUpdateStatus {
     /**
      * Indicates that the ref update request was completed successfully, but the passed-in ref was corrupt - as in, the old object ID was bad.  This should only happen during deletes.
      */
-    SucceededCorruptRef = 15,
+    SucceededCorruptRef = 15
 }
 export interface GitRepository {
     _links: any;
@@ -22039,6 +25937,10 @@ export interface GitRepository {
     parentRepository: GitRepositoryRef;
     project: TFS_Core_Contracts.TeamProjectReference;
     remoteUrl: string;
+    /**
+     * Compressed size (bytes) of the repository.
+     */
+    size: number;
     sshUrl: string;
     url: string;
     validRemoteUrls: string[];
@@ -22101,7 +26003,7 @@ export enum GitResolutionError {
     /**
      * Any error for which a more specific code doesn't apply
      */
-    OtherError = 255,
+    OtherError = 255
 }
 export interface GitResolutionMergeContent {
     mergeType: GitResolutionMergeType;
@@ -22113,7 +26015,7 @@ export enum GitResolutionMergeType {
     TakeSourceContent = 1,
     TakeTargetContent = 2,
     AutoMerged = 3,
-    UserMerged = 4,
+    UserMerged = 4
 }
 export interface GitResolutionPathConflict {
     action: GitResolutionPathConflictAction;
@@ -22124,7 +26026,7 @@ export enum GitResolutionPathConflictAction {
     KeepSourceRenameTarget = 1,
     KeepSourceDeleteTarget = 2,
     KeepTargetRenameSource = 3,
-    KeepTargetDeleteSource = 4,
+    KeepTargetDeleteSource = 4
 }
 export interface GitResolutionPickOneAction {
     action: GitResolutionWhichAction;
@@ -22136,7 +26038,7 @@ export enum GitResolutionRename1to2Action {
     Undecided = 0,
     KeepSourcePath = 1,
     KeepTargetPath = 2,
-    KeepBothFiles = 3,
+    KeepBothFiles = 3
 }
 /**
  * Resolution status of a conflict.
@@ -22144,12 +26046,12 @@ export enum GitResolutionRename1to2Action {
 export enum GitResolutionStatus {
     Unresolved = 0,
     PartiallyResolved = 1,
-    Resolved = 2,
+    Resolved = 2
 }
 export enum GitResolutionWhichAction {
     Undecided = 0,
     PickSourceAction = 1,
-    PickTargetAction = 2,
+    PickTargetAction = 2
 }
 export interface GitRevert extends GitAsyncRefOperation {
     revertId: number;
@@ -22235,7 +26137,7 @@ export enum GitStatusState {
     /**
      * Status is not applicable to the target object.
      */
-    NotApplicable = 5,
+    NotApplicable = 5
 }
 /**
  * An object describing the git suggestion.  Git suggestions are currently limited to suggested pull requests.
@@ -22418,7 +26320,7 @@ export enum GitVersionOptions {
     /**
      * First parent of commit (HEAD^)
      */
-    FirstParent = 2,
+    FirstParent = 2
 }
 /**
  * Accepted types of version
@@ -22435,7 +26337,7 @@ export enum GitVersionType {
     /**
      * Interpret the version as a commit ID (SHA1)
      */
-    Commit = 2,
+    Commit = 2
 }
 /**
  * Globally unique key for a repository.
@@ -22501,13 +26403,18 @@ export interface IncludedGitCommit {
     parentCommitIds: string[];
     repositoryId: string;
 }
+/**
+ * Real time event (SignalR) for IsDraft update on a pull request
+ */
+export interface IsDraftUpdatedEvent extends RealTimePullRequestEvent {
+}
 export interface ItemContent {
     content: string;
     contentType: ItemContentType;
 }
 export enum ItemContentType {
     RawText = 0,
-    Base64Encoded = 1,
+    Base64Encoded = 1
 }
 /**
  * Optional details to include when returning an item model
@@ -22540,6 +26447,7 @@ export enum IterationReason {
     Create = 2,
     Rebase = 4,
     Unknown = 8,
+    Retarget = 16
 }
 /**
  * Real time event (SignalR) for updated labels on a pull request
@@ -22583,7 +26491,7 @@ export enum PullRequestAsyncStatus {
     /**
      * Pull request merge failed.
      */
-    Failure = 5,
+    Failure = 5
 }
 /**
  * Real time event (SignalR) for pull request creation
@@ -22609,7 +26517,7 @@ export enum PullRequestMergeFailureType {
     /**
      * Pull request merge failed due to an object being too large.
      */
-    ObjectTooLarge = 3,
+    ObjectTooLarge = 3
 }
 /**
  * Status of a pull request.
@@ -22634,7 +26542,7 @@ export enum PullRequestStatus {
     /**
      * Used in pull request search criterias to include all statuses.
      */
-    All = 4,
+    All = 4
 }
 /**
  * Initial config contract sent to extensions creating tabs on the pull request page
@@ -22659,7 +26567,12 @@ export interface RealTimePullRequestEvent {
 export enum RefFavoriteType {
     Invalid = 0,
     Folder = 1,
-    Ref = 2,
+    Ref = 2
+}
+/**
+ * Real time event (SignalR) for when the target branch of a pull request is changed
+ */
+export interface RetargetEvent extends RealTimePullRequestEvent {
 }
 /**
  * Real time event (SignalR) for an update to reviewers on a pull request
@@ -22756,7 +26669,8 @@ export enum SupportedIdeType {
     RubyMine = 9,
     Tower = 10,
     VisualStudio = 11,
-    WebStorm = 12,
+    VSCode = 14,
+    WebStorm = 12
 }
 export interface TfvcBranch extends TfvcBranchRef {
     /**
@@ -22964,6 +26878,10 @@ export interface TfvcItem extends ItemModel {
     changeDate: Date;
     deletionId: number;
     /**
+     * File encoding from database, -1 represents binary.
+     */
+    encoding: number;
+    /**
      * MD5 hash as a base 64 string, applies to files only.
      */
     hashValue: string;
@@ -23114,6 +27032,16 @@ export interface TfvcShelvesetRequestData {
      */
     owner: string;
 }
+export interface TfvcStatistics {
+    /**
+     * Id of the last changeset the stats are based on.
+     */
+    changesetId: number;
+    /**
+     * Count of files at the requested scope.
+     */
+    fileCountTotal: number;
+}
 export interface TfvcVersionDescriptor {
     version: string;
     versionOption: TfvcVersionOption;
@@ -23122,7 +27050,7 @@ export interface TfvcVersionDescriptor {
 export enum TfvcVersionOption {
     None = 0,
     Previous = 1,
-    UseRename = 2,
+    UseRename = 2
 }
 export enum TfvcVersionType {
     None = 0,
@@ -23132,7 +27060,7 @@ export enum TfvcVersionType {
     Date = 4,
     Latest = 5,
     Tip = 6,
-    MergeSource = 7,
+    MergeSource = 7
 }
 /**
  * Real time event (SignalR) for a title/description update on a pull request
@@ -23158,7 +27086,7 @@ export enum VersionControlChangeType {
     SourceRename = 1024,
     TargetRename = 2048,
     Property = 4096,
-    All = 8191,
+    All = 8191
 }
 export interface VersionControlProjectInfo {
     defaultSourceControlType: TFS_Core_Contracts.SourceControlTypes;
@@ -23182,7 +27110,7 @@ export enum VersionControlRecursionType {
     /**
      * Return specified item and all descendants
      */
-    Full = 120,
+    Full = 120
 }
 export var TypeInfo: {
     Attachment: any;
@@ -23293,6 +27221,7 @@ export var TypeInfo: {
     GitDeletedRepository: any;
     GitForkRef: any;
     GitForkSyncRequest: any;
+    GitForkTeamProjectReference: any;
     GitHistoryMode: {
         enumValues: {
             "simplifiedHistory": number;
@@ -23506,6 +27435,7 @@ export var TypeInfo: {
             "create": number;
             "rebase": number;
             "unknown": number;
+            "retarget": number;
         };
     };
     PullRequestAsyncStatus: {
@@ -23558,6 +27488,7 @@ export var TypeInfo: {
             "rubyMine": number;
             "tower": number;
             "visualStudio": number;
+            "vSCode": number;
             "webStorm": number;
         };
     };
@@ -23628,6 +27559,8 @@ export var TypeInfo: {
 };
 }
 declare module "TFS/VersionControl/Controls" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VersionControlControls" />
+/// <amd-dependency path="VSS/LoaderPlugins/Css!Presentation/Components/PivotView" />
 import Contracts_Platform = require("VSS/Common/Contracts/Platform");
 import VCContracts = require("TFS/VersionControl/Contracts");
 export namespace HistoryListColumnKeys {
@@ -23804,6 +27737,17 @@ export module GitVersionSelector {
 }
 }
 declare module "TFS/VersionControl/GitRestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\sourcecontrol\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("TFS/VersionControl/Contracts");
 import TFS_Core_Contracts = require("TFS/Core/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
@@ -23898,7 +27842,7 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     /**
      * Create a git repository in a team project.
      *
-     * @param {Contracts.GitRepositoryCreateOptions} gitRepositoryToCreate - Specify the repo name, team project and/or parent repository
+     * @param {Contracts.GitRepositoryCreateOptions} gitRepositoryToCreate - Specify the repo name, team project and/or parent repository. Team project information can be ommitted from gitRepositoryToCreate if the request is project-scoped (i.e., includes project Id).
      * @param {string} project - Project ID or project name
      * @param {string} sourceRef - [optional] Specify the source refs to use while creating a fork repo
      * @return IPromise<Contracts.GitRepository>
@@ -23930,15 +27874,16 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      *
      * @param {string} repositoryId - The name or ID of the repository.
      * @param {string} project - Project ID or project name
-     * @param {string} filter - [optional] A filter to apply to the refs.
+     * @param {string} filter - [optional] A filter to apply to the refs (starts with).
      * @param {boolean} includeLinks - [optional] Specifies if referenceLinks should be included in the result. default is false.
      * @param {boolean} includeStatuses - [optional] Includes up to the first 1000 commit statuses for each ref. The default value is false.
      * @param {boolean} includeMyBranches - [optional] Includes only branches that the user owns, the branches the user favorites, and the default branch. The default value is false. Cannot be combined with the filter parameter.
      * @param {boolean} latestStatusesOnly - [optional] True to include only the tip commit status for each ref. This option requires `includeStatuses` to be true. The default value is false.
      * @param {boolean} peelTags - [optional] Annotated tags will populate the PeeledObjectId property. default is false.
+     * @param {string} filterContains - [optional] A filter to apply to the refs (contains).
      * @return IPromise<Contracts.GitRef[]>
      */
-    getRefs(repositoryId: string, project?: string, filter?: string, includeLinks?: boolean, includeStatuses?: boolean, includeMyBranches?: boolean, latestStatusesOnly?: boolean, peelTags?: boolean): IPromise<Contracts.GitRef[]>;
+    getRefs(repositoryId: string, project?: string, filter?: string, includeLinks?: boolean, includeStatuses?: boolean, includeMyBranches?: boolean, latestStatusesOnly?: boolean, peelTags?: boolean, filterContains?: string): IPromise<Contracts.GitRef[]>;
     /**
      * Retrieves pushes associated with the specified repository.
      *
@@ -24236,15 +28181,15 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      */
     getCommit(commitId: string, repositoryId: string, project?: string, changeCount?: number): IPromise<Contracts.GitCommit>;
     /**
-     * Get a list of differences between two commits.
+     * Find the closest common commit (the merge base) between base and target commits, and get the diff between either the base and target commits or common and target commits.
      *
      * @param {string} repositoryId - The name or ID of the repository.
      * @param {string} project - Project ID or project name
-     * @param {boolean} diffCommonCommit
+     * @param {boolean} diffCommonCommit - If true, diff between common and target commits. If false, diff between base and target commits.
      * @param {number} top - Maximum number of changes to return. Defaults to 100.
      * @param {number} skip - Number of changes to skip
-     * @param {Contracts.GitBaseVersionDescriptor} baseVersionDescriptor - Base item version. Compared against target item version to find changes in between.
-     * @param {Contracts.GitTargetVersionDescriptor} targetVersionDescriptor - Target item version to use for finding the diffs. Compared against base item version to find changes in between.
+     * @param {Contracts.GitBaseVersionDescriptor} baseVersionDescriptor - Descriptor for base commit.
+     * @param {Contracts.GitTargetVersionDescriptor} targetVersionDescriptor - Descriptor for target commit.
      * @return IPromise<Contracts.GitCommitDiffs>
      */
     getCommitDiffs(repositoryId: string, project?: string, diffCommonCommit?: boolean, top?: number, skip?: number, baseVersionDescriptor?: Contracts.GitBaseVersionDescriptor, targetVersionDescriptor?: Contracts.GitTargetVersionDescriptor): IPromise<Contracts.GitCommitDiffs>;
@@ -24293,9 +28238,10 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * @param {string} project - Project ID or project name
      * @param {boolean} download - If true, prompt for a download rather than rendering in a browser. Note: this value defaults to true if $format is zip
      * @param {string} fileName - Provide a fileName to use for a download.
+     * @param {boolean} resolveLfs - If true, try to resolve a blob to its LFS contents, if it's an LFS pointer file. Only compatible with octet-stream Accept headers or $format types
      * @return IPromise<ArrayBuffer>
      */
-    getBlobZip(repositoryId: string, sha1: string, project?: string, download?: boolean, fileName?: string): IPromise<ArrayBuffer>;
+    getBlobZip(repositoryId: string, sha1: string, project?: string, download?: boolean, fileName?: string, resolveLfs?: boolean): IPromise<ArrayBuffer>;
     /**
      * Gets one or more blobs in a zip file download.
      *
@@ -24314,9 +28260,10 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * @param {string} project - Project ID or project name
      * @param {boolean} download - If true, prompt for a download rather than rendering in a browser. Note: this value defaults to true if $format is zip
      * @param {string} fileName - Provide a fileName to use for a download.
+     * @param {boolean} resolveLfs - If true, try to resolve a blob to its LFS contents, if it's an LFS pointer file. Only compatible with octet-stream Accept headers or $format types
      * @return IPromise<ArrayBuffer>
      */
-    getBlobContent(repositoryId: string, sha1: string, project?: string, download?: boolean, fileName?: string): IPromise<ArrayBuffer>;
+    getBlobContent(repositoryId: string, sha1: string, project?: string, download?: boolean, fileName?: string, resolveLfs?: boolean): IPromise<ArrayBuffer>;
     /**
      * Get a single blob.
      *
@@ -24325,9 +28272,10 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * @param {string} project - Project ID or project name
      * @param {boolean} download - If true, prompt for a download rather than rendering in a browser. Note: this value defaults to true if $format is zip
      * @param {string} fileName - Provide a fileName to use for a download.
+     * @param {boolean} resolveLfs - If true, try to resolve a blob to its LFS contents, if it's an LFS pointer file. Only compatible with octet-stream Accept headers or $format types
      * @return IPromise<Contracts.GitBlobRef>
      */
-    getBlob(repositoryId: string, sha1: string, project?: string, download?: boolean, fileName?: string): IPromise<Contracts.GitBlobRef>;
+    getBlob(repositoryId: string, sha1: string, project?: string, download?: boolean, fileName?: string, resolveLfs?: boolean): IPromise<Contracts.GitBlobRef>;
 }
 export class CommonMethods2_1To5 extends CommonMethods2To5 {
     protected pullRequestCommitsApiVersion: string;
@@ -24539,7 +28487,7 @@ export class CommonMethods3To5 extends CommonMethods2_2To5 {
      * Update a comment associated with a specific thread in a pull request.
      *
      * @param {Contracts.Comment} comment - The comment content that should be updated.
-     * @param {string} repositoryId - The repository ID of the pull request’s target branch.
+     * @param {string} repositoryId - The repository ID of the pull request's target branch.
      * @param {number} pullRequestId - ID of the pull request.
      * @param {number} threadId - ID of the thread that the desired comment is in.
      * @param {number} commentId - ID of the comment to update.
@@ -24550,7 +28498,7 @@ export class CommonMethods3To5 extends CommonMethods2_2To5 {
     /**
      * Retrieve all comments associated with a specific thread in a pull request.
      *
-     * @param {string} repositoryId - The repository ID of the pull request’s target branch.
+     * @param {string} repositoryId - The repository ID of the pull request's target branch.
      * @param {number} pullRequestId - ID of the pull request.
      * @param {number} threadId - ID of the thread.
      * @param {string} project - Project ID or project name
@@ -24560,7 +28508,7 @@ export class CommonMethods3To5 extends CommonMethods2_2To5 {
     /**
      * Retrieve a comment associated with a specific thread in a pull request.
      *
-     * @param {string} repositoryId - The repository ID of the pull request’s target branch.
+     * @param {string} repositoryId - The repository ID of the pull request's target branch.
      * @param {number} pullRequestId - ID of the pull request.
      * @param {number} threadId - ID of the thread that the desired comment is in.
      * @param {number} commentId - ID of the comment.
@@ -24571,7 +28519,7 @@ export class CommonMethods3To5 extends CommonMethods2_2To5 {
     /**
      * Delete a comment associated with a specific thread in a pull request.
      *
-     * @param {string} repositoryId - The repository ID of the pull request’s target branch.
+     * @param {string} repositoryId - The repository ID of the pull request's target branch.
      * @param {number} pullRequestId - ID of the pull request.
      * @param {number} threadId - ID of the thread that the desired comment is in.
      * @param {number} commentId - ID of the comment.
@@ -24583,7 +28531,7 @@ export class CommonMethods3To5 extends CommonMethods2_2To5 {
      * Create a comment on a specific thread in a pull request.
      *
      * @param {Contracts.Comment} comment - The comment to create.
-     * @param {string} repositoryId - The repository ID of the pull request’s target branch.
+     * @param {string} repositoryId - The repository ID of the pull request's target branch.
      * @param {number} pullRequestId - ID of the pull request.
      * @param {number} threadId - ID of the thread that the desired comment is in.
      * @param {string} project - Project ID or project name
@@ -25040,7 +28988,7 @@ export class CommonMethods4To5 extends CommonMethods3_1To5 {
     /**
      * [Preview API] Get likes for a comment.
      *
-     * @param {string} repositoryId - The repository ID of the pull request’s target branch.
+     * @param {string} repositoryId - The repository ID of the pull request's target branch.
      * @param {number} pullRequestId - ID of the pull request.
      * @param {number} threadId - The ID of the thread that contains the comment.
      * @param {number} commentId - The ID of the comment.
@@ -25051,7 +28999,7 @@ export class CommonMethods4To5 extends CommonMethods3_1To5 {
     /**
      * [Preview API] Delete a like on a comment.
      *
-     * @param {string} repositoryId - The repository ID of the pull request’s target branch.
+     * @param {string} repositoryId - The repository ID of the pull request's target branch.
      * @param {number} pullRequestId - ID of the pull request.
      * @param {number} threadId - The ID of the thread that contains the comment.
      * @param {number} commentId - The ID of the comment.
@@ -25062,7 +29010,7 @@ export class CommonMethods4To5 extends CommonMethods3_1To5 {
     /**
      * [Preview API] Add a like on a comment.
      *
-     * @param {string} repositoryId - The repository ID of the pull request’s target branch.
+     * @param {string} repositoryId - The repository ID of the pull request's target branch.
      * @param {number} pullRequestId - ID of the pull request.
      * @param {number} threadId - The ID of the thread that contains the comment.
      * @param {number} commentId - The ID of the comment.
@@ -25244,7 +29192,8 @@ export class GitHttpClient extends GitHttpClient5 {
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): GitHttpClient4_1;
 }
 declare module "TFS/VersionControl/Services" {
-import Contracts_Platform = require("VSS/Common/Contracts/Platform");
+import * as Contracts_Platform from "VSS/Common/Contracts/Platform";
+import { GitRepository } from "TFS/VersionControl/Contracts";
 /**
 * Host service for common code actions
 */
@@ -25269,8 +29218,38 @@ export module VersionControlActionService {
     */
     function getService(webContext?: Contracts_Platform.WebContext): IPromise<IVersionControlActionService>;
 }
+/**
+ * Host service for accessing repository information.
+ */
+export interface IVersionControlRepositoryService {
+    /**
+     * Gets the currently selected Git repository. Returns null if a Git repository is not currently selected.
+     */
+    getCurrentGitRepository(): IPromise<GitRepository>;
+}
+export module VersionControlRepositoryService {
+    var contributionId: string;
+    var fullyQualifiedContributionId: string;
+    /**
+    * Get an instance of the host version control service
+    *
+    * @param webContext Optional web context to scope the service to
+    */
+    function getService(webContext?: WebContext): IPromise<IVersionControlRepositoryService>;
+}
 }
 declare module "TFS/VersionControl/TfvcRestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\sourcecontrol\clientgeneratorconfigs\genclient.json
+ */
 import TFS_VersionControl_Contracts = require("TFS/VersionControl/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
@@ -25286,6 +29265,7 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     protected shelvesetChangesApiVersion: string;
     protected shelvesetsApiVersion: string;
     protected shelvesetWorkItemsApiVersion: string;
+    protected statsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
      * Get work items associated with a shelveset.
@@ -25825,6 +29805,17 @@ export interface ChangeListSourceItemContext {
 }
 }
 declare module "TFS/Wiki/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\wiki\clientgeneratorconfigs\genclient.json
+ */
 import TFS_VersionControl_Contracts = require("TFS/VersionControl/Contracts");
 /**
  * Defines a wiki repository which encapsulates the git repository backing the wiki.
@@ -26036,7 +30027,7 @@ export interface WikiPageViewStats {
  */
 export enum WikiType {
     ProjectWiki = 0,
-    CodeWiki = 1,
+    CodeWiki = 1
 }
 export interface WikiUpdatedNotificationMessage {
     /**
@@ -26056,6 +30047,10 @@ export interface WikiUpdatedNotificationMessage {
  * Wiki update parameters.
  */
 export interface WikiUpdateParameters {
+    /**
+     * Name for wiki.
+     */
+    name: string;
     /**
      * Versions of the wiki.
      */
@@ -26104,6 +30099,17 @@ export var TypeInfo: {
 };
 }
 declare module "TFS/Wiki/WikiRestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\wiki\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("TFS/Wiki/Contracts");
 import TFS_VersionControl_Contracts = require("TFS/VersionControl/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -26382,10 +30388,10 @@ export class WorkItemTrackingHttpBatchClient extends VSS_WebApi.VssHttpClient {
      * @return IPromise<JsonHttpBatchResponse>
      */
     getQueriesBatch(ids: string[]): IPromise<JsonHttpBatchResponse>;
-    private _createBatchRequests(ids, httpMethod, resource, body?);
-    private _createBatchRequest(id, httpMethod, resource, body?);
-    private _beginBatchRequest(requests);
-    private _beginQueryBatchRequest(requests);
+    private _createBatchRequests;
+    private _createBatchRequest;
+    private _beginBatchRequest;
+    private _beginQueryBatchRequest;
 }
 /**
  * Gets an http client targeting the latest released version of the APIs.
@@ -26395,6 +30401,17 @@ export class WorkItemTrackingHttpBatchClient extends VSS_WebApi.VssHttpClient {
 export function getClient(): WorkItemTrackingHttpBatchClient;
 }
 declare module "TFS/WorkItemTracking/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\workitemtracking\clientgeneratorconfigs\genclient.json
+ */
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 export interface AccountMyWorkResult {
     /**
@@ -26522,11 +30539,11 @@ export interface AttachmentReference {
  */
 export enum ClassificationNodesErrorPolicy {
     Fail = 1,
-    Omit = 2,
+    Omit = 2
 }
 export enum CommentSortOrder {
     Asc = 1,
-    Desc = 2,
+    Desc = 2
 }
 /**
  * Describes a list of dependent fields for a rule.
@@ -26621,7 +30638,7 @@ export enum FieldType {
     /**
      * Double picklist field type.
      */
-    PicklistDouble = 13,
+    PicklistDouble = 13
 }
 /**
  * Enum for field usages.
@@ -26646,7 +30663,7 @@ export enum FieldUsage {
     /**
      * Work Item Type Extension usage.
      */
-    WorkItemTypeExtension = 4,
+    WorkItemTypeExtension = 4
 }
 /**
  * Flag to expand types of fields.
@@ -26659,7 +30676,7 @@ export enum GetFieldsExpand {
     /**
      * Adds extension fields to the response.
      */
-    ExtensionFields = 1,
+    ExtensionFields = 1
 }
 /**
  * Describes a reference to an identity.
@@ -26690,10 +30707,6 @@ export interface Link {
      */
     url: string;
 }
-export enum LinkChangeType {
-    Create = 0,
-    Remove = 1,
-}
 /**
  * The link query mode which determines the behavior of the query.
  */
@@ -26716,12 +30729,12 @@ export enum LinkQueryMode {
      * Returns work items a hierarchy of work items that by default satisfy the source
      */
     LinksRecursiveMayContain = 5,
-    LinksRecursiveDoesNotContain = 6,
+    LinksRecursiveDoesNotContain = 6
 }
 export enum LogicalOperation {
     NONE = 0,
     AND = 1,
-    OR = 2,
+    OR = 2
 }
 /**
  * Project work item type state colors
@@ -26741,7 +30754,7 @@ export interface ProjectWorkItemStateColors {
  */
 export enum ProvisioningActionType {
     Import = 0,
-    Validate = 1,
+    Validate = 1
 }
 /**
  * Result of an update work item type XML update operation.
@@ -26775,7 +30788,7 @@ export enum QueryExpand {
     /**
      * Displays minimal properties and the WIQL text
      */
-    Minimal = 4,
+    Minimal = 4
 }
 /**
  * Represents an item in the work item query hierarchy. This can be either a query or a folder.
@@ -26899,7 +30912,7 @@ export interface QueryHierarchyItemsResult {
 export enum QueryOption {
     Doing = 1,
     Done = 2,
-    Followed = 3,
+    Followed = 3
 }
 /**
  * Determines whether a tree query matches parents or children first.
@@ -26912,7 +30925,7 @@ export enum QueryRecursionOption {
     /**
      * Returns work items that satisfy the target criteria, even if no work item satisfies the source and link criteria.
      */
-    ChildFirst = 1,
+    ChildFirst = 1
 }
 /**
  * The query result type
@@ -26925,7 +30938,7 @@ export enum QueryResultType {
     /**
      * A list of work item links (for OneHop and Tree queries).
      */
-    WorkItemLink = 2,
+    WorkItemLink = 2
 }
 /**
  * The type of query.
@@ -26942,24 +30955,13 @@ export enum QueryType {
     /**
      * Gets a list of work items and their direct links.
      */
-    OneHop = 3,
+    OneHop = 3
 }
 export enum ReportingRevisionsExpand {
     None = 0,
-    Fields = 1,
+    Fields = 1
 }
-export interface ReportingWorkItemLink {
-    changedBy: VSS_Common_Contracts.IdentityRef;
-    changedDate: Date;
-    changedOperation: LinkChangeType;
-    comment: string;
-    isActive: boolean;
-    linkType: string;
-    rel: string;
-    sourceId: number;
-    targetId: number;
-}
-export interface ReportingWorkItemLinksBatch extends StreamedBatch<ReportingWorkItemLink> {
+export interface ReportingWorkItemLinksBatch extends StreamedBatch<WorkItemRelation> {
 }
 export interface ReportingWorkItemRevisionsBatch extends StreamedBatch<WorkItem> {
 }
@@ -27000,7 +31002,7 @@ export interface StreamedBatch<T> {
  */
 export enum TemplateType {
     WorkItemType = 0,
-    GlobalWorkflow = 1,
+    GlobalWorkflow = 1
 }
 /**
  * Types of tree node structures.
@@ -27013,14 +31015,14 @@ export enum TreeNodeStructureType {
     /**
      * Iteration type.
      */
-    Iteration = 1,
+    Iteration = 1
 }
 /**
  * Types of tree structures groups.
  */
 export enum TreeStructureGroup {
     Areas = 0,
-    Iterations = 1,
+    Iterations = 1
 }
 /**
  * A WIQL query
@@ -27070,6 +31072,31 @@ export interface WorkItem extends WorkItemTrackingResource {
      * Revision number of the work item.
      */
     rev: number;
+}
+/**
+ * Describes a request to get a set of work items
+ */
+export interface WorkItemBatchGetRequest {
+    /**
+     * The expand parameters for work item attributes. Possible options are { None, Relations, Fields, Links, All }
+     */
+    $expand: WorkItemExpand;
+    /**
+     * AsOf UTC date time string
+     */
+    asOf: Date;
+    /**
+     * The flag to control error policy in a bulk get work items request. Possible options are {Fail, Omit}.
+     */
+    errorPolicy: WorkItemErrorPolicy;
+    /**
+     * The requested fields
+     */
+    fields: string[];
+    /**
+     * The requested work item ids
+     */
+    ids: number[];
 }
 /**
  * Defines a classification node for work item tracking.
@@ -27225,7 +31252,7 @@ export interface WorkItemDeleteUpdate {
  */
 export enum WorkItemErrorPolicy {
     Fail = 1,
-    Omit = 2,
+    Omit = 2
 }
 /**
  * Flag to control payload properties from get work item command.
@@ -27235,12 +31262,16 @@ export enum WorkItemExpand {
     Relations = 1,
     Fields = 2,
     Links = 3,
-    All = 4,
+    All = 4
 }
 /**
  * Describes a field on a work item and it's properties specific to that work item type.
  */
 export interface WorkItemField extends WorkItemTrackingResource {
+    /**
+     * Indicates whether the field is sortable in server queries.
+     */
+    canSortBy: boolean;
     /**
      * The description of the field.
      */
@@ -27257,6 +31288,10 @@ export interface WorkItemField extends WorkItemTrackingResource {
      * Indicates whether this instance is a suggested picklist .
      */
     isPicklistSuggested: boolean;
+    /**
+     * Indicates whether the field can be queried in the server.
+     */
+    isQueryable: boolean;
     /**
      * The name of the field.
      */
@@ -27472,7 +31507,7 @@ export enum WorkItemRecentActivityType {
     Visited = 0,
     Edited = 1,
     Deleted = 2,
-    Restored = 3,
+    Restored = 3
 }
 /**
  * Contains reference to a work item.
@@ -27755,7 +31790,7 @@ export enum WorkItemTypeFieldsExpandLevel {
     /**
      * Includes allowed values and dependent fields of the field.
      */
-    All = 3,
+    All = 3
 }
 /**
  * Field Instance of a workItemype with detailed references.
@@ -27907,12 +31942,6 @@ export var TypeInfo: {
             "extensionFields": number;
         };
     };
-    LinkChangeType: {
-        enumValues: {
-            "create": number;
-            "remove": number;
-        };
-    };
     LinkQueryMode: {
         enumValues: {
             "workItems": number;
@@ -27980,7 +32009,6 @@ export var TypeInfo: {
             "fields": number;
         };
     };
-    ReportingWorkItemLink: any;
     TemplateType: {
         enumValues: {
             "workItemType": number;
@@ -27999,6 +32027,7 @@ export var TypeInfo: {
             "iterations": number;
         };
     };
+    WorkItemBatchGetRequest: any;
     WorkItemClassificationNode: any;
     WorkItemComment: any;
     WorkItemComments: any;
@@ -28153,6 +32182,26 @@ export interface ILinkedArtifact extends IArtifactData {
     linkTypeDisplayName: string;
     /** Comment set for link */
     comment?: string;
+    /** HostId of the remote workitem link */
+    remoteHostId?: string;
+    /** ProjectId of the remote workitem link */
+    remoteProjectId?: string;
+    /** Host Url of the remote workitem link */
+    remoteHostUrl?: string;
+    /** Host name of the remote workitem link */
+    remoteHostName?: string;
+    /** Status remote workitem link */
+    remoteStatus?: RemoteLinkStatus;
+}
+/**
+ * Enum to represent remote link status
+ */
+export enum RemoteLinkStatus {
+    PendingAdd = 0,
+    Success = 1,
+    Failed = 2,
+    PendingUpdate = 4,
+    PendingDelete = 8
 }
 /** This interface represents a related artifact */
 export interface ILinkedArtifactDisplayData extends ILinkedArtifact {
@@ -28213,7 +32262,7 @@ export enum ArtifactIconType {
     /** Renders a color circle */
     colorCircle = 2,
     /** Render identity icon */
-    identity = 3,
+    identity = 3
 }
 /** Defines an artifact text element with styling*/
 export interface IArtifactStyledText {
@@ -28226,7 +32275,9 @@ export interface IArtifactStyledText {
  * Well known columns supported by the linked artifacts control
  */
 export const KnownColumns: {
+    /** Current state of linked artifact */
     State: string;
+    /** Last update of linked artifact */
     LastUpdate: string;
 };
 /**
@@ -28239,6 +32290,42 @@ export interface IContributedArtifactLinkProvider {
 }
 }
 declare module "TFS/WorkItemTracking/ProcessContracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\workitemtrackingprocess\clientgeneratorconfigs\genclient.json
+ */
+/**
+ * Class that describes a request to add a field in a work item type.
+ */
+export interface AddProcessWorkItemTypeFieldRequest {
+    /**
+     * Allow setting field value to a group identity. Only applies to identity fields.
+     */
+    allowGroups: boolean;
+    /**
+     * The default value of the field.
+     */
+    defaultValue: any;
+    /**
+     * If true the field cannot be edited.
+     */
+    readOnly: boolean;
+    /**
+     * Reference name of the field.
+     */
+    referenceName: string;
+    /**
+     * If true the field cannot be empty.
+     */
+    required: boolean;
+}
 /**
  * Represent a control in the form.
  */
@@ -28260,7 +32347,7 @@ export interface Control {
      */
     id: string;
     /**
-     * A value indicating whether this layout node has been inherited from a parent layout.  This is expected to only be only set by the combiner.
+     * A value indicating whether this layout node has been inherited. from a parent layout.  This is expected to only be only set by the combiner.
      */
     inherited: boolean;
     /**
@@ -28268,16 +32355,19 @@ export interface Control {
      */
     isContribution: boolean;
     /**
-     * Label for the field
+     * Label for the field.
      */
     label: string;
     /**
      * Inner text of the control.
      */
     metadata: string;
+    /**
+     * Order in which the control should appear in its group.
+     */
     order: number;
     /**
-     * A value indicating whether this layout node has been overridden by a child layout.
+     * A value indicating whether this layout node has been overridden . by a child layout.
      */
     overridden: boolean;
     /**
@@ -28312,9 +32402,79 @@ export interface CreateProcessModel {
     referenceName: string;
 }
 /**
+ * Request object/class for creating a rule on a work item type.
+ */
+export interface CreateProcessRuleRequest {
+    /**
+     * List of actions to take when the rule is triggered.
+     */
+    actions: RuleAction[];
+    /**
+     * List of conditions when the rule should be triggered.
+     */
+    conditions: RuleCondition[];
+    /**
+     * Indicates if the rule is disabled.
+     */
+    isDisabled: boolean;
+    /**
+     * Name for the rule.
+     */
+    name: string;
+}
+/**
+ * Class for create work item type request
+ */
+export interface CreateProcessWorkItemTypeRequest {
+    /**
+     * Color hexadecimal code to represent the work item type
+     */
+    color: string;
+    /**
+     * Description of the work item type
+     */
+    description: string;
+    /**
+     * Icon to represent the work item type
+     */
+    icon: string;
+    /**
+     * Parent work item type for work item type
+     */
+    inheritsFrom: string;
+    /**
+     * True if the work item type need to be disabled
+     */
+    isDisabled: boolean;
+    /**
+     * Name of work item type
+     */
+    name: string;
+}
+/**
+ * Indicates the customization-type. Customization-type is System if is system generated or by default. Customization-type is Inherited if the existing workitemtype of inherited process is customized. Customization-type is Custom if the newly created workitemtype is customized.
+ */
+export enum CustomizationType {
+    /**
+     * Customization-type is System if is system generated workitemtype.
+     */
+    System = 1,
+    /**
+     * Customization-type is Inherited if the existing workitemtype of inherited process is customized.
+     */
+    Inherited = 2,
+    /**
+     * Customization-type is Custom if the newly created workitemtype is customized.
+     */
+    Custom = 3
+}
+/**
  * Represents the extensions part of the layout
  */
 export interface Extension {
+    /**
+     * Id of the extension
+     */
     id: string;
 }
 export interface FieldModel {
@@ -28333,6 +32493,9 @@ export interface FieldRuleModel {
     isDisabled: boolean;
     isSystem: boolean;
 }
+/**
+ * Enum for the type of a field.
+ */
 export enum FieldType {
     String = 1,
     Integer = 2,
@@ -28347,11 +32510,14 @@ export enum FieldType {
     Identity = 13,
     PicklistInteger = 14,
     PicklistString = 15,
-    PicklistDouble = 16,
+    PicklistDouble = 16
 }
+/**
+ * Describes the layout of a work item type
+ */
 export interface FormLayout {
     /**
-     * Gets and sets extensions list
+     * Gets and sets extensions list.
      */
     extensions: Extension[];
     /**
@@ -28363,19 +32529,35 @@ export interface FormLayout {
      */
     systemControls: Control[];
 }
+/**
+ * Expand options to fetch fields for behaviors API.
+ */
 export enum GetBehaviorsExpand {
+    /**
+     * Default none option.
+     */
     None = 0,
+    /**
+     * This option returns fields associated with a behavior.
+     */
     Fields = 1,
+    /**
+     * This option returns fields associated with this behavior and all behaviors from which it inherits.
+     */
+    CombinedFields = 2
 }
 export enum GetProcessExpandLevel {
     None = 0,
-    Projects = 1,
+    Projects = 1
 }
+/**
+ * Flag to define what properties to return in get work item type response.
+ */
 export enum GetWorkItemTypeExpand {
     None = 0,
     States = 1,
     Behaviors = 2,
-    Layout = 4,
+    Layout = 4
 }
 /**
  * Represent a group in the form that holds controls in it.
@@ -28422,6 +32604,12 @@ export interface Group {
      */
     visible: boolean;
 }
+export interface HideStateModel {
+    hidden: boolean;
+}
+/**
+ * Describes a page in the work item form layout
+ */
 export interface Page {
     /**
      * Contribution for the page.
@@ -28468,16 +32656,199 @@ export interface Page {
      */
     visible: boolean;
 }
+/**
+ * Enum for the types of pages in the work item form layout
+ */
 export enum PageType {
     Custom = 1,
     History = 2,
     Links = 3,
-    Attachments = 4,
+    Attachments = 4
+}
+/**
+ * Picklist.
+ */
+export interface PickList extends PickListMetadata {
+    /**
+     * A list of PicklistItemModel.
+     */
+    items: string[];
+}
+/**
+ * Metadata for picklist.
+ */
+export interface PickListMetadata {
+    /**
+     * ID of the picklist
+     */
+    id: string;
+    /**
+     * Indicates whether items outside of suggested list are allowed
+     */
+    isSuggested: boolean;
+    /**
+     * Name of the picklist
+     */
+    name: string;
+    /**
+     * DataType of picklist
+     */
+    type: string;
+    /**
+     * Url of the picklist
+     */
+    url: string;
+}
+/**
+ * Process Behavior Model.
+ */
+export interface ProcessBehavior {
+    /**
+     * Color.
+     */
+    color: string;
+    /**
+     * Indicates the type of customization on this work item. System behaviors are inherited from parent process but not modified. Inherited behaviors are modified modified behaviors that were inherited from parent process. Custom behaviors are behaviors created by user in current process.
+     */
+    customization: CustomizationType;
+    /**
+     * . Description
+     */
+    description: string;
+    /**
+     * Process Behavior Fields.
+     */
+    fields: ProcessBehaviorField[];
+    /**
+     * Parent behavior reference.
+     */
+    inherits: ProcessBehaviorReference;
+    /**
+     * Behavior Name.
+     */
+    name: string;
+    /**
+     * Rank of the behavior
+     */
+    rank: number;
+    /**
+     * Behavior Id
+     */
+    referenceName: string;
+    /**
+     * Url of the behavior.
+     */
+    url: string;
+}
+/**
+ * Process Behavior Create Payload.
+ */
+export interface ProcessBehaviorCreateRequest {
+    /**
+     * Color.
+     */
+    color: string;
+    /**
+     * Parent behavior id.
+     */
+    inherits: string;
+    /**
+     * Name of the behavior.
+     */
+    name: string;
+    /**
+     * ReferenceName is optional, if not specified will be auto-generated.
+     */
+    referenceName: string;
+}
+/**
+ * Process Behavior Field.
+ */
+export interface ProcessBehaviorField {
+    /**
+     * Name of the field.
+     */
+    name: string;
+    /**
+     * Reference name of the field.
+     */
+    referenceName: string;
+    /**
+     * Url to field.
+     */
+    url: string;
+}
+/**
+ * Process behavior Reference.
+ */
+export interface ProcessBehaviorReference {
+    /**
+     * Id of a Behavior.
+     */
+    behaviorRefName: string;
+    /**
+     * Url to behavior.
+     */
+    url: string;
+}
+/**
+ * Process Behavior Replace Payload.
+ */
+export interface ProcessBehaviorUpdateRequest {
+    /**
+     * Color.
+     */
+    color: string;
+    /**
+     * Behavior Name.
+     */
+    name: string;
 }
 export enum ProcessClass {
     System = 0,
     Derived = 1,
-    Custom = 2,
+    Custom = 2
+}
+/**
+ * Process.
+ */
+export interface ProcessInfo {
+    /**
+     * Indicates the type of customization on this process. System Process is default process. Inherited Process is modified process that was System process before.
+     */
+    customizationType: CustomizationType;
+    /**
+     * Description of the process.
+     */
+    description: string;
+    /**
+     * Is the process default.
+     */
+    isDefault: boolean;
+    /**
+     * Is the process enabled.
+     */
+    isEnabled: boolean;
+    /**
+     * Name of the process.
+     */
+    name: string;
+    /**
+     * ID of the parent process.
+     */
+    parentProcessTypeId: string;
+    /**
+     * Projects in this process to which the user is subscribed to.
+     */
+    projects: ProjectReference[];
+    /**
+     * Reference name of the process.
+     */
+    referenceName: string;
+    /**
+     * The ID of the process.
+     */
+    typeId: string;
 }
 export interface ProcessModel {
     /**
@@ -28506,29 +32877,132 @@ export interface ProcessModel {
     typeId: string;
 }
 /**
- * Properties of the process
+ * Properties of the process.
  */
 export interface ProcessProperties {
     /**
-     * Class of the process
+     * Class of the process.
      */
     class: ProcessClass;
     /**
-     * Is the process default process
+     * Is the process default process.
      */
     isDefault: boolean;
     /**
-     * Is the process enabled
+     * Is the process enabled.
      */
     isEnabled: boolean;
     /**
-     * ID of the parent process
+     * ID of the parent process.
      */
     parentProcessTypeId: string;
     /**
-     * Version of the process
+     * Version of the process.
      */
     version: string;
+}
+/**
+ * Process Rule Response.
+ */
+export interface ProcessRule extends CreateProcessRuleRequest {
+    /**
+     * Indicates if the rule is system generated or created by user.
+     */
+    customizationType: CustomizationType;
+    /**
+     * Id to uniquely identify the rule.
+     */
+    id: string;
+    /**
+     * Resource Url.
+     */
+    url: string;
+}
+/**
+ * Class that describes a work item type object
+ */
+export interface ProcessWorkItemType {
+    behaviors: WorkItemTypeBehavior[];
+    /**
+     * Color hexadecimal code to represent the work item type
+     */
+    color: string;
+    /**
+     * Indicates the type of customization on this work item System work item types are inherited from parent process but not modified Inherited work item types are modified work item that were inherited from parent process Custom work item types are work item types that were created in the current process
+     */
+    customization: CustomizationType;
+    /**
+     * Description of the work item type
+     */
+    description: string;
+    /**
+     * Icon to represent the work item typ
+     */
+    icon: string;
+    /**
+     * Reference name of the parent work item type
+     */
+    inherits: string;
+    /**
+     * Indicates if a work item type is disabled
+     */
+    isDisabled: boolean;
+    layout: FormLayout;
+    /**
+     * Name of the work item type
+     */
+    name: string;
+    /**
+     * Reference name of work item type
+     */
+    referenceName: string;
+    states: WorkItemStateResultModel[];
+    /**
+     * Url of the work item type
+     */
+    url: string;
+}
+/**
+ * Class that describes a field in a work item type and its properties.
+ */
+export interface ProcessWorkItemTypeField {
+    /**
+     * Allow setting field value to a group identity. Only applies to identity fields.
+     */
+    allowGroups: boolean;
+    customization: CustomizationType;
+    /**
+     * The default value of the field.
+     */
+    defaultValue: any;
+    /**
+     * Description of the field.
+     */
+    description: string;
+    /**
+     * Name of the field.
+     */
+    name: string;
+    /**
+     * If true the field cannot be edited.
+     */
+    readOnly: boolean;
+    /**
+     * Reference name of the field.
+     */
+    referenceName: string;
+    /**
+     * If true the field cannot be empty.
+     */
+    required: boolean;
+    /**
+     * Type of the field.
+     */
+    type: FieldType;
+    /**
+     * Resource URL of the field.
+     */
+    url: string;
 }
 export interface ProjectReference {
     /**
@@ -28548,9 +33022,97 @@ export interface ProjectReference {
      */
     url: string;
 }
+export interface RuleAction {
+    /**
+     * Type of action to take when the rule is triggered.
+     */
+    actionType: RuleActionType;
+    /**
+     * Field on which the action should be taken.
+     */
+    targetField: string;
+    /**
+     * Value to apply on target field, once the action is taken.
+     */
+    value: string;
+}
 export interface RuleActionModel {
     actionType: string;
     targetField: string;
+    value: string;
+}
+/**
+ * Type of action to take when the rule is triggered.
+ */
+export enum RuleActionType {
+    /**
+     * Make the target field required. Example : {"actionType":"$makeRequired","targetField":"Microsoft.VSTS.Common.Activity","value":""}
+     */
+    MakeRequired = 1,
+    /**
+     * Make the target field read-only. Example : {"actionType":"$makeReadOnly","targetField":"Microsoft.VSTS.Common.Activity","value":""}
+     */
+    MakeReadOnly = 2,
+    /**
+     * Set a default value on the target field. This is used if the user creates a integer/string field and sets a default value of this field.
+     */
+    SetDefaultValue = 3,
+    /**
+     * Set the default value on the target field from server clock. This is used if user creates the field like Date/Time and uses default value.
+     */
+    SetDefaultFromClock = 4,
+    /**
+     * Set the default current user value on the target field. This is used if the user creates the field of type identity and uses default value.
+     */
+    SetDefaultFromCurrentUser = 5,
+    /**
+     * Set the default value on from existing field to the target field.  This used wants to set a existing field value to the current field.
+     */
+    SetDefaultFromField = 6,
+    /**
+     * Set the value of target field to given value. Example : {actionType: "$copyValue", targetField: "ScrumInherited.mypicklist", value: "samplevalue"}
+     */
+    CopyValue = 7,
+    /**
+     * Set the value from clock.
+     */
+    CopyFromClock = 8,
+    /**
+     * Set the current user to the target field. Example : {"actionType":"$copyFromCurrentUser","targetField":"System.AssignedTo","value":""}.
+     */
+    CopyFromCurrentUser = 9,
+    /**
+     * Copy the value from a specified field and set to target field. Example : {actionType: "$copyFromField", targetField: "System.AssignedTo", value:"System.ChangedBy"}. Here, value is copied from "System.ChangedBy" and set to "System.AssingedTo" field.
+     */
+    CopyFromField = 10,
+    /**
+     * Set the value of the target field to empty.
+     */
+    SetValueToEmpty = 11,
+    /**
+     * Use the current time to set the value of the target field. Example : {actionType: "$copyFromServerClock", targetField: "System.CreatedDate", value: ""}
+     */
+    CopyFromServerClock = 12,
+    /**
+     * Use the current user to set the value of the target field.
+     */
+    CopyFromServerCurrentUser = 13
+}
+/**
+ * Defines a condition on a field when the rule should be triggered.
+ */
+export interface RuleCondition {
+    /**
+     * Type of condition. $When. This condition limits the execution of its children to cases when another field has a particular value, i.e. when the Is value of the referenced field is equal to the given literal value. $WhenNot.This condition limits the execution of its children to cases when another field does not have a particular value, i.e.when the Is value of the referenced field is not equal to the given literal value. $WhenChanged.This condition limits the execution of its children to cases when another field has changed, i.e.when the Is value of the referenced field is not equal to the Was value of that field. $WhenNotChanged.This condition limits the execution of its children to cases when another field has not changed, i.e.when the Is value of the referenced field is equal to the Was value of that field.
+     */
+    conditionType: RuleConditionType;
+    /**
+     * Field that defines condition.
+     */
+    field: string;
+    /**
+     * Value of field to define the condition for rule.
+     */
     value: string;
 }
 export interface RuleConditionModel {
@@ -28558,7 +33120,40 @@ export interface RuleConditionModel {
     field: string;
     value: string;
 }
+/**
+ * Type of rule condition.
+ */
+export enum RuleConditionType {
+    /**
+     * $When. This condition limits the execution of its children to cases when another field has a particular value, i.e. when the Is value of the referenced field is equal to the given literal value.
+     */
+    When = 1,
+    /**
+     * $WhenNot.This condition limits the execution of its children to cases when another field does not have a particular value, i.e.when the Is value of the referenced field is not equal to the given literal value.
+     */
+    WhenNot = 2,
+    /**
+     * $WhenChanged.This condition limits the execution of its children to cases when another field has changed, i.e.when the Is value of the referenced field is not equal to the Was value of that field.
+     */
+    WhenChanged = 3,
+    /**
+     * $WhenNotChanged.This condition limits the execution of its children to cases when another field has not changed, i.e.when the Is value of the referenced field is equal to the Was value of that field.
+     */
+    WhenNotChanged = 4,
+    WhenWas = 5,
+    WhenStateChangedTo = 6,
+    WhenStateChangedFromAndTo = 7,
+    WhenWorkItemIsCreated = 8,
+    WhenValueIsDefined = 9,
+    WhenValueIsNotDefined = 10
+}
+/**
+ * Defines a section of the work item form layout
+ */
 export interface Section {
+    /**
+     * List of child groups in this section
+     */
     groups: Group[];
     /**
      * The id for the layout node.
@@ -28569,12 +33164,81 @@ export interface Section {
      */
     overridden: boolean;
 }
+/**
+ * Describes a request to update a process
+ */
 export interface UpdateProcessModel {
+    /**
+     * New description of the process
+     */
     description: string;
+    /**
+     * If true new projects will use this process by default
+     */
     isDefault: boolean;
+    /**
+     * If false the process will be disabled and cannot be used to create projects
+     */
     isEnabled: boolean;
+    /**
+     * New name of the process
+     */
     name: string;
 }
+/**
+ * Request class/object to update the rule.
+ */
+export interface UpdateProcessRuleRequest extends CreateProcessRuleRequest {
+    /**
+     * Id to uniquely identify the rule.
+     */
+    id: string;
+}
+/**
+ * Class to describe a request that updates a field's properties in a work item type.
+ */
+export interface UpdateProcessWorkItemTypeFieldRequest {
+    /**
+     * Allow setting field value to a group identity. Only applies to identity fields.
+     */
+    allowGroups: boolean;
+    /**
+     * The default value of the field.
+     */
+    defaultValue: any;
+    /**
+     * If true the field cannot be edited.
+     */
+    readOnly: boolean;
+    /**
+     * The default value of the field.
+     */
+    required: boolean;
+}
+/**
+ * Class for update request on a work item type
+ */
+export interface UpdateProcessWorkItemTypeRequest {
+    /**
+     * Color of the work item type
+     */
+    color: string;
+    /**
+     * Description of the work item type
+     */
+    description: string;
+    /**
+     * Icon of the work item type
+     */
+    icon: string;
+    /**
+     * If set will disable the work item type
+     */
+    isDisabled: boolean;
+}
+/**
+ * Properties of a work item form contribution
+ */
 export interface WitContribution {
     /**
      * The id for the contribution.
@@ -28616,8 +33280,27 @@ export interface WorkItemBehaviorReference {
     id: string;
     url: string;
 }
+export interface WorkItemStateInputModel {
+    /**
+     * Color of the state
+     */
+    color: string;
+    /**
+     * Name of the state
+     */
+    name: string;
+    /**
+     * Order in which state should appear
+     */
+    order: number;
+    /**
+     * Category of the state
+     */
+    stateCategory: string;
+}
 export interface WorkItemStateResultModel {
     color: string;
+    customizationType: CustomizationType;
     hidden: boolean;
     id: string;
     name: string;
@@ -28625,15 +33308,27 @@ export interface WorkItemStateResultModel {
     stateCategory: string;
     url: string;
 }
+/**
+ * Association between a work item type and it's behavior
+ */
 export interface WorkItemTypeBehavior {
+    /**
+     * Reference to the behavior of a work item type
+     */
     behavior: WorkItemBehaviorReference;
+    /**
+     * If true the work item type is the default work item type in the behavior
+     */
     isDefault: boolean;
+    /**
+     * URL of the work item type behavior
+     */
     url: string;
 }
 export enum WorkItemTypeClass {
     System = 0,
     Derived = 1,
-    Custom = 2,
+    Custom = 2
 }
 export interface WorkItemTypeModel {
     behaviors: WorkItemTypeBehavior[];
@@ -28653,6 +33348,14 @@ export interface WorkItemTypeModel {
     url: string;
 }
 export var TypeInfo: {
+    CreateProcessRuleRequest: any;
+    CustomizationType: {
+        enumValues: {
+            "system": number;
+            "inherited": number;
+            "custom": number;
+        };
+    };
     FieldModel: any;
     FieldType: {
         enumValues: {
@@ -28677,6 +33380,7 @@ export var TypeInfo: {
         enumValues: {
             "none": number;
             "fields": number;
+            "combinedFields": number;
         };
     };
     GetProcessExpandLevel: {
@@ -28702,6 +33406,7 @@ export var TypeInfo: {
             "attachments": number;
         };
     };
+    ProcessBehavior: any;
     ProcessClass: {
         enumValues: {
             "system": number;
@@ -28709,8 +33414,47 @@ export var TypeInfo: {
             "custom": number;
         };
     };
+    ProcessInfo: any;
     ProcessModel: any;
     ProcessProperties: any;
+    ProcessRule: any;
+    ProcessWorkItemType: any;
+    ProcessWorkItemTypeField: any;
+    RuleAction: any;
+    RuleActionType: {
+        enumValues: {
+            "makeRequired": number;
+            "makeReadOnly": number;
+            "setDefaultValue": number;
+            "setDefaultFromClock": number;
+            "setDefaultFromCurrentUser": number;
+            "setDefaultFromField": number;
+            "copyValue": number;
+            "copyFromClock": number;
+            "copyFromCurrentUser": number;
+            "copyFromField": number;
+            "setValueToEmpty": number;
+            "copyFromServerClock": number;
+            "copyFromServerCurrentUser": number;
+        };
+    };
+    RuleCondition: any;
+    RuleConditionType: {
+        enumValues: {
+            "when": number;
+            "whenNot": number;
+            "whenChanged": number;
+            "whenNotChanged": number;
+            "whenWas": number;
+            "whenStateChangedTo": number;
+            "whenStateChangedFromAndTo": number;
+            "whenWorkItemIsCreated": number;
+            "whenValueIsDefined": number;
+            "whenValueIsNotDefined": number;
+        };
+    };
+    UpdateProcessRuleRequest: any;
+    WorkItemStateResultModel: any;
     WorkItemTypeClass: {
         enumValues: {
             "system": number;
@@ -28722,11 +33466,26 @@ export var TypeInfo: {
 };
 }
 declare module "TFS/WorkItemTracking/ProcessDefinitionsContracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\workitemtrackingprocessdefinitions\clientgeneratorconfigs\genclient.json
+ */
 export interface BehaviorCreateModel {
     /**
      * Color
      */
     color: string;
+    /**
+     * Optional - Id
+     */
+    id: string;
     /**
      * Parent behavior id
      */
@@ -28884,7 +33643,7 @@ export enum FieldType {
     Identity = 13,
     PicklistInteger = 14,
     PicklistString = 15,
-    PicklistDouble = 16,
+    PicklistDouble = 16
 }
 export interface FieldUpdate {
     description: string;
@@ -28908,7 +33667,7 @@ export enum GetWorkItemTypeExpand {
     None = 0,
     States = 1,
     Behaviors = 2,
-    Layout = 4,
+    Layout = 4
 }
 /**
  * Represent a group in the form that holds controls in it.
@@ -29011,7 +33770,7 @@ export enum PageType {
     Custom = 1,
     History = 2,
     Links = 3,
-    Attachments = 4,
+    Attachments = 4
 }
 export interface PickListItemModel {
     id: string;
@@ -29148,11 +33907,25 @@ export interface WorkItemTypeBehavior {
 export enum WorkItemTypeClass {
     System = 0,
     Derived = 1,
-    Custom = 2,
+    Custom = 2
 }
 export interface WorkItemTypeFieldModel {
     allowGroups: boolean;
     defaultValue: string;
+    name: string;
+    pickList: PickListMetadataModel;
+    readOnly: boolean;
+    referenceName: string;
+    required: boolean;
+    type: FieldType;
+    url: string;
+}
+/**
+ * New version of WorkItemTypeFieldModel supporting defaultValue as object (such as IdentityRef)
+ */
+export interface WorkItemTypeFieldModel2 {
+    allowGroups: boolean;
+    defaultValue: any;
     name: string;
     pickList: PickListMetadataModel;
     readOnly: boolean;
@@ -29275,10 +34048,22 @@ export var TypeInfo: {
         };
     };
     WorkItemTypeFieldModel: any;
+    WorkItemTypeFieldModel2: any;
     WorkItemTypeModel: any;
 };
 }
 declare module "TFS/WorkItemTracking/ProcessDefinitionsRestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\workitemtrackingprocessdefinitions\clientgeneratorconfigs\genclient.json
+ */
 import ProcessDefinitionsContracts = require("TFS/WorkItemTracking/ProcessDefinitionsContracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2_1To5 extends VSS_WebApi.VssHttpClient {
@@ -29305,32 +34090,6 @@ export class CommonMethods2_1To5 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<void>
      */
     removeFieldFromWorkItemType(processId: string, witRefNameForFields: string, fieldRefName: string): IPromise<void>;
-    /**
-     * [Preview API] Returns a list of all fields in the work item type of the process.
-     *
-     * @param {string} processId - The ID of the process
-     * @param {string} witRefNameForFields - Work item type reference name for fields
-     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>
-     */
-    getWorkItemTypeFields(processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>;
-    /**
-     * [Preview API] Retuens a single field in the work item type of the process.
-     *
-     * @param {string} processId - The ID of the process
-     * @param {string} witRefNameForFields - Work item type reference name for fields
-     * @param {string} fieldRefName - The reference name of the field
-     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
-     */
-    getWorkItemTypeField(processId: string, witRefNameForFields: string, fieldRefName: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
-    /**
-     * [Preview API] Adds a field to the work item type in the process.
-     *
-     * @param {ProcessDefinitionsContracts.WorkItemTypeFieldModel} field
-     * @param {string} processId - The ID of the process
-     * @param {string} witRefNameForFields - Work item type reference name for the field
-     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
-     */
-    addFieldToWorkItemType(field: ProcessDefinitionsContracts.WorkItemTypeFieldModel, processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
     /**
      * [Preview API] Updates a work item type of the process.
      *
@@ -29374,7 +34133,7 @@ export class CommonMethods2_1To5 extends VSS_WebApi.VssHttpClient {
      */
     createWorkItemType(workItemType: ProcessDefinitionsContracts.WorkItemTypeModel, processId: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeModel>;
     /**
-     * [Preview API] Updates a behavior for the work item type of the process.
+     * [Preview API] Updates default work item type for the behavior of the process.
      *
      * @param {ProcessDefinitionsContracts.WorkItemTypeBehavior} behavior
      * @param {string} processId - The ID of the process
@@ -29708,54 +34467,288 @@ export class CommonMethods2_1To5 extends VSS_WebApi.VssHttpClient {
  */
 export class WorkItemTrackingProcessDefinitionsHttpClient5 extends CommonMethods2_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Adds a field to the work item type in the process.
+     *
+     * @param {ProcessDefinitionsContracts.WorkItemTypeFieldModel2} field
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel2>
+     */
+    addFieldToWorkItemType(field: ProcessDefinitionsContracts.WorkItemTypeFieldModel2, processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel2>;
+    /**
+     * [Preview API] Returns a single field in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @param {string} fieldRefName - The reference name of the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel2>
+     */
+    getWorkItemTypeField(processId: string, witRefNameForFields: string, fieldRefName: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel2>;
+    /**
+     * [Preview API] Returns a list of all fields in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel2[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel2[]>;
 }
 /**
  * @exemptedapi
  */
 export class WorkItemTrackingProcessDefinitionsHttpClient4_1 extends CommonMethods2_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Adds a field to the work item type in the process.
+     *
+     * @param {ProcessDefinitionsContracts.WorkItemTypeFieldModel} field
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
+     */
+    addFieldToWorkItemType(field: ProcessDefinitionsContracts.WorkItemTypeFieldModel, processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
+    /**
+     * [Preview API] Returns a single field in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @param {string} fieldRefName - The reference name of the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
+     */
+    getWorkItemTypeField(processId: string, witRefNameForFields: string, fieldRefName: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
+    /**
+     * [Preview API] Returns a list of all fields in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>;
 }
 /**
  * @exemptedapi
  */
 export class WorkItemTrackingProcessDefinitionsHttpClient4 extends CommonMethods2_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Adds a field to the work item type in the process.
+     *
+     * @param {ProcessDefinitionsContracts.WorkItemTypeFieldModel} field
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
+     */
+    addFieldToWorkItemType(field: ProcessDefinitionsContracts.WorkItemTypeFieldModel, processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
+    /**
+     * [Preview API] Returns a single field in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @param {string} fieldRefName - The reference name of the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
+     */
+    getWorkItemTypeField(processId: string, witRefNameForFields: string, fieldRefName: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
+    /**
+     * [Preview API] Returns a list of all fields in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>;
 }
 /**
  * @exemptedapi
  */
 export class WorkItemTrackingProcessDefinitionsHttpClient3_2 extends CommonMethods2_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Adds a field to the work item type in the process.
+     *
+     * @param {ProcessDefinitionsContracts.WorkItemTypeFieldModel} field
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
+     */
+    addFieldToWorkItemType(field: ProcessDefinitionsContracts.WorkItemTypeFieldModel, processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
+    /**
+     * [Preview API] Returns a single field in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @param {string} fieldRefName - The reference name of the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
+     */
+    getWorkItemTypeField(processId: string, witRefNameForFields: string, fieldRefName: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
+    /**
+     * [Preview API] Returns a list of all fields in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>;
 }
 /**
  * @exemptedapi
  */
 export class WorkItemTrackingProcessDefinitionsHttpClient3_1 extends CommonMethods2_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Adds a field to the work item type in the process.
+     *
+     * @param {ProcessDefinitionsContracts.WorkItemTypeFieldModel} field
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
+     */
+    addFieldToWorkItemType(field: ProcessDefinitionsContracts.WorkItemTypeFieldModel, processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
+    /**
+     * [Preview API] Returns a single field in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @param {string} fieldRefName - The reference name of the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
+     */
+    getWorkItemTypeField(processId: string, witRefNameForFields: string, fieldRefName: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
+    /**
+     * [Preview API] Returns a list of all fields in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>;
 }
 /**
  * @exemptedapi
  */
 export class WorkItemTrackingProcessDefinitionsHttpClient3 extends CommonMethods2_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Adds a field to the work item type in the process.
+     *
+     * @param {ProcessDefinitionsContracts.WorkItemTypeFieldModel} field
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
+     */
+    addFieldToWorkItemType(field: ProcessDefinitionsContracts.WorkItemTypeFieldModel, processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
+    /**
+     * [Preview API] Returns a single field in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @param {string} fieldRefName - The reference name of the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
+     */
+    getWorkItemTypeField(processId: string, witRefNameForFields: string, fieldRefName: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
+    /**
+     * [Preview API] Returns a list of all fields in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>;
 }
 /**
  * @exemptedapi
  */
 export class WorkItemTrackingProcessDefinitionsHttpClient2_3 extends CommonMethods2_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Adds a field to the work item type in the process.
+     *
+     * @param {ProcessDefinitionsContracts.WorkItemTypeFieldModel} field
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
+     */
+    addFieldToWorkItemType(field: ProcessDefinitionsContracts.WorkItemTypeFieldModel, processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
+    /**
+     * [Preview API] Returns a single field in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @param {string} fieldRefName - The reference name of the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
+     */
+    getWorkItemTypeField(processId: string, witRefNameForFields: string, fieldRefName: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
+    /**
+     * [Preview API] Returns a list of all fields in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>;
 }
 /**
  * @exemptedapi
  */
 export class WorkItemTrackingProcessDefinitionsHttpClient2_2 extends CommonMethods2_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Adds a field to the work item type in the process.
+     *
+     * @param {ProcessDefinitionsContracts.WorkItemTypeFieldModel} field
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
+     */
+    addFieldToWorkItemType(field: ProcessDefinitionsContracts.WorkItemTypeFieldModel, processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
+    /**
+     * [Preview API] Returns a single field in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @param {string} fieldRefName - The reference name of the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
+     */
+    getWorkItemTypeField(processId: string, witRefNameForFields: string, fieldRefName: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
+    /**
+     * [Preview API] Returns a list of all fields in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>;
 }
 /**
  * @exemptedapi
  */
 export class WorkItemTrackingProcessDefinitionsHttpClient2_1 extends CommonMethods2_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Adds a field to the work item type in the process.
+     *
+     * @param {ProcessDefinitionsContracts.WorkItemTypeFieldModel} field
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
+     */
+    addFieldToWorkItemType(field: ProcessDefinitionsContracts.WorkItemTypeFieldModel, processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
+    /**
+     * [Preview API] Returns a single field in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @param {string} fieldRefName - The reference name of the field
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>
+     */
+    getWorkItemTypeField(processId: string, witRefNameForFields: string, fieldRefName: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel>;
+    /**
+     * [Preview API] Returns a list of all fields in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForFields - Work item type reference name for fields
+     * @return IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefNameForFields: string): IPromise<ProcessDefinitionsContracts.WorkItemTypeFieldModel[]>;
 }
 export class WorkItemTrackingProcessDefinitionsHttpClient extends WorkItemTrackingProcessDefinitionsHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -29768,152 +34761,46 @@ export class WorkItemTrackingProcessDefinitionsHttpClient extends WorkItemTracki
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkItemTrackingProcessDefinitionsHttpClient4_1;
 }
 declare module "TFS/WorkItemTracking/ProcessRestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\workitemtrackingprocess\clientgeneratorconfigs\genclient.json
+ */
 import ProcessContracts = require("TFS/WorkItemTracking/ProcessContracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2_1To5 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
-    protected behaviorsApiVersion: string;
-    protected fieldsApiVersion: string;
-    protected fieldsApiVersion_7a0e7a1a: string;
-    protected processesApiVersion: string;
-    protected rulesApiVersion: string;
-    protected workItemTypesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * [Preview API] Returns a list of all work item types in a process.
-     *
-     * @param {string} processId - The ID of the process
-     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
-     * @return IPromise<ProcessContracts.WorkItemTypeModel[]>
-     */
-    getWorkItemTypes(processId: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel[]>;
-    /**
-     * [Preview API] Returns a single work item type in a process.
-     *
-     * @param {string} processId - The ID of the process
-     * @param {string} witRefName - The reference name of the work item type
-     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
-     * @return IPromise<ProcessContracts.WorkItemTypeModel>
-     */
-    getWorkItemType(processId: string, witRefName: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel>;
-    /**
-     * [Preview API] Updates a rule in the work item type of the process.
-     *
-     * @param {ProcessContracts.FieldRuleModel} fieldRule
-     * @param {string} processId - The ID of the process
-     * @param {string} witRefName - The reference name of the work item type
-     * @param {string} ruleId - The ID of the rule
-     * @return IPromise<ProcessContracts.FieldRuleModel>
-     */
-    updateWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
-    /**
-     * [Preview API] Returns a list of all rules in the work item type of the process.
-     *
-     * @param {string} processId - The ID of the process
-     * @param {string} witRefName - The reference name of the work item type
-     * @return IPromise<ProcessContracts.FieldRuleModel[]>
-     */
-    getWorkItemTypeRules(processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel[]>;
-    /**
-     * [Preview API] Returns a single rule in the work item type of the process.
-     *
-     * @param {string} processId - The ID of the process
-     * @param {string} witRefName - The reference name of the work item type
-     * @param {string} ruleId - The ID of the rule
-     * @return IPromise<ProcessContracts.FieldRuleModel>
-     */
-    getWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
-    /**
-     * [Preview API] Removes a rule from the work item type in the process.
-     *
-     * @param {string} processId - The ID of the process
-     * @param {string} witRefName - The reference name of the work item type
-     * @param {string} ruleId - The ID of the rule
-     * @return IPromise<void>
-     */
-    deleteWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<void>;
-    /**
-     * [Preview API] Adds a rule to work item type in the process.
-     *
-     * @param {ProcessContracts.FieldRuleModel} fieldRule
-     * @param {string} processId - The ID of the process
-     * @param {string} witRefName - The reference name of the work item type
-     * @return IPromise<ProcessContracts.FieldRuleModel>
-     */
-    addWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel>;
-    /**
-     * [Preview API] Updates a process of a specific ID.
-     *
-     * @param {ProcessContracts.UpdateProcessModel} updateRequest
-     * @param {string} processTypeId
-     * @return IPromise<ProcessContracts.ProcessModel>
-     */
-    updateProcess(updateRequest: ProcessContracts.UpdateProcessModel, processTypeId: string): IPromise<ProcessContracts.ProcessModel>;
-    /**
-     * [Preview API] Returns a list of all processes.
-     *
-     * @param {ProcessContracts.GetProcessExpandLevel} expand
-     * @return IPromise<ProcessContracts.ProcessModel[]>
-     */
-    getProcesses(expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel[]>;
-    /**
-     * [Preview API] Returns a single process of a specified ID.
-     *
-     * @param {string} processTypeId
-     * @param {ProcessContracts.GetProcessExpandLevel} expand
-     * @return IPromise<ProcessContracts.ProcessModel>
-     */
-    getProcessById(processTypeId: string, expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel>;
-    /**
-     * [Preview API] Removes a process of a specific ID.
-     *
-     * @param {string} processTypeId
-     * @return IPromise<void>
-     */
-    deleteProcess(processTypeId: string): IPromise<void>;
-    /**
-     * [Preview API] Creates a process.
-     *
-     * @param {ProcessContracts.CreateProcessModel} createRequest
-     * @return IPromise<ProcessContracts.ProcessModel>
-     */
-    createProcess(createRequest: ProcessContracts.CreateProcessModel): IPromise<ProcessContracts.ProcessModel>;
-    /**
-     * [Preview API] Returns a list of all fields in a work item type.
-     *
-     * @param {string} processId - The ID of the process
-     * @param {string} witRefName - The reference name of the work item type
-     * @return IPromise<ProcessContracts.FieldModel[]>
-     */
-    getWorkItemTypeFields(processId: string, witRefName: string): IPromise<ProcessContracts.FieldModel[]>;
-    /**
-     * [Preview API] Returns a list of all fields in a process.
-     *
-     * @param {string} processId - The ID of the process
-     * @return IPromise<ProcessContracts.FieldModel[]>
-     */
-    getFields(processId: string): IPromise<ProcessContracts.FieldModel[]>;
-    /**
-     * [Preview API] Returns a list of all behaviors in the process.
-     *
-     * @param {string} processId - The ID of the process
-     * @param {ProcessContracts.GetBehaviorsExpand} expand
-     * @return IPromise<ProcessContracts.WorkItemBehavior[]>
-     */
-    getBehaviors(processId: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior[]>;
-    /**
-     * [Preview API] Returns a behavior of the process.
-     *
-     * @param {string} processId - The ID of the process
-     * @param {string} behaviorRefName - Reference name of the behavior
-     * @param {ProcessContracts.GetBehaviorsExpand} expand
-     * @return IPromise<ProcessContracts.WorkItemBehavior>
-     */
-    getBehavior(processId: string, behaviorRefName: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior>;
 }
 export class CommonMethods3_2To5 extends CommonMethods2_1To5 {
     protected statesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Updates a given state definition in the work item type of the process.
+     *
+     * @param {ProcessContracts.WorkItemStateInputModel} stateModel
+     * @param {string} processId - ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} stateId - ID of the state
+     * @return IPromise<ProcessContracts.WorkItemStateResultModel>
+     */
+    updateStateDefinition(stateModel: ProcessContracts.WorkItemStateInputModel, processId: string, witRefName: string, stateId: string): IPromise<ProcessContracts.WorkItemStateResultModel>;
+    /**
+     * [Preview API] Hides a state definition in the work item type of the process.Only states with customizationType:System can be hidden.
+     *
+     * @param {ProcessContracts.HideStateModel} hideStateModel
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} stateId - The ID of the state
+     * @return IPromise<ProcessContracts.WorkItemStateResultModel>
+     */
+    hideStateDefinition(hideStateModel: ProcessContracts.HideStateModel, processId: string, witRefName: string, stateId: string): IPromise<ProcessContracts.WorkItemStateResultModel>;
     /**
      * [Preview API] Returns a list of all state definitions in a work item type of the process.
      *
@@ -29931,60 +34818,1555 @@ export class CommonMethods3_2To5 extends CommonMethods2_1To5 {
      * @return IPromise<ProcessContracts.WorkItemStateResultModel>
      */
     getStateDefinition(processId: string, witRefName: string, stateId: string): IPromise<ProcessContracts.WorkItemStateResultModel>;
+    /**
+     * [Preview API] Removes a state definition in the work item type of the process.
+     *
+     * @param {string} processId - ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} stateId - ID of the state
+     * @return IPromise<void>
+     */
+    deleteStateDefinition(processId: string, witRefName: string, stateId: string): IPromise<void>;
+    /**
+     * [Preview API] Creates a state definition in the work item type of the process.
+     *
+     * @param {ProcessContracts.WorkItemStateInputModel} stateModel
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.WorkItemStateResultModel>
+     */
+    createStateDefinition(stateModel: ProcessContracts.WorkItemStateInputModel, processId: string, witRefName: string): IPromise<ProcessContracts.WorkItemStateResultModel>;
 }
 /**
  * @exemptedapi
  */
 export class WorkItemTrackingProcessHttpClient5 extends CommonMethods3_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Creates a single behavior in the given process.
+     *
+     * @param {ProcessContracts.ProcessBehaviorCreateRequest} behavior
+     * @param {string} processId - The ID of the process
+     * @return IPromise<ProcessContracts.ProcessBehavior>
+     */
+    createProcessBehavior(behavior: ProcessContracts.ProcessBehaviorCreateRequest, processId: string): IPromise<ProcessContracts.ProcessBehavior>;
+    /**
+     * [Preview API] Removes a behavior in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} behaviorRefName - The reference name of the behavior
+     * @return IPromise<void>
+     */
+    deleteProcessBehavior(processId: string, behaviorRefName: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a behavior of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} behaviorRefName - The reference name of the behavior
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.ProcessBehavior>
+     */
+    getProcessBehavior(processId: string, behaviorRefName: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.ProcessBehavior>;
+    /**
+     * [Preview API] Returns a list of all behaviors in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.ProcessBehavior[]>
+     */
+    getProcessBehaviors(processId: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.ProcessBehavior[]>;
+    /**
+     * [Preview API] Replaces a behavior in the process.
+     *
+     * @param {ProcessContracts.ProcessBehaviorUpdateRequest} behaviorData
+     * @param {string} processId - The ID of the process
+     * @param {string} behaviorRefName - The reference name of the behavior
+     * @return IPromise<ProcessContracts.ProcessBehavior>
+     */
+    updateProcessBehavior(behaviorData: ProcessContracts.ProcessBehaviorUpdateRequest, processId: string, behaviorRefName: string): IPromise<ProcessContracts.ProcessBehavior>;
+    /**
+     * [Preview API] Creates a control in a group.
+     *
+     * @param {ProcessContracts.Control} control - The control.
+     * @param {string} processId - The ID of the process.
+     * @param {string} witRefName - The reference name of the work item type.
+     * @param {string} groupId - The ID of the group to add the control to.
+     * @return IPromise<ProcessContracts.Control>
+     */
+    createControlInGroup(control: ProcessContracts.Control, processId: string, witRefName: string, groupId: string): IPromise<ProcessContracts.Control>;
+    /**
+     * [Preview API] Moves a control to a specified group.
+     *
+     * @param {ProcessContracts.Control} control - The control.
+     * @param {string} processId - The ID of the process.
+     * @param {string} witRefName - The reference name of the work item type.
+     * @param {string} groupId - The ID of the group to move the control to.
+     * @param {string} controlId - The ID of the control.
+     * @param {string} removeFromGroupId - The group ID to remove the control from.
+     * @return IPromise<ProcessContracts.Control>
+     */
+    moveControlToGroup(control: ProcessContracts.Control, processId: string, witRefName: string, groupId: string, controlId: string, removeFromGroupId?: string): IPromise<ProcessContracts.Control>;
+    /**
+     * [Preview API] Removes a control from the work item form.
+     *
+     * @param {string} processId - The ID of the process.
+     * @param {string} witRefName - The reference name of the work item type.
+     * @param {string} groupId - The ID of the group.
+     * @param {string} controlId - The ID of the control to remove.
+     * @return IPromise<void>
+     */
+    removeControlFromGroup(processId: string, witRefName: string, groupId: string, controlId: string): IPromise<void>;
+    /**
+     * [Preview API] Updates a control on the work item form.
+     *
+     * @param {ProcessContracts.Control} control - The updated control.
+     * @param {string} processId - The ID of the process.
+     * @param {string} witRefName - The reference name of the work item type.
+     * @param {string} groupId - The ID of the group.
+     * @param {string} controlId - The ID of the control.
+     * @return IPromise<ProcessContracts.Control>
+     */
+    updateControl(control: ProcessContracts.Control, processId: string, witRefName: string, groupId: string, controlId: string): IPromise<ProcessContracts.Control>;
+    /**
+     * [Preview API] Adds a field to a work item type.
+     *
+     * @param {ProcessContracts.AddProcessWorkItemTypeFieldRequest} field
+     * @param {string} processId - The ID of the process.
+     * @param {string} witRefName - The reference name of the work item type.
+     * @return IPromise<ProcessContracts.ProcessWorkItemTypeField>
+     */
+    addFieldToWorkItemType(field: ProcessContracts.AddProcessWorkItemTypeFieldRequest, processId: string, witRefName: string): IPromise<ProcessContracts.ProcessWorkItemTypeField>;
+    /**
+     * [Preview API] Returns a list of all fields in a work item type.
+     *
+     * @param {string} processId - The ID of the process.
+     * @param {string} witRefName - The reference name of the work item type.
+     * @return IPromise<ProcessContracts.ProcessWorkItemTypeField[]>
+     */
+    getAllWorkItemTypeFields(processId: string, witRefName: string): IPromise<ProcessContracts.ProcessWorkItemTypeField[]>;
+    /**
+     * [Preview API] Returns a field in a work item type.
+     *
+     * @param {string} processId - The ID of the process.
+     * @param {string} witRefName - The reference name of the work item type.
+     * @param {string} fieldRefName - The reference name of the field.
+     * @return IPromise<ProcessContracts.ProcessWorkItemTypeField>
+     */
+    getWorkItemTypeField(processId: string, witRefName: string, fieldRefName: string): IPromise<ProcessContracts.ProcessWorkItemTypeField>;
+    /**
+     * [Preview API] Removes a field from a work item type. Does not permanently delete the field.
+     *
+     * @param {string} processId - The ID of the process.
+     * @param {string} witRefName - The reference name of the work item type.
+     * @param {string} fieldRefName - The reference name of the field.
+     * @return IPromise<void>
+     */
+    removeWorkItemTypeField(processId: string, witRefName: string, fieldRefName: string): IPromise<void>;
+    /**
+     * [Preview API] Updates a field in a work item type.
+     *
+     * @param {ProcessContracts.UpdateProcessWorkItemTypeFieldRequest} field
+     * @param {string} processId - The ID of the process.
+     * @param {string} witRefName - The reference name of the work item type.
+     * @param {string} fieldRefName - The reference name of the field.
+     * @return IPromise<ProcessContracts.ProcessWorkItemTypeField>
+     */
+    updateWorkItemTypeField(field: ProcessContracts.UpdateProcessWorkItemTypeFieldRequest, processId: string, witRefName: string, fieldRefName: string): IPromise<ProcessContracts.ProcessWorkItemTypeField>;
+    /**
+     * [Preview API] Adds a group to the work item form.
+     *
+     * @param {ProcessContracts.Group} group - The group.
+     * @param {string} processId - The ID of the process.
+     * @param {string} witRefName - The reference name of the work item type.
+     * @param {string} pageId - The ID of the page to add the group to.
+     * @param {string} sectionId - The ID of the section to add the group to.
+     * @return IPromise<ProcessContracts.Group>
+     */
+    addGroup(group: ProcessContracts.Group, processId: string, witRefName: string, pageId: string, sectionId: string): IPromise<ProcessContracts.Group>;
+    /**
+     * [Preview API] Moves a group to a different page and section.
+     *
+     * @param {ProcessContracts.Group} group - The updated group.
+     * @param {string} processId - The ID of the process.
+     * @param {string} witRefName - The reference name of the work item type.
+     * @param {string} pageId - The ID of the page the group is in.
+     * @param {string} sectionId - The ID of the section the group is i.n
+     * @param {string} groupId - The ID of the group.
+     * @param {string} removeFromPageId - ID of the page to remove the group from.
+     * @param {string} removeFromSectionId - ID of the section to remove the group from.
+     * @return IPromise<ProcessContracts.Group>
+     */
+    moveGroupToPage(group: ProcessContracts.Group, processId: string, witRefName: string, pageId: string, sectionId: string, groupId: string, removeFromPageId: string, removeFromSectionId: string): IPromise<ProcessContracts.Group>;
+    /**
+     * [Preview API] Moves a group to a different section.
+     *
+     * @param {ProcessContracts.Group} group - The updated group.
+     * @param {string} processId - The ID of the process.
+     * @param {string} witRefName - The reference name of the work item type.
+     * @param {string} pageId - The ID of the page the group is in.
+     * @param {string} sectionId - The ID of the section the group is in.
+     * @param {string} groupId - The ID of the group.
+     * @param {string} removeFromSectionId - ID of the section to remove the group from.
+     * @return IPromise<ProcessContracts.Group>
+     */
+    moveGroupToSection(group: ProcessContracts.Group, processId: string, witRefName: string, pageId: string, sectionId: string, groupId: string, removeFromSectionId: string): IPromise<ProcessContracts.Group>;
+    /**
+     * [Preview API] Removes a group from the work item form.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} pageId - The ID of the page the group is in
+     * @param {string} sectionId - The ID of the section to the group is in
+     * @param {string} groupId - The ID of the group
+     * @return IPromise<void>
+     */
+    removeGroup(processId: string, witRefName: string, pageId: string, sectionId: string, groupId: string): IPromise<void>;
+    /**
+     * [Preview API] Updates a group in the work item form.
+     *
+     * @param {ProcessContracts.Group} group - The updated group.
+     * @param {string} processId - The ID of the process.
+     * @param {string} witRefName - The reference name of the work item type.
+     * @param {string} pageId - The ID of the page the group is in.
+     * @param {string} sectionId - The ID of the section the group is in.
+     * @param {string} groupId - The ID of the group.
+     * @return IPromise<ProcessContracts.Group>
+     */
+    updateGroup(group: ProcessContracts.Group, processId: string, witRefName: string, pageId: string, sectionId: string, groupId: string): IPromise<ProcessContracts.Group>;
+    /**
+     * [Preview API] Gets the form layout.
+     *
+     * @param {string} processId - The ID of the process.
+     * @param {string} witRefName - The reference name of the work item type.
+     * @return IPromise<ProcessContracts.FormLayout>
+     */
+    getFormLayout(processId: string, witRefName: string): IPromise<ProcessContracts.FormLayout>;
+    /**
+     * [Preview API] Creates a picklist.
+     *
+     * @param {ProcessContracts.PickList} picklist - Picklist
+     * @return IPromise<ProcessContracts.PickList>
+     */
+    createList(picklist: ProcessContracts.PickList): IPromise<ProcessContracts.PickList>;
+    /**
+     * [Preview API] Removes a picklist.
+     *
+     * @param {string} listId - The ID of the list
+     * @return IPromise<void>
+     */
+    deleteList(listId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a picklist.
+     *
+     * @param {string} listId - The ID of the list
+     * @return IPromise<ProcessContracts.PickList>
+     */
+    getList(listId: string): IPromise<ProcessContracts.PickList>;
+    /**
+     * [Preview API] Returns meta data of the picklist.
+     *
+     * @return IPromise<ProcessContracts.PickListMetadata[]>
+     */
+    getListsMetadata(): IPromise<ProcessContracts.PickListMetadata[]>;
+    /**
+     * [Preview API] Updates a list.
+     *
+     * @param {ProcessContracts.PickList} picklist
+     * @param {string} listId - The ID of the list
+     * @return IPromise<ProcessContracts.PickList>
+     */
+    updateList(picklist: ProcessContracts.PickList, listId: string): IPromise<ProcessContracts.PickList>;
+    /**
+     * [Preview API] Adds a page to the work item form.
+     *
+     * @param {ProcessContracts.Page} page - The page.
+     * @param {string} processId - The ID of the process.
+     * @param {string} witRefName - The reference name of the work item type.
+     * @return IPromise<ProcessContracts.Page>
+     */
+    addPage(page: ProcessContracts.Page, processId: string, witRefName: string): IPromise<ProcessContracts.Page>;
+    /**
+     * [Preview API] Removes a page from the work item form
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} pageId - The ID of the page
+     * @return IPromise<void>
+     */
+    removePage(processId: string, witRefName: string, pageId: string): IPromise<void>;
+    /**
+     * [Preview API] Updates a page on the work item form
+     *
+     * @param {ProcessContracts.Page} page - The page
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.Page>
+     */
+    updatePage(page: ProcessContracts.Page, processId: string, witRefName: string): IPromise<ProcessContracts.Page>;
+    /**
+     * [Preview API] Creates a process.
+     *
+     * @param {ProcessContracts.CreateProcessModel} createRequest - CreateProcessModel.
+     * @return IPromise<ProcessContracts.ProcessInfo>
+     */
+    createNewProcess(createRequest: ProcessContracts.CreateProcessModel): IPromise<ProcessContracts.ProcessInfo>;
+    /**
+     * [Preview API] Removes a process of a specific ID.
+     *
+     * @param {string} processTypeId
+     * @return IPromise<void>
+     */
+    deleteProcessById(processTypeId: string): IPromise<void>;
+    /**
+     * [Preview API] Edit a process of a specific ID.
+     *
+     * @param {ProcessContracts.UpdateProcessModel} updateRequest
+     * @param {string} processTypeId
+     * @return IPromise<ProcessContracts.ProcessInfo>
+     */
+    editProcess(updateRequest: ProcessContracts.UpdateProcessModel, processTypeId: string): IPromise<ProcessContracts.ProcessInfo>;
+    /**
+     * [Preview API] Get list of all processes including system and inherited.
+     *
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessInfo[]>
+     */
+    getListOfProcesses(expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessInfo[]>;
+    /**
+     * [Preview API] Get a single process of a specified ID.
+     *
+     * @param {string} processTypeId
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessInfo>
+     */
+    getProcessByItsId(processTypeId: string, expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessInfo>;
+    /**
+     * [Preview API] Adds a rule to work item type in the process.
+     *
+     * @param {ProcessContracts.CreateProcessRuleRequest} processRuleCreate
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.ProcessRule>
+     */
+    addProcessWorkItemTypeRule(processRuleCreate: ProcessContracts.CreateProcessRuleRequest, processId: string, witRefName: string): IPromise<ProcessContracts.ProcessRule>;
+    /**
+     * [Preview API] Removes a rule from the work item type in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<void>
+     */
+    deleteProcessWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single rule in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.ProcessRule>
+     */
+    getProcessWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.ProcessRule>;
+    /**
+     * [Preview API] Returns a list of all rules in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.ProcessRule[]>
+     */
+    getProcessWorkItemTypeRules(processId: string, witRefName: string): IPromise<ProcessContracts.ProcessRule[]>;
+    /**
+     * [Preview API] Updates a rule in the work item type of the process.
+     *
+     * @param {ProcessContracts.UpdateProcessRuleRequest} processRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.ProcessRule>
+     */
+    updateProcessWorkItemTypeRule(processRule: ProcessContracts.UpdateProcessRuleRequest, processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.ProcessRule>;
+    /**
+     * [Preview API] Creates a work item type in the process.
+     *
+     * @param {ProcessContracts.CreateProcessWorkItemTypeRequest} workItemType
+     * @param {string} processId - The ID of the process on which to create work item type.
+     * @return IPromise<ProcessContracts.ProcessWorkItemType>
+     */
+    createProcessWorkItemType(workItemType: ProcessContracts.CreateProcessWorkItemTypeRequest, processId: string): IPromise<ProcessContracts.ProcessWorkItemType>;
+    /**
+     * [Preview API] Removes a work itewm type in the process.
+     *
+     * @param {string} processId - The ID of the process.
+     * @param {string} witRefName - The reference name of the work item type.
+     * @return IPromise<void>
+     */
+    deleteProcessWorkItemType(processId: string, witRefName: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single work item type in a process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand - Flag to determine what properties of work item type to return
+     * @return IPromise<ProcessContracts.ProcessWorkItemType>
+     */
+    getProcessWorkItemType(processId: string, witRefName: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.ProcessWorkItemType>;
+    /**
+     * [Preview API] Returns a list of all work item types in a process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand - Flag to determine what properties of work item type to return
+     * @return IPromise<ProcessContracts.ProcessWorkItemType[]>
+     */
+    getProcessWorkItemTypes(processId: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.ProcessWorkItemType[]>;
+    /**
+     * [Preview API] Updates a work item type of the process.
+     *
+     * @param {ProcessContracts.UpdateProcessWorkItemTypeRequest} workItemTypeUpdate
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.ProcessWorkItemType>
+     */
+    updateProcessWorkItemType(workItemTypeUpdate: ProcessContracts.UpdateProcessWorkItemTypeRequest, processId: string, witRefName: string): IPromise<ProcessContracts.ProcessWorkItemType>;
+    /**
+     * [Preview API] Adds a behavior to the work item type of the process.
+     *
+     * @param {ProcessContracts.WorkItemTypeBehavior} behavior
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForBehaviors - Work item type reference name for the behavior
+     * @return IPromise<ProcessContracts.WorkItemTypeBehavior>
+     */
+    addBehaviorToWorkItemType(behavior: ProcessContracts.WorkItemTypeBehavior, processId: string, witRefNameForBehaviors: string): IPromise<ProcessContracts.WorkItemTypeBehavior>;
+    /**
+     * [Preview API] Returns a behavior for the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForBehaviors - Work item type reference name for the behavior
+     * @param {string} behaviorRefName - The reference name of the behavior
+     * @return IPromise<ProcessContracts.WorkItemTypeBehavior>
+     */
+    getBehaviorForWorkItemType(processId: string, witRefNameForBehaviors: string, behaviorRefName: string): IPromise<ProcessContracts.WorkItemTypeBehavior>;
+    /**
+     * [Preview API] Returns a list of all behaviors for the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForBehaviors - Work item type reference name for the behavior
+     * @return IPromise<ProcessContracts.WorkItemTypeBehavior[]>
+     */
+    getBehaviorsForWorkItemType(processId: string, witRefNameForBehaviors: string): IPromise<ProcessContracts.WorkItemTypeBehavior[]>;
+    /**
+     * [Preview API] Removes a behavior for the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForBehaviors - Work item type reference name for the behavior
+     * @param {string} behaviorRefName - The reference name of the behavior
+     * @return IPromise<void>
+     */
+    removeBehaviorFromWorkItemType(processId: string, witRefNameForBehaviors: string, behaviorRefName: string): IPromise<void>;
+    /**
+     * [Preview API] Updates a behavior for the work item type of the process.
+     *
+     * @param {ProcessContracts.WorkItemTypeBehavior} behavior
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefNameForBehaviors - Work item type reference name for the behavior
+     * @return IPromise<ProcessContracts.WorkItemTypeBehavior>
+     */
+    updateBehaviorToWorkItemType(behavior: ProcessContracts.WorkItemTypeBehavior, processId: string, witRefNameForBehaviors: string): IPromise<ProcessContracts.WorkItemTypeBehavior>;
 }
 /**
  * @exemptedapi
  */
 export class WorkItemTrackingProcessHttpClient4_1 extends CommonMethods3_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Returns a behavior of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} behaviorRefName - Reference name of the behavior
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemBehavior>
+     */
+    getBehavior(processId: string, behaviorRefName: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior>;
+    /**
+     * [Preview API] Returns a list of all behaviors in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemBehavior[]>
+     */
+    getBehaviors(processId: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior[]>;
+    /**
+     * [Preview API] Returns a list of all fields in a process.
+     *
+     * @param {string} processId - The ID of the process
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getFields(processId: string): IPromise<ProcessContracts.FieldModel[]>;
+    /**
+     * [Preview API] Returns a list of all fields in a work item type.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefName: string): IPromise<ProcessContracts.FieldModel[]>;
+    /**
+     * [Preview API] Creates a process.
+     *
+     * @param {ProcessContracts.CreateProcessModel} createRequest
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    createProcess(createRequest: ProcessContracts.CreateProcessModel): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Removes a process of a specific ID.
+     *
+     * @param {string} processTypeId
+     * @return IPromise<void>
+     */
+    deleteProcess(processTypeId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single process of a specified ID.
+     *
+     * @param {string} processTypeId
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    getProcessById(processTypeId: string, expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Returns a list of all processes.
+     *
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessModel[]>
+     */
+    getProcesses(expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel[]>;
+    /**
+     * [Preview API] Updates a process of a specific ID.
+     *
+     * @param {ProcessContracts.UpdateProcessModel} updateRequest
+     * @param {string} processTypeId
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    updateProcess(updateRequest: ProcessContracts.UpdateProcessModel, processTypeId: string): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Adds a rule to work item type in the process.
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    addWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] Removes a rule from the work item type in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<void>
+     */
+    deleteWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single rule in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    getWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] Returns a list of all rules in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldRuleModel[]>
+     */
+    getWorkItemTypeRules(processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel[]>;
+    /**
+     * [Preview API] Updates a rule in the work item type of the process.
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    updateWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] [DEPRECATED] Use GetProcessWorkItemType instead
+     *
+     * @param {string} processId
+     * @param {string} witRefName
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemTypeModel>
+     */
+    getWorkItemType(processId: string, witRefName: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel>;
+    /**
+     * [Preview API] [DEPRECATED] Use GetProcessWorkItemTypes instead
+     *
+     * @param {string} processId
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemTypeModel[]>
+     */
+    getWorkItemTypes(processId: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel[]>;
 }
 /**
  * @exemptedapi
  */
 export class WorkItemTrackingProcessHttpClient4 extends CommonMethods3_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Returns a behavior of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} behaviorRefName - Reference name of the behavior
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemBehavior>
+     */
+    getBehavior(processId: string, behaviorRefName: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior>;
+    /**
+     * [Preview API] Returns a list of all behaviors in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemBehavior[]>
+     */
+    getBehaviors(processId: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior[]>;
+    /**
+     * [Preview API] Returns a list of all fields in a process.
+     *
+     * @param {string} processId - The ID of the process
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getFields(processId: string): IPromise<ProcessContracts.FieldModel[]>;
+    /**
+     * [Preview API] Returns a list of all fields in a work item type.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefName: string): IPromise<ProcessContracts.FieldModel[]>;
+    /**
+     * [Preview API] Creates a process.
+     *
+     * @param {ProcessContracts.CreateProcessModel} createRequest
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    createProcess(createRequest: ProcessContracts.CreateProcessModel): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Removes a process of a specific ID.
+     *
+     * @param {string} processTypeId
+     * @return IPromise<void>
+     */
+    deleteProcess(processTypeId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single process of a specified ID.
+     *
+     * @param {string} processTypeId
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    getProcessById(processTypeId: string, expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Returns a list of all processes.
+     *
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessModel[]>
+     */
+    getProcesses(expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel[]>;
+    /**
+     * [Preview API] Updates a process of a specific ID.
+     *
+     * @param {ProcessContracts.UpdateProcessModel} updateRequest
+     * @param {string} processTypeId
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    updateProcess(updateRequest: ProcessContracts.UpdateProcessModel, processTypeId: string): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Adds a rule to work item type in the process.
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    addWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] Removes a rule from the work item type in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<void>
+     */
+    deleteWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single rule in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    getWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] Returns a list of all rules in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldRuleModel[]>
+     */
+    getWorkItemTypeRules(processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel[]>;
+    /**
+     * [Preview API] Updates a rule in the work item type of the process.
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    updateWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] [DEPRECATED] Use GetProcessWorkItemType instead
+     *
+     * @param {string} processId
+     * @param {string} witRefName
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemTypeModel>
+     */
+    getWorkItemType(processId: string, witRefName: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel>;
+    /**
+     * [Preview API] [DEPRECATED] Use GetProcessWorkItemTypes instead
+     *
+     * @param {string} processId
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemTypeModel[]>
+     */
+    getWorkItemTypes(processId: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel[]>;
 }
 /**
  * @exemptedapi
  */
 export class WorkItemTrackingProcessHttpClient3_2 extends CommonMethods3_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Returns a behavior of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} behaviorRefName - Reference name of the behavior
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemBehavior>
+     */
+    getBehavior(processId: string, behaviorRefName: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior>;
+    /**
+     * [Preview API] Returns a list of all behaviors in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemBehavior[]>
+     */
+    getBehaviors(processId: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior[]>;
+    /**
+     * [Preview API] Returns a list of all fields in a process.
+     *
+     * @param {string} processId - The ID of the process
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getFields(processId: string): IPromise<ProcessContracts.FieldModel[]>;
+    /**
+     * [Preview API] Returns a list of all fields in a work item type.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefName: string): IPromise<ProcessContracts.FieldModel[]>;
+    /**
+     * [Preview API] Creates a process.
+     *
+     * @param {ProcessContracts.CreateProcessModel} createRequest
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    createProcess(createRequest: ProcessContracts.CreateProcessModel): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Removes a process of a specific ID.
+     *
+     * @param {string} processTypeId
+     * @return IPromise<void>
+     */
+    deleteProcess(processTypeId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single process of a specified ID.
+     *
+     * @param {string} processTypeId
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    getProcessById(processTypeId: string, expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Returns a list of all processes.
+     *
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessModel[]>
+     */
+    getProcesses(expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel[]>;
+    /**
+     * [Preview API] Updates a process of a specific ID.
+     *
+     * @param {ProcessContracts.UpdateProcessModel} updateRequest
+     * @param {string} processTypeId
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    updateProcess(updateRequest: ProcessContracts.UpdateProcessModel, processTypeId: string): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Adds a rule to work item type in the process.
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    addWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] Removes a rule from the work item type in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<void>
+     */
+    deleteWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single rule in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    getWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] Returns a list of all rules in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldRuleModel[]>
+     */
+    getWorkItemTypeRules(processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel[]>;
+    /**
+     * [Preview API] Updates a rule in the work item type of the process.
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    updateWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] [DEPRECATED] Use GetProcessWorkItemType instead
+     *
+     * @param {string} processId
+     * @param {string} witRefName
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemTypeModel>
+     */
+    getWorkItemType(processId: string, witRefName: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel>;
+    /**
+     * [Preview API] [DEPRECATED] Use GetProcessWorkItemTypes instead
+     *
+     * @param {string} processId
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemTypeModel[]>
+     */
+    getWorkItemTypes(processId: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel[]>;
 }
 /**
  * @exemptedapi
  */
-export class WorkItemTrackingProcessHttpClient3_1 extends CommonMethods2_1To5 {
+export class WorkItemTrackingProcessHttpClient3_1 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Returns a behavior of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} behaviorRefName - Reference name of the behavior
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemBehavior>
+     */
+    getBehavior(processId: string, behaviorRefName: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior>;
+    /**
+     * [Preview API] Returns a list of all behaviors in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemBehavior[]>
+     */
+    getBehaviors(processId: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior[]>;
+    /**
+     * [Preview API] Returns a list of all fields in a process.
+     *
+     * @param {string} processId - The ID of the process
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getFields(processId: string): IPromise<ProcessContracts.FieldModel[]>;
+    /**
+     * [Preview API] Returns a list of all fields in a work item type.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefName: string): IPromise<ProcessContracts.FieldModel[]>;
+    /**
+     * [Preview API] Creates a process.
+     *
+     * @param {ProcessContracts.CreateProcessModel} createRequest
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    createProcess(createRequest: ProcessContracts.CreateProcessModel): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Removes a process of a specific ID.
+     *
+     * @param {string} processTypeId
+     * @return IPromise<void>
+     */
+    deleteProcess(processTypeId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single process of a specified ID.
+     *
+     * @param {string} processTypeId
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    getProcessById(processTypeId: string, expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Returns a list of all processes.
+     *
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessModel[]>
+     */
+    getProcesses(expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel[]>;
+    /**
+     * [Preview API] Updates a process of a specific ID.
+     *
+     * @param {ProcessContracts.UpdateProcessModel} updateRequest
+     * @param {string} processTypeId
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    updateProcess(updateRequest: ProcessContracts.UpdateProcessModel, processTypeId: string): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Adds a rule to work item type in the process.
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    addWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] Removes a rule from the work item type in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<void>
+     */
+    deleteWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single rule in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    getWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] Returns a list of all rules in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldRuleModel[]>
+     */
+    getWorkItemTypeRules(processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel[]>;
+    /**
+     * [Preview API] Updates a rule in the work item type of the process.
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    updateWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] [DEPRECATED] Use GetProcessWorkItemType instead
+     *
+     * @param {string} processId
+     * @param {string} witRefName
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemTypeModel>
+     */
+    getWorkItemType(processId: string, witRefName: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel>;
+    /**
+     * [Preview API] [DEPRECATED] Use GetProcessWorkItemTypes instead
+     *
+     * @param {string} processId
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemTypeModel[]>
+     */
+    getWorkItemTypes(processId: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel[]>;
 }
 /**
  * @exemptedapi
  */
-export class WorkItemTrackingProcessHttpClient3 extends CommonMethods2_1To5 {
+export class WorkItemTrackingProcessHttpClient3 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Returns a behavior of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} behaviorRefName - Reference name of the behavior
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemBehavior>
+     */
+    getBehavior(processId: string, behaviorRefName: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior>;
+    /**
+     * [Preview API] Returns a list of all behaviors in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemBehavior[]>
+     */
+    getBehaviors(processId: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior[]>;
+    /**
+     * [Preview API] Returns a list of all fields in a process.
+     *
+     * @param {string} processId - The ID of the process
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getFields(processId: string): IPromise<ProcessContracts.FieldModel[]>;
+    /**
+     * [Preview API] Returns a list of all fields in a work item type.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefName: string): IPromise<ProcessContracts.FieldModel[]>;
+    /**
+     * [Preview API] Creates a process.
+     *
+     * @param {ProcessContracts.CreateProcessModel} createRequest
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    createProcess(createRequest: ProcessContracts.CreateProcessModel): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Removes a process of a specific ID.
+     *
+     * @param {string} processTypeId
+     * @return IPromise<void>
+     */
+    deleteProcess(processTypeId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single process of a specified ID.
+     *
+     * @param {string} processTypeId
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    getProcessById(processTypeId: string, expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Returns a list of all processes.
+     *
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessModel[]>
+     */
+    getProcesses(expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel[]>;
+    /**
+     * [Preview API] Updates a process of a specific ID.
+     *
+     * @param {ProcessContracts.UpdateProcessModel} updateRequest
+     * @param {string} processTypeId
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    updateProcess(updateRequest: ProcessContracts.UpdateProcessModel, processTypeId: string): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Adds a rule to work item type in the process.
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    addWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] Removes a rule from the work item type in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<void>
+     */
+    deleteWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single rule in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    getWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] Returns a list of all rules in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldRuleModel[]>
+     */
+    getWorkItemTypeRules(processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel[]>;
+    /**
+     * [Preview API] Updates a rule in the work item type of the process.
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    updateWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] [DEPRECATED] Use GetProcessWorkItemType instead
+     *
+     * @param {string} processId
+     * @param {string} witRefName
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemTypeModel>
+     */
+    getWorkItemType(processId: string, witRefName: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel>;
+    /**
+     * [Preview API] [DEPRECATED] Use GetProcessWorkItemTypes instead
+     *
+     * @param {string} processId
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemTypeModel[]>
+     */
+    getWorkItemTypes(processId: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel[]>;
 }
 /**
  * @exemptedapi
  */
-export class WorkItemTrackingProcessHttpClient2_3 extends CommonMethods2_1To5 {
+export class WorkItemTrackingProcessHttpClient2_3 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Returns a behavior of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} behaviorRefName - Reference name of the behavior
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemBehavior>
+     */
+    getBehavior(processId: string, behaviorRefName: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior>;
+    /**
+     * [Preview API] Returns a list of all behaviors in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemBehavior[]>
+     */
+    getBehaviors(processId: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior[]>;
+    /**
+     * [Preview API] Returns a list of all fields in a process.
+     *
+     * @param {string} processId - The ID of the process
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getFields(processId: string): IPromise<ProcessContracts.FieldModel[]>;
+    /**
+     * [Preview API] Returns a list of all fields in a work item type.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefName: string): IPromise<ProcessContracts.FieldModel[]>;
+    /**
+     * [Preview API] Creates a process.
+     *
+     * @param {ProcessContracts.CreateProcessModel} createRequest
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    createProcess(createRequest: ProcessContracts.CreateProcessModel): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Removes a process of a specific ID.
+     *
+     * @param {string} processTypeId
+     * @return IPromise<void>
+     */
+    deleteProcess(processTypeId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single process of a specified ID.
+     *
+     * @param {string} processTypeId
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    getProcessById(processTypeId: string, expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Returns a list of all processes.
+     *
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessModel[]>
+     */
+    getProcesses(expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel[]>;
+    /**
+     * [Preview API] Updates a process of a specific ID.
+     *
+     * @param {ProcessContracts.UpdateProcessModel} updateRequest
+     * @param {string} processTypeId
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    updateProcess(updateRequest: ProcessContracts.UpdateProcessModel, processTypeId: string): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Adds a rule to work item type in the process.
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    addWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] Removes a rule from the work item type in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<void>
+     */
+    deleteWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single rule in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    getWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] Returns a list of all rules in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldRuleModel[]>
+     */
+    getWorkItemTypeRules(processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel[]>;
+    /**
+     * [Preview API] Updates a rule in the work item type of the process.
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    updateWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] [DEPRECATED] Use GetProcessWorkItemType instead
+     *
+     * @param {string} processId
+     * @param {string} witRefName
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemTypeModel>
+     */
+    getWorkItemType(processId: string, witRefName: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel>;
+    /**
+     * [Preview API] [DEPRECATED] Use GetProcessWorkItemTypes instead
+     *
+     * @param {string} processId
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemTypeModel[]>
+     */
+    getWorkItemTypes(processId: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel[]>;
 }
 /**
  * @exemptedapi
  */
-export class WorkItemTrackingProcessHttpClient2_2 extends CommonMethods2_1To5 {
+export class WorkItemTrackingProcessHttpClient2_2 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Returns a behavior of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} behaviorRefName - Reference name of the behavior
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemBehavior>
+     */
+    getBehavior(processId: string, behaviorRefName: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior>;
+    /**
+     * [Preview API] Returns a list of all behaviors in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemBehavior[]>
+     */
+    getBehaviors(processId: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior[]>;
+    /**
+     * [Preview API] Returns a list of all fields in a process.
+     *
+     * @param {string} processId - The ID of the process
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getFields(processId: string): IPromise<ProcessContracts.FieldModel[]>;
+    /**
+     * [Preview API] Returns a list of all fields in a work item type.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefName: string): IPromise<ProcessContracts.FieldModel[]>;
+    /**
+     * [Preview API] Creates a process.
+     *
+     * @param {ProcessContracts.CreateProcessModel} createRequest
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    createProcess(createRequest: ProcessContracts.CreateProcessModel): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Removes a process of a specific ID.
+     *
+     * @param {string} processTypeId
+     * @return IPromise<void>
+     */
+    deleteProcess(processTypeId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single process of a specified ID.
+     *
+     * @param {string} processTypeId
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    getProcessById(processTypeId: string, expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Returns a list of all processes.
+     *
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessModel[]>
+     */
+    getProcesses(expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel[]>;
+    /**
+     * [Preview API] Updates a process of a specific ID.
+     *
+     * @param {ProcessContracts.UpdateProcessModel} updateRequest
+     * @param {string} processTypeId
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    updateProcess(updateRequest: ProcessContracts.UpdateProcessModel, processTypeId: string): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Adds a rule to work item type in the process.
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    addWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] Removes a rule from the work item type in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<void>
+     */
+    deleteWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single rule in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    getWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] Returns a list of all rules in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldRuleModel[]>
+     */
+    getWorkItemTypeRules(processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel[]>;
+    /**
+     * [Preview API] Updates a rule in the work item type of the process.
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    updateWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] [DEPRECATED] Use GetProcessWorkItemType instead
+     *
+     * @param {string} processId
+     * @param {string} witRefName
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemTypeModel>
+     */
+    getWorkItemType(processId: string, witRefName: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel>;
+    /**
+     * [Preview API] [DEPRECATED] Use GetProcessWorkItemTypes instead
+     *
+     * @param {string} processId
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemTypeModel[]>
+     */
+    getWorkItemTypes(processId: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel[]>;
 }
 /**
  * @exemptedapi
  */
-export class WorkItemTrackingProcessHttpClient2_1 extends CommonMethods2_1To5 {
+export class WorkItemTrackingProcessHttpClient2_1 extends VSS_WebApi.VssHttpClient {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Returns a behavior of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} behaviorRefName - Reference name of the behavior
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemBehavior>
+     */
+    getBehavior(processId: string, behaviorRefName: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior>;
+    /**
+     * [Preview API] Returns a list of all behaviors in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {ProcessContracts.GetBehaviorsExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemBehavior[]>
+     */
+    getBehaviors(processId: string, expand?: ProcessContracts.GetBehaviorsExpand): IPromise<ProcessContracts.WorkItemBehavior[]>;
+    /**
+     * [Preview API] Returns a list of all fields in a process.
+     *
+     * @param {string} processId - The ID of the process
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getFields(processId: string): IPromise<ProcessContracts.FieldModel[]>;
+    /**
+     * [Preview API] Returns a list of all fields in a work item type.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldModel[]>
+     */
+    getWorkItemTypeFields(processId: string, witRefName: string): IPromise<ProcessContracts.FieldModel[]>;
+    /**
+     * [Preview API] Creates a process.
+     *
+     * @param {ProcessContracts.CreateProcessModel} createRequest
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    createProcess(createRequest: ProcessContracts.CreateProcessModel): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Removes a process of a specific ID.
+     *
+     * @param {string} processTypeId
+     * @return IPromise<void>
+     */
+    deleteProcess(processTypeId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single process of a specified ID.
+     *
+     * @param {string} processTypeId
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    getProcessById(processTypeId: string, expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Returns a list of all processes.
+     *
+     * @param {ProcessContracts.GetProcessExpandLevel} expand
+     * @return IPromise<ProcessContracts.ProcessModel[]>
+     */
+    getProcesses(expand?: ProcessContracts.GetProcessExpandLevel): IPromise<ProcessContracts.ProcessModel[]>;
+    /**
+     * [Preview API] Updates a process of a specific ID.
+     *
+     * @param {ProcessContracts.UpdateProcessModel} updateRequest
+     * @param {string} processTypeId
+     * @return IPromise<ProcessContracts.ProcessModel>
+     */
+    updateProcess(updateRequest: ProcessContracts.UpdateProcessModel, processTypeId: string): IPromise<ProcessContracts.ProcessModel>;
+    /**
+     * [Preview API] Adds a rule to work item type in the process.
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    addWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] Removes a rule from the work item type in the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<void>
+     */
+    deleteWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<void>;
+    /**
+     * [Preview API] Returns a single rule in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    getWorkItemTypeRule(processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] Returns a list of all rules in the work item type of the process.
+     *
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @return IPromise<ProcessContracts.FieldRuleModel[]>
+     */
+    getWorkItemTypeRules(processId: string, witRefName: string): IPromise<ProcessContracts.FieldRuleModel[]>;
+    /**
+     * [Preview API] Updates a rule in the work item type of the process.
+     *
+     * @param {ProcessContracts.FieldRuleModel} fieldRule
+     * @param {string} processId - The ID of the process
+     * @param {string} witRefName - The reference name of the work item type
+     * @param {string} ruleId - The ID of the rule
+     * @return IPromise<ProcessContracts.FieldRuleModel>
+     */
+    updateWorkItemTypeRule(fieldRule: ProcessContracts.FieldRuleModel, processId: string, witRefName: string, ruleId: string): IPromise<ProcessContracts.FieldRuleModel>;
+    /**
+     * [Preview API] [DEPRECATED] Use GetProcessWorkItemType instead
+     *
+     * @param {string} processId
+     * @param {string} witRefName
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemTypeModel>
+     */
+    getWorkItemType(processId: string, witRefName: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel>;
+    /**
+     * [Preview API] [DEPRECATED] Use GetProcessWorkItemTypes instead
+     *
+     * @param {string} processId
+     * @param {ProcessContracts.GetWorkItemTypeExpand} expand
+     * @return IPromise<ProcessContracts.WorkItemTypeModel[]>
+     */
+    getWorkItemTypes(processId: string, expand?: ProcessContracts.GetWorkItemTypeExpand): IPromise<ProcessContracts.WorkItemTypeModel[]>;
 }
 export class WorkItemTrackingProcessHttpClient extends WorkItemTrackingProcessHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -29997,6 +36379,17 @@ export class WorkItemTrackingProcessHttpClient extends WorkItemTrackingProcessHt
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkItemTrackingProcessHttpClient4_1;
 }
 declare module "TFS/WorkItemTracking/ProcessTemplateContracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\workitemtrackingprocesstemplate\clientgeneratorconfigs\genclient.json
+ */
 /**
  * Describes an admin behavior for a process.
  */
@@ -30143,7 +36536,7 @@ export interface ValidationIssue {
 }
 export enum ValidationIssueType {
     Warning = 0,
-    Error = 1,
+    Error = 1
 }
 export var TypeInfo: {
     ProcessImportResult: any;
@@ -30157,12 +36550,31 @@ export var TypeInfo: {
 };
 }
 declare module "TFS/WorkItemTracking/ProcessTemplateRestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\workitemtrackingprocesstemplate\clientgeneratorconfigs\genclient.json
+ */
 import ProcessTemplateContracts = require("TFS/WorkItemTracking/ProcessTemplateContracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2_2To5 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected processesApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Migrate a project from an XML process to an inherited one
+     *
+     * @param {string} projectName
+     * @param {string} targetProcessId
+     * @return IPromise<string>
+     */
+    queuePromoteProjectToProcessJob(projectName: string, targetProcessId: string): IPromise<string>;
     /**
      * [Preview API] Tells whether promote has completed for the specified promote job ID.
      *
@@ -30190,10 +36602,11 @@ export class CommonMethods2_2To5 extends VSS_WebApi.VssHttpClient {
      *
      * @param {string} SourceProcessId - The template type id of the source process
      * @param {string} TargetProcessName - The name for the new inherited process
-     * @param {string} TargetProcessType - The OOB process name to create the inherited process under
+     * @param {string} ParentProcessName
+     * @param {string} processDescription
      * @return IPromise<string>
      */
-    cloneXmlToInherited(SourceProcessId: string, TargetProcessName: string, TargetProcessType: string): IPromise<string>;
+    cloneXmlToInherited(SourceProcessId: string, TargetProcessName: string, ParentProcessName: string, processDescription: string): IPromise<string>;
     /**
      * [Preview API] Check if process template exists.
      *
@@ -30280,6 +36693,17 @@ export class WorkItemTrackingProcessTemplateHttpClient extends WorkItemTrackingP
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): WorkItemTrackingProcessTemplateHttpClient4_1;
 }
 declare module "TFS/WorkItemTracking/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\workitemtracking\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("TFS/WorkItemTracking/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -30454,7 +36878,7 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      *
      * @param {Contracts.QueryHierarchyItem} queryUpdate - The query to update.
      * @param {string} project - Project ID or project name
-     * @param {string} query - The path for the query to update.
+     * @param {string} query - The ID or path for the query to update.
      * @param {boolean} undeleteDescendants - Undelete the children of this folder. It is important to note that this will not bring back the permission changes that were previously applied to the descendants.
      * @return IPromise<Contracts.QueryHierarchyItem>
      */
@@ -30474,7 +36898,7 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * Retrieves an individual query and its children
      *
      * @param {string} project - Project ID or project name
-     * @param {string} query
+     * @param {string} query - ID or path of the query.
      * @param {Contracts.QueryExpand} expand - Include the query string (wiql), clauses, query result columns, and sort options in the results.
      * @param {number} depth - In the folder of queries, return child queries and folders to this depth.
      * @param {boolean} includeDeleted - Include deleted queries and folders
@@ -30504,19 +36928,10 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      *
      * @param {Contracts.QueryHierarchyItem} postedQuery - The query to create.
      * @param {string} project - Project ID or project name
-     * @param {string} query - The parent path for the query to create.
+     * @param {string} query - The parent id or path under which the query is to be created.
      * @return IPromise<Contracts.QueryHierarchyItem>
      */
     createQuery(postedQuery: Contracts.QueryHierarchyItem, project: string, query: string): IPromise<Contracts.QueryHierarchyItem>;
-    /**
-     * Updates the field.
-     *
-     * @param {Contracts.WorkItemField} workItemField - New field definition
-     * @param {string} fieldNameOrRefName - Field simple name or reference name
-     * @param {string} project - Project ID or project name
-     * @return IPromise<void>
-     */
-    updateField(workItemField: Contracts.WorkItemField, fieldNameOrRefName: string, project?: string): IPromise<void>;
     /**
      * Returns information for all fields.
      *
@@ -30541,6 +36956,14 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * @return IPromise<void>
      */
     deleteField(fieldNameOrRefName: string, project?: string): IPromise<void>;
+    /**
+     * Create a new field.
+     *
+     * @param {Contracts.WorkItemField} workItemField - New field definition
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItemField>
+     */
+    createField(workItemField: Contracts.WorkItemField, project?: string): IPromise<Contracts.WorkItemField>;
     /**
      * Update an existing classification node.
      *
@@ -30786,7 +37209,6 @@ export class CommonMethods4_1To5 extends CommonMethods4To5 {
     protected recyclebinApiVersion: string;
     protected revisionsApiVersion: string;
     protected updatesApiVersion: string;
-    protected workItemLinksApiVersion: string;
     protected workItemTransitionsApiVersion: string;
     protected workItemTypesFieldApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -30818,17 +37240,6 @@ export class CommonMethods4_1To5 extends CommonMethods4To5 {
      * @return IPromise<Contracts.WorkItemNextStateOnTransition[]>
      */
     getWorkItemNextStatesOnCheckinAction(ids: number[], action?: string): IPromise<Contracts.WorkItemNextStateOnTransition[]>;
-    /**
-     * Get a batch of work item links
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string[]} linkTypes - A list of types to filter the results to specific link types. Omit this parameter to get work item links of all link types.
-     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
-     * @param {string} continuationToken - Specifies the continuationToken to start the batch from. Omit this parameter to get the first batch of links.
-     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
-     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
-     */
-    getReportingLinksByLinkType(project?: string, linkTypes?: string[], types?: string[], continuationToken?: string, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
     /**
      * Returns a the deltas between work item revisions
      *
@@ -30944,6 +37355,25 @@ export class CommonMethods4_1To5 extends CommonMethods4To5 {
  */
 export class WorkItemTrackingHttpClient5 extends CommonMethods4_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Get a batch of work item links
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string[]} linkTypes - A list of types to filter the results to specific link types. Omit this parameter to get work item links of all link types.
+     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
+     * @param {string} continuationToken - Specifies the continuationToken to start the batch from. Omit this parameter to get the first batch of links.
+     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
+     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
+     */
+    getReportingLinksByLinkType(project?: string, linkTypes?: string[], types?: string[], continuationToken?: string, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
+    /**
+     * [Preview API] Gets work items for a list of work item ids
+     *
+     * @param {Contracts.WorkItemBatchGetRequest} workItemGetRequest
+     * @param {string} project - Project ID or project name
+     * @return IPromise<Contracts.WorkItem[]>
+     */
+    getWorkItemsBatch(workItemGetRequest: Contracts.WorkItemBatchGetRequest, project?: string): IPromise<Contracts.WorkItem[]>;
 }
 /**
  * @exemptedapi
@@ -31052,16 +37482,6 @@ export class WorkItemTrackingHttpClient4 extends CommonMethods4To5 {
      * @return IPromise<Contracts.WorkItemUpdate[]>
      */
     getUpdates(id: number, top?: number, skip?: number): IPromise<Contracts.WorkItemUpdate[]>;
-    /**
-     * Get a batch of work item links
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
-     * @param {string} continuationToken - Specifies the continuationToken to start the batch from. Omit this parameter to get the first batch of links.
-     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
-     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
-     */
-    getReportingLinks(project?: string, types?: string[], continuationToken?: string, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
     /**
      * Returns the dependent fields for the corresponding workitem type and fieldname.
      *
@@ -31173,16 +37593,6 @@ export class WorkItemTrackingHttpClient3_2 extends CommonMethods3_2To5 {
      * @return IPromise<Contracts.WorkItemUpdate[]>
      */
     getUpdates(id: number, top?: number, skip?: number): IPromise<Contracts.WorkItemUpdate[]>;
-    /**
-     * Get a batch of work item links
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
-     * @param {string} continuationToken - Specifies the continuationToken to start the batch from. Omit this parameter to get the first batch of links.
-     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
-     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
-     */
-    getReportingLinks(project?: string, types?: string[], continuationToken?: string, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
     /**
      * Deletes the specified work item and sends it to the Recycle Bin, so that it can be restored back, if required. Optionally, if the destroy parameter has been set to true, it destroys the work item permanently.
      *
@@ -31326,16 +37736,6 @@ export class WorkItemTrackingHttpClient3_1 extends CommonMethods3To5 {
      * @return IPromise<Contracts.WorkItemUpdate[]>
      */
     getUpdates(id: number, top?: number, skip?: number): IPromise<Contracts.WorkItemUpdate[]>;
-    /**
-     * Get a batch of work item links
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
-     * @param {string} continuationToken - Specifies the continuationToken to start the batch from. Omit this parameter to get the first batch of links.
-     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
-     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
-     */
-    getReportingLinks(project?: string, types?: string[], continuationToken?: string, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
     /**
      * Deletes the specified work item and sends it to the Recycle Bin, so that it can be restored back, if required. Optionally, if the destroy parameter has been set to true, it destroys the work item permanently.
      *
@@ -31497,16 +37897,6 @@ export class WorkItemTrackingHttpClient3 extends CommonMethods3To5 {
      */
     getUpdates(id: number, top?: number, skip?: number): IPromise<Contracts.WorkItemUpdate[]>;
     /**
-     * Get a batch of work item links
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
-     * @param {string} continuationToken - Specifies the continuationToken to start the batch from. Omit this parameter to get the first batch of links.
-     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
-     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
-     */
-    getReportingLinks(project?: string, types?: string[], continuationToken?: string, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
-    /**
      * Deletes the specified work item and sends it to the Recycle Bin, so that it can be restored back, if required. Optionally, if the destroy parameter has been set to true, it destroys the work item permanently.
      *
      * @param {number} id - ID of the work item to be deleted
@@ -31646,16 +38036,6 @@ export class WorkItemTrackingHttpClient2_3 extends CommonMethods2_2To5 {
      * @return IPromise<Contracts.WorkItemUpdate[]>
      */
     getUpdates(id: number, top?: number, skip?: number): IPromise<Contracts.WorkItemUpdate[]>;
-    /**
-     * Get a batch of work item links
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
-     * @param {string} continuationToken - Specifies the continuationToken to start the batch from. Omit this parameter to get the first batch of links.
-     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
-     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
-     */
-    getReportingLinks(project?: string, types?: string[], continuationToken?: string, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
     /**
      * Deletes the specified work item and sends it to the Recycle Bin, so that it can be restored back, if required. Optionally, if the destroy parameter has been set to true, it destroys the work item permanently.
      *
@@ -31797,16 +38177,6 @@ export class WorkItemTrackingHttpClient2_2 extends CommonMethods2_2To5 {
      */
     getUpdates(id: number, top?: number, skip?: number): IPromise<Contracts.WorkItemUpdate[]>;
     /**
-     * Get a batch of work item links
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
-     * @param {string} continuationToken - Specifies the continuationToken to start the batch from. Omit this parameter to get the first batch of links.
-     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
-     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
-     */
-    getReportingLinks(project?: string, types?: string[], continuationToken?: string, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
-    /**
      * Deletes the specified work item and sends it to the Recycle Bin, so that it can be restored back, if required. Optionally, if the destroy parameter has been set to true, it destroys the work item permanently.
      *
      * @param {number} id - ID of the work item to be deleted
@@ -31946,16 +38316,6 @@ export class WorkItemTrackingHttpClient2_1 extends CommonMethods2_1To5 {
      * @return IPromise<Contracts.WorkItemUpdate[]>
      */
     getUpdates(id: number, top?: number, skip?: number): IPromise<Contracts.WorkItemUpdate[]>;
-    /**
-     * Get a batch of work item links
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
-     * @param {number} watermark - Specifies the watermark to start the batch from. Omit this parameter to get the first batch of links.
-     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
-     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
-     */
-    getReportingLinks(project?: string, types?: string[], watermark?: number, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
     /**
      * Get a batch of work item revisions with the option of including deleted items
      *
@@ -32112,16 +38472,6 @@ export class WorkItemTrackingHttpClient2 extends CommonMethods2To5 {
      * @return IPromise<Contracts.WorkItemUpdate[]>
      */
     getUpdates(id: number, top?: number, skip?: number): IPromise<Contracts.WorkItemUpdate[]>;
-    /**
-     * Get a batch of work item links
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string[]} types - A list of types to filter the results to specific work item types. Omit this parameter to get work item links of all work item types.
-     * @param {number} watermark - Specifies the watermark to start the batch from. Omit this parameter to get the first batch of links.
-     * @param {Date} startDateTime - Date/time to use as a starting point for link changes. Only link changes that occurred after that date/time will be returned. Cannot be used in conjunction with 'watermark' parameter.
-     * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
-     */
-    getReportingLinks(project?: string, types?: string[], watermark?: number, startDateTime?: Date): IPromise<Contracts.ReportingWorkItemLinksBatch>;
     /**
      * Get a batch of work item revisions with the option of including deleted items
      *
@@ -32470,6 +38820,17 @@ export interface WorkItemOptions {
 }
 }
 declare module "TFS/Work/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\work\clientgeneratorconfigs\genclient.json
+ */
 import System_Contracts = require("VSS/Common/Contracts/System");
 import TFS_WorkItemTracking_Contracts = require("TFS/WorkItemTracking/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
@@ -32613,7 +38974,7 @@ export enum BacklogType {
     /**
      * Task backlog level
      */
-    Task = 2,
+    Task = 2
 }
 export interface Board extends BoardReference {
     _links: any;
@@ -32677,7 +39038,7 @@ export interface BoardColumn {
 export enum BoardColumnType {
     Incoming = 0,
     InProgress = 1,
-    Outgoing = 2,
+    Outgoing = 2
 }
 export interface BoardFields {
     columnField: FieldReference;
@@ -32714,7 +39075,7 @@ export interface BoardUserSettings {
 export enum BugsBehavior {
     Off = 0,
     AsRequirements = 1,
-    AsTasks = 2,
+    AsTasks = 2
 }
 /**
  * Expected data from PATCH
@@ -32905,7 +39266,7 @@ export enum FieldType {
     DateTime = 3,
     TreePath = 4,
     Boolean = 5,
-    Double = 6,
+    Double = 6
 }
 export interface FilterClause {
     fieldName: string;
@@ -32934,7 +39295,7 @@ export enum IdentityDisplayFormat {
     /**
      * Display Avatar and Full name
      */
-    AvatarAndFullName = 2,
+    AvatarAndFullName = 2
 }
 /**
  * Represents work items in an iteration backlog
@@ -33052,7 +39413,7 @@ export interface PlanMetadata {
  * Enum for the various types of plans
  */
 export enum PlanType {
-    DeliveryTimelineView = 0,
+    DeliveryTimelineView = 0
 }
 /**
  * Flag for permissions a user can have for this plan.
@@ -33081,7 +39442,7 @@ export enum PlanUserPermissions {
     /**
      * Full control permission for this plan.
      */
-    AllPermissions = 15,
+    AllPermissions = 15
 }
 /**
  * Base class for plan view data contracts. Anything common goes here.
@@ -33089,6 +39450,35 @@ export enum PlanUserPermissions {
 export interface PlanViewData {
     id: string;
     revision: number;
+}
+/**
+ * Represents a single pre-defined query.
+ */
+export interface PredefinedQuery {
+    /**
+     * Whether or not the query returned the complete set of data or if the data was truncated.
+     */
+    hasMore: boolean;
+    /**
+     * Id of the query
+     */
+    id: string;
+    /**
+     * Localized name of the query
+     */
+    name: string;
+    /**
+     * The results of the query.  This will be a set of WorkItem objects with only the 'id' set.  The client is responsible for paging in the data as needed.
+     */
+    results: TFS_WorkItemTracking_Contracts.WorkItem[];
+    /**
+     * REST API Url to use to retrieve results for this query
+     */
+    url: string;
+    /**
+     * Url to use to display a page in the browser with the results of this query
+     */
+    webUrl: string;
 }
 /**
  * Process Configurations for the project
@@ -33272,7 +39662,7 @@ export interface TeamSettingsPatch {
 export enum TimeFrame {
     Past = 0,
     Current = 1,
-    Future = 2,
+    Future = 2
 }
 export interface TimelineCriteriaStatus {
     message: string;
@@ -33290,7 +39680,7 @@ export enum TimelineCriteriaStatusCode {
     /**
      * Unknown error.
      */
-    Unknown = 2,
+    Unknown = 2
 }
 export interface TimelineIterationStatus {
     message: string;
@@ -33304,7 +39694,7 @@ export enum TimelineIterationStatusCode {
     /**
      * This iteration overlaps with another iteration, no data is returned for this iteration.
      */
-    IsOverlapping = 1,
+    IsOverlapping = 1
 }
 export interface TimelineTeamData {
     /**
@@ -33426,7 +39816,7 @@ export enum TimelineTeamStatusCode {
     /**
      * Team does not have a single iteration with date range.
      */
-    NoIterationsExist = 6,
+    NoIterationsExist = 6
 }
 export interface UpdatePlan {
     /**
@@ -33587,6 +39977,17 @@ export var TypeInfo: {
 };
 }
 declare module "TFS/Work/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   tfs\client\work\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("TFS/Work/Contracts");
 import TFS_Core_Contracts = require("TFS/Core/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -33692,7 +40093,7 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * Get a team's iterations using timeframe filter
      *
      * @param {TFS_Core_Contracts.TeamContext} teamContext - The team context for the operation
-     * @param {string} timeframe - A filter for which iterations are returned based on relative time
+     * @param {string} timeframe - A filter for which iterations are returned based on relative time. Only Current is supported currently.
      * @return IPromise<Contracts.TeamSettingsIteration[]>
      */
     getTeamIterations(teamContext: TFS_Core_Contracts.TeamContext, timeframe?: string): IPromise<Contracts.TeamSettingsIteration[]>;
