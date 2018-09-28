@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v134.20180525.1751
+// Type definitions for Microsoft Visual Studio Services v141.20180928.1725
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -171,7 +171,7 @@ export interface TooltipStyleType {
 }
 export enum TooltipLineItemMarkerType {
     Bar = 0,
-    Square = 1,
+    Square = 1
 }
 /** Chart options for use only when rendering a pie chart */
 export interface PieChartOptions {
@@ -339,7 +339,7 @@ export interface ChartOptions {
     suppressAnimation?: boolean;
     /** Handler for click on chart series content. */
     click?: (clickEvent: ClickEvent) => void;
-    /**Handler for chart legend click event. Can return false to supress default behavior.*/
+    /** Handler for chart legend click event. Can return false to supress default behavior.*/
     legendClick?: (clickEvent: LegendClickEvent) => boolean;
     /** Options for configuring the legend. Notably, visibility and placement */
     legend?: LegendOptions;
@@ -354,8 +354,8 @@ export interface ChartOptions {
     showAccessibleForm?: boolean;
     /**Container for passing type-specific chart options. */
     specializedOptions?: PieChartOptions | LineChartOptions | HybridChartOptions | AreaChartOptions | FunnelChartOptions;
-    /**Title of the chart. This helps in distinguishing if there are multiple charts on the same page.
-       Used for describing the chart in accessible rendering mode. */
+    /** Title of the chart. This helps in distinguishing if there are multiple charts on the same page.
+       Used for describing the chart in accessible rendering mode and in the aria-label of the chart container. */
     title?: string;
 }
 export interface CommonChartOptions extends ChartOptions {

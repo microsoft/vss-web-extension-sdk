@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v134.20180525.1750
+// Type definitions for Microsoft Visual Studio Services v141.20180928.1721
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -241,6 +241,11 @@ interface IExtensionInitializationOptions {
     * which shares the same URI of the contribution that originally caused this extension frame to be loaded.
     */
     extensionReusedCallback?: (contribution: Contribution) => void;
+
+    /**
+     * If true, send back the theme data as part of the initial handshake
+     */
+    applyTheme?: boolean;
 }
 
 /**
@@ -283,6 +288,11 @@ interface IHostHandshakeData {
     * Initial sandboxed-storage data for the current extension's publisher. 
     */
     sandboxedStorage?: ISandboxedStorage;
+
+    /**
+     * CSS variable values for the current theme
+     */
+    themeData?: { [key: string]: string };
 }
 
 /**
@@ -1084,6 +1094,73 @@ interface AppInsightsCustomTrackPageData {
 }
 
 /**
+* Representaion of a ContributionNode that can be used for serialized to clients.
+*/
+interface ClientContribution {
+    /**
+    * Description of the contribution/type
+    */
+    description: string;
+    /**
+    * Fully qualified identifier of the contribution/type
+    */
+    id: string;
+    /**
+    * Includes is a set of contributions that should have this contribution included in their targets list.
+    */
+    includes: string[];
+    /**
+    * Properties/attributes of this contribution
+    */
+    properties: any;
+    /**
+    * The ids of the contribution(s) that this contribution targets. (parent contributions)
+    */
+    targets: string[];
+    /**
+    * Id of the Contribution Type
+    */
+    type: string;
+}
+
+/**
+* Representaion of a ContributionNode that can be used for serialized to clients.
+*/
+interface ClientContributionNode {
+    /**
+    * List of ids for contributions which are children to the current contribution.
+    */
+    children: string[];
+    /**
+    * Contribution associated with this node.
+    */
+    contribution: ClientContribution;
+    /**
+    * List of ids for contributions which are parents to the current contribution.
+    */
+    parents: string[];
+}
+
+interface ClientContributionProviderDetails {
+    /**
+    * Friendly name for the provider.
+    */
+    displayName: string;
+    /**
+    * Unique identifier for this provider. The provider name can be used to cache the contribution data and refer back to it when looking for changes
+    */
+    name: string;
+    /**
+    * Properties associated with the provider
+    */
+    properties: { [key: string]: string; };
+    /**
+    * Version of contributions assoicated with this contribution provider.
+    */
+    version: string;
+}
+
+/**
 * A client data provider are the details needed to make the data provider request from the client.
 */
 interface ClientDataProviderQuery {
@@ -1116,6 +1193,10 @@ interface ConfigurationContext {
     * Server resource paths
     */
     paths: ConfigurationContextPaths;
+    /**
+    * Indicates what URL format to use.
+    */
+    useCodexDomainUrls: boolean;
 }
 
 /**
@@ -1140,6 +1221,10 @@ interface ConfigurationContextApis {
 * Paths to server resources
 */
 interface ConfigurationContextPaths {
+    /**
+    * Path (no CDN) to versioned static content
+    */
+    cdnFallbackStaticRootTfs: string;
     /**
     * Relative path to the _content path of the web application
     */
@@ -1212,13 +1297,25 @@ interface ContributedFeature {
     */
     description: string;
     /**
+    * Handler for listening to setter calls on feature value. These listeners are only invoked after a successful set has occured
+    */
+    featureStateChangedListeners: ContributedFeatureListener[];
+    /**
     * The full contribution id of the feature
     */
     id: string;
     /**
+    * If this is set to true, then the id for this feature will be added to the list of claims for the request.
+    */
+    includeAsClaim: boolean;
+    /**
     * The friendly name of the feature
     */
     name: string;
+    /**
+    * Suggested order to display feature in.
+    */
+    order: number;
     /**
     * Rules for overriding a feature value. These rules are run before explicit user/host state values are checked. They are evaluated in order until a rule returns an Enabled or Disabled state (not Undefined)
     */
@@ -1231,6 +1328,10 @@ interface ContributedFeature {
     * The service instance id of the service that owns this feature
     */
     serviceInstanceType: string;
+    /**
+    * Tags associated with the feature.
+    */
+    tags: string[];
 }
 
 /**
@@ -1249,6 +1350,25 @@ declare enum ContributedFeatureEnabledValue {
     * The feature is enabled at the specified scope
     */
     Enabled = 1,
+}
+
+interface ContributedFeatureHandlerSettings {
+    /**
+    * Name of the handler to run
+    */
+    name: string;
+    /**
+    * Properties to feed to the handler
+    */
+    properties: any;
+}
+
+/**
+* An identifier and properties used to pass into a handler for a listener or plugin
+*/
+interface ContributedFeatureListener {
+    name: string;
+    properties: any;
 }
 
 /**
@@ -1313,13 +1433,7 @@ interface ContributedFeatureStateQuery {
 * A rule for dynamically getting the enabled/disabled state of a feature
 */
 interface ContributedFeatureValueRule {
-    /**
-    * Name of the IContributedFeatureValuePlugin to run
-    */
     name: string;
-    /**
-    * Properties to feed to the IContributedFeatureValuePlugin
-    */
     properties: any;
 }
 
@@ -1485,11 +1599,11 @@ interface ContributionNodeQueryResult {
     /**
     * Map of contribution ids to corresponding node.
     */
-    nodes: { [key: string]: SerializedContributionNode; };
+    nodes: { [key: string]: ClientContributionNode; };
     /**
     * Map of provder ids to the corresponding provider details object.
     */
-    providerDetails: { [key: string]: ContributionProviderDetails; };
+    providerDetails: { [key: string]: ClientContributionProviderDetails; };
 }
 
 /**
@@ -1715,6 +1829,14 @@ interface DataProviderResult {
     */
     resolvedProviders: ResolvedDataProvider[];
     /**
+    * Scope name applied to this data provider result.
+    */
+    scopeName: string;
+    /**
+    * Scope value applied to this data provider result.
+    */
+    scopeValue: string;
+    /**
     * Property bag of shared data that was contributed to by any of the individual data providers
     */
     sharedData: { [key: string]: any; };
@@ -1774,6 +1896,7 @@ interface DynamicBundlesCollection {
 }
 
 interface DynamicCSSBundle {
+    clientId: string;
     contentLength: number;
     cssFiles: string[];
     fallbackThemeUri: string;
@@ -1781,6 +1904,7 @@ interface DynamicCSSBundle {
 }
 
 interface DynamicScriptBundle {
+    clientId: string;
     contentLength: number;
     integrity: string;
     uri: string;
@@ -2753,24 +2877,6 @@ interface Scope {
 }
 
 /**
-* Representaion of a ContributionNode that can be used for serialized to clients.
-*/
-interface SerializedContributionNode {
-    /**
-    * List of ids for contributions which are children to the current contribution.
-    */
-    children: string[];
-    /**
-    * Contribution associated with this node.
-    */
-    contribution: Contribution;
-    /**
-    * List of ids for contributions which are parents to the current contribution.
-    */
-    parents: string[];
-}
-
-/**
 * Holds a lookup of urls for different services (at different host levels)
 */
 interface ServiceLocations {
@@ -3062,6 +3168,17 @@ interface IKeyValuePair<TKey, TValue> {
 declare var require: Require;
 declare var define: RequireDefine;
 declare module "VSS/Accounts/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 export interface Account {
     /**
      * Identifier for an Account
@@ -3155,11 +3272,11 @@ export enum AccountStatus {
     /**
      * This account is not mastered locally and has physically moved.
      */
-    Moved = 4,
+    Moved = 4
 }
 export enum AccountType {
     Personal = 0,
-    Organization = 1,
+    Organization = 1
 }
 export enum AccountUserStatus {
     None = 0,
@@ -3186,7 +3303,7 @@ export enum AccountUserStatus {
     /**
      * User is disabled; if reenabled, they will still be in the Pending state
      */
-    PendingDisabled = 6,
+    PendingDisabled = 6
 }
 export var TypeInfo: {
     Account: any;
@@ -3219,22 +3336,23 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/Accounts/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/Accounts/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     static serviceInstanceId: string;
     protected accountsApiVersion: string;
-    protected settingsApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
-    /**
-     * @exemptedapi
-     * [Preview API]
-     *
-     * @return IPromise<{ [key: string] : string; }>
-     */
-    getAccountSettings(): IPromise<{
-        [key: string]: string;
-    }>;
     /**
      * @param {string} accountId
      * @return IPromise<Contracts.Account>
@@ -3553,6 +3671,7 @@ export module ArtifactTypeNames {
 export module ToolNames {
     var VersionControl: string;
     var WorkItemTracking: string;
+    var RemoteWorkItemTracking: string;
     var TeamBuild: string;
     var TestManagement: string;
     var Requirements: string;
@@ -3634,9 +3753,20 @@ export class ClientLinking extends Service.VssService {
 }
 }
 declare module "VSS/Authentication/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 export enum DelegatedAppTokenType {
     Session = 0,
-    App = 1,
+    App = 1
 }
 export interface WebSessionToken {
     appId: string;
@@ -3660,6 +3790,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/Authentication/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/Authentication/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
@@ -3864,6 +4005,15 @@ export function getToken(appId?: string, name?: string, force?: boolean, scoped?
 */
 export function getAppToken(appId: string, name?: string, force?: boolean, webContext?: Contracts_Platform.WebContext): IPromise<Authentication_Contracts_Async.WebSessionToken>;
 /**
+ * Fetch a session token to use for the current user for the given extension
+ *
+ * @param publisherName Id of the publisher.
+ * @param extensionName Id of the extension.
+ * @param force Enables skipping cache and issue a brand new token.
+ * @return Session token.
+ */
+export function getExtensionToken(publisherName: string, extensionName: string, force?: boolean, webContext?: Contracts_Platform.WebContext): IPromise<Authentication_Contracts_Async.WebSessionToken>;
+/**
 * Get an auth token manager - either the default manager or the manager for a registered/named token
 *
 * @param namedToken Id Optional value to use when getting a named web session token.
@@ -3871,6 +4021,7 @@ export function getAppToken(appId: string, name?: string, force?: boolean, webCo
 export function getAuthTokenManager(namedTokenId?: string): IAuthTokenManager<any>;
 }
 declare module "VSS/Bundling" {
+import Context = require("VSS/Context");
 import Q = require("q");
 import VSS = require("VSS/VSS");
 export module DiagnoseUtils {
@@ -3900,7 +4051,7 @@ export function getBundleSize(bundleUrl: string): number;
 export function compressPaths(paths: string[]): string[];
 export interface IDynamicBundleRequestLocation {
     url?: string;
-    pathPrefix?: string;
+    contributedServicePath?: Context.ContributedServicePathBuilder;
 }
 export function getDynamicBundleRequestLocation(scripts: string[], serviceInstanceId: string, excludeOptions: VSS.DynamicModuleExcludeOptions): IDynamicBundleRequestLocation;
 /**
@@ -3909,7 +4060,7 @@ export function getDynamicBundleRequestLocation(scripts: string[], serviceInstan
  * @param bundles Collection of CSS and script bundles
  * @param rootBundleUrl Optional root url to prefix to all bundle paths.
  */
-export function injectBundles(bundles: DynamicBundlesCollection, rootBundleUrl?: string): IPromise<any>;
+export function injectBundles(bundles: DynamicBundlesCollection, contributedServiceUri?: Context.ContributedServicePathBuilder): IPromise<any>;
 /**
 * Issue a require statement for the specified modules and invoke the given callback method once available.
 * This is a wrapper around the requireJS 'require' statement which ensures that the missing modules are
@@ -3930,6 +4081,17 @@ export function requireModules(moduleNames: string[], options?: VSS.IModuleLoadO
 export function loadModules(moduleNames: string[], options?: VSS.IModuleLoadOptions): Q.Promise<void>;
 }
 declare module "VSS/ClientTrace/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 export interface ClientTraceEvent {
     area: string;
     component: string;
@@ -3947,7 +4109,7 @@ export enum Level {
     Error = 1,
     Warning = 2,
     Info = 3,
-    Verbose = 4,
+    Verbose = 4
 }
 export var TypeInfo: {
     ClientTraceEvent: any;
@@ -3963,6 +4125,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/ClientTrace/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/ClientTrace/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
@@ -4014,13 +4187,24 @@ export function flush(): IPromise<void>;
 }
 declare module "VSS/Commerce/Contracts" {
 /**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   sps\clients\genclient.json
+ */
+/**
  * The subscription account namespace. Denotes the 'category' of the account.
  */
 export enum AccountProviderNamespace {
     VisualStudioOnline = 0,
     AppInsights = 1,
     Marketplace = 2,
-    OnPremise = 3,
+    OnPremise = 3
 }
 /**
  * Encapsulates azure specific plan structure, using a publisher defined publisher name, offer name, and plan name These are all specified by the publisher and can vary from other meta data we store about the extension internally therefore need to be tracked seperately for purposes of interacting with Azure
@@ -4076,7 +4260,7 @@ export enum AzureOfferType {
     Ea = 2,
     Msdn = 3,
     Csp = 4,
-    Unsupported = 99,
+    Unsupported = 99
 }
 /**
  * Represents an azure region, used by ibiza for linking accounts
@@ -4100,7 +4284,7 @@ export interface AzureRegion {
  */
 export enum BillingProvider {
     SelfManaged = 0,
-    AzureStoreManaged = 1,
+    AzureStoreManaged = 1
 }
 export interface ConnectedServer {
     /**
@@ -4468,7 +4652,7 @@ export interface IUsageEventAggregate {
  */
 export enum MeterBillingState {
     Free = 0,
-    Paid = 1,
+    Paid = 1
 }
 /**
  * Defines meter categories.
@@ -4476,7 +4660,7 @@ export enum MeterBillingState {
 export enum MeterCategory {
     Legacy = 0,
     Bundle = 1,
-    Extension = 2,
+    Extension = 2
 }
 /**
  * Describes the Renewal frequncy of a Meter.
@@ -4484,7 +4668,7 @@ export enum MeterCategory {
 export enum MeterRenewalFrequecy {
     None = 0,
     Monthly = 1,
-    Annually = 2,
+    Annually = 2
 }
 /**
  * The meter state.
@@ -4493,7 +4677,7 @@ export enum MeterState {
     Registered = 0,
     Active = 1,
     Retired = 2,
-    Deleted = 3,
+    Deleted = 3
 }
 export enum MinimumRequiredServiceLevel {
     /**
@@ -4515,7 +4699,7 @@ export enum MinimumRequiredServiceLevel {
     /**
      * Stakeholder service level
      */
-    Stakeholder = 4,
+    Stakeholder = 4
 }
 export interface OfferMeter {
     /**
@@ -4638,7 +4822,7 @@ export enum OfferMeterAssignmentModel {
     /**
      * Users will be added automatically. All-or-nothing model.
      */
-    Implicit = 1,
+    Implicit = 1
 }
 export interface OfferMeterPrice {
     /**
@@ -4672,7 +4856,7 @@ export interface OfferMeterPrice {
 export enum OfferScope {
     Account = 0,
     User = 1,
-    UserAccount = 2,
+    UserAccount = 2
 }
 /**
  * Information about a resource associated with a subscription.
@@ -4805,7 +4989,7 @@ export enum PurchaseErrorReason {
     NotSubscriptionUser = 10,
     UnsupportedSubscriptionCsp = 11,
     TemporarySpendingLimit = 12,
-    AzureServiceError = 13,
+    AzureServiceError = 13
 }
 /**
  * Represents a purchase request for requesting purchase by a user who does not have authorization to purchase.
@@ -4834,14 +5018,14 @@ export interface PurchaseRequest {
 export enum PurchaseRequestResponse {
     None = 0,
     Approved = 1,
-    Denied = 2,
+    Denied = 2
 }
 /**
  * The resource billing mode.
  */
 export enum ResourceBillingMode {
     Committment = 0,
-    PayAsYouGo = 1,
+    PayAsYouGo = 1
 }
 /**
  * Various metered resources in VSTS
@@ -4854,7 +5038,7 @@ export enum ResourceName {
     LoadTest = 4,
     PremiumBuildAgent = 5,
     PrivateOtherBuildAgent = 6,
-    PrivateAzureBuildAgent = 7,
+    PrivateAzureBuildAgent = 7
 }
 /**
  * The resource renewal group.
@@ -4872,7 +5056,7 @@ export enum ResourceRenewalGroup {
     Sep = 9,
     Oct = 10,
     Nov = 11,
-    Dec = 12,
+    Dec = 12
 }
 /**
  * Reason for disabled resource.
@@ -4883,7 +5067,102 @@ export enum ResourceStatusReason {
     NoIncludedQuantityLeft = 2,
     SubscriptionDisabled = 4,
     PaidBillingDisabled = 8,
-    MaximumQuantityReached = 16,
+    MaximumQuantityReached = 16
+}
+/**
+ * The subscription account. Add Sub Type and Owner email later.
+ */
+export interface SubscriptionAccount {
+    /**
+     * Gets or sets the account host type.
+     */
+    accountHostType: number;
+    /**
+     * Gets or sets the account identifier. Usually a guid.
+     */
+    accountId: string;
+    /**
+     * Gets or sets the name of the account.
+     */
+    accountName: string;
+    /**
+     * Gets or sets the account tenantId.
+     */
+    accountTenantId: string;
+    /**
+     * Purchase Error Reason
+     */
+    failedPurchaseReason: PurchaseErrorReason;
+    /**
+     * Gets or sets the geo location.
+     */
+    geoLocation: string;
+    /**
+     * Gets or sets a value indicating whether the calling user identity owns or is a PCA of the account.
+     */
+    isAccountOwner: boolean;
+    /**
+     * Gets or set the flag to enable purchase via subscription.
+     */
+    isEligibleForPurchase: boolean;
+    /**
+     * get or set IsPrepaidFundSubscription
+     */
+    isPrepaidFundSubscription: boolean;
+    /**
+     * get or set IsPricingPricingAvailable
+     */
+    isPricingAvailable: boolean;
+    /**
+     * Gets or sets the subscription address country code
+     */
+    locale: string;
+    /**
+     * Gets or sets the Offer Type of this subscription.
+     */
+    offerType: AzureOfferType;
+    /**
+     * Gets or sets the subscription address country display name
+     */
+    regionDisplayName: string;
+    /**
+     * Gets or sets the resource group.
+     */
+    resourceGroupName: string;
+    /**
+     * Gets or sets the azure resource name.
+     */
+    resourceName: string;
+    /**
+     * A dictionary of service urls, mapping the service owner to the service owner url
+     */
+    serviceUrls: {
+        [key: string]: string;
+    };
+    /**
+     * Gets or sets the subscription identifier.
+     */
+    subscriptionId: string;
+    /**
+     * Gets or sets the azure subscription name
+     */
+    subscriptionName: string;
+    /**
+     * object id of subscription admin
+     */
+    subscriptionObjectId: string;
+    /**
+     * get or set subscription offer code
+     */
+    subscriptionOfferCode: string;
+    /**
+     * Gets or sets the subscription status.
+     */
+    subscriptionStatus: SubscriptionStatus;
+    /**
+     * tenant id of subscription
+     */
+    subscriptionTenantId: string;
 }
 /**
  * Information about a resource associated with a subscription.
@@ -4931,7 +5210,7 @@ export enum SubscriptionSource {
     EnterpriseAgreement = 1,
     Internal = 2,
     Unknown = 3,
-    FreeTier = 4,
+    FreeTier = 4
 }
 /**
  * Azure subscription status
@@ -4941,7 +5220,7 @@ export enum SubscriptionStatus {
     Active = 1,
     Disabled = 2,
     Deleted = 3,
-    Unregistered = 4,
+    Unregistered = 4
 }
 /**
  * Class that represents common set of properties for a raw usage event reported by TFS services.
@@ -5160,6 +5439,7 @@ export var TypeInfo: {
             "maximumQuantityReached": number;
         };
     };
+    SubscriptionAccount: any;
     SubscriptionResource: any;
     SubscriptionSource: {
         enumValues: {
@@ -5183,6 +5463,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/Commerce/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   sps\clients\genclient.json
+ */
 import Contracts = require("VSS/Commerce/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
@@ -5297,9 +5588,9 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      *
      * @param {string} subscriptionId
      * @param {Contracts.AccountProviderNamespace} providerNamespaceId
-     * @return IPromise<Contracts.ISubscriptionAccount[]>
+     * @return IPromise<Contracts.SubscriptionAccount[]>
      */
-    getAccounts(subscriptionId: string, providerNamespaceId: Contracts.AccountProviderNamespace): IPromise<Contracts.ISubscriptionAccount[]>;
+    getAccounts(subscriptionId: string, providerNamespaceId: Contracts.AccountProviderNamespace): IPromise<Contracts.SubscriptionAccount[]>;
     /**
      * [Preview API]
      *
@@ -5548,8 +5839,24 @@ export class CommonMethods4To5 extends CommonMethods3_2To5 {
     createPurchaseRequest(request: Contracts.PurchaseRequest): IPromise<void>;
 }
 export class CommonMethods4_1To5 extends CommonMethods4To5 {
-    protected infrastructureOrganizationApiVersion: string;
+    protected commerceHostHelperResourceApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Updates collection owner, bypassing bind pending identity owner check
+     *
+     * @param {string} newOwnerId
+     * @param {string} ownerDomain
+     * @return IPromise<boolean>
+     */
+    updateCollectionOwner(newOwnerId: string, ownerDomain: string): IPromise<boolean>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} propertyKind
+     * @param {string[]} properties
+     * @return IPromise<string[]>
+     */
+    getInfrastructureOrganizationProperties(propertyKind: string, properties: string[]): IPromise<string[]>;
     /**
      * [Preview API]
      *
@@ -5630,6 +5937,440 @@ export class CommerceHttpClient extends CommerceHttpClient5 {
  * @return CommerceHttpClient4_1
  */
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): CommerceHttpClient4_1;
+}
+declare module "VSS/Commerce/VSS.OfferMeter.WebApi" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   commerce\client\webapi\clientgeneratorconfigs\genclient.json
+ */
+import VSS_Commerce_Contracts = require("VSS/Commerce/Contracts");
+import VSS_WebApi = require("VSS/WebApi/RestClient");
+export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    protected offerMeterApiVersion: string;
+    protected offerMeterPriceApiVersion: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_Commerce_Contracts.OfferMeterPrice[]} offerMeterPricing
+     * @param {string} galleryId
+     * @return IPromise<void>
+     */
+    updateOfferMeterPrice(offerMeterPricing: VSS_Commerce_Contracts.OfferMeterPrice[], galleryId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} galleryId
+     * @return IPromise<VSS_Commerce_Contracts.OfferMeterPrice[]>
+     */
+    getOfferMeterPrice(galleryId: string): IPromise<VSS_Commerce_Contracts.OfferMeterPrice[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} resourceName
+     * @param {string} resourceNameResolveMethod
+     * @param {string} subscriptionId
+     * @param {boolean} includeMeterPricing
+     * @param {string} offerCode
+     * @param {string} tenantId
+     * @param {string} objectId
+     * @return IPromise<VSS_Commerce_Contracts.PurchasableOfferMeter>
+     */
+    getPurchasableOfferMeter(resourceName: string, resourceNameResolveMethod: string, subscriptionId: string, includeMeterPricing: boolean, offerCode?: string, tenantId?: string, objectId?: string): IPromise<VSS_Commerce_Contracts.PurchasableOfferMeter>;
+    /**
+     * [Preview API]
+     *
+     * @return IPromise<VSS_Commerce_Contracts.OfferMeter[]>
+     */
+    getOfferMeters(): IPromise<VSS_Commerce_Contracts.OfferMeter[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} resourceName
+     * @param {string} resourceNameResolveMethod
+     * @return IPromise<VSS_Commerce_Contracts.OfferMeter>
+     */
+    getOfferMeter(resourceName: string, resourceNameResolveMethod: string): IPromise<VSS_Commerce_Contracts.OfferMeter>;
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_Commerce_Contracts.OfferMeter} offerConfig
+     * @return IPromise<void>
+     */
+    createOfferMeterDefinition(offerConfig: VSS_Commerce_Contracts.OfferMeter): IPromise<void>;
+}
+/**
+ * @exemptedapi
+ */
+export class OfferMeterHttpClient5 extends CommonMethods4_1To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class OfferMeterHttpClient4_1 extends CommonMethods4_1To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class OfferMeterHttpClient extends OfferMeterHttpClient5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * Gets an http client targeting the latest released version of the APIs.
+ *
+ * @return OfferMeterHttpClient4_1
+ */
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OfferMeterHttpClient4_1;
+}
+declare module "VSS/Commerce/VSS.OfferSubscription.WebApi" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   commerce\client\webapi\clientgeneratorconfigs\genclient.json
+ */
+import VSS_Commerce_Contracts = require("VSS/Commerce/Contracts");
+import VSS_WebApi = require("VSS/WebApi/RestClient");
+export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    protected offerSubscriptionApiVersion: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_Commerce_Contracts.OfferSubscription} offerSubscription
+     * @return IPromise<void>
+     */
+    updateOfferSubscription(offerSubscription: VSS_Commerce_Contracts.OfferSubscription): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} offerMeterName
+     * @param {VSS_Commerce_Contracts.ResourceRenewalGroup} meterRenewalGroup
+     * @param {number} newIncludedQuantity
+     * @param {number} newMaximumQuantity
+     * @return IPromise<void>
+     */
+    setAccountQuantity(offerMeterName: string, meterRenewalGroup: VSS_Commerce_Contracts.ResourceRenewalGroup, newIncludedQuantity: number, newMaximumQuantity: number): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} galleryItemId
+     * @param {string} azureSubscriptionId
+     * @param {boolean} nextBillingPeriod
+     * @return IPromise<VSS_Commerce_Contracts.IOfferSubscription[]>
+     */
+    getOfferSubscriptionsForGalleryItem(galleryItemId: string, azureSubscriptionId: string, nextBillingPeriod?: boolean): IPromise<VSS_Commerce_Contracts.IOfferSubscription[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {boolean} nextBillingPeriod
+     * @return IPromise<VSS_Commerce_Contracts.IOfferSubscription[]>
+     */
+    getOfferSubscriptions(nextBillingPeriod?: boolean): IPromise<VSS_Commerce_Contracts.IOfferSubscription[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} galleryId
+     * @param {VSS_Commerce_Contracts.ResourceRenewalGroup} renewalGroup
+     * @param {boolean} nextBillingPeriod
+     * @return IPromise<VSS_Commerce_Contracts.IOfferSubscription>
+     */
+    getOfferSubscriptionForRenewalGroup(galleryId: string, renewalGroup: VSS_Commerce_Contracts.ResourceRenewalGroup, nextBillingPeriod?: boolean): IPromise<VSS_Commerce_Contracts.IOfferSubscription>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} galleryId
+     * @param {boolean} nextBillingPeriod
+     * @return IPromise<VSS_Commerce_Contracts.IOfferSubscription>
+     */
+    getOfferSubscription(galleryId: string, nextBillingPeriod?: boolean): IPromise<VSS_Commerce_Contracts.IOfferSubscription>;
+    /**
+     * [Preview API]
+     *
+     * @param {boolean} validateAzuresubscription
+     * @param {boolean} nextBillingPeriod
+     * @return IPromise<VSS_Commerce_Contracts.IOfferSubscription[]>
+     */
+    getAllOfferSubscriptionsForUser(validateAzuresubscription: boolean, nextBillingPeriod: boolean): IPromise<VSS_Commerce_Contracts.IOfferSubscription[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} offerMeterName
+     * @param {VSS_Commerce_Contracts.ResourceRenewalGroup} renewalGroup
+     * @return IPromise<void>
+     */
+    enableTrialOrPreviewOfferSubscription(offerMeterName: string, renewalGroup: VSS_Commerce_Contracts.ResourceRenewalGroup): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} offerMeterName
+     * @param {VSS_Commerce_Contracts.ResourceRenewalGroup} renewalGroup
+     * @param {Date} endDate
+     * @return IPromise<void>
+     */
+    enableTrialOfferSubscriptionExtension(offerMeterName: string, renewalGroup: VSS_Commerce_Contracts.ResourceRenewalGroup, endDate: Date): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} offerMeterName
+     * @param {VSS_Commerce_Contracts.ResourceRenewalGroup} renewalGroup
+     * @param {number} quantity
+     * @param {boolean} shouldBeImmediate
+     * @param {string} azureSubscriptionId
+     * @return IPromise<void>
+     */
+    decreaseResourceQuantity(offerMeterName: string, renewalGroup: VSS_Commerce_Contracts.ResourceRenewalGroup, quantity: number, shouldBeImmediate: boolean, azureSubscriptionId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_Commerce_Contracts.OfferSubscription} offerSubscription
+     * @param {string} offerCode
+     * @param {string} tenantId
+     * @param {string} objectId
+     * @param {string} billingTarget
+     * @return IPromise<void>
+     */
+    createOfferSubscription(offerSubscription: VSS_Commerce_Contracts.OfferSubscription, offerCode?: string, tenantId?: string, objectId?: string, billingTarget?: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_Commerce_Contracts.OfferSubscription} offerSubscription
+     * @param {string} cancelReason
+     * @param {string} billingTarget
+     * @param {boolean} immediate
+     * @return IPromise<void>
+     */
+    cancelOfferSubscription(offerSubscription: VSS_Commerce_Contracts.OfferSubscription, cancelReason: string, billingTarget?: string, immediate?: boolean): IPromise<void>;
+}
+/**
+ * @exemptedapi
+ */
+export class OfferSubscriptionHttpClient5 extends CommonMethods4_1To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class OfferSubscriptionHttpClient4_1 extends CommonMethods4_1To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class OfferSubscriptionHttpClient extends OfferSubscriptionHttpClient5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * Gets an http client targeting the latest released version of the APIs.
+ *
+ * @return OfferSubscriptionHttpClient4_1
+ */
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OfferSubscriptionHttpClient4_1;
+}
+declare module "VSS/Commerce/VSS.PurchaseRequest.WebApi" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   commerce\client\webapi\clientgeneratorconfigs\genclient.json
+ */
+import VSS_Commerce_Contracts = require("VSS/Commerce/Contracts");
+import VSS_WebApi = require("VSS/WebApi/RestClient");
+export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    protected purchaseRequestApiVersion: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_Commerce_Contracts.PurchaseRequest} request
+     * @return IPromise<void>
+     */
+    updatePurchaseRequest(request: VSS_Commerce_Contracts.PurchaseRequest): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_Commerce_Contracts.PurchaseRequest} request
+     * @return IPromise<void>
+     */
+    createPurchaseRequest(request: VSS_Commerce_Contracts.PurchaseRequest): IPromise<void>;
+}
+/**
+ * @exemptedapi
+ */
+export class PurchaseRequestHttpClient5 extends CommonMethods4_1To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class PurchaseRequestHttpClient4_1 extends CommonMethods4_1To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class PurchaseRequestHttpClient extends PurchaseRequestHttpClient5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * Gets an http client targeting the latest released version of the APIs.
+ *
+ * @return PurchaseRequestHttpClient4_1
+ */
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): PurchaseRequestHttpClient4_1;
+}
+declare module "VSS/Commerce/VSS.Subscription.WebApi" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   commerce\client\webapi\clientgeneratorconfigs\genclient.json
+ */
+import VSS_Commerce_Contracts = require("VSS/Commerce/Contracts");
+import VSS_WebApi = require("VSS/WebApi/RestClient");
+export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    protected subscriptionApiVersion: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {string} subscriptionId
+     * @param {VSS_Commerce_Contracts.AccountProviderNamespace} providerNamespaceId
+     * @param {string} accountId
+     * @param {string} ownerId
+     * @return IPromise<void>
+     */
+    unlinkAccount(subscriptionId: string, providerNamespaceId: VSS_Commerce_Contracts.AccountProviderNamespace, accountId: string, ownerId: string): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} subscriptionId
+     * @param {VSS_Commerce_Contracts.AccountProviderNamespace} providerNamespaceId
+     * @param {string} accountId
+     * @param {string} ownerId
+     * @param {boolean} hydrate
+     * @return IPromise<void>
+     */
+    linkAccount(subscriptionId: string, providerNamespaceId: VSS_Commerce_Contracts.AccountProviderNamespace, accountId: string, ownerId: string, hydrate?: boolean): IPromise<void>;
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_Commerce_Contracts.AccountProviderNamespace} providerNamespaceId
+     * @param {string} accountId
+     * @return IPromise<VSS_Commerce_Contracts.SubscriptionAccount>
+     */
+    getSubscriptionAccount(providerNamespaceId: VSS_Commerce_Contracts.AccountProviderNamespace, accountId: string): IPromise<VSS_Commerce_Contracts.SubscriptionAccount>;
+    /**
+     * [Preview API]
+     *
+     * @param {string[]} ids
+     * @param {VSS_Commerce_Contracts.AccountProviderNamespace} providerNamespaceId
+     * @return IPromise<VSS_Commerce_Contracts.IAzureSubscription[]>
+     */
+    getAzureSubscriptions(ids: string[], providerNamespaceId: VSS_Commerce_Contracts.AccountProviderNamespace): IPromise<VSS_Commerce_Contracts.IAzureSubscription[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} subscriptionId
+     * @param {boolean} queryAcrossTenants
+     * @return IPromise<VSS_Commerce_Contracts.ISubscriptionAccount[]>
+     */
+    getAzureSubscriptionForUser(subscriptionId?: string, queryAcrossTenants?: boolean): IPromise<VSS_Commerce_Contracts.ISubscriptionAccount[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} subscriptionId
+     * @param {string} galleryItemId
+     * @param {string} accountId
+     * @return IPromise<VSS_Commerce_Contracts.ISubscriptionAccount>
+     */
+    getAzureSubscriptionForPurchase(subscriptionId: string, galleryItemId: string, accountId?: string): IPromise<VSS_Commerce_Contracts.ISubscriptionAccount>;
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_Commerce_Contracts.AccountProviderNamespace} providerNamespaceId
+     * @param {string} memberId
+     * @param {boolean} queryOnlyOwnerAccounts
+     * @param {boolean} inlcudeDisabledAccounts
+     * @param {boolean} includeMSAAccounts
+     * @param {string[]} serviceOwners
+     * @param {string} galleryId
+     * @param {boolean} addUnlinkedSubscription
+     * @param {boolean} queryAccountsByUpn
+     * @return IPromise<VSS_Commerce_Contracts.ISubscriptionAccount[]>
+     */
+    getAccountsByIdentityForOfferId(providerNamespaceId: VSS_Commerce_Contracts.AccountProviderNamespace, memberId: string, queryOnlyOwnerAccounts: boolean, inlcudeDisabledAccounts: boolean, includeMSAAccounts: boolean, serviceOwners: string[], galleryId: string, addUnlinkedSubscription?: boolean, queryAccountsByUpn?: boolean): IPromise<VSS_Commerce_Contracts.ISubscriptionAccount[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {VSS_Commerce_Contracts.AccountProviderNamespace} providerNamespaceId
+     * @param {string} memberId
+     * @param {boolean} queryOnlyOwnerAccounts
+     * @param {boolean} inlcudeDisabledAccounts
+     * @param {boolean} includeMSAAccounts
+     * @param {string[]} serviceOwners
+     * @return IPromise<VSS_Commerce_Contracts.ISubscriptionAccount[]>
+     */
+    getAccountsByIdentity(providerNamespaceId: VSS_Commerce_Contracts.AccountProviderNamespace, memberId: string, queryOnlyOwnerAccounts: boolean, inlcudeDisabledAccounts: boolean, includeMSAAccounts: boolean, serviceOwners: string[]): IPromise<VSS_Commerce_Contracts.ISubscriptionAccount[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} subscriptionId
+     * @param {VSS_Commerce_Contracts.AccountProviderNamespace} providerNamespaceId
+     * @return IPromise<VSS_Commerce_Contracts.ISubscriptionAccount[]>
+     */
+    getAccounts(subscriptionId: string, providerNamespaceId: VSS_Commerce_Contracts.AccountProviderNamespace): IPromise<VSS_Commerce_Contracts.ISubscriptionAccount[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} subscriptionId
+     * @param {VSS_Commerce_Contracts.AccountProviderNamespace} providerNamespaceId
+     * @param {string} accountId
+     * @param {boolean} hydrate
+     * @return IPromise<void>
+     */
+    changeSubscriptionAccount(subscriptionId: string, providerNamespaceId: VSS_Commerce_Contracts.AccountProviderNamespace, accountId: string, hydrate?: boolean): IPromise<void>;
+}
+/**
+ * @exemptedapi
+ */
+export class SubscriptionHttpClient5 extends CommonMethods4_1To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class SubscriptionHttpClient4_1 extends CommonMethods4_1To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class SubscriptionHttpClient extends SubscriptionHttpClient5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * Gets an http client targeting the latest released version of the APIs.
+ *
+ * @return SubscriptionHttpClient4_1
+ */
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): SubscriptionHttpClient4_1;
 }
 declare module "VSS/Common/Constants/Platform" {
 export module ContributedServiceContextData {
@@ -5713,13 +6454,24 @@ export module WebPlatformFeatureFlags {
     var VisualStudioServicesContributionUnSecureBrowsers: string;
     var ClientSideErrorLogging: string;
     var UseGalleryCdn: string;
-    var QueryContributionNodes: string;
     var MarkdownRendering: string;
     var SubresourceIntegrity: string;
     var ReactProfileCard: string;
+    var UseNewBranding: string;
 }
 }
 declare module "VSS/Common/Contracts/FormInput" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 /**
  * Enumerates data types that are supported as subscription input values.
  */
@@ -5747,7 +6499,7 @@ export enum InputDataType {
     /**
      * Represents a URI.
      */
-    Uri = 50,
+    Uri = 50
 }
 /**
  * Describes an input for subscriptions.
@@ -5844,7 +6596,7 @@ export interface InputFilterCondition {
 }
 export enum InputFilterOperator {
     Equals = 0,
-    NotEquals = 1,
+    NotEquals = 1
 }
 /**
  * Mode in which a subscription input should be entered (in a UI)
@@ -5877,7 +6629,7 @@ export enum InputMode {
     /**
      * A multi-line text area should be shown
      */
-    TextArea = 60,
+    TextArea = 60
 }
 /**
  * Describes what values are valid for a subscription input
@@ -6165,7 +6917,7 @@ export enum ContextHostType {
     /**
     * The Project Collection
     */
-    ProjectCollection = 4,
+    ProjectCollection = 4
 }
 export interface ContextIdentifier {
     id: string;
@@ -6227,7 +6979,7 @@ export interface ContributionPath {
 export enum ContributionPathType {
     Default = 0,
     Resource = 1,
-    ThirdParty = 2,
+    ThirdParty = 2
 }
 export interface ContributionsPageData {
     contributions: PageContribution[];
@@ -6293,6 +7045,7 @@ export interface DiagnosticsContext {
     diagnoseBundles: boolean;
     inExtensionFallbackMode: boolean;
     isDevFabric: boolean;
+    serviceVersion: string;
     sessionId: string;
     tracePointCollectionEnabled: boolean;
     tracePointProfileEnd: string;
@@ -6308,12 +7061,14 @@ export interface DynamicBundlesCollection {
     styles: DynamicCSSBundle[];
 }
 export interface DynamicCSSBundle {
+    clientId: string;
     contentLength: number;
     cssFiles: string[];
     fallbackThemeUri: string;
     uri: string;
 }
 export interface DynamicScriptBundle {
+    clientId: string;
     contentLength: number;
     integrity: string;
     uri: string;
@@ -6565,7 +7320,7 @@ export enum NavigationContextLevels {
     /**
     * Sugar for all levels
     */
-    All = 31,
+    All = 31
 }
 /**
 * Global context placed on each VSSF web page (through json island data) which gives enough information for core TypeScript modules/controls on the page to operate
@@ -6923,7 +7678,7 @@ export enum DayOfWeek {
     /**
      * Indicates Saturday.
      */
-    Saturday = 6,
+    Saturday = 6
 }
 export var TypeInfo: {
     DayOfWeek: {
@@ -7067,7 +7822,7 @@ export enum SqlDbType {
     /**
      * Date and time data with time zone awareness. Date value range is from January 1,1 AD through December 31, 9999 AD. Time value range is 00:00:00 through 23:59:59.9999999 with an accuracy of 100 nanoseconds. Time zone value range is -14:00 through +14:00.
      */
-    DateTimeOffset = 34,
+    DateTimeOffset = 34
 }
 export var TypeInfo: {
     SqlDbType: {
@@ -7195,6 +7950,29 @@ export function getScriptModuleOwner(module: string): string;
  */
 export function isAutoHighContrastMode(): boolean;
 export function isHighContrastMode(): boolean;
+export class ContributedServicePathBuilder {
+    private appPath;
+    private serviceRootUrl;
+    private pathCombiner;
+    /**
+     * Context path builder for contributed services.
+     *
+     * @param serviceRootUrl Root URL of the contributed service.
+     * @param pathCombiner Utility to combine two paths.
+     */
+    constructor(serviceRootUrl: string, pathCombiner?: (path1: string, path2: string) => string);
+    /**
+     * Get the root URL of the contributed service.
+     */
+    getServiceRootUrl(): string;
+    /**
+     * Combines the given relative path to the service root URL. If relative path already starts with app path,
+     * app path is omitted to prevent it to recur.
+     *
+     * @param relativePath path to combine contributed service root URL.
+     */
+    combinePath(relativePath: string): string;
+}
 /**
 * Process the contributed configuration from a particular service
 *
@@ -7215,6 +7993,17 @@ export function addFeatureAvailability(featureAvailability: Contracts_Platform.F
 export function addServiceLocations(serviceLocations: Contracts_Platform.ServiceLocations): void;
 }
 declare module "VSS/Contributions/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   extensionmanagement\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_Gallery_Contracts = require("VSS/Gallery/Contracts");
 /**
@@ -7229,7 +8018,7 @@ export enum AcquisitionAssignmentType {
     /**
      * Assign for all users in the account
      */
-    All = 2,
+    All = 2
 }
 export interface AcquisitionOperation {
     /**
@@ -7271,7 +8060,7 @@ export enum AcquisitionOperationState {
     /**
      * Operation has already been completed and is no longer available
      */
-    Completed = 3,
+    Completed = 3
 }
 /**
  * Set of different types of operations that can be requested.
@@ -7304,7 +8093,7 @@ export enum AcquisitionOperationType {
     /**
      * Request admins for purchasing extension
      */
-    PurchaseRequest = 6,
+    PurchaseRequest = 6
 }
 /**
  * Market item acquisition options (install, buy, etc) for an installation target.
@@ -7496,7 +8285,7 @@ export enum ContributionLicensingBehaviorType {
     /**
      * Always include the contribution regardless of whether or not the user is licensed for the extension
      */
-    AlwaysInclude = 2,
+    AlwaysInclude = 2
 }
 /**
  * A query that can be issued for contribution nodes
@@ -7506,6 +8295,10 @@ export interface ContributionNodeQuery {
      * The contribution ids of the nodes to find.
      */
     contributionIds: string[];
+    /**
+     * Contextual information that can be leveraged by contribution constraints
+     */
+    dataProviderContext: DataProviderContext;
     /**
      * Indicator if contribution provider details should be included in the result.
      */
@@ -7600,7 +8393,7 @@ export enum ContributionPropertyType {
     /**
      * Value is an arbitrary/custom object
      */
-    Object = 512,
+    Object = 512
 }
 export interface ContributionProviderDetails {
     /**
@@ -7646,7 +8439,7 @@ export enum ContributionQueryOptions {
     /**
      * Some callers may want the entire tree back without constraint evaluation being performed.
      */
-    IgnoreConstraints = 256,
+    IgnoreConstraints = 256
 }
 /**
  * A contribution type, given by a json schema
@@ -7937,7 +8730,7 @@ export enum ExtensionFlags {
     /**
      * The extension comes from a fully-trusted publisher
      */
-    Trusted = 2,
+    Trusted = 2
 }
 export interface ExtensionHost {
     id: string;
@@ -8105,13 +8898,13 @@ export enum ExtensionRequestState {
     /**
      * The request was rejected (extension not installed or license not assigned)
      */
-    Rejected = 2,
+    Rejected = 2
 }
 export enum ExtensionRequestUpdateType {
     Created = 1,
     Approved = 2,
     Rejected = 3,
-    Deleted = 4,
+    Deleted = 4
 }
 export interface ExtensionRequestUrls extends ExtensionUrls {
     /**
@@ -8178,7 +8971,7 @@ export enum ExtensionStateFlags {
     /**
      * Extension is currently in a warning state, that can cause a degraded experience. The degraded experience can be caused for example by some installation issues detected such as implicit demands not supported.
      */
-    Warning = 512,
+    Warning = 512
 }
 export enum ExtensionUpdateType {
     Installed = 1,
@@ -8187,7 +8980,7 @@ export enum ExtensionUpdateType {
     Disabled = 4,
     VersionUpdated = 5,
     ActionRequired = 6,
-    ActionResolved = 7,
+    ActionResolved = 7
 }
 export interface ExtensionUrls {
     /**
@@ -8293,7 +9086,7 @@ export enum InstalledExtensionStateIssueType {
     /**
      * Represents an installation error, for example an explicit demand not supported
      */
-    Error = 1,
+    Error = 1
 }
 /**
  * Maps a contribution to a licensing behavior
@@ -8536,7 +9329,7 @@ export enum ResizeOptions {
     /**
      * The width of the host cannot be changed
      */
-    FixedWidth = 4,
+    FixedWidth = 4
 }
 /**
 * Options for the host control to toggle progress indication or error/warning handling.
@@ -8564,6 +9357,12 @@ export interface IContributionHostBehavior {
      * The resize options for the host. By default both height and width and be resized but this can be changed to only allow one direction of resizing
      */
     resizeOptions?: ResizeOptions;
+    callbacks?: IContributionHostBehaviorCallbacks;
+}
+export interface IContributionHostBehaviorCallbacks {
+    success(): void;
+    failure(message?: string): void;
+    slow(): void;
 }
 /**
  * Contains the new width and height of the contribution host after it is resized
@@ -8686,6 +9485,12 @@ export function getData<T>(contributionId: string, contractMetadata?: Serializat
  */
 export function overrideData(contributionId: string, data: any): void;
 /**
+ * Clears results for a given data provider contribution.
+ *
+ * @param contributionId Id of the data provider contribution
+ */
+export function removeData(contributionId: string): void;
+/**
  * Gets the shared contributed data for the given key
  *
  * @param sharedDataKey Shared data key
@@ -8697,6 +9502,17 @@ declare module "VSS/Contributions/PageEvents" {
 export {};
 }
 declare module "VSS/Contributions/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   extensionmanagement\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import VSS_Contributions_Contracts = require("VSS/Contributions/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
@@ -8845,7 +9661,7 @@ export enum ContributionReservedAttributeValue {
     Preview = 8,
     Public = 16,
     System = 32,
-    Trusted = 64,
+    Trusted = 64
 }
 /**
 * Information about an individual contribution that contributes one or more services registered by id.
@@ -8872,7 +9688,7 @@ export enum ContributionQueryOptions {
     * the contributions sent down in the page via JSON island data, or already fetched by a REST request. No
     * REST call will be made when this flag is specified.
     */
-    LocalOnly = 8,
+    LocalOnly = 8
 }
 /**
 * Method used to filter contributions as part of a contribution query call
@@ -8884,7 +9700,7 @@ export enum ContributionQueryCallbackResult {
     None = 0,
     Include = 1,
     Recurse = 2,
-    IncludeAndRecurse = 3,
+    IncludeAndRecurse = 3
 }
 /**
  * Manages all RegisteredExtension instances and their contributions.
@@ -8905,7 +9721,7 @@ export class ExtensionService extends Service.VssService {
     /**
      * Clear out the cached contribution hierarchy
      */
-    private _clearCachedContributionData();
+    private _clearCachedContributionData;
     /**
      * Ensures the page's Json Island has been processed if web context is the default
      * Should be called by the Service factory.
@@ -8932,6 +9748,13 @@ export class ExtensionService extends Service.VssService {
      * @return IPromise<Contributions_Contracts.Contribution[]> Promise that is resolved when contributions are available.
      */
     getContributionsForTarget(targetId: string, contributionType?: string): IPromise<Contributions_Contracts.Contribution[]>;
+    /**
+     * Gets the **loaded** contributions that target the given contribution ids
+     *
+     * @param targetId Ids of the targeted contribution(s)
+     * @param contributionType Optional type of contribution to filter by
+     */
+    getLoadedContributionsForTarget(targetId: string, contributionType?: string): Contributions_Contracts.Contribution[];
     /**
      * Gets the contributions that target the given contribution ids
      *
@@ -8966,8 +9789,8 @@ export class ExtensionService extends Service.VssService {
     * @param extensionId The extension id (e.g. 'ms.vss-testmanager-web') to check
     */
     isExtensionActive(extensionId: string): IPromise<boolean>;
-    private _getProviderIdentifier(contribution);
-    private _getProviderDetails(contribution);
+    private _getProviderIdentifier;
+    private _getProviderDetails;
     /**
      * Get the specified provider property for this contribution.
      *
@@ -9011,16 +9834,16 @@ export class ExtensionService extends Service.VssService {
      * @param contribution The contribution whose fallbackUri is being requested
      */
     getServiceInstanceType(contribution: Contributions_Contracts.Contribution): string;
-    private _resolveContributions(contributions);
-    private _getUnqueriedContributions(ids);
-    private _getPendingLoadPromises(ids);
-    private _getLoadedContributions(ids, queryOptions, contributionType, queryCallback?);
-    private _fetchTargetingContributions(contributionId, results, includedContributionIds, queryCallback, contributionType);
+    private _resolveContributions;
+    private _getUnqueriedContributions;
+    private _getPendingLoadPromises;
+    private _getLoadedContributions;
+    private _fetchTargetingContributions;
     /**
      * Parse the extensions in the JSON island given by the selector
      * @param selector Selector to match a script tag containing JSON
      */
-    private _processJsonIsland();
+    private _processJsonIsland;
     /**
      * Register the given contributions with this service instance, avoiding an AJAX call for the specified contributions
      *
@@ -9033,8 +9856,8 @@ export class ExtensionService extends Service.VssService {
      * @param contribution
      * @param targetId
      */
-    private _registerContributionTarget(contribution, targetId);
-    private _registerContributionProviderDetails(providerDetails);
+    private _registerContributionTarget;
+    private _registerContributionProviderDetails;
     /**
      * Get contributions of the specified type that have already been loaded and cached by this service.
      * This avoids a REST call to query contributions - only looking at contributions seeded on the page
@@ -9071,7 +9894,7 @@ export enum WebPageDataSource {
     /**
     * The data provider entry was cached from localStorage
     */
-    LocalStorage = 2,
+    LocalStorage = 2
 }
 /**
  * Represents an error returned from a data provider resolved asynchronously
@@ -9091,7 +9914,8 @@ export class WebPageDataService extends Service.VssService {
     private _resolvedProviders;
     private _contributionPromises;
     private _contributionIdsByDataType;
-    private _ensureInitialized(additionalContributions?);
+    private _dataProviderInitialized;
+    private _ensureInitialized;
     /**
      * Register the given data provider data with this instance of the contribution service
      *
@@ -9100,14 +9924,14 @@ export class WebPageDataService extends Service.VssService {
      * @param clearExisting If true, clear any existing data providers. If false, add to it.
      */
     registerProviderData(result: Contributions_Contracts.DataProviderResult, contributions: Contributions_Contracts.Contribution[], clearExisting?: boolean): IPromise<any>;
-    private _clearCachedDataProviders();
-    private _handleDataProviderResult(result, contributions, source);
-    private _storeDataProviderData(contributionId, originalResult, pluginResult, caching);
-    private _getLocalStorageCacheScope(caching);
-    private _getLocalStorageCacheEntry(storageEntryName);
-    private _isDataExpired(contribution);
-    private _getCachedDataProviderValue(contribution);
-    private _setCachedDataProviderValue(contributionId, value, caching);
+    private _clearCachedDataProviders;
+    private _handleDataProviderResult;
+    private _storeDataProviderData;
+    private _getLocalStorageCacheScope;
+    private _getLocalStorageCacheEntry;
+    private _isDataExpired;
+    private _getCachedDataProviderValue;
+    private _setCachedDataProviderValue;
     /**
     * Add a plugin handler that gets called when data with the given key has been sent from the server
     *
@@ -9148,6 +9972,19 @@ export class WebPageDataService extends Service.VssService {
      */
     getPageDataByDataType<T>(dataType: string, contractMetadata?: Serialization.ContractMetadata): IDictionaryStringTo<T>;
     /**
+     * getRemoteDataAsync is used to retrieve remote organization data via a data-provider through a promise.
+     * This is to be used only to call a remote/cross org dataprovider.
+     * @param contributionId The contributionId of the data provider.
+     * @param dataProviderScope Remote data provider scope
+     * @param authTokenManager Auth token manager for WebSessionTokens
+     * @param serviceInstanceId Id of the service instance, the current one will be used if not given
+     * @param requestParameters Parameters to use when fetching data.
+     */
+    getRemoteDataAsync<T>(contributionId: string, dataProviderScope: {
+        name: string;
+        value: string;
+    }, authTokenManager: IAuthTokenManager<any>, serviceInstanceId?: string, requestParameters?: any): Promise<T | undefined>;
+    /**
      * getDataAsync is used to retrieve data via a data-provider through a promise. In contrast to `ensureDataProvidersResolved`
      * nothing is cached every time `getDataAsync` is called a request is made. If you make multiple calls at the same time, multiple
      * requests will be sent.
@@ -9164,8 +10001,8 @@ export class WebPageDataService extends Service.VssService {
      * @param refreshIfExpired If true, force a server request to re-populate the data provider data if the data has expired.  Default is it is always expired.
      */
     ensureDataProvidersResolved(contributions: Contributions_Contracts.Contribution[], refreshIfExpired?: boolean, properties?: any): IPromise<any>;
-    private fetchPageDataForService(serviceInstanceId, contributions, properties?);
-    private getPageSource();
+    private fetchPageDataForService;
+    private getPageSource;
     /**
      * Get page data from a data provider contribution that is cached, optionally queueing an update of the data
      * after reading from the cache
@@ -9266,7 +10103,7 @@ export class ExtensionHelper {
      * @param any data
      */
     static publishTraceData(contribution: Contributions_Contracts.Contribution, data?: string, contributionId?: string): void;
-    private static publishData(contribution, data?);
+    private static publishData;
 }
 }
 declare module "VSS/Controls" {
@@ -9514,8 +10351,8 @@ export class Enhancement<TOptions> {
      */
     isDisposed(): boolean;
     protected _getEnhancementOption(key: string): any;
-    private _trackElement(domElement);
-    private _untrackElement(domElement);
+    private _trackElement;
+    private _untrackElement;
 }
 /**
  * Creates a the control specified by TControl in the given container.
@@ -9581,6 +10418,7 @@ export class Control<TOptions> extends Enhancement<TOptions> {
     enableElement(enabled: any): void;
     showBusyOverlay(): JQuery;
     hideBusyOverlay(): void;
+    isVisible(): boolean;
     _createElement(): void;
     _initializeElement(): void;
     _setStyles(): void;
@@ -9601,7 +10439,7 @@ export class Control<TOptions> extends Enhancement<TOptions> {
     * control has been added to the DOM hierarchy.
     */
     protected _getInDomPromise(): IPromise<any>;
-    private _waitForElementInDom(deferred);
+    private _waitForElementInDom;
     /**
      * Sets the role for the current control using the specified role value on the specified element.
      * If no element specified, default element is used.
@@ -9680,18 +10518,20 @@ export class BaseDataSource {
      * @param all
      * @param first Only return the first result
      */
-    private _getItemIndexesInternal(inputText, startsWith?, all?, first?);
-    private _getInputTextToItemComparer(matchPartial?);
+    private _getItemIndexesInternal;
+    private _getInputTextToItemComparer;
     nextIndex(selectedIndex: any, delta: any, all: any): number;
 }
 }
 declare module "VSS/Controls/AjaxPanel" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
 import Panels = require("VSS/Controls/Panels");
 export class AjaxPanel extends Panels.AjaxPanel {
     constructor(options?: any);
 }
 }
 declare module "VSS/Controls/CheckboxList" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
 import Controls = require("VSS/Controls");
 /**
  * Recommended structure for an item in a CheckboxList control.
@@ -9760,19 +10600,20 @@ export class CheckboxListO<TOptions extends ICheckboxListOptions> extends Contro
     getUncheckedValues(): any[];
     setCheckedValues(values: any[]): void;
     _initializeElement(): void;
-    private _getItemValue(item);
-    private _checkItemState(item, state);
-    private _draw();
+    private _getItemValue;
+    private _checkItemState;
+    private _draw;
     /**
      * @param e
      * @return
      */
-    private _onCheckClick(e?);
+    private _onCheckClick;
 }
 export class CheckboxList extends CheckboxListO<ICheckboxListOptions> {
 }
 }
 declare module "VSS/Controls/Combos" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
 import Controls = require("VSS/Controls");
 import Validation = require("VSS/Controls/Validation");
 import Virtualization = require("VSS/Controls/Virtualization");
@@ -9885,8 +10726,8 @@ export class BaseComboBehavior {
      * @param all - Search allItems from data source
      */
     protected getItemText(index: number, all?: boolean): string;
-    private _attachGlobalEvents();
-    private _detachGlobalEvents();
+    private _attachGlobalEvents;
+    private _detachGlobalEvents;
 }
 export interface IBaseComboDropPopup {
     /**
@@ -9932,7 +10773,7 @@ export class BaseComboDropPopup extends Controls.BaseControl implements IBaseCom
      * @param e
      * @return
      */
-    private _onMouseDown(e);
+    private _onMouseDown;
 }
 /**
  * @publicapi
@@ -10052,6 +10893,10 @@ export interface IComboOptions {
      * Placeholder text shown on input.
      */
     placeholderText?: string;
+    /**
+    * Called when the drop popup shows.
+    */
+    dropShow?: (dropPopup: BaseComboDropPopup) => void;
     /**
      * Called when the drop popup hides.
      * Return true to close drop popup.
@@ -10180,7 +11025,7 @@ export class ComboO<TOptions extends IComboOptions> extends Controls.Control<TOp
      */
     initializeOptions(options?: any): void;
     _dispose(): void;
-    private _disposeBehavior();
+    private _disposeBehavior;
     _createIn(container: any): void;
     /**
      * @param element
@@ -10211,7 +11056,7 @@ export class ComboO<TOptions extends IComboOptions> extends Controls.Control<TOp
      */
     getInput(): JQuery;
     getInputText(): string;
-    private _updateTooltip();
+    private _updateTooltip;
     setInputText(text: string, fireEvent?: boolean): void;
     /**
      * @return
@@ -10310,15 +11155,15 @@ export class ComboO<TOptions extends IComboOptions> extends Controls.Control<TOp
      * Return true if the combo is in valid state. Otherwise return false.
      */
     isValid(): Boolean;
-    private _ensureBehavior();
-    private _decorate();
+    private _ensureBehavior;
+    private _decorate;
     protected _setAriaAttributes(): void;
-    private _updateStyles();
+    private _updateStyles;
     /**
      * @param e
      * @return
      */
-    private _onDropButtonClick(e?);
+    private _onDropButtonClick;
     /**
      * @param e
      * @return
@@ -10338,17 +11183,17 @@ export class ComboO<TOptions extends IComboOptions> extends Controls.Control<TOp
      * @param e
      * @return
      */
-    private _onMouseDown(e?);
+    private _onMouseDown;
     /**
      * @param e
      * @return
      */
-    private _onInputKeyPress(e?);
+    private _onInputKeyPress;
     /**
      * @param e
      * @return
      */
-    private _onInputKeyUp(e?);
+    private _onInputKeyUp;
     updateAriaAttributes(isDropVisible?: boolean): void;
     updateAriaActiveDescendant(): void;
 }
@@ -10473,11 +11318,11 @@ export class ComboListBehavior extends BaseComboBehavior {
      * @param fireEvent flag to whether to fire index changed
      */
     protected _setSelectedIndex(selectedIndex: number, fireEvent?: boolean): void;
-    private _tryAutoFill();
+    private _tryAutoFill;
     /**
      * Limit what is shown in the dropdown based on text entry in combobox
      */
-    private _applyFilter();
+    private _applyFilter;
     protected _filterData(inputText: string): void;
 }
 export class ComboControlValidator extends Validation.BaseValidator<Validation.BaseValidatorOptions> {
@@ -10511,18 +11356,18 @@ export class DatePanel extends Controls.BaseControl {
     setSelectedDate(date: Date): void;
     getSelectedDate(): Date;
     getSelectedItem(): JQuery;
-    private _draw(date, focusElementClass?);
-    private _drawCalendarTable(date);
+    private _draw;
+    private _drawCalendarTable;
     /**
      * @param e
      * @return
      */
-    private _onKeyDown(e?);
+    private _onKeyDown;
     /**
      * @param e
      * @return
      */
-    private _onClick(e?);
+    private _onClick;
 }
 export class ComboDateDropPopup extends BaseComboDropPopup {
     private _datePanel;
@@ -10535,7 +11380,7 @@ export class ComboDateDropPopup extends BaseComboDropPopup {
      * @param e
      * @return
      */
-    private _onChange(e?);
+    private _onChange;
 }
 export class ComboDateBehavior extends BaseComboBehavior {
     private _timeValue;
@@ -10597,10 +11442,10 @@ export class ComboDateBehavior extends BaseComboBehavior {
      * @return
      */
     rightKey(e?: JQueryEventObject): any;
-    private _onChange();
-    private _getSelectedDate();
-    private _addDays(date, days);
-    private _getMonthLength(month, year);
+    private _onChange;
+    private _getSelectedDate;
+    private _addDays;
+    private _getMonthLength;
 }
 export class DatePicker extends Combo {
     /**
@@ -10619,8 +11464,8 @@ export class ComboMultiValueDropPopup extends ComboListDropPopup {
     getCheckedItems(): string[];
     getValue(): string;
     toggleCheckbox(selectedIndex: any): void;
-    private _createItem(index);
-    private _onItemClick(e?, itemIndex?, $target?, $li?);
+    private _createItem;
+    private _onItemClick;
 }
 export class ComboMultiValueBehavior extends ComboListBehavior {
     static Default_Seperate_Char: string;
@@ -10637,10 +11482,17 @@ export class ComboMultiValueBehavior extends ComboListBehavior {
      * @return
      */
     keyDown(e?: JQueryEventObject): any;
-    private _onChange();
+    private _onChange;
 }
 }
 declare module "VSS/Controls/Dialogs" {
+/// <amd-dependency path="jQueryUI/core" />
+/// <amd-dependency path="jQueryUI/button" />
+/// <amd-dependency path="jQueryUI/dialog" />
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
+/// <reference types="jquery" />
+/// <reference types="jqueryui" />
+/// <reference types="highcharts" />
 import Controls = require("VSS/Controls");
 import Panels = require("VSS/Controls/Panels");
 import Q = require("q");
@@ -10693,6 +11545,10 @@ export interface IDialogOptions extends Panels.IAjaxPanelOptions {
      * Delegate to be executed when the dialog is opened.
      */
     open?: (eventArgs: any) => any;
+    /**
+     * Delegate to be executed before the dialog is closed.
+     */
+    beforeClose?: (eventArgs: any) => any;
     /**
      * Delegate to be executed when the dialog is closed.
      */
@@ -10823,7 +11679,7 @@ export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<
     static create<T extends Controls.Control<any>>(dialogType: {
         new (options: any): T;
     }, options?: any): T;
-    private static _getNextDialogZIndex();
+    private static _getNextDialogZIndex;
     static show<T extends Dialog>(dialogType: {
         new (options: any): T;
     }, options?: any): T;
@@ -10835,6 +11691,7 @@ export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<
     private _onHubNavigateDelegate;
     private _secondOverlay;
     private _closeTooltip;
+    private _resizeIconTooltip;
     protected _closedByNavigation: boolean;
     private _resizing;
     private static RESIZE_STEP;
@@ -10847,9 +11704,9 @@ export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<
      */
     initializeOptions(options?: any): void;
     initialize(): void;
-    private _addResizeKeydownHandler();
-    private _resize(type, increase, limit, limitFunction);
-    private _autoSizeAndPosition();
+    private _addResizeKeydownHandler;
+    private _resize;
+    private _autoSizeAndPosition;
     /**
      * Ensure there is at least one CTA button (left-most default) unless:
      * - There are no buttons, or
@@ -10857,7 +11714,7 @@ export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<
      * - The dialog sets the noAutoCta property to true
      * @param dialogOptions
      */
-    private _ensureCtaButton();
+    private _ensureCtaButton;
     onLoadCompleted(content: any): void;
     /**
      * Tries to set the focus using the specified or default selector
@@ -10937,24 +11794,24 @@ export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<
      * We call this several times because there are several different ways that people use to close dialogs,
      * and onClose() can even be overridden.
      */
-    private _removeSecondOverlay();
-    private _updateSubtitle();
+    private _removeSecondOverlay;
+    private _updateSubtitle;
     /**
      * @param e
      * @return
      */
     onDialogResize(e?: JQueryEventObject): any;
-    private _updateTitle();
+    private _updateTitle;
     /**
      * @param e
      * @return
      */
-    private _onWindowResize(e?);
+    private _onWindowResize;
     /**
      * @param e
      * @return
      */
-    private _onDialogResizing(e?, ui?);
+    private _onDialogResizing;
     /**
      * The JQuery UI Dialog unfortunately sets an explicit height for the dialog when it is moved,
      * meaning it will no longer auto-size when the contents are adjusted. However, the dialog
@@ -10968,19 +11825,20 @@ export class DialogO<TOptions extends IDialogOptions> extends Panels.AjaxPanelO<
      * @param e
      * @param ui
      */
-    private _onDialogMove(e?, ui?);
-    private _onDialogResizeStart(e?, ui?);
-    private _onDialogResizeStop(e?, ui?);
-    private _ensureDialogContentHeight();
+    private _onDialogMove;
+    private _onDialogResizeStart;
+    private _onDialogResizeStop;
+    private _ensureDialogContentHeight;
     /**
      * Set the css maximum height of the dialog.
      */
-    private _setMaxHeight();
+    private _setMaxHeight;
     /**
      * Set the maximum size jQueryUI will allow the dialog to be.
      */
-    private _setMaxSize();
-    private _hideCloseButtonTooltip();
+    private _setMaxSize;
+    private _hideCloseButtonTooltip;
+    private _hideResizeIconTooltip;
 }
 export class Dialog extends DialogO<IDialogOptions> {
 }
@@ -11173,7 +12031,7 @@ export class MessageDialogO<TOptions extends IMessageDialogOptions> extends Dial
     private _textbox;
     initializeOptions(options?: TOptions): void;
     initialize(): void;
-    private initializeTypedConfirmation();
+    private initializeTypedConfirmation;
     /**
      * Returns a promise that is resolved or rejected when the dialog is closed.
      */
@@ -11190,7 +12048,7 @@ export class MessageDialogO<TOptions extends IMessageDialogOptions> extends Dial
      * Returns an object suitable for initializing the given button for our parent Dialog.
      * @param button
      */
-    private getButtonOptions(button);
+    private getButtonOptions;
     /**
     * Common message dialog buttons
     */
@@ -11238,15 +12096,15 @@ export class CopyContentDialog extends ModalDialogO<CopyContentDialogOptions> {
     /**
      * Initializes the dialog UI.
      */
-    private _decorate();
-    private _getDefaultLabelText();
-    private _initializeRichEditor($container);
+    private _decorate;
+    private _getDefaultLabelText;
+    private _initializeRichEditor;
     /**
      * Initializes the text area panel
      *
      * @param $container The text area panel container.
      */
-    private _initializeTextPanel($container);
+    private _initializeTextPanel;
 }
 /**
  * Shows the specified dialog type using specified options.
@@ -11266,6 +12124,7 @@ export function showMessageDialog(message: string | JQuery, options?: IShowMessa
 export function showConfirmNavigationDialog(message: string, title?: string): Q.Promise<IMessageDialogResult>;
 }
 declare module "VSS/Controls/EditableGrid" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
 import Combos = require("VSS/Controls/Combos");
 import Controls = require("VSS/Controls");
 import Grids = require("VSS/Controls/Grids");
@@ -11310,8 +12169,8 @@ export class TextCellEditor extends CellEditor {
 }
 export class RichTextCellEditor extends TextCellEditor {
     getValue(): string;
-    private _getLastHtmlTag($searchElem?);
-    private _hasNonbreakingSpaceAtEnd($element);
+    private _getLastHtmlTag;
+    private _hasNonbreakingSpaceAtEnd;
     setValue(htmlString: string, doNotSavePrevious?: boolean): void;
     clearValue(setEmpty?: boolean): void;
     setSize($cellContext: JQuery): void;
@@ -11420,31 +12279,31 @@ export class EditableGrid extends Grids.GridO<any> {
     _invalidateRowHeights(): void;
     ensureRowSelectionWhenLayoutComplete(command: any, indicesToSelect?: number[]): void;
     protected _onDeleteHeader(e: JQueryEventObject): void;
-    private _focusGrid();
+    private _focusGrid;
     whenLayoutComplete(command: any, indicesToSelect?: number[]): void;
-    private _setSelection(indicesToSelect);
-    private _validateIndicesToSelect(indicesToSelect);
+    private _setSelection;
+    private _validateIndicesToSelect;
     onLayoutComplete(command: any, indicesToSelect?: number[]): void;
     _getRowHeightInfo(dataIndex: number): RowHeightInfo;
     _setRowHeight(dataIndex: number, height: number): void;
-    private _setCellValue($cell, value, isRichText, title?);
+    private _setCellValue;
     _setColumnInfo(column: any, index: number): void;
     getCellEditorForColumn(index: any): CellEditor;
     getCurrentEditRowIndex(): number;
     layout(): void;
-    private _layoutInternal();
+    private _layoutInternal;
     _getSelectedCellInfo(): CellInfo;
     _onContainerMouseDown(e?: any): void;
-    private _setRole();
-    private _setCellEditor($currentCell, clearExisting);
+    private _setRole;
+    private _setCellEditor;
     _handleEditorEndEdit(e?: JQueryEventObject, $currentCell?: JQuery): void;
-    private _handleEndEdit($currentCell, ignoreValueChange?);
-    private _allowCellResize($row);
-    private _resizeCellsInRowToHeight($row, dataIndex);
+    private _handleEndEdit;
+    private _allowCellResize;
+    private _resizeCellsInRowToHeight;
     _onKeyDown(e?: JQueryEventObject): any;
     _createFocusElement(): JQuery;
-    private _selectCellForSelectedRowIndex(delayEdit?);
-    private _getCellForRow($row, columnIndex);
+    private _selectCellForSelectedRowIndex;
+    private _getCellForRow;
     _onUpKey(e?: JQueryEventObject, bounds?: any): void;
     _onDownKey(e?: JQueryEventObject, bounds?: any): void;
     _onRightKey(e?: JQueryEventObject): void;
@@ -11466,8 +12325,8 @@ export class EditableGrid extends Grids.GridO<any> {
     setHeightForUpperContentSpacer(height: number): void;
     _includeNewlyInsertedRowsInViewport(affectedIndices: number[]): void;
     _adjustContentSpacerHeightsPostDelete(): void;
-    private _calculateHeightForUpperContentSpacer(firstVisibleIndex, firstVisibleIndexTop);
-    private _calculateHeightForLowerContentSpacer(lastVisibleIndex, lastVisibleIndexTop, totalHeight);
+    private _calculateHeightForUpperContentSpacer;
+    private _calculateHeightForLowerContentSpacer;
     _getOuterRowHeight(index: number): number;
     protected _addSpacingElements(): void;
     getSelectedCellIntoView(): boolean;
@@ -11481,9 +12340,9 @@ export class EditableGrid extends Grids.GridO<any> {
     };
     _layoutContentSpacer(): void;
     _onCanvasScroll(e?: any): boolean;
-    private _onScroll(e?);
+    private _onScroll;
     _onLastRowVisible(rowIndex: number): void;
-    private _isScrolledIntoView($elem);
+    private _isScrolledIntoView;
     _tryFinishColumnSizing(cancel: any): void;
     _onContainerResize(e?: JQueryEventObject): any;
     _selectRowAndCell($cell: JQuery, doNotGetCellIntoView?: boolean): void;
@@ -11492,24 +12351,24 @@ export class EditableGrid extends Grids.GridO<any> {
     _selectNextRowNthCell(n: number, doNotGetCellIntoView?: boolean): boolean;
     _selectPrevRowLastCell(doNotGetCellIntoView?: boolean): boolean;
     _selectNextRowFirstCell(doNotGetCellIntoView?: boolean): boolean;
-    private _areEqual($cell1, $cell2);
+    private _areEqual;
     _onKeyPress(e?: JQueryEventObject): any;
-    private _isChar(e?);
+    private _isChar;
     _onRowDoubleClick(e?: JQueryEventObject): any;
     _cleanUpGrid(): void;
-    private _deleteEditors();
+    private _deleteEditors;
     _editCell($cell: JQuery, delayEdit: boolean, clearExisting: boolean, charCode?: number): void;
-    private _editCellInternal($cell, cellInfo, clearExisting, charCode?);
+    private _editCellInternal;
     _canEdit(cellInfo: CellInfo): boolean;
     _onRowMouseDown(e?: JQueryEventObject): any;
     _onRowClick(e?: JQueryEventObject): any;
-    private _getRowFromCell($cell);
-    private _getRowFromEvent(e?, selector?);
-    private _areCellInfoEqual(cellInfo1, cellInfo2);
+    private _getRowFromCell;
+    private _getRowFromEvent;
+    private _areCellInfoEqual;
     onCellSelectionChanged($cell?: JQuery, delayEdit?: boolean): void;
-    private _selectCell($cell, doNotBringRowToView?, doNotFireEndEdit?, doNotBringCellIntoView?, delayEdit?, preventEdit?);
-    private _getCellFromEvent(e?, selector?);
-    private _getCellInfoFromEvent(e?, selector?);
+    private _selectCell;
+    private _getCellFromEvent;
+    private _getCellInfoFromEvent;
     _updateViewport(includeNonDirtyRows?: boolean): void;
     postUpdateViewPort(): void;
     _ensureRowDrawn(dataIndex: any): boolean;
@@ -11519,16 +12378,16 @@ export class EditableGrid extends Grids.GridO<any> {
      * @return
      */
     _getRowIntoView(rowIndex: number, force?: boolean): boolean;
-    private _getRowHeightBetweenRows(startIndex, endIndex);
-    private _scrollCanvasUp(startIndex, endIndex);
-    private _scrollCanvasDown(startIndex, endIndex);
+    private _getRowHeightBetweenRows;
+    private _scrollCanvasUp;
+    private _scrollCanvasDown;
     updateRows(indices?: number[]): void;
     _updateRow(rowInfo: any, rowIndex: number, dataIndex: number, expandedState: any, level: number, columnsToUpdate?: {
         [id: number]: boolean;
     }, forceUpdateHeight?: boolean): void;
     _updateRowStyle(rowInfo: any): void;
-    private _isCellEmpty($cell);
-    private _getEmptyRowOuterHeight(dataIndex, $row);
+    private _isCellEmpty;
+    private _getEmptyRowOuterHeight;
     _updateRowAndCellHeights(dataIndex: number, $row: JQuery, forceUpdate?: boolean): void;
     _clearSelections(): void;
     _fireEndEdit(): void;
@@ -11555,6 +12414,7 @@ export class EditableGrid extends Grids.GridO<any> {
 }
 }
 declare module "VSS/Controls/ExternalHub" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
 import Contracts_Platform = require("VSS/Common/Contracts/Platform");
 import Controls = require("VSS/Controls");
 export interface INavigatedHubEventArgs {
@@ -11568,9 +12428,9 @@ export class ExternalHub extends Controls.BaseControl {
     private _xhrHubSwitchingEnabled;
     private _extensionHost;
     initialize(): void;
-    private isHubXHRNavigable(hub);
-    private isXHRHubSwitchingEnabled();
-    private getNavigationSettings();
+    dispose(): void;
+    private isHubXHRNavigable;
+    private getNavigationSettings;
     /**
      * Navigate the page to the specified hub
      *
@@ -11579,21 +12439,23 @@ export class ExternalHub extends Controls.BaseControl {
      * @param cancelCallback Callback to invoke if the navigation was cancelled by the user (after prompted with unsaved changes)
      * @returns true if the navigation was handled.
      */
-    private navigateToNewHub(hubId, url?, cancelCallback?);
-    private preXhrHubNavigate(hub);
+    private navigateToNewHub;
+    private preXhrHubNavigate;
     prepareForHubNavigate(): void;
     hubNavigateStarting(): void;
-    private postXhrHubNavigate(hub, pageData, navigateId, previousStaticContentVersions, contributionId);
-    private finishNavigateToNewHub(hub, url, navigateId);
+    private popStateSubscription;
+    private postXhrHubNavigate;
+    private finishNavigateToNewHub;
     handleNewPlatformFps(xhrData: Contracts_Platform.PageXHRData, newPageContext: PageContext, contributionId?: string): IPromise<any>;
-    private showSpinner();
-    private hideSpinner();
-    private hasStaticContentVersionChanged(previousVersions, currentVersions);
-    private createHost(contribution);
-    private beginGetHubContentUri(contribution, baseUri?);
+    private showSpinner;
+    private hideSpinner;
+    private hasStaticContentVersionChanged;
+    private createHost;
+    private beginGetHubContentUri;
 }
 }
 declare module "VSS/Controls/FileInput" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
 import Controls = require("VSS/Controls");
 import Utils_File = require("VSS/Utils/File");
 /**
@@ -11643,7 +12505,7 @@ export interface FileInputControlResult {
 export enum FileInputControlContentType {
     Base64EncodedText = 0,
     RawText = 1,
-    RawFile = 2,
+    RawFile = 2
 }
 /**
 * Event data passed to FileInputControl update events.
@@ -11705,16 +12567,16 @@ export class FileInputControl extends Controls.Control<FileInputControlOptions> 
      * Override default control focus behavior, focus on 'browse' button by default and if not visible then first 'remove' link
      */
     focus(): void;
-    private _triggerUpdateEvent();
-    private _updateOverallStatus();
-    private _getTotalFilesSize();
-    private _addFiles(dataDrop);
-    private _addFile(file, isFolder);
-    private _getFriendlySizeString(numBytes, decimalPlaces?);
-    private _clearError();
-    private _displayLimitError(errorText, limitData);
-    private _displayError(errorText);
-    private _getFirstRemoveLink();
+    private _triggerUpdateEvent;
+    private _updateOverallStatus;
+    private _getTotalFilesSize;
+    private _addFiles;
+    private _addFile;
+    private _getFriendlySizeString;
+    private _clearError;
+    private _displayLimitError;
+    private _displayError;
+    private _getFirstRemoveLink;
     getFiles(): FileInputControlResult[];
     isLoadInProgress(): boolean;
     getRows(): FileInputControlRow[];
@@ -11739,9 +12601,9 @@ export class FileDropTarget extends Controls.Enhancement<FileDropTargetOptions> 
     private _dragOverClassName;
     _enhance($element: JQuery): void;
     _dispose(): void;
-    private _handleDragEvent(e);
-    private _handleDragLeaveEvent(e);
-    private _handleDropEvent(e);
+    private _handleDragEvent;
+    private _handleDragLeaveEvent;
+    private _handleDropEvent;
 }
 /**
  * Clones the DataTransfer in a duck-type instance.
@@ -11752,6 +12614,7 @@ export class FileDropTarget extends Controls.Enhancement<FileDropTargetOptions> 
 export function cloneDataTransfer(dataTransfer: DataTransfer): DataTransfer;
 }
 declare module "VSS/Controls/Filters" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
 import Controls = require("VSS/Controls");
 import Utils_UI = require("VSS/Utils/UI");
 /**
@@ -11894,41 +12757,41 @@ export class FilterControlO<TOptions extends IFilterControlOptions> extends Cont
     initializeOptions(options?: IFilterControlOptions): void;
     setFilter(filter: IFilter): void;
     protected _createClauseTable(): void;
-    private _createHeaderRow();
+    private _createHeaderRow;
     _getInsertClauseTooltipText(): string;
     _getRemoveClauseTooltipText(): string;
     getFilters(): IFilter;
-    private _createClauseRow(clause);
+    private _createClauseRow;
     createClauseValueControl(container: JQuery, options?: any): any;
     /**
      * Gets the string to be displayed in place of "add new clause" hyperlink.
      */
     _getAddNewClauseText(): string;
-    private _createAddRemoveColumn(getClauseInfo);
-    private _createAddClauseRow();
-    private _onClauseChange(change, clauseInfo);
+    private _createAddRemoveColumn;
+    private _createAddClauseRow;
+    private _onClauseChange;
     getClauseValue(valueControl: any, clause: any): string;
     /**
      * @param e
      * @return
      */
-    private _addClauseClick(e?, clauseInfo?);
+    private _addClauseClick;
     /**
      * @param e
      * @return
      */
     protected _removeClauseClick(e?: JQueryEventObject, clauseInfo?: IFilterClauseInfo): any;
-    private _updateGroupingSpan();
-    private _groupSelectedClauses();
+    private _updateGroupingSpan;
+    private _groupSelectedClauses;
     /**
      * @param e
      * @return
      */
-    private _ungroupClick(e?, clauseInfo?);
-    private _createTableAndFocus(focusRow, focusColumn);
-    private _createTableAndFocusDelete(focusRow);
-    private _handleFilterModified();
-    private _onControlBlurred();
+    private _ungroupClick;
+    private _createTableAndFocus;
+    private _createTableAndFocusDelete;
+    private _handleFilterModified;
+    private _onControlBlurred;
 }
 export class FilterControl extends FilterControlO<IFilterControlOptions> {
 }
@@ -12021,23 +12884,23 @@ export class FormInputControl extends Controls.Control<FormInputControlOptions> 
     initializeOptions(options?: any): void;
     initialize(): void;
     deleteControl(): void;
-    private _createGroup(headerLabel);
+    private _createGroup;
     addInputViewModel(inputViewModel: InputViewModel): void;
     removeInputViewModel(inputViewModel: InputViewModel, removeFromInputsViewModel?: boolean): void;
     showInputViewModel(inputViewModel: InputViewModel): void;
     hideInputViewModel(inputViewModel: InputViewModel): void;
-    private _showHideInputViewModel(inputViewModel, show);
-    private _createDeleteButton(inputViewModel);
+    private _showHideInputViewModel;
+    private _createDeleteButton;
     getGroupHeader(groupName?: string): JQuery;
     getInputFieldById(id: string): JQuery;
     createRowBeforeInput(id: string): JQuery;
     createRowAfterInput(id: string): JQuery;
-    private _addDescriptionIcon(description, $target);
-    private _createInputField(inputViewModel, $parent, comboControlMap);
-    private _textInputValueChanged(combo, inputViewModel);
-    private _radioInputValueChanged($radio, radioValue, inputViewModel);
-    private _setupTooltip($icon, tooltip, inputViewModel);
-    private static _fixLinkTargets(element);
+    private _addDescriptionIcon;
+    private _createInputField;
+    private _textInputValueChanged;
+    private _radioInputValueChanged;
+    private _setupTooltip;
+    private static _fixLinkTargets;
     static getProgressIconForInput(inputId: string): JQuery;
     static getValidationIconForInput(inputId: string): JQuery;
 }
@@ -12083,12 +12946,12 @@ export class InputsViewModel {
         [inputId: string]: any;
     };
     allDependentsSatisfied(inputViewModel: InputViewModel): boolean;
-    private _invalidateDependencies(changedInputViewModel);
-    private _updateDependencies(changedInputViewModel);
+    private _invalidateDependencies;
+    private _updateDependencies;
     protected _querySatisfiedDependentInputValues(): void;
-    private _isADependent(inputViewModel);
-    private _onValueChanged(inputViewModel);
-    private _onBlur(inputViewModel);
+    private _isADependent;
+    private _onValueChanged;
+    private _onBlur;
 }
 export class InputViewModel {
     private _inputDescriptor;
@@ -12110,7 +12973,7 @@ export class InputViewModel {
     private _deleteCallbacks;
     private _suppressValidityChangeNotifications;
     constructor(inputDescriptor: FormInput_Contracts.InputDescriptor, inputValue: any, inputValidChangedCallback: InputViewModelDelegate<void>, blurCallback: InputViewModelDelegate<void>, valueChangedCallbacks: InputViewModelDelegate<void>[], valuesChangedCallback: InputViewModelDelegate<void>, dependencies?: InputViewModelDelegate<boolean>[], dependenciesSatisfiedCallbacks?: ((satisfied: boolean) => void)[], deleteCallbacks?: (() => void)[]);
-    private _addFunctions(functions, adder);
+    private _addFunctions;
     validate(): void;
     isDirty(): boolean;
     isValid(): boolean;
@@ -12140,28 +13003,35 @@ export class InputViewModel {
     addDependency(dependency: InputViewModelDelegate<boolean>, addToFront?: boolean): void;
     checkDependenciesSatisfied(): boolean;
     getDependenciesSatisfied(): boolean;
-    private _dependenciesSatisfiedChange(satisfied);
+    private _dependenciesSatisfiedChange;
     inputDependenciesSatisfied(satisfied: boolean): boolean;
     addDependenciesSatisfiedCallback(callback: (satisfied: boolean) => void, addToFront?: boolean): void;
     deleteViewModel(): void;
     addDeleteCallback(callback: () => void, addToFront?: boolean): void;
-    private _invalidateValue();
-    private _setValue(value, force);
-    private _computeSelectedIndex();
-    private _setDirty(isDirty);
-    private _setValid(isValid, error?);
-    private _getDefaultIndex();
-    private _getSelectedIndex();
-    private _getDefaultValue();
-    private _validate();
-    private _validateBoolean();
-    private _validateGuid();
-    private _validateNumber();
-    private _validateString();
-    private _validateUri();
+    private _invalidateValue;
+    private _setValue;
+    private _computeSelectedIndex;
+    private _setDirty;
+    private _setValid;
+    private _getDefaultIndex;
+    private _getSelectedIndex;
+    private _getDefaultValue;
+    private _validate;
+    private _validateBoolean;
+    private _validateGuid;
+    private _validateNumber;
+    private _validateString;
+    private _validateUri;
 }
 }
 declare module "VSS/Controls/Grids" {
+/// <amd-dependency path="jQueryUI/droppable" />
+/// <amd-dependency path="VSS/Utils/Draggable" />
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
+/// <reference types="jquery" />
+/// <reference types="jqueryui" />
+/// <reference types="highcharts" />
+/// <reference types="vss-common" />
 import Controls = require("VSS/Controls");
 import Menus = require("VSS/Controls/Menus");
 import Search = require("VSS/Search");
@@ -12383,7 +13253,7 @@ export interface IGridColumn {
     comparer?: (column: IGridColumn, order: number, rowA: any, rowB: any) => number;
     isSearchable?: boolean;
     getCellContents?: (rowInfo: any, dataIndex: number, expandedState: number, level: number, column: any, indentIndex: number, columnOrder: number) => void;
-    getHeaderCellContents?: (IGridColumn) => JQuery;
+    getHeaderCellContents?: (IGridColumn: any) => JQuery;
     getColumnValue?: (dataIndex: number, columnIndex: number | string, columnOrder?: number) => any;
     /**
     * Custom click handler for the column header
@@ -12475,7 +13345,7 @@ export class GridHierarchySource extends GridDefaultSource implements IGridSourc
     constructor(items: IGridHierarchyItem[]);
     getExpandStates(): any[];
     protected _updateSource(items: IGridHierarchyItem[]): void;
-    private _prepareItems(items);
+    private _prepareItems;
 }
 /**
  * @publicapi
@@ -12522,8 +13392,14 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
     private _isAboveFirstOrBelowLastRow;
     _contentSpacer: any;
     _dataSource: any[];
+    /**
+     * For a tree grid, the number of children the row has. If the row is not expanded, it's the negative of the number of children it has.
+     */
     _expandStates: number[];
-    _indentLevels: any;
+    /**
+     * For a tree grid, the nesting level of the row.
+     */
+    _indentLevels: number[] | null | undefined;
     _columns: IGridColumn[];
     _sortOrder: any[];
     _visibleRange: any[];
@@ -12630,7 +13506,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      */
     _rowDropTryActivate(droppingRowInfo: any, e?: any, ui?: any): any;
     _rowIntersect(draggable: any, targetRowInfo: any): any;
-    private _calculateIntersectPosition(draggable);
+    private _calculateIntersectPosition;
     initializeDataSource(suppressRedraw?: boolean): void;
     /**
      * Sets the initial selected index.
@@ -12654,7 +13530,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      * @param suppressRedraw If true, grid is not redrawn after data source is set.
      * @publicapi
      */
-    setDataSource(source?: any[], expandStates?: any[], columns?: IGridColumn[], sortOrder?: IGridSortOrder[], selectedIndex?: number, suppressRedraw?: boolean): any;
+    setDataSource(source?: any[], expandStates?: number[], columns?: IGridColumn[], sortOrder?: IGridSortOrder[], selectedIndex?: number, suppressRedraw?: boolean): any;
     _setColumnInfo(column: IGridColumn, index: number): void;
     /**
      * Gets the information about a row associated with the given data index.
@@ -12756,7 +13632,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
     /**
      * Sets up full-row bowtie styling whether hovering over the main row or the row gutter.
      */
-    private setupFullRowHover($row);
+    private setupFullRowHover;
     _drawRows(visibleRange: any, includeNonDirtyRows: any): void;
     /**
      * Updates the row identified by the given rowIndex.
@@ -12772,8 +13648,8 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
     _updateRow(rowInfo: any, rowIndex: any, dataIndex: any, expandedState: any, level: any, columnsToUpdate?: {
         [id: number]: boolean;
     }): void;
-    private _rowHasContextMenu(dataIndex);
-    private _addContextMenuContainer($gridCell, itemHasMenu);
+    private _rowHasContextMenu;
+    private _addContextMenuContainer;
     /**
      * Updates the container element for the row identified by rowIndex
      *
@@ -12946,7 +13822,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      * @param elemB
      * @return
      */
-    private _getComparableAncestors(elemA, elemB);
+    private _getComparableAncestors;
     /**
      * @param e
      * @param selector
@@ -13023,7 +13899,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
     _onDownKey(e?: JQueryKeyEventObject, bounds?: any): void;
     _onRightKey(e?: JQueryKeyEventObject): void;
     _onLeftKey(e?: JQueryKeyEventObject): void;
-    private _onHorizontalArrowKey(direction, e?);
+    private _onHorizontalArrowKey;
     _onPageUpPageDownKey(e?: JQueryKeyEventObject, bounds?: any): void;
     _getRowsPerPage(e?: BaseJQueryEventObject): number;
     _onHomeKey(e?: JQueryKeyEventObject, bounds?: any): void;
@@ -13035,7 +13911,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      * @return
      */
     _onKeyUp(e?: JQueryKeyEventObject): any;
-    private _focusHeader();
+    private _focusHeader;
     protected _getFocusableHeaderElement(): JQuery;
     protected _getHeaderSortColumn(className: string): JQuery;
     /**
@@ -13068,9 +13944,9 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      * Obsolete, unused.
      */
     _createFocusElement(): JQuery;
-    private _getMode();
-    private _getRole(elementType);
-    private _buildDom();
+    private _getMode;
+    private _getRole;
+    private _buildDom;
     /**
      * Gets the Focus Element for the Grid.
      *
@@ -13080,7 +13956,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
     _shouldAttachContextMenuEvents(): boolean;
     _attachEvents(): void;
     _getDraggedRowsInfo(e?: JQueryEventObject): any;
-    private _setupDragDrop();
+    private _setupDragDrop;
     /**
      * Setup the provided draggable and droppable options
      */
@@ -13090,79 +13966,79 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
     /**
      * Delegate out to the row accept handlers to determine if the dragging item will be accepted.
      */
-    private _droppableAcceptHandler($element, draggingRowInfo);
-    private _droppableDropHandler(e, ui);
+    private _droppableAcceptHandler;
+    private _droppableDropHandler;
     /**
      * Called when an item is being dragged that will be accepted by rows in this grid.
      */
-    private _droppableActivateHandler(e, ui);
+    private _droppableActivateHandler;
     /**
      * Called when an item stops being dragged that will be accepted by rows in this grid.
      */
-    private _droppableDeactivateHandler(e, ui);
+    private _droppableDeactivateHandler;
     /**
      * Called when a draggable item is over the grid.
      */
-    private _droppableOverHandler(e, ui);
+    private _droppableOverHandler;
     /**
      * Called when a draggable item is no longer over the grid.
      */
-    private _droppableOutHandler(e, ui);
+    private _droppableOutHandler;
     /**
      * Called when the mouse moves while the draggable item is over the grid.
      *
      * @param outOfGrid Indicates if this move event is being triggered as the mouse is leaving the grid.
      */
-    private _droppableOverMoveHandler(e, ui);
+    private _droppableOverMoveHandler;
     /**
      * Gets the draggable instance from the element which is being dragged.
      */
-    private _getDraggable($draggedElement);
+    private _getDraggable;
     /**
      * Clean up all state stored during drag/drop operations.
      */
-    private _cleanupDragDropState();
+    private _cleanupDragDropState;
     /**
      * Unregister the mouse move event which is setup during drag/drop operations.
      */
-    private _unregisterDragMouseMove();
+    private _unregisterDragMouseMove;
     /**
      * Clear the record of which rows the draggable objects are "over"
      */
-    private _resetRowOverStatus();
-    private _rowDropAccept(droppingRowInfo, $element);
-    private _rowDropActivate(droppingRowInfo, e?, ui?);
-    private _rowDropDeactivate(droppingRowInfo, e?, ui?);
-    private _rowDropOver(droppingRowInfo, e?, ui?);
-    private _rowDropOut(droppingRowInfo, e?, ui?);
-    private _rowDrop(droppingRowInfo, draggingRowInfo, e?, ui?);
-    private _rowDragCreateHelper(draggingRowInfo, e?, ui?);
+    private _resetRowOverStatus;
+    private _rowDropAccept;
+    private _rowDropActivate;
+    private _rowDropDeactivate;
+    private _rowDropOver;
+    private _rowDropOut;
+    private _rowDrop;
+    private _rowDragCreateHelper;
     /**
      * Invokes the provided handler
      */
-    private _invokeDragHandler(e, ui, handlerCallback);
-    private _takeMeasurements();
+    private _invokeDragHandler;
+    private _takeMeasurements;
     /**
      *     Ensures that the selected index is correctly set. That is, it will be a noop if the index doesnt change
      *     and will handle indexes that are out of bounds.
      *
      * @param index OPTIONAL: The index to select
      */
-    private _ensureSelectedIndex(index?);
+    private _ensureSelectedIndex;
     _determineIndentIndex(): void;
-    private _updateRanges();
-    private _updateExpansionStates(expand, level);
-    private _updateExpansionStateAndRedraw(expand, level);
+    private _updateRanges;
+    private _updateExpansionStates;
+    private _updateExpansionStateAndRedraw;
     /**
      * @param includeNonDirtyRows
      */
     _updateViewport(includeNonDirtyRows?: boolean): void;
-    private _setContextMenuColumn();
+    private _setContextMenuColumn;
     _cleanUpRows(): void;
-    private _getGutterIconClass(rowIndex, dataIndex, expandedState, level);
-    private _drawGutterCell(rowInfo, rowIndex, dataIndex, expandedState, level);
+    private _getGutterIconClass;
+    private _drawGutterCell;
     _drawHeader(): void;
-    private _fixColumnsWidth(width);
+    private _fixColumnsWidth;
     _layoutContentSpacer(): void;
     _fixScrollPos(): void;
     /**
@@ -13185,24 +14061,24 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      *     - toggle: Toggles the row in the selection
      */
     _addSelection(rowIndex: number, dataIndex?: number, options?: any): void;
-    private _updateRowActionList(dataIndex);
-    private _setFocusedGridElement(elem);
+    private _updateRowActionList;
+    private _setFocusedGridElement;
     /**
      * Highlights the rows beginning from the selection start until the row at the specified rowIndex
      *
      * @param rowIndex Index of the row in the visible source (taking the expand/collapse states into account)
      * @param dataIndex Index of the row in the overall source
      */
-    private _addSelectionRange(rowIndex, dataIndex?, options?);
+    private _addSelectionRange;
     /**
      * This is especially necessary for screen readers to read each
      * row when the selection changes.
      */
-    private _updateActiveDescendant();
-    private _updateAriaProperties();
-    private _updateSelectionStyles();
-    private _selectionChanged();
-    private _selectedIndexChanged(selectedRowIndex, selectedDataIndex);
+    private _updateActiveDescendant;
+    private _updateAriaProperties;
+    private _updateSelectionStyles;
+    private _selectionChanged;
+    private _selectedIndexChanged;
     _showContextMenu(eventArgs: any): void;
     getPinAndFocusElementForContextMenu(eventArgs: any): {
         pinElement: JQuery;
@@ -13214,28 +14090,28 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      */
     _onContainerMouseDown(e?: JQueryEventObject): any;
     _measureCanvasSize(): void;
-    private _setupDragEvents();
-    private _clearDragEvents();
+    private _setupDragEvents;
+    private _clearDragEvents;
     /**
      * @param e
      * @return
      */
-    private _onDocumentMouseMove(e?);
+    private _onDocumentMouseMove;
     /**
      * @param e
      * @return
      */
-    private _onDocumentMouseUp(e?);
+    private _onDocumentMouseUp;
     /**
      * @param e
      * @return
      */
-    private _onHeaderMouseDown(e?);
+    private _onHeaderMouseDown;
     /**
      * @param e
      * @return
      */
-    private _onHeaderMouseUp(e?);
+    private _onHeaderMouseUp;
     /**
      * @param e
      * @return
@@ -13250,7 +14126,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
     protected _onHeaderScroll(e?: JQueryEventObject): void;
     protected _getNextHeaderElement($target: JQuery): JQuery;
     protected _getPreviousHeaderElement($target: JQuery): JQuery;
-    private _moveSizingElement(columnIndex);
+    private _moveSizingElement;
     /**
      *     Given a column index will provide the visible index of this column. That is, it will take in to consideration any
      *     hidden columns and omit them from the index count.
@@ -13258,7 +14134,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      * @param columnIndex The 0-based global column index
      * @return The 0-based visible column index
      */
-    private _getVisibleColumnIndex(columnIndex);
+    private _getVisibleColumnIndex;
     /**
      * @param columnIndex
      * @param initialWidth
@@ -13270,16 +14146,16 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      * @param columnIndex
      * @param left
      */
-    private _moveColumnMovingElement(columnIndex, left?);
-    private _applyColumnMoving(sourceIndex, targetIndex);
-    private _tryFinishColumnMoving(cancel);
+    private _moveColumnMovingElement;
+    private _applyColumnMoving;
+    private _tryFinishColumnMoving;
     _getSortColumns(sortOrder: any): any[];
     /**
      * @param sortOrder
      * @param sortColumns
      * @return
      */
-    private _onSort(sortOrder, sortColumns?);
+    private _onSort;
     /**
      * @param e
      * @return
@@ -13296,7 +14172,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      * @param eventName
      * @param args
      */
-    private _handleEvent(e?, handler?, eventName?, args?);
+    private _handleEvent;
     /**
      * @param e
      * @return
@@ -13311,7 +14187,7 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
      * @param e
      * @return
      */
-    private _onGutterClick(e?);
+    private _onGutterClick;
     /**
      * @param e
      * @return
@@ -13330,17 +14206,17 @@ export class GridO<TOptions extends IGridOptions> extends Controls.Control<TOpti
     /**
      * @return
      */
-    private _onToggle(rowInfo);
-    private _isAncestorFolderToggled(rowInfo);
+    private _onToggle;
+    private _isAncestorFolderToggled;
     ancestorFolderToggled(rowInfo: any): void;
     nonAncestorFolderToggled(rowInfo: any, currSelectedDataIndex: any): void;
     afterOnToggle(rowInfo: any): void;
-    private _folderToggled(rowInfo);
-    private _raiseToggleEvent(rowInfo, isExpanded);
+    private _folderToggled;
+    private _raiseToggleEvent;
     copySelectedItems(formatterType?: new (grid: GridO<TOptions>, options?: any) => ITableFormatter, copyAsHtml?: boolean, options?: any): void;
     _ensureRowDrawn(dataIndex: any): boolean;
-    private _onMouseOver(e);
-    private _onMouseOut(e);
+    private _onMouseOver;
+    private _onMouseOut;
     /**
      * Ensures that all data objects in the selection have been downloaded and are available to process.
      *
@@ -13409,7 +14285,7 @@ export class GridSearchAdapter extends Search.SearchAdapter<any> {
     /**
      *     Build the list of searchable columns.
      */
-    private getSearchableColumns();
+    private getSearchableColumns;
 }
 export interface ITableFormatter {
     /**
@@ -13445,6 +14321,7 @@ export class HtmlTableFormatter implements ITableFormatter {
 }
 }
 declare module "VSS/Controls/Header" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS/Controls/Header" />
 import Contributions_Contracts = require("VSS/Contributions/Contracts");
 import Controls = require("VSS/Controls");
 export interface ContributableHeaderOptions extends Controls.EnhancementOptions {
@@ -13457,7 +14334,7 @@ export class ContributableHeader<TOptions extends ContributableHeaderOptions> ex
     protected renderContributions(): void;
     protected filterContributions(contributions: Contributions_Contracts.Contribution[]): Contributions_Contracts.Contribution[];
     protected groupContributionsByAlignment(contributions: Contributions_Contracts.Contribution[]): IDictionaryStringTo<Contributions_Contracts.Contribution[]>;
-    private renderContributedSection(contributions, selector);
+    private renderContributedSection;
 }
 export interface HeaderModel {
     brandIcon: string;
@@ -13478,6 +14355,7 @@ export class Header<TModel extends HeaderModel> extends ContributableHeader<TMod
 }
 }
 declare module "VSS/Controls/Histogram" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
 import Controls = require("VSS/Controls");
 export interface HistogramBarData {
     /**
@@ -13553,24 +14431,26 @@ export class HistogramO<TOptions extends IHistogramOptions> extends Controls.Con
     refresh(items: HistogramBarData[]): void;
     _clearBars(): void;
     _getBarCount(): number;
-    private _getBarWidth();
-    private _getBarSpacing();
-    private _getBarMaxHeight();
-    private _load(items);
-    private _decorate();
-    private _renderDefaultBars();
-    private _renderBars(items);
+    private _getBarWidth;
+    private _getBarSpacing;
+    private _getBarMaxHeight;
+    private _load;
+    private _decorate;
+    private _renderDefaultBars;
+    private _renderBars;
     /**
      * @param index
      * @param item
      * @return
      */
-    private _createBar(index, item?);
+    private _createBar;
 }
 export class Histogram extends HistogramO<IHistogramOptions> {
 }
 }
 declare module "VSS/Controls/KeyboardShortcuts" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
+/// <amd-dependency path="VSS/LoaderPlugins/Css!widget" />
 /**
  * Constants for well known shortcut keys.
  *
@@ -13726,7 +14606,7 @@ export class ShortcutManager implements IShortcutManager {
     private _globalCombos;
     private _originalStopCallback;
     constructor();
-    private reset();
+    private reset;
     getShortcutGroups(): IShortcutGroup[];
     getGlobalCombos(): string[];
     registerShortcut(group: string, combo: string, description: string, action: KeyboardAction, allowPropagation?: boolean): ShortcutManager;
@@ -13736,14 +14616,15 @@ export class ShortcutManager implements IShortcutManager {
     unRegisterShortcut(group: string, combo: string): void;
     removeShortcutGroup(group: string): void;
     showShortcutDialog(onClose?: () => void): void;
-    private renderDialogContent(shortcutGroups);
-    private renderShortcutGroups(shortcutGroups);
-    private renderShortcut(shortcut);
-    private renderGroup(group);
-    private renderHelpLink();
+    private renderDialogContent;
+    private renderShortcutGroups;
+    private renderShortcut;
+    private renderGroup;
+    private renderHelpLink;
 }
 }
 declare module "VSS/Controls/Menus" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
 import Contracts_Platform = require("VSS/Common/Contracts/Platform");
 import Contributions_Services = require("VSS/Contributions/Services");
 import Controls = require("VSS/Controls");
@@ -13756,7 +14637,7 @@ export enum MenuItemState {
     None = 0,
     Disabled = 1,
     Hidden = 2,
-    Toggled = 4,
+    Toggled = 4
 }
 export enum MenuSelectionMode {
     /**
@@ -13770,7 +14651,7 @@ export enum MenuSelectionMode {
     /**
      * Multiple items can be selected.
      */
-    MultiSelect = 2,
+    MultiSelect = 2
 }
 export interface IMenuItemSpec extends IContributedMenuItem {
     /**
@@ -14007,6 +14888,7 @@ export interface MenuBaseOptions {
     overflow?: string;
     align?: string;
     useBowtieStyle?: boolean;
+    ariaLabel?: string;
     cssClass?: string;
     cssCoreClass?: string;
     /**
@@ -14049,7 +14931,7 @@ export class MenuBase<TOptions extends MenuBaseOptions> extends Controls.Control
     isMenuBar(): boolean;
     _fireUpdateCommandStates(context: any): void;
     _clear(): void;
-    private _updateCommandStates(commands);
+    private _updateCommandStates;
     /**
      * Update contributed menu items that have already been added to the menu.
      * @param items
@@ -14154,12 +15036,12 @@ export class MenuItem extends MenuBase<MenuItemOptions> {
     isToggled(): boolean;
     isPinnable(): any;
     isPinned(): boolean;
-    private getSelectionMode();
+    private getSelectionMode;
     initialize(): void;
     update(item: any): void;
     updateItems(items: any): void;
     _decorate(): void;
-    private _getExternalIcon(url);
+    private _getExternalIcon;
     select(ignoreFocus?: boolean, setKeyboardFocus?: boolean): void;
     focusPin(value?: boolean): void;
     deselect(): void;
@@ -14198,7 +15080,7 @@ export class MenuItem extends MenuBase<MenuItemOptions> {
      * @param text New title to be displayed
      */
     updateTitle(title: string): void;
-    private _setTooltip(title, tooltipOptions?);
+    private _setTooltip;
     /**
      * Updates the text of a menu item using either the specified text or
      * the function provided in the options
@@ -14212,32 +15094,32 @@ export class MenuItem extends MenuBase<MenuItemOptions> {
     hideSubMenu(options?: any): void;
     hideSiblings(options?: any): void;
     getAriaRole(): string;
-    private _attachMenuEvents();
-    private _createIconElement();
-    private _createTextElement();
-    private _createHtmlElement();
-    private _createDropElement();
-    private _createSeparatorElement();
-    private _updateState();
+    private _attachMenuEvents;
+    private _createIconElement;
+    private _createTextElement;
+    private _createHtmlElement;
+    private _createDropElement;
+    private _createSeparatorElement;
+    private _updateState;
     /**
      * Update contributed menu items that have already been added to the menu.
      * @param items
      */
     protected _updateContributedMenuItems(updatedItems: IMenuItemSpec[]): void;
-    private _onPointerDown(jqueryEvent?);
-    private _onPointerUp(jqueryEvent?);
-    private _onTouchStart(e?);
-    private _onMouseEnter(e);
-    private _onMouseLeave(e);
-    private _onMouseDown(e?);
-    private _onMouseUp(e?);
-    private _onClick(e?);
-    private _onDropClick(e?);
-    private _onPinClick(e);
+    private _onPointerDown;
+    private _onPointerUp;
+    private _onTouchStart;
+    private _onMouseEnter;
+    private _onMouseLeave;
+    private _onMouseDown;
+    private _onMouseUp;
+    private _onClick;
+    private _onDropClick;
+    private _onPinClick;
     toggleIsPinned(isPinned?: boolean, options?: {
         unfocus: boolean;
     }): void;
-    private _onKeyDown(e);
+    private _onKeyDown;
 }
 export interface MenuContributionProviderOptions {
     defaultTextToTitle?: boolean;
@@ -14257,27 +15139,27 @@ export class MenuContributionProvider {
     private _options;
     private _menu;
     constructor(menu: Menu<MenuOptions>, webContext: Contracts_Platform.WebContext, contributionIds: string[], contributionType: string, contributionQueryOptions: Contributions_Services.ContributionQueryOptions, getMenuActionContext: () => any, options: MenuContributionProviderOptions);
-    private _immediateInstanceRequired(contribution);
-    private _getContributions();
-    private _getContributionWithSource(contribution);
-    private _makeThennable<T>(obj);
-    private _contributionToMenuItems(contributionWithSource, context);
+    private _immediateInstanceRequired;
+    private _getContributions;
+    private _getContributionWithSource;
+    private _makeThennable;
+    private _contributionToMenuItems;
     /**
      * Given a contributed menu item, create a menu item with the same properties.
      * Prevents a contributed menu item specifying properties not on the IContributedMenuItem interface
      * @param contributedItem
      * @return IMenuItemSpec
      */
-    private static _getMenuItemFromContributedMenuItem(contributedItem);
-    private _updateContributedMenuFromSource(contributedMenuItem, contribution, menuSource, isRootItem?);
-    private _getBasicMenuItemFromContribution(contributionId, contribution, menuSource);
-    private _getMenuAction(contribution, menuSource, contributedMenuAction);
+    private static _getMenuItemFromContributedMenuItem;
+    private _updateContributedMenuFromSource;
+    private _getBasicMenuItemFromContribution;
+    private _getMenuAction;
     /**
      * Handles an extension calling updateMenuItems() to update its contributions.
      * @param items
      * @param contributionWithSource
      */
-    private _updateContributedMenuItems(items, contributionWithSource);
+    private _updateContributedMenuItems;
     getContributedMenuItems(context: any): IPromise<IContributedMenuItem[]>;
     /**
      * Gets the time in ms to wait to get actions from action provider or for the actions to run
@@ -14361,7 +15243,7 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
      */
     initializeOptions(options?: any): void;
     initialize(): void;
-    private _initializeItemsSource();
+    private _initializeItemsSource;
     _decorate(): void;
     /**
      * Gets the item which has the specified command id.
@@ -14403,7 +15285,7 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
      */
     updateCommandStates(commands: ICommand[]): void;
     updateItems(items: any): void;
-    private _updateItems(items, refreshContributedMenuItems);
+    private _updateItems;
     protected _updateItemsWithContributions(items: any, contributedMenuItems: IContributedMenuItem[]): void;
     protected _updateCombinedSource(items: any): void;
     /**
@@ -14424,7 +15306,7 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
     moveMenuItemAfter(item: MenuItem, after: MenuItem): boolean;
     removeItem(item: IMenuItemSpec): boolean;
     removeMenuItem(menuItem: MenuItem): boolean;
-    private _updateAllSourceMenus();
+    private _updateAllSourceMenus;
     /**
      * @param element
      */
@@ -14503,16 +15385,16 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
      *
      * @param item MenuItem which is to be shown
      */
-    private _ensureVisible(item);
-    private _getItems();
+    private _ensureVisible;
+    private _getItems;
     _clear(): void;
     /**
      * @param menuItemElement
      */
-    private _createChildMenuItem(item, menuItemElement?);
-    private _createSplitDropMenuItem(item, menuItem);
-    private _ensureChildren();
-    private _enhanceChildren();
+    private _createChildMenuItem;
+    private _createSplitDropMenuItem;
+    private _ensureChildren;
+    private _enhanceChildren;
     /**
      * Updates aria set related properties, use after modifying the child items of the menu.
      */
@@ -14530,46 +15412,46 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
      * @param index
      * @param options
      */
-    private _getNextEnabledItem(index, options?);
+    private _getNextEnabledItem;
     /**
      * Get the next item at or after the given index that meets the given condition.
      * @param condition
      * @param index
      * @param options
      */
-    private _getNextItem(condition, index, options?);
+    private _getNextItem;
     /**
      * Get the closest item at or before the given index that is focusable.
      * @param index
      * @param options
      */
-    private _getPrevFocusableItem(index, options?);
+    private _getPrevFocusableItem;
     /**
      * Get the closest item at or before the given index that is enabled.
      * @param index
      * @param options
      */
-    private _getPrevEnabledItem(index, options?);
+    private _getPrevEnabledItem;
     /**
      * Get the closest item at or before the given index that meets the given condition.
      * @param condition
      * @param index
      * @param options
      */
-    private _getPrevItem(condition, index, options?);
-    private _ensurePopup();
-    private _getPopupAlign(align);
-    private _showPopup(element, align, setFocus);
+    private _getPrevItem;
+    private _ensurePopup;
+    private _getPopupAlign;
+    private _showPopup;
     _hidePopup(): void;
-    private _updateMenuItemStates();
-    private _startShowTimeout(element, align, setFocus, showTimeout, callback);
-    private _startHideTimeout(hideTimeout, callback);
-    private _attachAncestorScroll(element);
-    private _detachAncestorScroll(element);
+    private _updateMenuItemStates;
+    private _startShowTimeout;
+    private _startHideTimeout;
+    private _attachAncestorScroll;
+    private _detachAncestorScroll;
     protected _dispose(): void;
     _onParentScroll(e: Event): void;
-    private _onMouseDown(e);
-    private _onMenuKeyDown(e);
+    private _onMouseDown;
+    private _onMenuKeyDown;
     /**
      * Change the contribution options for this menu and reload the contributed menu items
      *
@@ -14585,7 +15467,7 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
     /**
      * Load contributed menu items.
      */
-    private _refreshContributedMenuItems();
+    private _refreshContributedMenuItems;
     /**
      * Update contributed menu items that have already been added to this menu.
      *
@@ -14598,7 +15480,7 @@ export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
     /**
      * Creates context object to be passed to extensions.
      */
-    private _getContributionContext();
+    private _getContributionContext;
 }
 export interface MenuOwnerOptions extends MenuOptions {
     /**
@@ -14665,23 +15547,23 @@ export class MenuOwner<TOptions extends MenuOwnerOptions> extends Menu<TOptions>
     escaped(options?: any): void;
     isActive(): boolean;
     activate(tryFocus?: boolean): void;
-    private _hide();
-    private _blur();
-    private _updateTabIndex(setDefault?);
-    private _onKeyDown(e?);
-    private _onFocus(e?);
+    private _hide;
+    private _blur;
+    private _updateTabIndex;
+    private _onKeyDown;
+    private _onFocus;
     /**
      * Returns true if the given element's focus is controlled by this MenuOwner.
      * Returns false when the given element is inside a MenuItem marked unfocusable.
      * @param element
      */
-    private _isOwned(element);
-    private _onChildFocus(e?);
-    private _onChildBlur(e?);
-    private _clearBlurTimeout();
+    private _isOwned;
+    private _onChildFocus;
+    private _onChildBlur;
+    private _clearBlurTimeout;
     _onParentScroll(e?: any): void;
-    private _onResize(e?);
-    private _onContextMenu(e?);
+    private _onResize;
+    private _onContextMenu;
     /**
      * Attempt to open the submenu on the focused item
      * @param e
@@ -14750,7 +15632,7 @@ export class MenuBarO<TOptions extends MenuBarOptions> extends MenuOwner<TOption
      * Sets focus to the control
      */
     focus(): void;
-    private static _getMenuBar(selector);
+    private static _getMenuBar;
 }
 export class MenuBar extends MenuBarO<MenuBarOptions> {
 }
@@ -14791,7 +15673,7 @@ export class PopupMenuO<TOptions extends PopupMenuOptions> extends MenuOwner<TOp
     _getMenuItemType(): any;
     _decorate(): void;
     popup(focusElement: any, pinElement: any): void;
-    private _showPopupMenu();
+    private _showPopupMenu;
     protected _updateItemsWithContributions(items: any, contributedMenuItems: IContributedMenuItem[]): void;
     protected _updateCombinedSource(items: any): void;
     /**
@@ -14851,6 +15733,8 @@ export interface ICommand {
 export function sortMenuItems(items: any): any;
 }
 declare module "VSS/Controls/Navigation" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
+/// <amd-dependency path="VSS/LoaderPlugins/Css!PivotView" />
 import Controls = require("VSS/Controls");
 import Menus = require("VSS/Controls/Menus");
 import Notifications = require("VSS/Controls/Notifications");
@@ -14936,7 +15820,7 @@ export class NavigationView extends Controls.BaseControl {
      * Protected API: returns the desired title format string for use by SetWindowTitle()
      */
     _getPageTitleString(): string;
-    private _attachNavigate();
+    private _attachNavigate;
     _onNavigate(state: any): void;
     private _onHistoryNavigate;
     protected _dispose(): void;
@@ -15058,15 +15942,15 @@ export class PivotFilter extends Controls.Control<IPivotFilterOptions> {
     /**
      * Initializes behavior of this pivot filter using specified behavior names
      */
-    private _initBehavior(behaviorNames);
+    private _initBehavior;
     /**
      * This method is called when the control is created in the client using createIn.
      * DOM needs to be built by the control itself
      */
     _createElement(): void;
-    private _buildDom();
-    private _attachEvents();
-    private _onFilterChanged(e?, item?);
+    private _buildDom;
+    private _attachEvents;
+    private _onFilterChanged;
 }
 export interface IPivotViewItem extends IPivotFilterItem {
     link?: string;
@@ -15109,7 +15993,7 @@ export class PivotView extends Controls.Control<IPivotViewOptions> {
     setExtensionContainer(container: JQuery): void;
     showExtensionTab(contributionId: string, configuration?: any): void;
     setContributionContext(context: any): void;
-    private _getTabFromContribution(contribution, instance?);
+    private _getTabFromContribution;
     /**
      * If there is a contribution ID associated with this PivotView, load all the contributed pivot items.
      * use forceRefresh for for refreshing contributions, by default this ensures we get contributions only once
@@ -15138,17 +16022,17 @@ export class PivotView extends Controls.Control<IPivotViewOptions> {
      * @param isEnabled Weather to enable the view or not
      */
     setViewEnabled(id: any, isEnabled: any): void;
-    private _makeThennable<T>(obj);
+    private _makeThennable;
     getView(id: any, selectedTabId?: any): any;
     setSelectedView(view: any): void;
     onChanged(view: any): void;
     _createElement(): void;
-    private _buildDom();
-    private _populateItems(ul);
-    private _attachEvents();
-    private _onClick(e?);
-    private _onFocus(e);
-    private _onKeydown(jqe);
+    private _buildDom;
+    private _populateItems;
+    private _attachEvents;
+    private _onClick;
+    private _onFocus;
+    private _onKeydown;
 }
 export class NavigationViewTab extends Controls.BaseControl {
     /**
@@ -15291,15 +16175,15 @@ export class TabbedNavigationView extends NavigationView {
      * @param visible If true, show the hub pivot (tabs/filters). If false, hide them
      */
     setHubPivotVisibility(visible: boolean): void;
-    private _getErrorTab();
-    private _getInfoTab();
+    private _getErrorTab;
+    private _getInfoTab;
     _onNavigate(state: any): void;
     _redirectNavigation(action: string, state: any, replaceHistory?: boolean): void;
-    private _onParseStateInfoSuccess(tabId, rawState, parsedState, navigationContextId);
-    private _updateTabsControl(selectedTabId, rawState, parsedState);
-    private _showTab(tab);
-    private _getTab(tabId);
-    private _createTab(tabControlType, tabOptions?);
+    private _onParseStateInfoSuccess;
+    private _updateTabsControl;
+    private _showTab;
+    private _getTab;
+    private _createTab;
 }
 export interface NavigationLinkOptions {
     state?: any;
@@ -15317,8 +16201,8 @@ export class NavigationLink extends Controls.BaseControl {
     constructor(options: NavigationLinkOptions);
     initialize(): void;
     dispose(): void;
-    private onNavigate(sender, state);
-    private updateLink(state);
+    private onNavigate;
+    private updateLink;
     getLocation(state: any): any;
 }
 export module FullScreenHelper {
@@ -15389,12 +16273,13 @@ export module FullScreenHelper {
 }
 }
 declare module "VSS/Controls/Notifications" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
 import Controls = require("VSS/Controls");
 export enum MessageAreaType {
     None = 0,
     Info = 1,
     Warning = 2,
-    Error = 3,
+    Error = 3
 }
 export interface IMessageAreaControlOptions {
     message?: any;
@@ -15471,18 +16356,18 @@ export class MessageAreaControlO<TOptions extends IMessageAreaControlOptions> ex
      *     }
      *
      */
-    private _setDisplayMessage(message);
-    private _onCloseIconClicked();
-    private _setMessageTypeIcon(messageType);
-    private _toggle();
+    private _setDisplayMessage;
+    private _onCloseIconClicked;
+    private _setMessageTypeIcon;
+    private _toggle;
     setErrorDetailsVisibility(show: any): void;
     /**
      * Clear the shown message
      *
      * @param raiseDisplayCompleteEvent Indicates if the display complete event should be raised.
      */
-    private _clear(raiseDisplayCompleteEvent);
-    private _raiseDisplayComplete();
+    private _clear;
+    private _raiseDisplayComplete;
 }
 export class MessageAreaControl extends MessageAreaControlO<IMessageAreaControlOptions> {
 }
@@ -15525,9 +16410,9 @@ export class ToastNotification extends Controls.BaseControl {
     constructor(options?: any);
     initialize(): void;
     initializeOptions(options?: any): void;
-    private _processOptions();
-    private _getOptions();
-    private _getDefaultOptions();
+    private _processOptions;
+    private _getOptions;
+    private _getDefaultOptions;
     /**
      * Pop up a toast with the supplied message
      *
@@ -15538,10 +16423,11 @@ export class ToastNotification extends Controls.BaseControl {
     /**
      * If toasting ensure we cancel all in-progress toasting activities
      */
-    private _ensureNoActiveToast();
+    private _ensureNoActiveToast;
 }
 }
 declare module "VSS/Controls/Panels" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
 import Controls = require("VSS/Controls");
 export interface ICollapsiblePanelOptions extends Controls.EnhancementOptions {
     collapsed?: boolean;
@@ -15584,8 +16470,8 @@ export class CollapsiblePanel extends Controls.Control<ICollapsiblePanelOptions>
      * @param options
      */
     initializeOptions(options?: ICollapsiblePanelOptions): void;
-    private _swapDefaultToggleIconForCustom($customToggleIcon);
-    private _createControl();
+    private _swapDefaultToggleIconForCustom;
+    private _createControl;
     _createIn(container: JQuery): void;
     /**
      * @param element
@@ -15690,7 +16576,7 @@ export class AjaxPanelO<TOptions extends IAjaxPanelOptions> extends Controls.Con
     onLoadCompleted(content: string): void;
     onLoadError(error: any, handled: boolean): void;
     showError(error: any): void;
-    private _cancelPendingLoad();
+    private _cancelPendingLoad;
 }
 export class AjaxPanel extends AjaxPanelO<IAjaxPanelOptions> {
 }
@@ -15816,14 +16702,14 @@ export class PopupContentControlO<TOptions extends IPopupContentControlOptions> 
      * escaping. Prefer to use setTextContent(), which escapes HTML content, or setHtmlContent(),
      * which does not.
      */
-    private _setContent(content);
-    private _initializeContent();
-    private _setAriaDescribedBy();
+    private _setContent;
+    private _initializeContent;
+    private _setAriaDescribedBy;
     resetContent(): void;
     show(): void;
     toggle(): void;
     _enhance($dropElement: any): void;
-    private _decorate();
+    private _decorate;
     /**
      * Add an event listener on the drop element.
      *
@@ -15831,24 +16717,24 @@ export class PopupContentControlO<TOptions extends IPopupContentControlOptions> 
      * @param event
      * @param handler
      */
-    private _listen(event, handler);
+    private _listen;
     /**
      * Remove an event listener on the drop element.
      * @param event
      */
-    private _stopListening(event);
-    private _onInteract(e);
-    private _onFocus(e);
-    private _onBlur(e);
-    private _onMouseMove(e);
+    private _stopListening;
+    private _onInteract;
+    private _onFocus;
+    private _onBlur;
+    private _onMouseMove;
     onMouseOver(e: JQueryEventObject): void;
-    private _onMouseOut(e);
+    private _onMouseOut;
     showDelayed(): void;
     /**
      * Show the popup, after a delay if the openDelay option is set.
      */
-    private _showDelayed(options?);
-    private _handleDocumentMouseDown(e);
+    private _showDelayed;
+    private _handleDocumentMouseDown;
     /**
      * Set the position of the popup.
      */
@@ -15913,6 +16799,7 @@ export class RichContentTooltip extends RichContentTooltipO<any> {
 }
 }
 declare module "VSS/Controls/RichEditor" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
 import Controls = require("VSS/Controls");
 export interface RichEditorAttachmentRequestData {
     fileName: string;
@@ -15939,7 +16826,7 @@ export interface IRichEditorCommandGroup {
 }
 export enum RichEditorExternalLinkMode {
     CtrlClick = 0,
-    SingleClick = 1,
+    SingleClick = 1
 }
 export interface IRichEditorOptions extends Controls.EnhancementOptions {
     id?: string;
@@ -16063,14 +16950,22 @@ export class RichEditor extends Controls.Control<IRichEditorOptions> {
     bindOnCopy(handler: any): void;
     getWindow(): Window;
     /**
-     * Enables and shows the rich editor toolbar
+     * Force enables the toolbar
      */
     enableToolbar(): void;
     /**
-     * Disables and hides the rich editor toolbar.
+     * Force disables the toolbar
      */
     disableToolbar(): void;
-    private _resizeImageOnLoadComplete(url, loadCompleteCallback?);
+    /**
+     * Enables and shows the rich editor toolbar
+     */
+    private _enableToolbar;
+    /**
+     * Disables and hides the rich editor toolbar.
+     */
+    private _disableToolbar;
+    private _resizeImageOnLoadComplete;
     setInvalid(isInvalid: boolean, styleTextArea?: boolean): void;
     setUploadAttachmentHandler(handler: RichEditorAttachmentHandler): void;
     getTextAreaId(): string;
@@ -16078,149 +16973,162 @@ export class RichEditor extends Controls.Control<IRichEditorOptions> {
      * Checks whether the value of the control is changed or not and fires the CHANGE event if it has
      */
     checkModified(): void;
-    private _pasteImage(url);
-    private _getToolbar();
-    private _onFocusToolbar(e);
-    private _onFocusOutToolbar(e);
-    private _createToolbar();
+    /**
+     * Gets the outerHeight of the control
+     */
+    getOuterHeight(includeMargin?: boolean): number;
+    /**
+     * Gets the height of the control
+     */
+    getHeight(): number;
+    /**
+     * Sets the height of the control
+     */
+    setHeight(newHeight: number): void;
+    private _pasteImage;
+    private _getToolbar;
+    private _onFocusToolbar;
+    private _onFocusOutToolbar;
+    private _createToolbar;
     /**
      * Creates a toolbar button group.
      *
      * @param customGroup An object representing a toolbar button group.
      */
-    private _createToolbarButtonGroup(customGroup);
-    private _showPanel(panel, opacity?);
+    private _createToolbarButtonGroup;
+    private _showPanel;
     /**
      * @param opacity
      */
-    private _showToolbar(opacity?);
-    private _hideToolbar();
-    private _getUrlToolTip();
-    private _createUrlToolTip();
-    private _showUrlToolTip(e?, doShow?);
-    private _decorate();
-    private _initialize();
-    private _cleanUp();
+    private _showToolbar;
+    private _hideToolbar;
+    private _getUrlToolTip;
+    private _createUrlToolTip;
+    private _showUrlToolTip;
+    private _decorate;
+    private _initialize;
+    private _cleanUp;
     /**
      * Attaches necessary events to catch the changes if the control is enabled
      */
-    private _attachEvents();
-    private _detachEvents();
+    private _attachEvents;
+    private _detachEvents;
     /**
      * @param e
      * @return
      */
-    private _onDblClick(e?);
+    private _onDblClick;
     /**
      * Attempts to launch a new browser window from the specified element if the element is an 'img' tag.
      * @param element
      */
-    private _openImage(element);
-    private _onDocumentReady();
-    private _trySettingWaterMark(val);
-    private _clearWaterMark();
+    private _openImage;
+    private _onDocumentReady;
+    private _trySettingWaterMark;
+    private _clearWaterMark;
     /**
      * @param e
      * @return
      */
-    private _onFocusIn(e?);
+    private _onFocusIn;
     /**
      * @param e
      * @return
      */
-    private _onFocusOut(e?);
-    private _onPaste(e?);
-    private _doesStringItemExist(items?);
-    private _getImageItem(items?);
-    private _getRandomFileName(fileType?);
-    private _onFileReadComplete(e, fileType?);
-    private _uploadAttachment(attachment);
-    private _onUploadComplete(result);
-    private _onUploadError(error);
+    private _onFocusOut;
+    private _onPaste;
+    private _doesStringItemExist;
+    private _getImageItem;
+    private _getRandomFileName;
+    private _onFileReadComplete;
+    private _uploadAttachment;
+    private _onUploadComplete;
+    private _onUploadError;
     /**
      * @param e
      * @return
      */
-    private _onClick(e?);
+    private _onClick;
     /**
      * @param e
      * @return
      */
-    private _onMouseUp(e?);
+    private _onMouseUp;
     /**
      * @param e
      * @return
      */
-    private _onMouseDown(e?);
-    private _reTriggerKeyboardEvent(e?);
+    private _onMouseDown;
+    private _reTriggerKeyboardEvent;
     /**
      * Create a synthetic keyboard event. This is needed to dispatch
      * an event in IE11 since it doesn't allow re-dispatching of existing events
      * @param domEvent A dom keyboard event
      */
-    private _buildSyntheticKeyboardEvent(domEvent);
+    private _buildSyntheticKeyboardEvent;
     /**
      * @param e
      * @return
      */
-    private _onKeyDown(e?);
+    private _onKeyDown;
     /**
      * @param e
      * @return
      */
-    private _onKeyPress(e?);
+    private _onKeyPress;
     /**
      * @param e
      * @return
      */
-    private _onKeyUp(e?);
+    private _onKeyUp;
     /**
      * @param e
      * @return
      */
-    private _onInput(e?);
+    private _onInput;
     /**
      * @param e
      */
-    private _onToolbarButtonClick(e?, args?);
-    private _getNodeUnderCaret(tagName);
+    private _onToolbarButtonClick;
+    private _getNodeUnderCaret;
     /**
      * Finds the node in the ancestors with the specified tag name
      */
-    private _getNodeAncestor(node, tagName);
+    private _getNodeAncestor;
     /**
      *  Gets a W3C Range or Microsoft TextRange object depending on the running browser.
      * These object types are completely incompatible, so the caller must branch
      * on platform or simply compare for equality.
      */
-    private _getTextRange();
+    private _getTextRange;
     /**
      * Checks whether clicked element is a link and launches url
      *
      * @param e
      */
-    private _checkForHrefClick(e?);
-    private _launchHref(e?);
+    private _checkForHrefClick;
+    private _launchHref;
     /**
      * launch the Url associated with a linkNode
      */
-    private _processAndLaunchHref(linkNode?, e?);
-    private _executeCommand(commandInfo);
+    private _processAndLaunchHref;
+    private _executeCommand;
     /**
      * Creates a hyperlink in this window and selects the new link.
      *
      * @param args The new link address.
      */
-    private _createHyperlink(args);
-    private _removeFormatting();
-    private _highlightRange(range);
-    private _setEditable(value);
-    private _processReadyList();
-    private _ensureControlReadiness();
-    private _normalizeValue(value);
+    private _createHyperlink;
+    private _removeFormatting;
+    private _highlightRange;
+    private _setEditable;
+    private _processReadyList;
+    private _ensureControlReadiness;
+    private _normalizeValue;
 }
 }
 declare module "VSS/Controls/Search" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
 import Controls = require("VSS/Controls");
 import Search = require("VSS/Search");
 /**
@@ -16295,7 +17203,7 @@ export class SearchBoxControl extends Controls.Control<ISearchBoxControlOptions>
     /**
      * Return the value of the input box.
      */
-    private _getValue();
+    private _getValue;
     /**
      * Displays the search box and hides the search button.
      */
@@ -16305,24 +17213,24 @@ export class SearchBoxControl extends Controls.Control<ISearchBoxControlOptions>
      */
     deactivateSearch(deactivateSearchHandler?: boolean): void;
     protected _displaySearchInputBox(isVisible: boolean): void;
-    private _clearInput();
-    private _createSearchInput();
-    private _getSearchIconClass();
-    private _searchIconClickHandler(e?);
-    private _bindInputChangedEventHandler();
-    private _keyDown(e?);
-    private _keyUp(e?);
-    private _mouseDown(e?);
-    private _mouseUp();
-    private _mouseOut();
+    private _clearInput;
+    private _createSearchInput;
+    private _getSearchIconClass;
+    private _searchIconClickHandler;
+    private _bindInputChangedEventHandler;
+    private _keyDown;
+    private _keyUp;
+    private _mouseDown;
+    private _mouseUp;
+    private _mouseOut;
     /**
      * Handle the blur which deactivates search
      */
-    private _handleBlur();
+    private _handleBlur;
     /**
      * Handle the focus which activates search
      */
-    private _handleFocus(e?);
+    private _handleFocus;
 }
 export interface IToggleSearchBoxControlOptions extends ISearchBoxControlOptions {
     isDataSetComplete?: Function;
@@ -16344,12 +17252,12 @@ export class ToggleSearchBoxControl extends SearchBoxControl {
      * Hide the inputbox and shows the search icon.
      */
     deactivateSearch(): void;
-    private _addSearchToggleIcon();
-    private _searchIconHoverIn();
-    private _searchIconHoverOut();
-    private _toggleSearchIcon(isVisible);
-    private _searchIconKeyDownHandler(e?);
-    private _searchIconkeyUpHandler(e?);
+    private _addSearchToggleIcon;
+    private _searchIconHoverIn;
+    private _searchIconHoverOut;
+    private _toggleSearchIcon;
+    private _searchIconKeyDownHandler;
+    private _searchIconkeyUpHandler;
 }
 export interface ITextFilterControlOptions extends ISearchBoxControlOptions {
     adapter?: Search.SearchAdapter<any>;
@@ -16381,7 +17289,7 @@ export class TextFilterControl extends Controls.Control<ITextFilterControlOption
      */
     initialize(): void;
     protected _createSearchStrategy(): Search.SearchStrategy<any>;
-    private _createSearchInputBox();
+    private _createSearchInputBox;
     /**
      * Displays the search box and hides the search button
      */
@@ -16415,6 +17323,7 @@ export class TextFilterControl extends Controls.Control<ITextFilterControlOption
 }
 }
 declare module "VSS/Controls/Splitter" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!Splitter" />
 import Controls = require("VSS/Controls");
 /**
  * @publicapi
@@ -16519,8 +17428,8 @@ export class SplitterO<TOptions extends ISplitterOptions> extends Controls.Contr
      */
     _enhance(element: JQuery): void;
     initialize(): void;
-    private _setupHandleBar();
-    private _setInitialSize();
+    private _setupHandleBar;
+    private _setInitialSize;
     /**
      * Sets the minimum width of the splitter's fixed side.
      *
@@ -16535,7 +17444,7 @@ export class SplitterO<TOptions extends ISplitterOptions> extends Controls.Contr
      * @publicapi
      */
     setMaxWidth(maxWidth: number): void;
-    private _getAdjustedSize(size);
+    private _getAdjustedSize;
     /**
      * Resize the fixed side of the splitter to the specified size.
      *
@@ -16623,7 +17532,7 @@ export class SplitterO<TOptions extends ISplitterOptions> extends Controls.Contr
      *
      * @param vertical Determines whether splitter in vertical position or not.
      */
-    private _setAriaOrientation(vertical);
+    private _setAriaOrientation;
     /**
      * Sets the label that is shown when the splitter is collapsed
      *
@@ -16632,28 +17541,28 @@ export class SplitterO<TOptions extends ISplitterOptions> extends Controls.Contr
      */
     setCollapsedLabel(labelText: string): void;
     _createElement(): void;
-    private _configureCssProps();
-    private _attachEvents();
+    private _configureCssProps;
+    private _attachEvents;
     /**
      * Gets the collapse/expand toggle button of this splitter control.
      */
-    private _ensureToggleButton();
+    private _ensureToggleButton;
     /**
      * Re-position the toggle button.
      *
      * @param useAnimation true if the layout change is animated; false, otherwise.
      */
-    private _layoutToggleButton(useAnimation?);
+    private _layoutToggleButton;
     /**
      * Set toggle button icon class for rendering
      *
      * @param isExpanded true if to show expanded icon; false, otherwise.
      */
-    private _setToggleButtonIconClass(isExpanded);
+    private _setToggleButtonIconClass;
     /**
      * Sets the tooltip for the toggle button.
      */
-    private _setToggleButtonTooltip();
+    private _setToggleButtonTooltip;
     /**
      * set the handler on toggle - this should only be used when Splitter control was automatically enhanced, otherwise specify in options
      */
@@ -16661,63 +17570,63 @@ export class SplitterO<TOptions extends ISplitterOptions> extends Controls.Contr
     /**
      * Measures the full size of the fixed side pane.
      */
-    private _measureFixedSide();
-    private _handleBarMouseDown(e?);
-    private _handleBarKeydown(e);
+    private _measureFixedSide;
+    private _handleBarMouseDown;
+    private _handleBarKeydown;
     /**
      * Moves the separator either left or right.
      */
-    private _moveSeparator(direction);
+    private _moveSeparator;
     /**
      * Checks if the toggle button is enabled.
      */
-    private _isToggleButtonEnabled();
+    private _isToggleButtonEnabled;
     /**
      * Checks if the toggle button hotkey is enabled.
      */
-    private _isToggleButtonHotkeyEnabled();
+    private _isToggleButtonHotkeyEnabled;
     /**
      * Checks if the splitter is marked as collapsed.
      */
-    private _isCollapsed();
+    private _isCollapsed;
     /**
      * Handles the keyup event for the document.
      *
      * @param e
      * @return
      */
-    private _onDocumentKeyup(e?);
+    private _onDocumentKeyup;
     /**
      * Handles the click event for the toggle button.
      *
      * @param e
      * @return
      */
-    private _onToggleButtonClick(e?);
+    private _onToggleButtonClick;
     /**
      * Ensures that a clone of the handlebar is available.
      */
-    private _ensureHandleBarClone();
+    private _ensureHandleBarClone;
     /**
      * Removes the handlebar clone.
      */
-    private _removeHandleBarClone();
-    private _setupDragEvents();
-    private _ensureOverlay();
-    private _removeOverlay();
-    private _clearDragEvents();
+    private _removeHandleBarClone;
+    private _setupDragEvents;
+    private _ensureOverlay;
+    private _removeOverlay;
+    private _clearDragEvents;
     /**
      * @param e
      * @return
      */
-    private _documentMouseMove(e?);
+    private _documentMouseMove;
     /**
      * @param e
      * @return
      */
-    private _documentMouseUp(e?);
-    private _onWindowResize();
-    private _fireWindowResize();
+    private _documentMouseUp;
+    private _onWindowResize;
+    private _fireWindowResize;
     /**
      * Attaches the splitter to the window resize event, performing a resize immediately if specified
      * by the input parameter. This is primarily useful for attaching to the resize event after the
@@ -16736,18 +17645,20 @@ export class SplitterO<TOptions extends ISplitterOptions> extends Controls.Contr
      * @param cssPropertyName The CSS property for the animation.
      * @param cssPropertyValue The target CSS property value for the animation.
      */
-    private _createAnimationOption(cssPropertyName, cssPropertyValue);
+    private _createAnimationOption;
     /**
      * @param e
      * @return
      */
-    private _handleBarDoubleClick(e?);
+    private _handleBarDoubleClick;
     _dispose(): void;
+    unregisterEvents(): void;
 }
 export class Splitter extends SplitterO<ISplitterOptions> {
 }
 }
 declare module "VSS/Controls/StatusIndicator" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
 import Controls = require("VSS/Controls");
 import Utils_Core = require("VSS/Utils/Core");
 export interface IStatusIndicatorOptions {
@@ -16797,14 +17708,14 @@ export class StatusIndicatorO<TOptions extends IStatusIndicatorOptions> extends 
     setMessage(message: string): void;
     showElement(): void;
     hideElement(): void;
-    private _draw();
-    private _start();
-    private _onClick();
-    private _setImageClass();
-    private _bindEvents();
-    private _error(e?, xhr?, settings?, exception?);
-    private _startHandler(event, options?);
-    private _clearTimeout();
+    private _draw;
+    private _start;
+    private _onClick;
+    private _setImageClass;
+    private _bindEvents;
+    private _error;
+    private _startHandler;
+    private _clearTimeout;
 }
 export class StatusIndicator extends StatusIndicatorO<IStatusIndicatorOptions> {
 }
@@ -16849,7 +17760,7 @@ export class LongRunningOperation {
     /**
      * Initializes the long running operation.
      */
-    private _initialize();
+    private _initialize;
 }
 export enum WaitingState {
     NotStarted = 0,
@@ -16857,7 +17768,7 @@ export enum WaitingState {
     Ending = 2,
     Ended = 3,
     Cancelling = 4,
-    Cancelled = 5,
+    Cancelled = 5
 }
 /**
  * @publicapi
@@ -16986,92 +17897,94 @@ export class WaitControlO<TOptions extends IWaitControlOptions> extends Controls
     /**
      * Determines if the current waiting session can be started.
      */
-    private _canStartWait();
+    private _canStartWait;
     /**
      * Determines if the current waiting session can be ended.
      */
-    private _canEndWait();
+    private _canEndWait;
     /**
      * Determines if the current waiting session can be cancelled.
      */
-    private _canCancelWait();
+    private _canCancelWait;
     /**
      * Starts the waiting.
      */
-    private _startWait();
+    private _startWait;
     /**
      * Ends the waiting.
      */
-    private _tryEndWait();
+    private _tryEndWait;
     /**
      * Cancels the waiting.
      */
-    private _tryCancelWait();
+    private _tryCancelWait;
     /**
      * Resets this wait control.
      */
-    private _reset();
+    private _reset;
     protected updateWaitElements(wait: IWaitControlOptions): void;
     /**
      * Shows the wait control.
      */
-    private _showWait();
+    private _showWait;
     protected getWaitingState(): WaitingState;
     protected getWaitingContext(): WaitContext;
     /**
      * Resizes the waiting control.
      */
-    private _resizeWait();
+    private _resizeWait;
     /**
      * Handles the keydown event.
      *
      * @param e
      * @return
      */
-    private _onKeyDown(e?);
+    private _onKeyDown;
     /**
      * Handles the events to cancel wait.
      *
      * @param e
      * @return
      */
-    private _handleCancelEvent(e?);
+    private _handleCancelEvent;
     /**
      * Binds the keydown event
      *
      * @param cancelLinkId The id of the cancel hyperlink.
      */
-    private _bindKeydownEvent(cancelLinkId);
+    private _bindKeydownEvent;
     /**
      * Unbinds the keydown event
      */
-    private _unbindKeydownEvent();
+    private _unbindKeydownEvent;
     /**
      * Removes the wait element.
      */
-    private _removeWaitElement();
+    private _removeWaitElement;
     /**
      * Removes the timers used by this controls.
      */
-    private _removeShowTimer();
+    private _removeShowTimer;
     /**
      * Gets the unique resize event id for the wait control.
      *
      * @return The resize event id.
      */
-    private _getResizeEventId(instanceId);
+    private _getResizeEventId;
     /**
      * Gets the text message to show in the wait control.
      *
      * @param wait The wait options.
      */
-    private _getWaitMessage(wait);
+    private _getWaitMessage;
     getWaitMessageFormatString(): string;
 }
 export class WaitControl extends WaitControlO<IWaitControlOptions> {
 }
 }
 declare module "VSS/Controls/TabContent" {
+/// <amd-dependency path="jQueryUI/button" />
+/// <amd-dependency path="jQueryUI/droppable" />
 import Controls = require("VSS/Controls");
 import Dialogs = require("VSS/Controls/Dialogs");
 /**
@@ -17233,7 +18146,7 @@ export enum TabSavingStatus {
     /**
      * dirty flag is clean, no server saving is issued.
      */
-    NO_CHANGE = 3,
+    NO_CHANGE = 3
 }
 /**
 * The enum for tab control saving mode
@@ -17250,7 +18163,7 @@ export enum TabControlSavingMode {
     /**
      * Saving is on control level, user needs to call beginSave method on tabControl
      */
-    SAVE_ON_CONTROL = 2,
+    SAVE_ON_CONTROL = 2
 }
 /**
 * The enum for tab control navigation mode
@@ -17264,7 +18177,7 @@ export enum TabControlNavigationMode {
      * Call tabContentControl onTabChanging() to determine if user can navigate away from current tab. If onTabChanging()
      * is not defined, allow user to navigate away.
      */
-    CUSTOMIZED = 1,
+    CUSTOMIZED = 1
 }
 /**
 * The tab control option
@@ -17330,9 +18243,9 @@ export class TabControl extends Controls.Control<ITabControlOption> {
      * Initialize the control
      */
     initialize(): void;
-    private _addScrollSupport($scrollContainer, $scrollContent);
-    private _getTabGroup();
-    private _createMessageArea($element);
+    private _addScrollSupport;
+    private _getTabGroup;
+    private _createMessageArea;
     /**
      * Recalculate the size and update the navigation buttons
      */
@@ -17350,14 +18263,14 @@ export class TabControl extends Controls.Control<ITabControlOption> {
     invokeSaveCallbacks(): void;
     clearOnSavedCallbackList(): void;
     getRefreshOnCloseStatus(): boolean;
-    private _createTabControl(groupTitle, tab, titleContainer, contentContainer, savingMode, navigationMode, tabIndex);
-    private _onTabChanged(tab);
-    private _onTabChanging();
-    private _onTabSaved(result);
-    private _onSavingStateChanged();
-    private _onDirtyStateChanged();
-    private _showError(message?);
-    private _hideError();
+    private _createTabControl;
+    private _onTabChanged;
+    private _onTabChanging;
+    private _onTabSaved;
+    private _onSavingStateChanged;
+    private _onDirtyStateChanged;
+    private _showError;
+    private _hideError;
     /**
      * Check if there is an invalid page. Focus on the first invalid page if there is any.
      * Begin to persist user changes by iterate all the tab pages and call the beginSave() for each page if it is dirty and valid
@@ -17365,8 +18278,8 @@ export class TabControl extends Controls.Control<ITabControlOption> {
      * @return JQueryPromise for saving content. Fullfilled when all the pages are saved successfully and rejected when any one of them get rejected.
      */
     beginSave(e?: JQueryEventObject): IPromise<TabSavingStatus>;
-    private _showOverlay(text, options?);
-    private _hideOverlay();
+    private _showOverlay;
+    private _hideOverlay;
     dispose(): void;
 }
 /**
@@ -17505,11 +18418,11 @@ export class TabControlsRegistration {
      * @param tabControlId for the targeted tab control
      */
     static clearRegistrations(tabControlId?: string): void;
-    private static _sortTabGroups(groups);
-    private static _sortTabs(tabGroup);
-    private static _getNextGroupOrder(groups);
-    private static _getNextTabOrder(tabgroup);
-    private static _createNewTab<T>(tabGroup, tabRegistration);
+    private static _sortTabGroups;
+    private static _sortTabs;
+    private static _getNextGroupOrder;
+    private static _getNextTabOrder;
+    private static _createNewTab;
 }
 /**
  * The interface for each button on a TabbedDialog
@@ -17576,25 +18489,31 @@ export class TabbedDialog extends Dialogs.ModalDialogO<TabbedDialogOptions> {
     constructor(options?: any);
     initializeOptions(options?: any): void;
     initialize(): void;
-    private _registerTabGroup(group);
-    private _registerTab(tab, groupId);
-    private _refreshButton();
-    private _getButtons(editModeOn);
-    private _getDefaultButtons();
+    private _registerTabGroup;
+    private _registerTab;
+    private _refreshButton;
+    private _getButtons;
+    private _getDefaultButtons;
     /**
      * Updates button's status
      * @param button The button Id
      * @param enabled True if the button needs to be enabled
      */
-    private _updateButton(button, enabled);
+    private _updateButton;
     beforeClose(e?: any, ui?: any): boolean;
-    private _evaluateOnCloseStrategy();
+    private _evaluateOnCloseStrategy;
     onOkClick(e?: JQueryEventObject): void;
     onCancelClick(e?: JQueryEventObject): void;
     dispose(): void;
 }
 }
 declare module "VSS/Controls/TreeView" {
+/// <amd-dependency path="jQueryUI/droppable" />
+/// <amd-dependency path="VSS/Utils/Draggable" />
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
+/// <reference types="jquery" />
+/// <reference types="jqueryui" />
+/// <reference types="highcharts" />
 import Combos = require("VSS/Controls/Combos");
 import Controls = require("VSS/Controls");
 export class TreeDataSource extends Controls.BaseDataSource {
@@ -17623,7 +18542,7 @@ export class TreeDataSource extends Controls.BaseDataSource {
     expandNode(node: any): void;
     collapseNode(node: any): void;
     _initRoot(): void;
-    private _prepareCurrentItems();
+    private _prepareCurrentItems;
 }
 /**
  * @publicapi
@@ -17755,8 +18674,8 @@ export class TreeNode {
     level(noRoot: any): number;
     getContributionContext(): TreeNode;
     getHtmlId(): string;
-    private _ensureNodeId();
-    private _sort(recursive, treeNodeComparer);
+    private _ensureNodeId;
+    private _sort;
 }
 /**
  * @publicapi
@@ -17877,13 +18796,13 @@ export class TreeViewO<TOptions extends ITreeOptions> extends Controls.Control<T
      * @publicapi
      */
     getNodeFromElement(element: any): TreeNode;
-    private _drawNode(node, parentElement, level);
-    private _drawEmptyFolderNode(parentElement, level, text);
+    private _drawNode;
+    private _drawEmptyFolderNode;
     /**
      * @param e
      * @return
      */
-    private _click(e?);
+    private _click;
     /**
      * Set UI Focus on the node (Does not change selected node state)
      * @param node Tree node to navigate to
@@ -17900,23 +18819,23 @@ export class TreeViewO<TOptions extends ITreeOptions> extends Controls.Control<T
      * @param e
      * @return
      */
-    private _onToggle(e?);
+    private _onToggle;
     /**
      * @param e
      * @return
      */
-    private _itemClick(e?);
+    private _itemClick;
     /**
      * @param e
      * @return
      */
-    private _onContextMenu(e?);
-    private _showPopupMenu(node);
+    private _onContextMenu;
+    private _showPopupMenu;
     /**
      * @param e
      * @return
      */
-    private _onFocus(e?);
+    private _onFocus;
     /**
      * @param e
      * @return
@@ -17929,17 +18848,17 @@ export class TreeViewO<TOptions extends ITreeOptions> extends Controls.Control<T
      * @param e
      * @return
      */
-    private _onDragStart(e?);
+    private _onDragStart;
     /**
      * Set the droppable
      *
      * @param droppable
      */
     setDroppable(droppable: any): void;
-    private _getFirstTabbableChild(nodeElement);
-    private _setNodeElementExpandState(nodeElement, expand, hasChildren?);
-    private _restoreTabindexAndFocus(fallbackNode, setFocus);
-    private _setNodeHasTabindex(node);
+    private _getFirstTabbableChild;
+    private _setNodeElementExpandState;
+    private _restoreTabindexAndFocus;
+    private _setNodeHasTabindex;
 }
 export class TreeView extends TreeViewO<ITreeOptions> {
 }
@@ -17987,14 +18906,14 @@ export class MultiSelectTreeComboDropPopup extends Combos.ComboListDropPopup {
     collapseNode(): boolean;
     getCheckedItems(): string[];
     getValue(): string;
-    _createItem(itemIndex: any): any;
+    _createItem(itemIndex: any): JQuery;
     _onItemClick(e?: any, itemIndex?: any, $target?: any, $li?: any): boolean;
     _getSelectedNode(): any;
     toggleCheckbox(selectedIndex: any): void;
     update(): void;
-    private _updateCheckList();
-    private _clearCheckList();
-    private _fireDropPopupChange(dataSource, itemIndex?, $li?);
+    private _updateCheckList;
+    private _clearCheckList;
+    private _fireDropPopupChange;
 }
 export class MultiSelectTreeComboBehavior extends Combos.ComboListBehavior {
     constructor(combo: any, options?: any);
@@ -18031,7 +18950,7 @@ export class MultiSelectTreeComboBehavior extends Combos.ComboListBehavior {
      */
     keyDown(e?: JQueryEventObject): any;
     _createDataSource(): Controls.BaseDataSource;
-    private _onChange();
+    private _onChange;
     setSource(source: any[] | Function): void;
 }
 export var ComboTreeMultivalueBehaviorName: string;
@@ -18072,28 +18991,29 @@ export class SearchComboTreeBehavior extends Combos.ComboListBehavior {
      */
     keyUp(e?: JQueryEventObject): any;
     _createDataSource(): Controls.BaseDataSource;
-    private mouseUp();
-    private clearSearchDebounce();
-    private debounceSearch(waitInMilliseconds);
-    private isComboTextPath();
-    private searchNodes();
-    private _ensureOriginalNodesStored();
-    private getNodesToSearch(searchText);
-    private createCopyOfSubtreeWhichMatchesSearch(searchText, nodesToSearch);
-    private stringContains(text, contains);
-    private modifyDatasourceAndDropdownWithResults(searchHitsFound);
-    private expandAncestors(node);
-    private performSearchHitProcessing(alreadyCopiedNodes, node);
-    private copyNodeToArray(array, node);
-    private copyNodeAndAncestorsToArray(array, node);
-    private copyDecendantsToArray(array, node);
-    private setHit(index);
-    private acceptSelectedIndex();
+    private mouseUp;
+    private clearSearchDebounce;
+    private debounceSearch;
+    private isComboTextPath;
+    private searchNodes;
+    private _ensureOriginalNodesStored;
+    private getNodesToSearch;
+    private createCopyOfSubtreeWhichMatchesSearch;
+    private stringContains;
+    private modifyDatasourceAndDropdownWithResults;
+    private expandAncestors;
+    private performSearchHitProcessing;
+    private copyNodeToArray;
+    private copyNodeAndAncestorsToArray;
+    private copyDecendantsToArray;
+    private setHit;
+    private acceptSelectedIndex;
 }
 export var SearchComboTreeBehaviorName: string;
 export function flatten(node: any, items: any, all: any): void;
 }
 declare module "VSS/Controls/Validation" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
 import Controls = require("VSS/Controls");
 export interface BaseValidatorOptions {
     bindtokeystrokes?: boolean;
@@ -18130,7 +19050,7 @@ export class BaseValidator<TOptions extends BaseValidatorOptions> extends Contro
     onChanged(): void;
     onValidationRequired(e?: any, group?: any): void;
     validate(): void;
-    private _testEmptyString();
+    private _testEmptyString;
 }
 export class RequiredValidator<TOptions extends BaseValidatorOptions> extends BaseValidator<TOptions> {
     static optionsPrefix: string;
@@ -18273,7 +19193,7 @@ export class IntegerRangeValidator<TOptions extends IntegerRangeValidatorOptions
      *
      * @return {min, max}
      */
-    private _getBounds();
+    private _getBounds;
 }
 export interface MaxLengthValidatorOptions extends BaseValidatorOptions {
     maxLength?: number;
@@ -18314,7 +19234,7 @@ export class ValidationSummary extends Controls.Control<ValidationSummaryOptions
     initialize(): void;
     onValidationStatus(e?: any, validator?: any, group?: any, valid?: any): void;
     validate(): void;
-    private _updateUI();
+    private _updateUI;
 }
 /**
  * @param validationResult
@@ -18324,6 +19244,7 @@ export class ValidationSummary extends Controls.Control<ValidationSummaryOptions
 export function validateGroup(group: any, validationResult?: any[], context?: any): boolean;
 }
 declare module "VSS/Controls/Virtualization" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!VSS.Controls" />
 import Controls = require("VSS/Controls");
 export class VirtualizingListView extends Controls.BaseControl {
     protected _itemsContainer: JQuery;
@@ -18368,33 +19289,44 @@ export class VirtualizingListView extends Controls.BaseControl {
      * @param noScrollIntoView
      */
     setSelectedIndex(selectedIndex: number, noScrollIntoView?: boolean): void;
-    private _setVisibleBounds(visibleItemIndex);
+    private _setVisibleBounds;
     protected _createItem(index: number): JQuery;
     protected _drawItems(): void;
     protected _updateItemStyles(): void;
     protected _updateAriaAttributes(): void;
-    private _setupScrollbar(height);
-    private _updateScrollbar();
-    private _onScroll(e);
-    private _onMouseMove(e);
-    private _onMouseOver(e);
-    private _onPointerDown(jqueryEvent);
-    private _onPointerLeave(jqueryEvent);
-    private _onPointerMove(jqueryEvent);
-    private _onMouseWheel(e);
-    private _onClick(e);
+    private _setupScrollbar;
+    private _updateScrollbar;
+    private _onScroll;
+    private _onMouseMove;
+    private _onMouseOver;
+    private _onPointerDown;
+    private _onPointerLeave;
+    private _onPointerMove;
+    private _onMouseWheel;
+    private _onClick;
     /**
      * Optional delegate. Selected index will be representative of dataSource._items
      * @param accept
      */
-    private _fireSelectionChanged(accept?);
+    private _fireSelectionChanged;
     /**
      * Optional delegate. This is fired when items in the list are updated.
      */
-    private _fireItemsUpdated();
+    private _fireItemsUpdated;
 }
 }
 declare module "VSS/DelegatedAuthorization/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 export interface AccessTokenResult {
     accessToken: VSS_Common_Contracts.JsonWebToken;
@@ -18451,7 +19383,7 @@ export enum AuthorizationError {
     InvalidRedirectUri = 9,
     InvalidUserId = 10,
     InvalidUserType = 11,
-    AccessDenied = 12,
+    AccessDenied = 12
 }
 export interface AuthorizationGrant {
     grantType: GrantType;
@@ -18466,14 +19398,14 @@ export enum ClientType {
     Public = 1,
     MediumTrust = 2,
     HighTrust = 3,
-    FullTrust = 4,
+    FullTrust = 4
 }
 export enum GrantType {
     None = 0,
     JwtBearer = 1,
     RefreshToken = 2,
     Implicit = 3,
-    ClientCredentials = 4,
+    ClientCredentials = 4
 }
 export interface HostAuthorization {
     hostId: string;
@@ -18492,7 +19424,7 @@ export enum HostAuthorizationError {
     AccessDenied = 2,
     FailedToAuthorizeHost = 3,
     ClientIdNotFound = 4,
-    InvalidClientId = 5,
+    InvalidClientId = 5
 }
 export enum InitiationError {
     None = 0,
@@ -18504,7 +19436,7 @@ export enum InitiationError {
     InvalidScope = 6,
     RedirectUriRequired = 7,
     InsecureRedirectUri = 8,
-    InvalidRedirectUri = 9,
+    InvalidRedirectUri = 9
 }
 export interface RefreshTokenGrant extends AuthorizationGrant {
     jwt: VSS_Common_Contracts.JsonWebToken;
@@ -18532,7 +19464,9 @@ export interface Registration {
     responseTypes: string;
     scopes: string;
     secret: string;
+    secretValidTo: Date;
     secretVersionId: string;
+    validFrom: Date;
 }
 export enum ResponseType {
     None = 0,
@@ -18541,7 +19475,7 @@ export enum ResponseType {
     TenantPicker = 3,
     SignoutToken = 4,
     AppToken = 5,
-    Code = 6,
+    Code = 6
 }
 export enum TokenError {
     None = 0,
@@ -18575,6 +19509,7 @@ export enum TokenError {
     InvalidPublicAccessTokenKey = 28,
     InvalidPublicAccessToken = 29,
     PublicFeatureFlagNotEnabled = 30,
+    SSHPolicyDisabled = 31
 }
 export var TypeInfo: {
     AccessTokenResult: any;
@@ -18689,11 +19624,23 @@ export var TypeInfo: {
             "invalidPublicAccessTokenKey": number;
             "invalidPublicAccessToken": number;
             "publicFeatureFlagNotEnabled": number;
+            "sSHPolicyDisabled": number;
         };
     };
 };
 }
 declare module "VSS/DelegatedAuthorization/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/DelegatedAuthorization/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -18888,7 +19835,7 @@ export function setDebugMode(debugModeEnabled: boolean): void;
 export enum StampEvent {
     SinglePoint = 0,
     Enter = 1,
-    Leave = 2,
+    Leave = 2
 }
 export function timeStamp(label: string, event: StampEvent): void;
 export class Measurement {
@@ -18911,7 +19858,7 @@ export enum LogVerbosity {
     Error = 1,
     Warning = 2,
     Info = 3,
-    Verbose = 4,
+    Verbose = 4
 }
 /**
  * Log a message to the debug output windows and all other trace listeners
@@ -18996,8 +19943,8 @@ export class PerfTracePointCollector {
     getTracePoints(activeOnly: boolean): ITracePoint[];
     getTracePointCountData(tracePointNames: string[]): string;
     dumpTracePoints(activeOnly: boolean): string;
-    private _updateCount(dictionary, eventName);
-    private _handleTracePoint(tracePointName, tracePointData);
+    private _updateCount;
+    private _handleTracePoint;
 }
 export function measurePerformance(action: Function, message: string, logLevel?: LogVerbosity): void;
 /**
@@ -19271,8 +20218,8 @@ export class ActivityStatsCollector implements Service.ILocalService {
     getCurrentPage(): ActivityStatistic;
     setCurrentPage(currentPage: ActivityStatistic): void;
     isCollectingStats(): boolean;
-    private _saveActivity(stat, isCurrentPage?);
-    private _allowStatsCollection();
+    private _saveActivity;
+    private _allowStatsCollection;
 }
 }
 declare module "VSS/Error" {
@@ -19417,8 +20364,8 @@ export class RunningDocumentsTable implements Service.ILocalService {
     isModified(moniker?: string): boolean;
     beginSave(callback: IResultCallback, errorCallback?: IErrorCallback): void;
     getUnsavedItemsMessage(): string;
-    private _isAnyModified();
-    private _registerUnloadEvent();
+    private _isAnyModified;
+    private _registerUnloadEvent;
 }
 export interface Document {
     save(successCallback: IResultCallback, errorCallback?: IErrorCallback): void;
@@ -19485,7 +20432,7 @@ export class NamedEventCollection<TSender, TEventArgs> {
      * Returns true if there is at least one subscriber in this event collection.
      */
     hasSubscribers(): boolean;
-    private _getOrCreateHandlerList(eventName);
+    private _getOrCreateHandlerList;
 }
 /**
 * Represents a specific event that event listeners can attach to
@@ -19653,8 +20600,8 @@ export class EventService implements ILocalService {
      * @param args The arguments to pass through to the specified event.
      * @param scope The scope of the event.
      */
-    private _fireEvent(eventName, sender?, args?, scope?);
-    private _getNamedEvents(scope?);
+    private _fireEvent;
+    private _getNamedEvents;
 }
 export function getService(): EventService;
 }
@@ -19687,7 +20634,7 @@ export enum AcquisitionOperationState {
     /**
      * Operation has already been completed and is no longer available
      */
-    Completed = 3,
+    Completed = 3
 }
 export enum AcquisitionOperationType {
     /**
@@ -19713,7 +20660,7 @@ export enum AcquisitionOperationType {
     /**
      * No action found
      */
-    None = 5,
+    None = 5
 }
 /**
  * Market item acquisition options (install, buy, etc) for an installation target.
@@ -19864,7 +20811,7 @@ export enum ContributionPropertyType {
     /**
      * Value is an arbitrary/custom object
      */
-    Object = 512,
+    Object = 512
 }
 /**
  * A contribution type, given by a json schema
@@ -20047,7 +20994,7 @@ export enum ExtensionFlags {
     /**
      * The extension comes from a fully-trusted publisher
      */
-    Trusted = 2,
+    Trusted = 2
 }
 /**
  * Base class for extension properties which are shared by the extension manifest and the extension model
@@ -20135,7 +21082,7 @@ export enum ExtensionRequestState {
     /**
      * The request was rejected (extension not installed or license not assigned)
      */
-    Rejected = 2,
+    Rejected = 2
 }
 /**
  * The state of an extension
@@ -20185,7 +21132,7 @@ export enum ExtensionStateFlags {
     /**
      * Extension scopes have changed and the extension requires re-authorization
      */
-    NeedsReauthorization = 128,
+    NeedsReauthorization = 128
 }
 /**
  * Represents a VSTS extension along with its installation state
@@ -20381,6 +21328,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/ExtensionManagement/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   extensionmanagement\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/Contributions/Contracts");
 import VSS_Gallery_Contracts = require("VSS/Gallery/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -20716,7 +21674,7 @@ declare module "VSS/FeatureAvailability/Contracts" {
  * ---------------------------------------------------------
  *
  * See following wiki page for instructions on how to regenerate:
- *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
  *
  * Configuration file:
  *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
@@ -20736,6 +21694,17 @@ export interface FeatureFlagPatch {
 }
 }
 declare module "VSS/FeatureAvailability/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/FeatureAvailability/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
@@ -20757,24 +21726,27 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      *
      * @param {string} name - The name of the feature to retrieve
      * @param {string} userId - The id of the user to check
+     * @param {boolean} checkFeatureExists - Check if feature exists
      * @return IPromise<Contracts.FeatureFlag>
      */
-    getFeatureFlagByNameAndUserId(name: string, userId: string): IPromise<Contracts.FeatureFlag>;
+    getFeatureFlagByNameAndUserId(name: string, userId: string, checkFeatureExists?: boolean): IPromise<Contracts.FeatureFlag>;
     /**
      * [Preview API] Retrieve information on a single feature flag and its current states for a user
      *
      * @param {string} name - The name of the feature to retrieve
      * @param {string} userEmail - The email of the user to check
+     * @param {boolean} checkFeatureExists - Check if feature exists
      * @return IPromise<Contracts.FeatureFlag>
      */
-    getFeatureFlagByNameAndUserEmail(name: string, userEmail: string): IPromise<Contracts.FeatureFlag>;
+    getFeatureFlagByNameAndUserEmail(name: string, userEmail: string, checkFeatureExists?: boolean): IPromise<Contracts.FeatureFlag>;
     /**
      * [Preview API] Retrieve information on a single feature flag and its current states
      *
      * @param {string} name - The name of the feature to retrieve
+     * @param {boolean} checkFeatureExists - Check if feature exists
      * @return IPromise<Contracts.FeatureFlag>
      */
-    getFeatureFlagByName(name: string): IPromise<Contracts.FeatureFlag>;
+    getFeatureFlagByName(name: string, checkFeatureExists?: boolean): IPromise<Contracts.FeatureFlag>;
     /**
      * [Preview API] Retrieve a listing of all feature flags and their current states for a user
      *
@@ -20889,10 +21861,21 @@ export class FeatureAvailabilityService extends Service.VssService {
     /**
      * Returns the cache state for the supplied feature after ensuring the data island has been read.
      */
-    private _readLocalState(featureName);
+    private _readLocalState;
 }
 }
 declare module "VSS/FeatureManagement/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   extensionmanagement\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 /**
  * A feature that can be enabled or disabled
  */
@@ -20914,6 +21897,12 @@ export interface ContributedFeature {
      */
     description: string;
     /**
+     * Extra properties for the feature
+     */
+    featureProperties: {
+        [key: string]: any;
+    };
+    /**
      * Handler for listening to setter calls on feature value. These listeners are only invoked after a successful set has occured
      */
     featureStateChangedListeners: ContributedFeatureListener[];
@@ -20929,6 +21918,10 @@ export interface ContributedFeature {
      * The friendly name of the feature
      */
     name: string;
+    /**
+     * Suggested order to display feature in.
+     */
+    order: number;
     /**
      * Rules for overriding a feature value. These rules are run before explicit user/host state values are checked. They are evaluated in order until a rule returns an Enabled or Disabled state (not Undefined)
      */
@@ -20961,7 +21954,7 @@ export enum ContributedFeatureEnabledValue {
     /**
      * The feature is enabled at the specified scope
      */
-    Enabled = 1,
+    Enabled = 1
 }
 export interface ContributedFeatureHandlerSettings {
     /**
@@ -21057,6 +22050,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/FeatureManagement/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   extensionmanagement\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/FeatureManagement/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods3To5 extends VSS_WebApi.VssHttpClient {
@@ -21214,6 +22218,17 @@ export class FeatureManagementService extends Service.VssService {
 }
 declare module "VSS/FileContainer/Contracts" {
 /**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
+/**
  * Status of a container item.
  */
 export enum ContainerItemStatus {
@@ -21224,7 +22239,7 @@ export enum ContainerItemStatus {
     /**
      * Item is a file pending for upload.
      */
-    PendingUpload = 2,
+    PendingUpload = 2
 }
 /**
  * Type of a container item.
@@ -21241,7 +22256,7 @@ export enum ContainerItemType {
     /**
      * Item is a file which is stored in the file service.
      */
-    File = 2,
+    File = 2
 }
 /**
  * Options a container can have.
@@ -21250,7 +22265,7 @@ export enum ContainerOptions {
     /**
      * No option.
      */
-    None = 0,
+    None = 0
 }
 /**
  * Represents a container that encapsulates a hierarchical file system.
@@ -21408,6 +22423,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/FileContainer/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/FileContainer/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -21722,6 +22748,17 @@ export class RemoteStore extends Store {
 }
 declare module "VSS/Gallery/Contracts" {
 /**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   gallery\client\webapi\clientgeneratorconfigs\genclient.json
+ */
+/**
  * How the acquisition is assigned
  */
 export enum AcquisitionAssignmentType {
@@ -21733,7 +22770,7 @@ export enum AcquisitionAssignmentType {
     /**
      * Assign for all users in the account
      */
-    All = 2,
+    All = 2
 }
 export interface AcquisitionOperation {
     /**
@@ -21761,7 +22798,7 @@ export enum AcquisitionOperationState {
     /**
      * Operation has already been completed and is no longer available
      */
-    Completed = 3,
+    Completed = 3
 }
 /**
  * Set of different types of operations that can be requested.
@@ -21794,7 +22831,7 @@ export enum AcquisitionOperationType {
     /**
      * Request admins for purchasing extension
      */
-    PurchaseRequest = 6,
+    PurchaseRequest = 6
 }
 /**
  * Market item acquisition options (install, buy, etc) for an installation target.
@@ -21920,7 +22957,7 @@ export interface Concern extends QnAItem {
 export enum ConcernCategory {
     General = 1,
     Abusive = 2,
-    Spam = 4,
+    Spam = 4
 }
 /**
  * Stores Last Contact Date
@@ -21937,13 +22974,13 @@ export interface CustomerLastContact {
 }
 export enum DraftPatchOperation {
     Publish = 1,
-    Cancel = 2,
+    Cancel = 2
 }
 export enum DraftStateType {
     Unpublished = 1,
     Published = 2,
     Cancelled = 3,
-    Error = 4,
+    Error = 4
 }
 export interface EventCounts {
     /**
@@ -22090,7 +23127,7 @@ export enum ExtensionDeploymentTechnology {
     Exe = 1,
     Msi = 2,
     Vsix = 3,
-    ReferralLink = 4,
+    ReferralLink = 4
 }
 export interface ExtensionDraft {
     assets: ExtensionDraftAsset[];
@@ -22215,7 +23252,7 @@ export enum ExtensionLifecycleEventType {
     Review = 3,
     Acquisition = 4,
     Sales = 5,
-    Other = 999,
+    Other = 999
 }
 /**
  * Package that will be used to create or update a published extension
@@ -22283,7 +23320,7 @@ export enum ExtensionPolicyFlags {
     /**
      * Mask that defines all permissions
      */
-    All = 31,
+    All = 31
 }
 /**
  * An ExtensionQuery is used to search the gallery for a set of extensions that match one of many filter values.
@@ -22389,7 +23426,7 @@ export enum ExtensionQueryFilterType {
     /**
      * Filter to get extensions shared with particular organization
      */
-    OrganizationSharedWith = 21,
+    OrganizationSharedWith = 21
 }
 /**
  * Set of flags used to determine which set of information is retrieved when reading published extensions
@@ -22462,7 +23499,7 @@ export enum ExtensionQueryFlags {
     /**
      * AllAttributes is designed to be a mask that defines all sub-elements of the extension should be returned.  NOTE: This is not actually All flags. This is now locked to the set defined since changing this enum would be a breaking change and would change the behavior of anyone using it. Try not to use this value when making calls to the service, instead be explicit about the options required.
      */
-    AllAttributes = 16863,
+    AllAttributes = 16863
 }
 /**
  * This is the set of extensions that matched a supplied query through the filters given.
@@ -22475,6 +23512,7 @@ export interface ExtensionQueryResult {
 }
 export interface ExtensionShare {
     id: string;
+    isOrg: boolean;
     name: string;
     type: string;
 }
@@ -22487,7 +23525,7 @@ export enum ExtensionStatisticOperation {
     Set = 1,
     Increment = 2,
     Decrement = 3,
-    Delete = 4,
+    Delete = 4
 }
 export interface ExtensionStatisticUpdate {
     extensionName: string;
@@ -22499,7 +23537,7 @@ export interface ExtensionStatisticUpdate {
  * Stats aggregation type
  */
 export enum ExtensionStatsAggregateType {
-    Daily = 1,
+    Daily = 1
 }
 export interface ExtensionVersion {
     assetUri: string;
@@ -22527,7 +23565,7 @@ export enum ExtensionVersionFlags {
     /**
      * The Validated flag for a version means the extension version has passed validation and can be used..
      */
-    Validated = 1,
+    Validated = 1
 }
 /**
  * One condition in a QueryFilter.
@@ -22596,7 +23634,7 @@ export enum NotificationTemplateType {
     /**
      * Template type for Publisher Member Notification.
      */
-    PublisherMemberUpdateNotification = 4,
+    PublisherMemberUpdateNotification = 4
 }
 /**
  * PagingDirection is used to define which set direction to move the returned result set based on a previous query.
@@ -22609,7 +23647,7 @@ export enum PagingDirection {
     /**
      * Forward will return results from later in the resultset.
      */
-    Forward = 2,
+    Forward = 2
 }
 /**
  * This is the set of categories in response to the get category query
@@ -22719,7 +23757,7 @@ export enum PublishedExtensionFlags {
     /**
      * This flag is set for extensions we want to hide from Marketplace home and search pages. This will be used to override the exposure of builtIn flags.
      */
-    Hidden = 32768,
+    Hidden = 32768
 }
 export interface Publisher extends PublisherBase {
     _links: any;
@@ -22781,7 +23819,7 @@ export enum PublisherFlags {
     /**
      * This is the set of flags that can't be supplied by the developer and is managed by the service itself.
      */
-    ServiceFlags = 7,
+    ServiceFlags = 7
 }
 export enum PublisherPermissions {
     /**
@@ -22831,7 +23869,7 @@ export enum PublisherPermissions {
     /**
      * This gives the bearer the rights to delete the publisher.
      */
-    DeletePublisher = 2048,
+    DeletePublisher = 2048
 }
 /**
  * An PublisherQuery is used to search the gallery for a set of publishers that match one of many filter values.
@@ -22861,7 +23899,7 @@ export enum PublisherQueryFlags {
     /**
      * Is used to include email address of all the users who are marked as owners for the publisher
      */
-    IncludeEmailAddress = 2,
+    IncludeEmailAddress = 2
 }
 /**
  * This is the set of publishers that matched a supplied query through the filters given.
@@ -22892,7 +23930,7 @@ export enum PublisherState {
     /**
      * This state indicates that publisher was certified on the Marketplace, but his/her certification got revoked. This state would never be reset, even after publisher gets re-certified. It would indicate that the publisher certification was revoked at least once.
      */
-    CertificationRevoked = 8,
+    CertificationRevoked = 8
 }
 /**
  * The core structure of a QnA item
@@ -22935,7 +23973,7 @@ export enum QnAItemStatus {
     /**
      * The PublisherCreated flag indicates whether the item has been created by extension publisher.
      */
-    PublisherCreated = 2,
+    PublisherCreated = 2
 }
 /**
  * A filter used to define a set of extensions to return during a query.
@@ -23023,7 +24061,7 @@ export enum RestApiResponseStatus {
     /**
      * The operation is in skipped.
      */
-    Skipped = 3,
+    Skipped = 3
 }
 /**
  * REST Api Response
@@ -23103,7 +24141,7 @@ export interface Review {
 export enum ReviewEventOperation {
     Create = 1,
     Update = 2,
-    Delete = 3,
+    Delete = 3
 }
 /**
  * Properties associated with Review event
@@ -23177,7 +24215,7 @@ export enum ReviewFilterOptions {
     /**
      * Filter out review items with empty usernames
      */
-    FilterEmptyUserNames = 2,
+    FilterEmptyUserNames = 2
 }
 export interface ReviewPatch {
     /**
@@ -23220,7 +24258,7 @@ export enum ReviewPatchOperation {
     /**
      * Delete Publisher Reply
      */
-    DeletePublisherReply = 6,
+    DeletePublisherReply = 6
 }
 export interface ReviewReply {
     /**
@@ -23262,7 +24300,7 @@ export interface ReviewReply {
 export enum ReviewResourceType {
     Review = 1,
     PublisherReply = 2,
-    AdminReply = 3,
+    AdminReply = 3
 }
 export interface ReviewsResult {
     /**
@@ -23347,7 +24385,7 @@ export enum SortByType {
     /**
      * The results will be sorted as per Weighted Rating of the extension.
      */
-    WeightedRating = 12,
+    WeightedRating = 12
 }
 /**
  * Defines the sort order that can be defined for Extensions query
@@ -23364,7 +24402,7 @@ export enum SortOrderType {
     /**
      * The results will be sorted in Descending order
      */
-    Descending = 2,
+    Descending = 2
 }
 export interface UnpackagedExtensionData {
     categories: string[];
@@ -23765,6 +24803,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/Gallery/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   gallery\client\webapi\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/Gallery/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
@@ -23847,9 +24896,10 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * @param {string} assetToken
      * @param {string} accountToken
      * @param {boolean} acceptDefault
+     * @param {String} accountTokenHeader - Header to pass the account token
      * @return IPromise<ArrayBuffer>
      */
-    getAssetWithToken(publisherName: string, extensionName: string, version: string, assetType: string, assetToken?: string, accountToken?: string, acceptDefault?: boolean): IPromise<ArrayBuffer>;
+    getAssetWithToken(publisherName: string, extensionName: string, version: string, assetType: string, assetToken?: string, accountToken?: string, acceptDefault?: boolean, accountTokenHeader?: String): IPromise<ArrayBuffer>;
     /**
      * [Preview API] This endpoint gets hit when you download a VSTS extension from the Web UI
      *
@@ -23858,9 +24908,10 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * @param {string} version
      * @param {string} accountToken
      * @param {boolean} acceptDefault
+     * @param {String} accountTokenHeader - Header to pass the account token
      * @return IPromise<ArrayBuffer>
      */
-    getPackage(publisherName: string, extensionName: string, version: string, accountToken?: string, acceptDefault?: boolean): IPromise<ArrayBuffer>;
+    getPackage(publisherName: string, extensionName: string, version: string, accountToken?: string, acceptDefault?: boolean, accountTokenHeader?: String): IPromise<ArrayBuffer>;
     /**
      * [Preview API]
      *
@@ -23878,9 +24929,10 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * @param {string} version
      * @param {Contracts.ExtensionQueryFlags} flags
      * @param {string} accountToken
+     * @param {String} accountTokenHeader - Header to pass the account token
      * @return IPromise<Contracts.PublishedExtension>
      */
-    getExtension(publisherName: string, extensionName: string, version?: string, flags?: Contracts.ExtensionQueryFlags, accountToken?: string): IPromise<Contracts.PublishedExtension>;
+    getExtension(publisherName: string, extensionName: string, version?: string, flags?: Contracts.ExtensionQueryFlags, accountToken?: string, accountTokenHeader?: String): IPromise<Contracts.PublishedExtension>;
     /**
      * [Preview API]
      *
@@ -23912,9 +24964,10 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      *
      * @param {Contracts.ExtensionQuery} extensionQuery
      * @param {string} accountToken
+     * @param {String} accountTokenHeader - Header to pass the account token
      * @return IPromise<Contracts.ExtensionQueryResult>
      */
-    queryExtensions(extensionQuery: Contracts.ExtensionQuery, accountToken?: string): IPromise<Contracts.ExtensionQueryResult>;
+    queryExtensions(extensionQuery: Contracts.ExtensionQuery, accountToken?: string, accountTokenHeader?: String): IPromise<Contracts.ExtensionQueryResult>;
     /**
      * [Preview API]
      *
@@ -23948,9 +25001,10 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * @param {string} assetType
      * @param {string} accountToken
      * @param {boolean} acceptDefault
+     * @param {String} accountTokenHeader - Header to pass the account token
      * @return IPromise<ArrayBuffer>
      */
-    getAsset(extensionId: string, version: string, assetType: string, accountToken?: string, acceptDefault?: boolean): IPromise<ArrayBuffer>;
+    getAsset(extensionId: string, version: string, assetType: string, accountToken?: string, acceptDefault?: boolean, accountTokenHeader?: String): IPromise<ArrayBuffer>;
     /**
      * [Preview API]
      *
@@ -23960,9 +25014,10 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * @param {string} assetType
      * @param {string} accountToken
      * @param {boolean} acceptDefault
+     * @param {String} accountTokenHeader - Header to pass the account token
      * @return IPromise<ArrayBuffer>
      */
-    getAssetByName(publisherName: string, extensionName: string, version: string, assetType: string, accountToken?: string, acceptDefault?: boolean): IPromise<ArrayBuffer>;
+    getAssetByName(publisherName: string, extensionName: string, version: string, assetType: string, accountToken?: string, acceptDefault?: boolean, accountTokenHeader?: String): IPromise<ArrayBuffer>;
     /**
      * [Preview API]
      *
@@ -24118,9 +25173,10 @@ export class CommonMethods3To5 extends CommonMethods2_2To5 {
      * @param {string} version
      * @param {string} assetType
      * @param {string} accountToken
+     * @param {String} accountTokenHeader - Header to pass the account token
      * @return IPromise<ArrayBuffer>
      */
-    getAssetAuthenticated(publisherName: string, extensionName: string, version: string, assetType: string, accountToken?: string): IPromise<ArrayBuffer>;
+    getAssetAuthenticated(publisherName: string, extensionName: string, version: string, assetType: string, accountToken?: string, accountTokenHeader?: String): IPromise<ArrayBuffer>;
 }
 export class CommonMethods3_1To5 extends CommonMethods3To5 {
     protected categoriesApiVersion_1102bb42: string;
@@ -24356,14 +25412,15 @@ export class CommonMethods3_2To5 extends CommonMethods3_1To5 {
      */
     sendNotifications(notificationData: Contracts.NotificationsData): IPromise<void>;
     /**
-     * [Preview API]
+     * [Preview API] REST endpoint to update an extension.
      *
      * @param {any} content - Content to upload
-     * @param {string} publisherName
-     * @param {string} extensionName
+     * @param {string} publisherName - Name of the publisher
+     * @param {string} extensionName - Name of the extension
+     * @param {boolean} bypassScopeCheck - This parameter decides if the scope change check needs to be invoked or not
      * @return IPromise<Contracts.PublishedExtension>
      */
-    updateExtension(content: any, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
+    updateExtension(content: any, publisherName: string, extensionName: string, bypassScopeCheck?: boolean): IPromise<Contracts.PublishedExtension>;
     /**
      * [Preview API]
      *
@@ -24388,6 +25445,7 @@ export class CommonMethods3_2To5 extends CommonMethods3_1To5 {
     createExtension(content: any): IPromise<Contracts.PublishedExtension>;
 }
 export class CommonMethods4_1To5 extends CommonMethods3_2To5 {
+    protected contentverificationlogApiVersion: string;
     protected draftsApiVersion: string;
     protected draftsApiVersion_02b33873: string;
     protected draftsApiVersion_b3ab127d: string;
@@ -24520,6 +25578,14 @@ export class CommonMethods4_1To5 extends CommonMethods3_2To5 {
      * @return IPromise<Contracts.ExtensionDraft>
      */
     createDraftForEditExtension(publisherName: string, extensionName: string): IPromise<Contracts.ExtensionDraft>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} publisherName
+     * @param {string} extensionName
+     * @return IPromise<ArrayBuffer>
+     */
+    getContentVerificationLog(publisherName: string, extensionName: string): IPromise<ArrayBuffer>;
 }
 /**
  * @exemptedapi
@@ -24599,9 +25665,10 @@ export class GalleryHttpClient3_1 extends CommonMethods3_1To5 {
      * @param {Contracts.ExtensionPackage} extensionPackage
      * @param {string} publisherName
      * @param {string} extensionName
+     * @param {boolean} bypassScopeCheck
      * @return IPromise<Contracts.PublishedExtension>
      */
-    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
+    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string, bypassScopeCheck?: boolean): IPromise<Contracts.PublishedExtension>;
 }
 /**
  * @exemptedapi
@@ -24637,9 +25704,10 @@ export class GalleryHttpClient3 extends CommonMethods3To5 {
      * @param {Contracts.ExtensionPackage} extensionPackage
      * @param {string} publisherName
      * @param {string} extensionName
+     * @param {boolean} bypassScopeCheck
      * @return IPromise<Contracts.PublishedExtension>
      */
-    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
+    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string, bypassScopeCheck?: boolean): IPromise<Contracts.PublishedExtension>;
 }
 /**
  * @exemptedapi
@@ -24675,9 +25743,10 @@ export class GalleryHttpClient2_3 extends CommonMethods2_2To5 {
      * @param {Contracts.ExtensionPackage} extensionPackage
      * @param {string} publisherName
      * @param {string} extensionName
+     * @param {boolean} bypassScopeCheck
      * @return IPromise<Contracts.PublishedExtension>
      */
-    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
+    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string, bypassScopeCheck?: boolean): IPromise<Contracts.PublishedExtension>;
 }
 /**
  * @exemptedapi
@@ -24713,9 +25782,10 @@ export class GalleryHttpClient2_2 extends CommonMethods2_2To5 {
      * @param {Contracts.ExtensionPackage} extensionPackage
      * @param {string} publisherName
      * @param {string} extensionName
+     * @param {boolean} bypassScopeCheck
      * @return IPromise<Contracts.PublishedExtension>
      */
-    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
+    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string, bypassScopeCheck?: boolean): IPromise<Contracts.PublishedExtension>;
 }
 /**
  * @exemptedapi
@@ -24751,9 +25821,10 @@ export class GalleryHttpClient2_1 extends CommonMethods2_1To5 {
      * @param {Contracts.ExtensionPackage} extensionPackage
      * @param {string} publisherName
      * @param {string} extensionName
+     * @param {boolean} bypassScopeCheck
      * @return IPromise<Contracts.PublishedExtension>
      */
-    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
+    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string, bypassScopeCheck?: boolean): IPromise<Contracts.PublishedExtension>;
 }
 /**
  * @exemptedapi
@@ -24789,9 +25860,10 @@ export class GalleryHttpClient2 extends CommonMethods2To5 {
      * @param {Contracts.ExtensionPackage} extensionPackage
      * @param {string} publisherName
      * @param {string} extensionName
+     * @param {boolean} bypassScopeCheck
      * @return IPromise<Contracts.PublishedExtension>
      */
-    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string): IPromise<Contracts.PublishedExtension>;
+    updateExtension(extensionPackage: Contracts.ExtensionPackage, publisherName: string, extensionName: string, bypassScopeCheck?: boolean): IPromise<Contracts.PublishedExtension>;
 }
 export class GalleryHttpClient extends GalleryHttpClient5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
@@ -24804,6 +25876,17 @@ export class GalleryHttpClient extends GalleryHttpClient5 {
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): GalleryHttpClient4_1;
 }
 declare module "VSS/Graph/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\graph.genclient.json
+ */
 import VSS_Identities_Contracts = require("VSS/Identities/Contracts");
 export interface GraphCachePolicies {
     /**
@@ -24962,7 +26045,7 @@ export enum GraphMemberSearchFactor {
     /**
      * Find identity using DirectoryAlias
      */
-    DirectoryAlias = 8,
+    DirectoryAlias = 8
 }
 export interface GraphMembership {
     /**
@@ -25127,9 +26210,10 @@ export interface GraphSystemSubject extends GraphSubject {
 export enum GraphTraversalDirection {
     Unknown = 0,
     Down = 1,
-    Up = 2,
+    Up = 2
 }
 export interface GraphUser extends GraphMember {
+    isDeletedInOrigin: boolean;
     metadataUpdateDate: Date;
     /**
      * The meta type of the user in the origin, such as "member", "guest", etc. See UserMetaType for the set of possible values.
@@ -25172,7 +26256,7 @@ export interface GraphUserPrincipalNameCreationContext extends GraphUserCreation
 export enum IdentityShardingState {
     Undefined = 0,
     Enabled = 1,
-    Disabled = 2,
+    Disabled = 2
 }
 export interface PagedGraphGroups {
     /**
@@ -25228,6 +26312,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/Graph/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\graph.genclient.json
+ */
 import Contracts = require("VSS/Graph/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -25447,7 +26542,138 @@ export class GraphHttpClient extends GraphHttpClient5 {
  */
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): GraphHttpClient4_1;
 }
+declare module "VSS/HostAcquisition/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\hostacquisition.genclient.json
+ */
+export interface NameAvailability {
+    /**
+     * True if the name is available; False otherwise. See the unavailability reason for an explanation.
+     */
+    isAvailable: boolean;
+    /**
+     * Name requested.
+     */
+    name: string;
+    /**
+     * The reason why IsAvailable is False or Null
+     */
+    unavailabilityReason: string;
+}
+export interface Region {
+    /**
+     * Display name for the region.
+     */
+    displayName: string;
+    /**
+     * Whether the region is default or not
+     */
+    isDefault: boolean;
+    /**
+     * Name identifier for the region.
+     */
+    name: string;
+    /**
+     * Short name used in Microsoft Azure. Ex: southcentralus, westcentralus, southindia, etc.
+     */
+    nameInAzure: string;
+}
+}
+declare module "VSS/HostAcquisition/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\hostacquisition.genclient.json
+ */
+import Contracts = require("VSS/HostAcquisition/Contracts");
+import VSS_Organization_Contracts = require("VSS/Organization/Contracts");
+import VSS_WebApi = require("VSS/WebApi/RestClient");
+export class CommonMethods4To5 extends VSS_WebApi.VssHttpClient {
+    static serviceInstanceId: string;
+    protected collectionsApiVersion: string;
+    protected nameAvailabilityApiVersion: string;
+    protected regionsApiVersion: string;
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @return IPromise<Contracts.Region[]>
+     */
+    getRegions(): IPromise<Contracts.Region[]>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} name
+     * @return IPromise<Contracts.NameAvailability>
+     */
+    getNameAvailability(name: string): IPromise<Contracts.NameAvailability>;
+    /**
+     * [Preview API] Creates a new collection of the given name in the given region
+     *
+     * @param {{ [key: string] : string; }} properties
+     * @param {string} collectionName
+     * @param {string} preferredRegion
+     * @param {string} ownerDescriptor
+     * @return IPromise<VSS_Organization_Contracts.Collection>
+     */
+    createCollection(properties: {
+        [key: string]: string;
+    }, collectionName: string, preferredRegion: string, ownerDescriptor?: string): IPromise<VSS_Organization_Contracts.Collection>;
+}
+/**
+ * @exemptedapi
+ */
+export class HostAcquisitionHttpClient5 extends CommonMethods4To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class HostAcquisitionHttpClient4_1 extends CommonMethods4To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * @exemptedapi
+ */
+export class HostAcquisitionHttpClient4 extends CommonMethods4To5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+export class HostAcquisitionHttpClient extends HostAcquisitionHttpClient5 {
+    constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+}
+/**
+ * Gets an http client targeting the latest released version of the APIs.
+ *
+ * @return HostAcquisitionHttpClient4_1
+ */
+export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): HostAcquisitionHttpClient4_1;
+}
 declare module "VSS/Identities/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 /**
  * Container class for changed identities
  */
@@ -25456,6 +26682,10 @@ export interface ChangedIdentities {
      * Changed Identities
      */
     identities: Identity[];
+    /**
+     * More data available, set to true if pagesize is specified.
+     */
+    moreData: boolean;
     /**
      * Last Identity SequenceId
      */
@@ -25473,6 +26703,14 @@ export interface ChangedIdentitiesContext {
      * Last Identity SequenceId
      */
     identitySequenceId: number;
+    /**
+     * Last Group OrganizationIdentitySequenceId
+     */
+    organizationIdentitySequenceId: number;
+    /**
+     * Page size
+     */
+    pageSize: number;
 }
 export interface CreateScopeInfo {
     adminGroupDescription: string;
@@ -25492,7 +26730,7 @@ export enum FrameworkIdentityType {
     None = 0,
     ServiceIdentity = 1,
     AggregateIdentity = 2,
-    ImportedIdentity = 3,
+    ImportedIdentity = 3
 }
 export interface GroupMembership {
     active: boolean;
@@ -25503,7 +26741,7 @@ export interface GroupMembership {
 export enum GroupScopeType {
     Generic = 0,
     ServiceHost = 1,
-    TeamProject = 2,
+    TeamProject = 2
 }
 export interface Identity extends IdentityBase {
 }
@@ -25539,6 +26777,7 @@ export interface IdentityBatchInfo {
     includeRestrictedVisibility: boolean;
     propertyNames: string[];
     queryMembership: QueryMembership;
+    subjectDescriptors: string[];
 }
 /**
  * An Identity descriptor is a wrapper for the identity type (Windows SID, Passport) along with a unique identifier such as the SID or PUID.
@@ -25565,10 +26804,37 @@ export interface IdentityScope {
     securingHostId: string;
     subjectDescriptor: string;
 }
+/**
+ * Identity information.
+ */
 export interface IdentitySelf {
+    /**
+     * The UserPrincipalName (UPN) of the account. This value comes from the source provider.
+     */
     accountName: string;
+    /**
+     * The display name. For AAD accounts with multiple tenants this is the display name of the profile in the home tenant.
+     */
     displayName: string;
+    /**
+     * This represents the name of the container of origin. For AAD accounts this is the tenantID of the home tenant. For MSA accounts this is the string "Windows Live ID".
+     */
+    domain: string;
+    /**
+     * This is the VSID of the home tenant profile. If the profile is signed into the home tenant or if the profile has no tenants then this Id is the same as the Id returned by the profile/profiles/me endpoint. Going forward it is recommended that you use the combined values of Origin, OriginId and Domain to uniquely identify a user rather than this Id.
+     */
     id: string;
+    /**
+     * The type of source provider for the origin identifier. For MSA accounts this is "msa". For AAD accounts this is "aad".
+     */
+    origin: string;
+    /**
+     * The unique identifier from the system of origin. If there are multiple tenants this is the unique identifier of the account in the home tenant. (For MSA this is the PUID in hex notation, for AAD this is the object id.)
+     */
+    originId: string;
+    /**
+     * For AAD accounts this is all of the tenants that this account is a member of.
+     */
     tenants: TenantInfo[];
 }
 export interface IdentitySnapshot {
@@ -25603,11 +26869,15 @@ export enum QueryMembership {
     /**
      * Query will return expanded down membership data (children only)
      */
-    ExpandedDown = 4,
+    ExpandedDown = 4
 }
 export enum ReadIdentitiesOptions {
     None = 0,
-    FilterIllegalMemberships = 1,
+    FilterIllegalMemberships = 1
+}
+export interface SwapIdentityInfo {
+    id1: string;
+    id2: string;
 }
 export interface TenantInfo {
     homeTenant: boolean;
@@ -25659,7 +26929,7 @@ declare module "VSS/Identities/Mru/Contracts" {
  * ---------------------------------------------------------
  *
  * See following wiki page for instructions on how to regenerate:
- *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
  *
  * Configuration file:
  *   sps\clients\identity\clientgeneratorconfigs\genclient.json
@@ -25673,6 +26943,17 @@ export interface MruIdentitiesUpdateData extends JsonPatchOperationData<string[]
 }
 }
 declare module "VSS/Identities/Mru/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   sps\clients\identity\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/Identities/Mru/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
@@ -25792,7 +27073,7 @@ export enum CacheableTypes {
     Unknown = 0,
     UniqueIdentifier = 1,
     Guid = 2,
-    Email = 3,
+    Email = 3
 }
 /**
  * @exemptedapi
@@ -25827,7 +27108,7 @@ export class HashCache<V> implements ICache<V> {
     set(key: string, value: V): void;
     clear(): void;
     configure(config: ICacheConfiguration): void;
-    private _getKeys();
+    private _getKeys;
     private _cache;
     private _config;
 }
@@ -25870,7 +27151,7 @@ export class RequestCache<T> implements IRequestCache<T> {
     *   The DelayedFunction is logging tracepoints and some tests use them for identifying if there are still actions left in a pending state.
     *   We want to exempt the active cache invalidation from being waited upon by the tests.
     **/
-    private _setOrResetTimer();
+    private _setOrResetTimer;
     private _cache;
     private _timeoutHandle;
     private _config;
@@ -25912,7 +27193,7 @@ export class TwoLayerCache<V> implements ITwoLayerCache<V> {
     *   This method is optimistic
     **/
     set(key: string, value: V, cacheTypeHint?: string): void;
-    private _queryCache(key, cacheTypeHint?);
+    private _queryCache;
     private _config;
     private _redirectors;
     private _objectCache;
@@ -26018,8 +27299,14 @@ export class PromiseResultStatus {
     static readonly Fulfilled: string;
     static readonly Rejected: string;
 }
+/**
+ * Map from unicode accented character to closest latin letter,
+ * many unicode characters map to the same latin letter.
+ */
+export const diacriticsRemovalMap: any;
 }
 declare module "VSS/Identities/Picker/ContactCard" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!PersonaCard" />
 import React = require("react");
 import Component_Base = require("VSS/Flux/Component");
 import Identities_Picker_RestClient = require("VSS/Identities/Picker/RestClient");
@@ -26069,6 +27356,13 @@ export class ContactCard extends React.Component<ContactCardProps, {}> {
 }
 }
 declare module "VSS/Identities/Picker/Controls" {
+/// <amd-dependency path="jQueryUI/core" />
+/// <amd-dependency path="jQueryUI/button" />
+/// <amd-dependency path="jQueryUI/dialog" />
+/// <reference types="jquery" />
+/// <reference types="jqueryui" />
+/// <reference types="highcharts" />
+/// <reference types="vss-common" />
 import Controls = require("VSS/Controls");
 import Identities_Picker_Common = require("VSS/Identities/Picker/Common");
 import Identities_Picker_RestClient = require("VSS/Identities/Picker/RestClient");
@@ -26272,67 +27566,67 @@ export class IdentityPickerDropdownControl extends Controls.Control<IIdentityPic
     updatePrefix(prefix: string): void;
     dispose(): void;
     reset(): void;
-    private static getClassSelector(className);
-    private _getEntityOperationsFacade();
-    private _getUserMruEntitiesPostLoad(selectFirstByDefault?);
-    private _enableDirectorySearch();
-    private _disableDirectorySearch();
-    private _resetSearchStatuses();
-    private _getIdentitiesPostLoad(prefix, selectFirstByDefault?);
-    private _getDirectoryEntitiesWithRender(prefix, entityDeferred);
-    private _checkIfServerException(exceptionData);
-    private _getMessageForIpsAuthorizationException(exceptionData);
-    private _getDirectoryEntities(prefix, entityDeferred, quickSearch?);
-    private _getImagesForDisplayedEntities();
-    private _showPostLoad();
-    private _handleScrollAndResize(event);
-    private _constructDropdown(keepIndex?, setupDom?, selectFirstByDefault?);
+    private static getClassSelector;
+    private _getEntityOperationsFacade;
+    private _getUserMruEntitiesPostLoad;
+    private _enableDirectorySearch;
+    private _disableDirectorySearch;
+    private _resetSearchStatuses;
+    private _getIdentitiesPostLoad;
+    private _getDirectoryEntitiesWithRender;
+    private _checkIfServerException;
+    private _getMessageForIpsAuthorizationException;
+    private _getDirectoryEntities;
+    private _getImagesForDisplayedEntities;
+    private _showPostLoad;
+    private _handleScrollAndResize;
+    private _constructDropdown;
     /**
     * Removes the identity from the querying identity's MRU
     **/
-    private _removeIdentityFromMru(localId);
+    private _removeIdentityFromMru;
     /**
     *   keepIndex: Keep the index of the selected identity at the current location
     **/
-    private _alterStateAndRender(showDropDown?, keepIndex?, selectFirstByDefault?);
-    private _fireActiveDescendantUpdate(id);
+    private _alterStateAndRender;
+    private _fireActiveDescendantUpdate;
     /**
     * Scroll to selected item
     **/
-    private _setSelectedIndex(newSelectedIndex, scrollIntoView, position?);
-    private _scrollItemIntoView(index, position);
+    private _setSelectedIndex;
+    private _scrollItemIntoView;
     /**
     * Set the position of this control with respect to its parent
     **/
-    private _setPosition();
-    private _getPositioningElement();
+    private _setPosition;
+    private _getPositioningElement;
     /**
     * Show the status indicator till all users are loaded
     **/
-    private _showLoading();
+    private _showLoading;
     /**
     * Show error message in case of non-2xx response
     **/
-    private _showError(errorMsg);
-    private _nextPage();
-    private _prevPage();
-    private _nextItem();
-    private _prevItem();
-    private _selectItem(item);
-    private _clearItemsSelection(items);
+    private _showError;
+    private _nextPage;
+    private _prevPage;
+    private _nextItem;
+    private _prevItem;
+    private _selectItem;
+    private _clearItemsSelection;
     /**
     * Create the li that shall represent an user item
     **/
-    private _createItem(index);
-    private _logSelectedEntity(selectedItem);
-    private _setupDom();
-    private _showAdditionalInformation();
-    private _setupEntitiesInDom();
-    private _constructSearchResultStatus();
-    private _constructSearchButton();
-    private _constructInformativeMessage(errorMessageText);
-    private _loadNextPage(force?);
-    private _searchButtonClickDelegate();
+    private _createItem;
+    private _logSelectedEntity;
+    private _setupDom;
+    private _showAdditionalInformation;
+    private _setupEntitiesInDom;
+    private _constructSearchResultStatus;
+    private _constructSearchButton;
+    private _constructInformativeMessage;
+    private _loadNextPage;
+    private _searchButtonClickDelegate;
 }
 export interface IIdentityPickerIdCardDialogOptions extends Identities_Picker_Services.IIdentityServiceOptions, Identities_Picker_Services.IIdentityPickerExtensionOptions {
     /**
@@ -26399,28 +27693,28 @@ export class IdCardDialog extends Controls.Control<IIdentityPickerIdCardDialogOp
     constructor(options?: IIdentityPickerIdCardDialogOptions);
     initializeOptions(options?: IIdentityPickerIdCardDialogOptions): void;
     initialize(): void;
-    private _getEntityOperationsFacade();
-    private static _getHigherZIndex(jQueryFilter);
-    private _repositionDialog();
-    private _getDirectoryEntities(searchTerm);
-    private _getIdentitiesFailure(data);
-    private _getIdentitiesSuccess(data);
-    private _displayReactIdCard();
-    private _displayIdCard();
-    private _constructMemberTabContent();
-    private _getDirectoryMemberEntities(identity);
-    private _isMembersListVisible();
-    private _onIdCardBlur(e?);
-    private _onIdCardClose(e, ui);
-    private _onKeyDown(e);
-    private _createItem(item);
-    private _renderMembersList();
-    private _loadNextPage();
-    private _nextItem();
-    private _prevItem();
-    private _nextPage();
-    private _prevPage();
-    private _setSelectedIndex(newSelectedIndex, position?);
+    private _getEntityOperationsFacade;
+    private static _getHigherZIndex;
+    private _repositionDialog;
+    private _getDirectoryEntities;
+    private _getIdentitiesFailure;
+    private _getIdentitiesSuccess;
+    private _displayReactIdCard;
+    private _displayIdCard;
+    private _constructMemberTabContent;
+    private _getDirectoryMemberEntities;
+    private _isMembersListVisible;
+    private _onIdCardBlur;
+    private _onIdCardClose;
+    private _onKeyDown;
+    private _createItem;
+    private _renderMembersList;
+    private _loadNextPage;
+    private _nextItem;
+    private _prevItem;
+    private _nextPage;
+    private _prevPage;
+    private _setSelectedIndex;
 }
 export interface ISearchControlCallbackOptions {
     /**
@@ -26511,6 +27805,14 @@ export interface IIdentityPickerSearchOptions extends Identities_Picker_Services
     *   Defaults to false, which is to include.
     **/
     excludeAriaLabel?: boolean;
+    /**
+     * Use this to mark the input as required in the DOM
+     */
+    required?: boolean;
+    /**
+     * Use this to announce some help text
+     */
+    ariaDescribedby?: string;
     /**
     *   a custom id for the input element
     **/
@@ -26656,6 +27958,7 @@ export class IdentityPickerSearchControl extends Controls.Control<IIdentityPicke
     *   To be used only by unit tests
     **/
     initializeOptionsInternal(options: IIdentityPickerSearchOptionsInternal): void;
+    private _onDocumentLoad;
     initialize(): void;
     load(): IPromise<boolean>;
     getIdentitySearchResult(): IdentitySearchResult;
@@ -26675,66 +27978,72 @@ export class IdentityPickerSearchControl extends Controls.Control<IIdentityPicke
     focusOnSearchInput(): void;
     enableReadOnlyMode(): void;
     disableReadOnlyMode(): void;
+    /**
+     * getValue returns "" while an identity is being resolved, but we need to know
+     * if the control is actually empty vs temporarily empty.
+     */
+    hasPendingRequests(): boolean;
     dispose(): void;
-    private _getEntityOperationsFacade();
-    private _isReadOnly();
-    private _hideMruTriangle();
-    private _showMruTriangle();
-    private _resetSearchControl(withWatermark?, focus?);
+    private _getEntityOperationsFacade;
+    private _isReadOnly;
+    private _hideMruTriangle;
+    private _showMruTriangle;
+    private _getAriaDescribedby;
+    private _resetSearchControl;
     /**
     *   Clears but does not recreate the watermark
     **/
-    private _clearSearchControl();
-    private _showAllMruInDropdownWithoutDefaultSelection(showDropdownIfNoMruEntities?);
-    private _showAllMruInDropdown(showDropdownIfNoMruEntities?, selectFirstByDefault?);
-    private _showProgressCursor();
-    private _stopProgressCursor();
-    private _fireInvalidInput();
-    private _fireValidInput();
-    private _fireRemoveResolvedInput(removedByClose);
-    private _updateActiveDescendantId(data);
-    private _isShowMruEnabledInDropdown();
-    private _attachHandlersOnShowDropdown(data);
-    private _detachHandlersOnHideDropdown(data);
-    private _hideDropdown(e?);
-    private _showDropdown(e?);
-    private _compareInputOnInputChangeEvent(input);
-    private _setInputText(input);
-    private _resetPreviousInput();
-    private _onInputChange(e?);
-    private _onInputClick(e?);
-    private _onMruTriangleMousedown(e);
-    private _onMruTriangleClick(e);
-    private _isDropdownHovered();
-    private _isContactCardHovered();
-    private _onInputBlur(e?);
-    private _focusOnResolvedItem(item);
-    private _onInputKeyDown(e?);
-    private _fireInputValidityEvent();
-    private _resolveSelectedItem(resolveByTab?);
-    private _onInputKeyUp(e?);
-    private _removeFromUnresolved(item);
-    private _removeFromResolved(item, removedByClose?);
+    private _clearSearchControl;
+    private _showAllMruInDropdownWithoutDefaultSelection;
+    private _showAllMruInDropdown;
+    private _showProgressCursor;
+    private _stopProgressCursor;
+    private _fireInvalidInput;
+    private _fireValidInput;
+    private _fireRemoveResolvedInput;
+    private _updateActiveDescendantId;
+    private _isShowMruEnabledInDropdown;
+    private _attachHandlersOnShowDropdown;
+    private _detachHandlersOnHideDropdown;
+    private _hideDropdown;
+    private _showDropdown;
+    private _compareInputOnInputChangeEvent;
+    private _setInputText;
+    private _resetPreviousInput;
+    private _onInputChange;
+    private _onInputClick;
+    private _onMruTriangleMousedown;
+    private _onMruTriangleClick;
+    private _isDropdownHovered;
+    private _isContactCardHovered;
+    private _onInputBlur;
+    private _focusOnResolvedItem;
+    private _onInputKeyDown;
+    private _fireInputValidityEvent;
+    private _resolveSelectedItem;
+    private _onInputKeyUp;
+    private _removeFromUnresolved;
+    private _removeFromResolved;
     getInputText(): string;
-    private _resolveInputToIdentities(input, queryTypeHint?, operationScope?, inactiveFallbackDisplayName?);
-    private _resolveIdentityResponseInSequence(response, tokenRequestSequence, successCallback, errorCallback);
-    private _recalculateInputWidth();
-    private _replaceAndCleanup(token);
-    private _findInSelectedItems(object);
-    private _showIdCardDialog(args);
-    private _clearWatermark();
-    private _showWatermark();
-    private _createTemporaryItem(displayName, identifier);
-    private _isControlInFocus();
-    private _createResolvedItem(dataAttribute);
-    private _setResolvedItemRole(element, displayValue?);
-    private _resolveItem(item, clearInput?, prefix?, resolveByTab?);
-    private _getItemNameContainerMaxWidth(otherElementsInItemSpan);
-    private _createCloseButton();
-    private _getSearchPrefix(input);
-    private _unresolveItem(token);
-    private _generatePlaceHolder(identityTypeList);
-    private _isInArray(s, a);
+    private _resolveInputToIdentities;
+    private _resolveIdentityResponseInSequence;
+    private _recalculateInputWidth;
+    private _replaceAndCleanup;
+    private _findInSelectedItems;
+    private _showIdCardDialog;
+    private _clearWatermark;
+    private _showWatermark;
+    private _createTemporaryItem;
+    private _isControlInFocus;
+    private _createResolvedItem;
+    private _setResolvedItemRole;
+    private _resolveItem;
+    private _getItemNameContainerMaxWidth;
+    private _createCloseButton;
+    private _getSearchPrefix;
+    private _unresolveItem;
+    private _generatePlaceHolder;
+    private _isInArray;
 }
 export interface IdentitySearchResult {
     resolvedEntities: Identities_Picker_RestClient.IEntity[];
@@ -26743,7 +28052,7 @@ export interface IdentitySearchResult {
 export enum IdentityPickerControlSize {
     Small = 0,
     Medium = 1,
-    Large = 2,
+    Large = 2
 }
 export interface IIdentityDisplayOptions extends Identities_Picker_Services.IIdentityServiceOptions, Identities_Picker_Services.IIdentityPickerExtensionOptions {
     /**
@@ -26778,7 +28087,7 @@ export interface IIdentityDisplayOptions extends Identities_Picker_Services.IIde
 export enum EDisplayControlType {
     AvatarText = 0,
     AvatarOnly = 1,
-    TextOnly = 2,
+    TextOnly = 2
 }
 export class IdentityDisplayControl extends Controls.Control<IIdentityDisplayOptions> {
     private static DEFAULT_HOVER_WAIT_ENTER_INTERVAL;
@@ -26798,11 +28107,11 @@ export class IdentityDisplayControl extends Controls.Control<IIdentityDisplayOpt
     constructor(options?: IIdentityDisplayOptions);
     initialize(): void;
     getDisplayedEntity(): Identities_Picker_RestClient.IEntity;
-    private _getEntityOperationsFacade();
-    private _resolveStringToEntity(input);
-    private _showIdCardDialog(args);
-    private _displayString(item);
-    private _displayEntity(entity, prefix);
+    private _getEntityOperationsFacade;
+    private _resolveStringToEntity;
+    private _showIdCardDialog;
+    private _displayString;
+    private _displayEntity;
 }
 /**
 *   Contruct an IEntity from a string.
@@ -26834,7 +28143,7 @@ export class SourceId {
  */
 export enum SourceType {
     Sync = 0,
-    Async = 1,
+    Async = 1
 }
 /**
  * @exemptedapi
@@ -26909,20 +28218,21 @@ export class EntityOperationsFacade extends Service.VssService {
     *   This is the default way the controls internally fetch the key for disambiguating entities.
     *   Use-cases apart from calls by the controls here are not supported; provided as an example of merging logic.
     **/
-    private static _getMergingKeyFromEntity(entity);
-    private static _mergeSimilarEntities(x, y, mergePreference?);
-    private static _computeValue(key, x, y, mergePreference?);
-    private static _filterMruEntitiesByIdentityType(request, mruEntities);
-    private _mruSourceGetEntitiesHandler(currentEntitySet, request);
-    private _directorySourceGetEntities(currentEntities, request);
-    private _getRegisteredSyncSourcesSorted();
+    private static _getMergingKeyFromEntity;
+    private static _mergeSimilarEntities;
+    private static _computeValue;
+    private static _filterMruEntitiesByIdentityType;
+    private _mruSourceGetEntitiesHandler;
+    private _directorySourceGetEntities;
+    private _getRegisteredSyncSourcesSorted;
     /**
     * Get the querying identity's MRU
     **/
-    private _getUserMruEntities(identityServiceOptions?, extensionOptions?, filterByScope?);
+    private _getUserMruEntities;
 }
 }
 declare module "VSS/Identities/Picker/DefaultAbridgedCard" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!PersonaCard" />
 import React = require("react");
 import Component_Base = require("VSS/Flux/Component");
 import Identities_Picker_RestClient = require("VSS/Identities/Picker/RestClient");
@@ -26938,10 +28248,11 @@ export interface DefaultAbridgedCardProps extends Component_Base.Props {
 }
 export class DefaultAbridgedCard extends React.Component<DefaultAbridgedCardProps, {}> {
     render(): JSX.Element;
-    private _verifySignInAddress();
+    private _verifySignInAddress;
 }
 }
 declare module "VSS/Identities/Picker/DefaultCard" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!PersonaCard" />
 import React = require("react");
 import Component_Base = require("VSS/Flux/Component");
 import Identities_Picker_RestClient = require("VSS/Identities/Picker/RestClient");
@@ -27013,10 +28324,11 @@ export class DefaultCard extends React.Component<DefaultCardProps, {}> {
      * Renders the direct manager for the persona.
      * @param managerPersona The manager persona.
      */
-    private _renderDirectManagerElement(managerPersona);
+    private _renderDirectManagerElement;
 }
 }
 declare module "VSS/Identities/Picker/DefaultSimpleCard" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!PersonaCard" />
 import React = require("react");
 import Component_Base = require("VSS/Flux/Component");
 import Identities_Picker_RestClient = require("VSS/Identities/Picker/RestClient");
@@ -27031,6 +28343,7 @@ export class DefaultSimpleCard extends React.Component<DefaultSimpleCardProps, {
 }
 }
 declare module "VSS/Identities/Picker/OrganizationCard" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!PersonaCard" />
 import React = require("react");
 import Component_Base = require("VSS/Flux/Component");
 import Identities_Picker_RestClient = require("VSS/Identities/Picker/RestClient");
@@ -27058,11 +28371,12 @@ export interface OrganizationCardProps extends Component_Base.Props {
 }
 export class OrganizationCard extends React.Component<OrganizationCardProps, {}> {
     render(): JSX.Element;
-    private createManagerChainPersonaElements();
-    private createDirectReportsPersonaElements();
+    private createManagerChainPersonaElements;
+    private createDirectReportsPersonaElements;
 }
 }
 declare module "VSS/Identities/Picker/PersonaCard" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!PersonaCard" />
 import * as Component_Base from "VSS/Flux/Component";
 import { IDataState, PersonaCardProps } from "VSS/Identities/Picker/PersonaCardContracts";
 import * as Identities_Picker_Services from "VSS/Identities/Picker/Services";
@@ -27103,12 +28417,12 @@ export class PersonaCardContent extends React.Component<PersonaCardContentProps>
     componentDidMount(): void;
     componentDidUpdate(): void;
     render(): JSX.Element;
-    private _renderCard();
-    private _onFocusZoneRef(focusZone);
-    private _focusOnUpdate();
-    private _renderInnerCard();
-    private _onDismissCallout();
-    private _publishTelemetry(componentType, action, source?);
+    private _renderCard;
+    private _onFocusZoneRef;
+    private _focusOnUpdate;
+    private _renderInnerCard;
+    private _onDismissCallout;
+    private _publishTelemetry;
 }
 }
 declare module "VSS/Identities/Picker/PersonaCardContracts" {
@@ -27120,7 +28434,7 @@ import { IPoint } from "VSS/Identities/Picker/Common";
 export enum CardType {
     Default = 0,
     Contact = 1,
-    Organization = 2,
+    Organization = 2
 }
 export interface IDataState {
     header: Identities_Picker_RestClient.IEntity;
@@ -27160,6 +28474,7 @@ export interface PersonaCardProps extends Component_Base.Props {
 }
 }
 declare module "VSS/Identities/Picker/PersonaCardHeaderElement" {
+/// <amd-dependency path="VSS/LoaderPlugins/Css!PersonaCard" />
 import React = require("react");
 import * as Component_Base from "VSS/Flux/Component";
 import * as Identities_Picker_RestClient from "VSS/Identities/Picker/RestClient";
@@ -27446,7 +28761,7 @@ export class ServiceHelpers {
     static isAuthenticatedMember(): boolean;
     static getPrefixTypeForTelemetry(prefix: string): "signInAddress" | "domainSamAccountName" | "entityId" | "vsid" | "scopedPrefix" | "stringPrefix";
     static addScenarioProperties(service: Service.VssService, scenarioProperties: IDictionaryStringTo<any>, operationScope?: IOperationScope, identityType?: IEntityType, options?: IIdentityServiceOptions, extensionOptions?: IIdentityPickerExtensionOptions): IDictionaryStringTo<any>;
-    private static _getHostMetadata(service);
+    private static _getHostMetadata;
 }
 /**
  * @exemptedapi
@@ -27537,11 +28852,11 @@ export class IdentityService extends Service.VssService implements IIdentityServ
     *   Get an identity's connections in the overlay of the AD graph on the VSTS Identity graph
     **/
     getIdentityConnections(identity: Identities_Picker_RestClient.IEntity, operationScope: IOperationScope, identityType: IEntityType, connectionType: IConnectionType, options?: IIdentityServiceOptions, extensionOptions?: IIdentityPickerExtensionOptions, depth?: number): IPromise<Identities_Picker_RestClient.IdentitiesGetConnectionsResponseModel>;
-    private static _getEntityIdsAsQueryTokens(identities);
-    private _cacheQueryTokenResult(queryTokenResult, cacheKey);
-    private static _removeQueryToken(queryToken, queryTokens);
-    private static getUniqueRequestString(queryToken, operationScope, identityType, extensionOptions, filterOptions);
-    private static getExtensionUniqueRequestString(extensionOptions);
+    private static _getEntityIdsAsQueryTokens;
+    private _cacheQueryTokenResult;
+    private static _removeQueryToken;
+    private static getUniqueRequestString;
+    private static getExtensionUniqueRequestString;
     private _qtrCache;
     private _qtrRequestAggregator;
     private _entityImageRequestAggregator;
@@ -27581,6 +28896,17 @@ export class MruService extends Service.VssService implements IMruService {
 }
 }
 declare module "VSS/Identities/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/Identities/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_DelegatedAuthorization_Contracts = require("VSS/DelegatedAuthorization/Contracts");
@@ -27600,6 +28926,7 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     protected scopesApiVersion: string;
     protected signedInTokenApiVersion: string;
     protected signoutTokenApiVersion: string;
+    protected swapApiVersion: string;
     protected tenantApiVersion: string;
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
@@ -27783,6 +29110,7 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     /**
      * @param {string} descriptors
      * @param {string} identityIds
+     * @param {string} subjectDescriptors
      * @param {string} searchFilter
      * @param {string} filterValue
      * @param {Contracts.QueryMembership} queryMembership
@@ -27791,7 +29119,7 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * @param {Contracts.ReadIdentitiesOptions} options
      * @return IPromise<Contracts.Identity[]>
      */
-    readIdentities(descriptors?: string, identityIds?: string, searchFilter?: string, filterValue?: string, queryMembership?: Contracts.QueryMembership, properties?: string, includeRestrictedVisibility?: boolean, options?: Contracts.ReadIdentitiesOptions): IPromise<Contracts.Identity[]>;
+    readIdentities(descriptors?: string, identityIds?: string, subjectDescriptors?: string, searchFilter?: string, filterValue?: string, queryMembership?: Contracts.QueryMembership, properties?: string, includeRestrictedVisibility?: boolean, options?: Contracts.ReadIdentitiesOptions): IPromise<Contracts.Identity[]>;
     /**
      * @param {string} domainId
      * @return IPromise<string[]>
@@ -27800,10 +29128,12 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     /**
      * @param {number} identitySequenceId
      * @param {number} groupSequenceId
+     * @param {number} organizationIdentitySequenceId
+     * @param {number} pageSize
      * @param {string} scopeId
      * @return IPromise<Contracts.ChangedIdentities>
      */
-    getIdentityChanges(identitySequenceId: number, groupSequenceId: number, scopeId?: string): IPromise<Contracts.ChangedIdentities>;
+    getIdentityChanges(identitySequenceId: number, groupSequenceId: number, organizationIdentitySequenceId?: number, pageSize?: number, scopeId?: string): IPromise<Contracts.ChangedIdentities>;
     /**
      * @param {string} scopeIds
      * @param {boolean} recurse
@@ -27912,6 +29242,17 @@ export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): Identitie
 }
 declare module "VSS/Invitation/Contracts" {
 /**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\invitation.genclient.json
+ */
+/**
  * Invitation Data
  */
 export interface InvitationData {
@@ -27934,7 +29275,7 @@ export interface InvitationData {
  * Enum value indicating type of invitation
  */
 export enum InvitationType {
-    AccountInvite = 1,
+    AccountInvite = 1
 }
 export var TypeInfo: {
     InvitationData: any;
@@ -27946,6 +29287,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/Invitation/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\invitation.genclient.json
+ */
 import Contracts = require("VSS/Invitation/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods4_1To5 extends VSS_WebApi.VssHttpClient {
@@ -28059,6 +29411,17 @@ export class OrganizationJoinHttpClient extends OrganizationJoinHttpClient4_1 {
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OrganizationJoinHttpClient4;
 }
 declare module "VSS/LicensingRule/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\licensingrule.genclient.json
+ */
 import VSS_Operations_Contracts = require("VSS/Operations/Contracts");
 export enum AccountLicenseType {
     None = 0,
@@ -28066,7 +29429,7 @@ export enum AccountLicenseType {
     Express = 2,
     Professional = 3,
     Advanced = 4,
-    Stakeholder = 5,
+    Stakeholder = 5
 }
 export interface AccountUserLicense {
     license: number;
@@ -28136,7 +29499,7 @@ export enum GroupLicensingRuleStatus {
     /**
      * Rule failed to apply unexpectedly and should be retried
      */
-    UnableToApply = 10,
+    UnableToApply = 10
 }
 /**
  * Represents an GroupLicensingRuleUpdate Model
@@ -28200,7 +29563,7 @@ export enum LicensingSource {
     Msdn = 2,
     Profile = 3,
     Auto = 4,
-    Trial = 5,
+    Trial = 5
 }
 export enum MsdnLicenseType {
     None = 0,
@@ -28210,11 +29573,11 @@ export enum MsdnLicenseType {
     TestProfessional = 4,
     Premium = 5,
     Ultimate = 6,
-    Enterprise = 7,
+    Enterprise = 7
 }
 export enum RuleOption {
     ApplyGroupRule = 0,
-    TestApplyGroupRule = 1,
+    TestApplyGroupRule = 1
 }
 export var TypeInfo: {
     AccountLicenseType: {
@@ -28274,6 +29637,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/LicensingRule/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\licensingrule.genclient.json
+ */
 import Contracts = require("VSS/LicensingRule/Contracts");
 import VSS_Operations_Contracts = require("VSS/Operations/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -28431,6 +29805,17 @@ export class LicensingRuleHttpClient extends LicensingRuleHttpClient5 {
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): LicensingRuleHttpClient4_1;
 }
 declare module "VSS/Licensing/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import VSS_Accounts_Contracts = require("VSS/Accounts/Contracts");
 import VSS_Commerce_Contracts = require("VSS/Commerce/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
@@ -28450,6 +29835,10 @@ export interface AccountEntitlement {
      * Assignment Source
      */
     assignmentSource: AssignmentSource;
+    /**
+     * Gets or sets the creation date of the user in this account
+     */
+    dateCreated: Date;
     /**
      * Gets or sets the date of the user last sign-in to this account
      */
@@ -28503,7 +29892,7 @@ export enum AccountLicenseType {
     Express = 2,
     Professional = 3,
     Advanced = 4,
-    Stakeholder = 5,
+    Stakeholder = 5
 }
 export interface AccountLicenseUsage {
     /**
@@ -28535,7 +29924,7 @@ export interface AccountUserLicense {
 export enum AssignmentSource {
     None = 0,
     Unknown = 1,
-    GroupRule = 2,
+    GroupRule = 2
 }
 export interface ClientRightsContainer {
     certificateBytes: number[];
@@ -28574,14 +29963,14 @@ export enum ExtensionAssignmentStatus {
     ImplicitAssignment = 4,
     PendingValidation = 5,
     TrialAssignment = 6,
-    RoamingAccountAssignment = 7,
+    RoamingAccountAssignment = 7
 }
 export enum ExtensionFilterOptions {
     None = 1,
     Bundle = 2,
     AccountAssignment = 4,
     ImplicitAssignment = 8,
-    All = -1,
+    All = -1
 }
 export interface ExtensionLicenseData {
     createdDate: Date;
@@ -28592,7 +29981,7 @@ export interface ExtensionLicenseData {
 }
 export enum ExtensionOperation {
     Assign = 0,
-    Unassign = 1,
+    Unassign = 1
 }
 export interface ExtensionOperationResult {
     accountId: string;
@@ -28607,7 +29996,7 @@ export enum ExtensionRightsReasonCode {
     FeatureFlagSet = 1,
     NullIdentity = 2,
     ServiceIdentity = 3,
-    ErrorCallingService = 4,
+    ErrorCallingService = 4
 }
 export interface ExtensionRightsResult {
     entitledExtensions: string[];
@@ -28619,7 +30008,7 @@ export interface ExtensionRightsResult {
 export enum ExtensionRightsResultCode {
     Normal = 0,
     AllFree = 1,
-    FreeExtensionsFree = 2,
+    FreeExtensionsFree = 2
 }
 /**
  * Model for assigning an extension to users, used for the Web API
@@ -28653,7 +30042,7 @@ export enum LicensingOrigin {
     OnDemandPublicProject = 2,
     UserHubInvitation = 3,
     PrivateProjectInvitation = 4,
-    PublicProjectInvitation = 5,
+    PublicProjectInvitation = 5
 }
 export enum LicensingSource {
     None = 0,
@@ -28661,7 +30050,7 @@ export enum LicensingSource {
     Msdn = 2,
     Profile = 3,
     Auto = 4,
-    Trial = 5,
+    Trial = 5
 }
 export interface MsdnEntitlement {
     /**
@@ -28717,12 +30106,12 @@ export enum MsdnLicenseType {
     TestProfessional = 4,
     Premium = 5,
     Ultimate = 6,
-    Enterprise = 7,
+    Enterprise = 7
 }
 export enum OperationResult {
     Success = 0,
     Warning = 1,
-    Error = 2,
+    Error = 2
 }
 export enum VisualStudioOnlineServiceLevel {
     /**
@@ -28744,7 +30133,7 @@ export enum VisualStudioOnlineServiceLevel {
     /**
      * Stakeholder service level
      */
-    Stakeholder = 4,
+    Stakeholder = 4
 }
 export var TypeInfo: {
     AccountEntitlement: any;
@@ -28872,6 +30261,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/Licensing/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/Licensing/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
@@ -28963,9 +30363,10 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      *
      * @param {string} userId - The id of the user
      * @param {boolean} determineRights
+     * @param {boolean} createIfNotExists
      * @return IPromise<Contracts.AccountEntitlement>
      */
-    getAccountEntitlementForUser(userId: string, determineRights?: boolean): IPromise<Contracts.AccountEntitlement>;
+    getAccountEntitlementForUser(userId: string, determineRights?: boolean, createIfNotExists?: boolean): IPromise<Contracts.AccountEntitlement>;
     /**
      * [Preview API]
      *
@@ -29307,6 +30708,17 @@ export function getSpsLocationClient(spsLocationUrl: string, hostType: Contracts
 export function beginGetServiceLocation(serviceInstanceId: string, hostType: Contracts_Platform.ContextHostType, webContext?: Contracts_Platform.WebContext, faultInMissingHost?: boolean, authTokenManager?: IAuthTokenManager<any>): IPromise<string>;
 }
 declare module "VSS/Locations/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_Identities_Contracts = require("VSS/Identities/Contracts");
 export interface AccessMapping {
@@ -29364,7 +30776,7 @@ export enum InheritLevel {
     Deployment = 1,
     Account = 2,
     Collection = 4,
-    All = 7,
+    All = 7
 }
 export interface LocationMapping {
     accessMappingMoniker: string;
@@ -29410,7 +30822,7 @@ export interface LocationServiceData {
 export enum RelativeToSetting {
     Context = 0,
     WebApplication = 2,
-    FullyQualified = 3,
+    FullyQualified = 3
 }
 export interface ResourceAreaInfo {
     id: string;
@@ -29455,7 +30867,7 @@ export interface ServiceDefinition {
 export enum ServiceStatus {
     Assigned = 0,
     Active = 1,
-    Moving = 2,
+    Moving = 2
 }
 export var TypeInfo: {
     ConnectionData: any;
@@ -29487,6 +30899,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/Locations/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/Locations/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -29986,7 +31409,7 @@ export const enum StateMergeOptions {
      * Merge with all current navigation state values. The given state just overrides entries in
      * the current navigation state.
      */
-    currentState = 2,
+    currentState = 2
 }
 export function getNavigationHistoryService(): INavigationHistoryService;
 }
@@ -30129,13 +31552,13 @@ export class HistoryService implements Service.ILocalService {
      * @param url Url to update the browser's address bar to
      */
     replaceState(url: string): void;
-    private _getFullTitle(title);
-    private _getRootUrl();
-    private _moveHashStateToQueryParams();
-    private _onHashChanged(e);
-    private _onPopState(popStateEvent);
-    private _onNavigate();
-    private _setLastNavigateState();
+    private _getFullTitle;
+    private _getRootUrl;
+    private _moveHashStateToQueryParams;
+    private _onHashChanged;
+    private _onPopState;
+    private _onNavigate;
+    private _setLastNavigateState;
 }
 /**
 * Gets the instance of the local History service
@@ -30151,6 +31574,17 @@ export function getDefaultPageTitle(title: string): string;
 export function getDefaultPageTitleFormatString(): string;
 }
 declare module "VSS/NewDomainUrlMigration/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\cloud.webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import VSS_ReparentCollection_Contracts = require("VSS/ReparentCollection/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 /**
@@ -30184,6 +31618,17 @@ export class NewDomainUrlOrchestrationHttpClient extends NewDomainUrlOrchestrati
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): NewDomainUrlOrchestrationHttpClient5;
 }
 declare module "VSS/Operations/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 /**
  * Contains information about the progress or result of an async operation.
  */
@@ -30259,7 +31704,7 @@ export enum OperationStatus {
     /**
      * The operation completed with a failure.
      */
-    Failed = 5,
+    Failed = 5
 }
 export var TypeInfo: {
     Operation: any;
@@ -30277,6 +31722,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/Operations/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/Operations/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
@@ -30368,7 +31824,7 @@ declare module "VSS/OrganizationPolicy/Contracts" {
  * ---------------------------------------------------------
  *
  * See following wiki page for instructions on how to regenerate:
- *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
  *
  * Configuration file:
  *   vssf\client\webapi\httpclients\clientgeneratorconfigs\organizationpolicy.genclient.json
@@ -30388,6 +31844,17 @@ export interface PolicyInfo {
 }
 }
 declare module "VSS/OrganizationPolicy/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\organizationpolicy.genclient.json
+ */
 import Contracts = require("VSS/Organization/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -30486,6 +31953,17 @@ export class OrganizationPolicyHttpClient extends OrganizationPolicyHttpClient5 
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): OrganizationPolicyHttpClient4_1;
 }
 declare module "VSS/Organization/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\organization.genclient.json
+ */
 export interface Collection {
     data: {
         [key: string]: any;
@@ -30512,14 +31990,14 @@ export enum CollectionSearchKind {
     Unknown = 0,
     ById = 1,
     ByName = 2,
-    ByTenantId = 3,
+    ByTenantId = 3
 }
 export enum CollectionStatus {
     Unknown = 0,
     Initial = 10,
     Enabled = 20,
     LogicallyDeleted = 30,
-    MarkedForPhysicalDelete = 40,
+    MarkedForPhysicalDelete = 40
 }
 export interface Logo {
     /**
@@ -30559,18 +32037,18 @@ export enum OrganizationSearchKind {
     Unknown = 0,
     ById = 1,
     ByName = 2,
-    ByTenantId = 3,
+    ByTenantId = 3
 }
 export enum OrganizationStatus {
     Unknown = 0,
     Initial = 10,
     Enabled = 20,
-    MarkedForDelete = 30,
+    MarkedForDelete = 30
 }
 export enum OrganizationType {
     Unknown = 0,
     Personal = 1,
-    Work = 2,
+    Work = 2
 }
 export interface Policy {
     effectiveValue: any;
@@ -30587,6 +32065,10 @@ export interface PolicyInfo {
 }
 export interface Region {
     /**
+     * The number of hosts that are readily available for host creation in this region on this service instance
+     */
+    availableHostsCount: number;
+    /**
      * Display name for the region.
      */
     displayName: string;
@@ -30599,9 +32081,13 @@ export interface Region {
      */
     name: string;
     /**
-     * Short name used in azure. Ex: southcentralus, westcentralus, southindia, etc.
+     * Short name used in Microsoft Azure. Ex: southcentralus, westcentralus, southindia, etc.
      */
     nameInAzure: string;
+    /**
+     * The identifier of the service instance that supports host creations in this region
+     */
+    serviceInstanceId: string;
 }
 export var TypeInfo: {
     Collection: any;
@@ -30649,6 +32135,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/Organization/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\organization.genclient.json
+ */
 import Contracts = require("VSS/Organization/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -30665,9 +32162,11 @@ export class CommonMethods3To5 extends VSS_WebApi.VssHttpClient {
     /**
      * [Preview API]
      *
+     * @param {boolean} includeRegionsWithNoAvailableHosts
+     * @param {string} impersonatedUser
      * @return IPromise<Contracts.Region[]>
      */
-    getRegions(): IPromise<Contracts.Region[]>;
+    getRegions(includeRegionsWithNoAvailableHosts?: boolean, impersonatedUser?: string): IPromise<Contracts.Region[]>;
     /**
      * [Preview API]
      *
@@ -30848,16 +32347,17 @@ export interface IScenarioManager {
      * @param name Name of scenario.
      * @param startTime Optional: Scenario start time. IMPORTANT: Has to be obtained using getTimestamp
      * @param isPageInteractive Optional: Whether or not the scenario is the primary one for the page, indicating whether or not hte page is yet interactive (TTI)
+     * @param serviceInstanceType The id of the service instance type to send the telemetry to.
      *
      * @returns Scenario descriptor
      */
-    startScenario(featureArea: string, name: string, startTime?: number, isPageInteractive?: boolean): IScenarioDescriptor;
+    startScenario(featureArea: string, name: string, startTime?: number, isPageInteractive?: boolean, serviceInstanceType?: string): IScenarioDescriptor;
     /**
      * End scenario if it's currently active
      * @param area Feature area of scenario.
      * @param name Name of scenario.
      */
-    endScenario(featureArea: string, name: string): void;
+    endScenario(featureArea: string, name: string): Promise<void>;
     /**
      * Abort scenario if it's currently active. Use this when a scenario that has started hit an error condition and you want to abort performance tracking for the scenario.
      * @param area Feature area of scenario.
@@ -30869,11 +32369,20 @@ export interface IScenarioManager {
      * @param featureArea Feature area name for CI event.
      * @param name Name of scenario.
      * @param isPageInteractive Optional: Whether or not the scenario is the primary one for the page, indicating whether or not hte page is yet interactive (TTI)
+     * @param serviceInstanceType The id of the service instance type to send the telemetry to
      * @param includePageLoadScenarioData Include the default page load scenario data
      *
      * @returns Scenario descriptor
      */
-    startScenarioFromNavigation(featureArea: string, name: string, isPageInteractive?: boolean, includePageLoadScenarioData?: boolean): IScenarioDescriptor;
+    startScenarioFromNavigation(featureArea: string, name: string, isPageInteractive?: boolean, serviceInstanceType?: string, includePageLoadScenarioData?: boolean): IScenarioDescriptor;
+    /**
+     * Record a page load scenario.
+     * @param area Feature area name for CI event.
+     * @param name Name of scenario.
+     * @param data Optional data to be recorded with scenario
+     * @param serviceInstanceType The id of the service instance type to send the telemetry to
+     */
+    recordPageLoadScenarioForService(featureArea: string, name: string, data?: any, serviceInstanceType?: string): any;
     /**
      * Record a page load scenario.
      * @param area Feature area name for CI event.
@@ -30978,7 +32487,7 @@ export interface IScenarioDescriptor {
     /** Ends this scenario
      * @param endTime Optional Scenario End Time. IMPORTANT: Has to be obtained using getTimestamp
      */
-    end(endTime?: number): void;
+    end(endTime?: number): Promise<void>;
     /** Aborts this scenario */
     abort(): void;
     /**
@@ -30989,7 +32498,7 @@ export interface IScenarioDescriptor {
     addSplitTiming(name: string, elapsedTime?: number): any;
     /**
      * Add information about ajax call to scenario
-     
+
      * @returns Function to end measurement
      */
     addAjaxCallStart(): IEndAjaxCallTiming;
@@ -31004,6 +32513,12 @@ export interface IScenarioDescriptor {
     log(): void;
     /** Returns telemetry data for scenario */
     getTelemetry(): Telemetry.TelemetryEventData;
+    /** Get the service through which the telemetry should be emitted.
+     * The default is undefined which translates to TFS.
+     */
+    getServiceInstanceType(): string;
+    /** Set the service through which the telemetry should be emitted. */
+    setServiceInstanceType(serviceInstanceType: string): any;
 }
 export interface IPerfScenarioEventCallback {
     (scenario: IScenarioDescriptor): void;
@@ -31069,63 +32584,53 @@ export function getTimestamp(): number;
  * Returns navigation start timestamp, or 0 if browser doesn't support it
  */
 export function getNavigationStartTimestamp(): number;
-}
-declare module "VSS/Platform/Layout" {
-export class VssComponent {
-    static register(componentType: string, reactClass: any): void;
-}
 /**
- * The TimerManagement class is used to track a set of timers.
+ * Decorator to time the decorated method and add it to a performance timeline trace
+ *
+ * Example:
+ * ```ts
+ * class Foo {
+ *      @timeMethod
+ *      public someMethod() {
+ *           // Do something
+ *      }
+ * }
+ * ```
+ * @param name Optional name of the method, if not given
  */
-export class TimerManagement {
-    private intervals;
-    private timeouts;
-    /**
-     * clearAllTimers is used to clear any active timers in the object.
-     */
-    clearAllTimers(): void;
-    /**
-     * clearInterval is used to stop the series of callbacks that was setup through setInterval.
-     *
-     * @param intervalId - The id returned from eh setInterval call that you want stopped.
-     */
-    clearInterval(intervalId: number): void;
-    /**
-     * clearTimeout is used to stop a timeout callback that was setup through setTimeout.
-     *
-     * @param timeoutId - The id returned from eh setTimeout call that you want stopped.
-     */
-    clearTimeout(timeoutId: number): void;
-    /**
-     * setInterval is used to setup a callback that is called on an interval.
-     *
-     * @param callback - The callback that should be called each interval time period.
-     *
-     * @param milliseconds - The number of milliseconds between each callback.
-     *
-     * @param args - Optional variable argument list passed to the callback.
-     *
-     * @returns - returns a handle to the interval, this can be used to cancel through clearInterval method.
-     */
-    setInterval(callback: (...args: any[]) => void, milliseconds: number, ...args: any[]): number;
-    /**
-     * setTimeout is used to setup a onetime callback that is called after the specified timeout.
-     *
-     * @param callback - The callback that should be called when the time period has elapsed.
-     *
-     * @param milliseconds - The number of milliseconds before the callback should be called.
-     *  Even if a timeout of 0 is used the callback will be executed asynchronouly.
-     *
-     * @param args - Optional variable argument list passed to the callback.
-     *
-     * @returns - returns a handle to the timeout, this can be used to cancel through clearTimeout method.
-     */
-    setTimeout(callback: (...args: any[]) => void, milliseconds?: number, ...args: any[]): number;
-    private removeInterval(intervalId);
-    private removeTimeout(timeoutId);
-}
+export const timeMethod: (target: Object, methodName: string, descriptor: TypedPropertyDescriptor<any>) => {
+    value: (...args: any[]) => any;
+};
+/**
+ * Decorator to time the decorated method and add it to a performance timeline trace
+ *
+ * Example:
+ * ```ts
+ * class Foo {
+ *      @timeMethodWithName("custom name")
+ *      public someMethod2() {
+ *           // Do something
+ *      }
+ * }
+ * ```
+ * @param name Optional name of the method, if not given
+ */
+export const timeMethodWithName: (name: string) => (target: Object, methodName: string, descriptor: TypedPropertyDescriptor<any>) => {
+    value: (...args: any[]) => any;
+};
 }
 declare module "VSS/Profile/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\profile.genclient.json
+ */
 export interface AttributeDescriptor {
     attributeName: string;
     containerName: string;
@@ -31149,7 +32654,7 @@ export interface Avatar {
 export enum AvatarSize {
     Small = 0,
     Medium = 1,
-    Large = 2,
+    Large = 2
 }
 export interface CoreProfileAttribute extends ProfileAttributeBase<any> {
 }
@@ -31221,7 +32726,7 @@ export interface ProfileRegions {
 export enum ProfileState {
     Custom = 0,
     CustomReadOnly = 1,
-    ReadOnly = 2,
+    ReadOnly = 2
 }
 export interface RemoteProfile {
     avatar: number[];
@@ -31257,6 +32762,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/ReparentCollection/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\cloud.webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 export interface FrameworkReparentCollectionRequest extends FrameworkServicingOrchestrationRequest {
     sourceOrganizationId: string;
     targetOrganizationId: string;
@@ -31306,7 +32822,7 @@ export enum ServicingOrchestrationStatus {
     Queued = 1,
     Running = 2,
     Completed = 3,
-    Failed = 4,
+    Failed = 4
 }
 export var TypeInfo: {
     ServicingOrchestrationRequestStatus: any;
@@ -31346,9 +32862,21 @@ export class HostDialogService implements IHostDialogService {
      */
     openMessageDialog(message: string | JQuery, options?: IOpenMessageDialogOptions): IPromise<IMessageDialogResult>;
     buttons: {
+        /**
+         * Localized Ok button.
+         */
         ok: Dialogs.IMessageDialogButton;
+        /**
+         * Localized Cancel button.
+         */
         cancel: Dialogs.IMessageDialogButton;
+        /**
+         * Localized Yes button.
+         */
         yes: Dialogs.IMessageDialogButton;
+        /**
+         * Localized No button.
+         */
         no: Dialogs.IMessageDialogButton;
     };
 }
@@ -31496,10 +33024,10 @@ export class ExtensionDataService implements IExtensionDataService {
     * @param collections The list of collections to query. Each collection will contain its collectionName, scopeType, and scopeValue
     */
     queryCollections(collections: Contributions_Contracts.ExtensionDataCollection[]): IPromise<Contributions_Contracts.ExtensionDataCollection[]>;
-    private _checkDocument(document);
-    private _checkDocumentOptions(documentOptions);
-    private _checkForClient(emsClient);
-    private _createDictionaryForArray(docs);
+    private _checkDocument;
+    private _checkDocumentOptions;
+    private _checkForClient;
+    private _createDictionaryForArray;
 }
 }
 declare module "VSS/SDK/Services/Navigation" {
@@ -31545,7 +33073,7 @@ export class HostNavigationService implements IHostNavigationService {
     * @param callback Method invoked on each navigation hash change
     */
     onHashChanged(callback: (hash: string) => void): void;
-    private _getHash();
+    private _getHash;
     /**
     * Gets the current hash.
     */
@@ -31637,7 +33165,7 @@ export class SearchStrategy<T> {
      * Abstract Class to inherit from in order to implement the methods needed to store items and search on them.
      */
     constructor(options?: ISearchStrategyOptions<T>);
-    private _buildSpecialCharacterHashSet(specialCharacters);
+    private _buildSpecialCharacterHashSet;
     _getTerms(searchTerms: string[]): string[];
     /**
      *     Stores items and terms for each item in order to later retrieve
@@ -31787,7 +33315,7 @@ export class InvertedIndexStore<T> extends IndexedSearchStore<T> {
      * @param key The key to add the item under
      * @returns true if the item was added to the index, false if it was already in the index under the given key
      */
-    private _addItemToIndex(item, key);
+    private _addItemToIndex;
 }
 export class SearchAdapter<T> {
     /**
@@ -31864,6 +33392,17 @@ export class SearchableObject<T> {
 export function fastUnique<T>(data: T[], comparer?: IComparer<T>): T[];
 }
 declare module "VSS/SecurityRoles/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\securityroles\client\clientgeneratorconfigs\genclient.json
+ */
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 /**
  * Access definition for a RoleAssignment.
@@ -31876,7 +33415,7 @@ export enum RoleAccess {
     /**
      * Access has been inherited from a higher scope.
      */
-    Inherited = 2,
+    Inherited = 2
 }
 export interface RoleAssignment {
     /**
@@ -31951,6 +33490,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/SecurityRoles/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\securityroles\client\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/SecurityRoles/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2_2To5 extends VSS_WebApi.VssHttpClient {
@@ -32085,7 +33635,7 @@ declare module "VSS/Security/Contracts" {
  * ---------------------------------------------------------
  *
  * See following wiki page for instructions on how to regenerate:
- *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
  *
  * Configuration file:
  *   vssf\client\webapi\httpclients\clientgeneratorconfigs\security.genclient.json
@@ -32201,6 +33751,9 @@ export interface PermissionEvaluation {
  * Represents a set of evaluated permissions.
  */
 export interface PermissionEvaluationBatch {
+    /**
+     * True if members of the Administrators group should always pass the security check.
+     */
     alwaysAllowAdministrators: boolean;
     /**
      * Array of permission evaluations to evaluate.
@@ -32270,6 +33823,17 @@ export interface SecurityNamespaceDescription {
 }
 }
 declare module "VSS/Security/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\security.genclient.json
+ */
 import Contracts = require("VSS/Security/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -32289,14 +33853,14 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      * Removes the specified permissions from the caller or specified user or group.
      *
      * @param {string} securityNamespaceId - Security namespace identifier.
+     * @param {string} descriptor - Identity descriptor of the user to remove permissions for.
      * @param {number} permissions - Permissions to remove.
      * @param {string} token - Security token to remove permissions for.
-     * @param {string} descriptor - Identity descriptor of the user to remove permissions for. Defaults to the caller.
      * @return IPromise<Contracts.AccessControlEntry>
      */
-    removePermission(securityNamespaceId: string, permissions?: number, token?: string, descriptor?: string): IPromise<Contracts.AccessControlEntry>;
+    removePermission(securityNamespaceId: string, descriptor: string, permissions?: number, token?: string): IPromise<Contracts.AccessControlEntry>;
     /**
-     * Create one or more access control lists.
+     * Create or update one or more access control lists. All data that currently exists for the ACLs supplied will be overwritten.
      *
      * @param {VSS_Common_Contracts.VssJsonCollectionWrapperV<Contracts.AccessControlListsCollection>} accessControlLists
      * @param {string} securityNamespaceId - Security namespace identifier.
@@ -32313,11 +33877,11 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
      */
     removeAccessControlLists(securityNamespaceId: string, tokens?: string, recurse?: boolean): IPromise<boolean>;
     /**
-     * Return a list of access control lists for the specified security namespace and token.
+     * Return a list of access control lists for the specified security namespace and token. All ACLs in the security namespace will be retrieved if no optional parameters are provided.
      *
      * @param {string} securityNamespaceId - Security namespace identifier.
      * @param {string} token - Security token
-     * @param {string} descriptors
+     * @param {string} descriptors - An optional filter string containing a list of identity descriptors separated by ',' whose ACEs should be retrieved. If this is left null, entire ACLs will be returned.
      * @param {boolean} includeExtendedInfo - If true, populate the extended information properties for the access control entries contained in the returned lists.
      * @param {boolean} recurse - If true and this is a hierarchical namespace, return child ACLs of the specified token.
      * @return IPromise<Contracts.AccessControlList[]>
@@ -32334,9 +33898,9 @@ export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
     /**
      * Remove the specified ACEs from the ACL belonging to the specified token.
      *
-     * @param {string} securityNamespaceId
+     * @param {string} securityNamespaceId - Security namespace identifier.
      * @param {string} token
-     * @param {string} descriptors
+     * @param {string} descriptors - String containing a list of identity descriptors separated by ',' whose entries should be removed.
      * @return IPromise<boolean>
      */
     removeAccessControlEntries(securityNamespaceId: string, token?: string, descriptors?: string): IPromise<boolean>;
@@ -32460,7 +34024,7 @@ export class SecurityService extends Service.VssService {
     hasPermission(securityNamespaceId: string, securityToken: string, requestedPermission: number): boolean;
     checkPermission(securityNamespaceId: string, securityToken: string, requestedPermission: number): void;
     isPermissionIncluded(securityNamespaceId: string, securityToken: string): boolean;
-    private handleMissingState(message);
+    private handleMissingState;
 }
 }
 declare module "VSS/Serialization" {
@@ -32561,7 +34125,7 @@ export class VssConnection {
     /**
     * Get the host context information given a web context and the desired host type
     */
-    private static getHostContext(webContext, hostType);
+    private static getHostContext;
     /**
     * Create a new connection object
     * @param webContext Specific web context to get the connection for
@@ -32707,7 +34271,7 @@ export enum LocalSettingsScope {
     /**
     * Team-specific settings for a user
     */
-    Team = 2,
+    Team = 2
 }
 /**
 * Service for reading and writing to local storage
@@ -32735,10 +34299,21 @@ export class LocalSettingsService implements Service.ILocalService {
      * @return Value read from the setting or undefined if no value stored
      */
     read<T>(key: string, defaultValue?: T, scope?: LocalSettingsScope): T;
-    private _getScopedKey(key, scope);
+    private _getScopedKey;
 }
 }
 declare module "VSS/Settings/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods3To5 extends VSS_WebApi.VssHttpClient {
     protected entriesApiVersion: string;
@@ -32866,7 +34441,7 @@ export const enum SettingsUserScope {
     /**
      * Shared settings for all users in this host
      */
-    Host = 1,
+    Host = 1
 }
 /**
  * Service for interacting with Settings REST Endpoint which handles anonymous/public users
@@ -32934,7 +34509,7 @@ declare module "VSS/SignalR/Contracts" {
  * ---------------------------------------------------------
  *
  * See following wiki page for instructions on how to regenerate:
- *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
  *
  * Configuration file:
  *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
@@ -32954,7 +34529,7 @@ declare module "VSS/Telemetry/Contracts" {
  * ---------------------------------------------------------
  *
  * See following wiki page for instructions on how to regenerate:
- *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
  *
  * Configuration file:
  *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
@@ -32968,6 +34543,17 @@ export interface CustomerIntelligenceEvent {
 }
 }
 declare module "VSS/Telemetry/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/Telemetry/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
@@ -33124,6 +34710,17 @@ export function addTelemetryEventHandler(handler: ITelemetryEventHandler): void;
 export function removeTelemetryEventHandler(handler: ITelemetryEventHandler): void;
 }
 declare module "VSS/Token/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 export interface AccessToken {
     accessId: string;
@@ -33156,7 +34753,7 @@ export enum AppSessionTokenError {
     AccessDenied = 5,
     FailedToIssueAppSessionToken = 6,
     InvalidClientId = 7,
-    AuthorizationIsNotSuccessfull = 8,
+    AuthorizationIsNotSuccessfull = 8
 }
 export interface AppSessionTokenResult {
     appSessionToken: string;
@@ -33177,20 +34774,20 @@ export interface AuthorizationGrant {
 export enum CreatedByOptions {
     VstsWebUi = 1,
     NonVstsWebUi = 2,
-    All = 3,
+    All = 3
 }
 export enum DisplayFilterOptions {
     Active = 1,
     Revoked = 2,
     Expired = 3,
-    All = 4,
+    All = 4
 }
 export enum GrantType {
     None = 0,
     JwtBearer = 1,
     RefreshToken = 2,
     Implicit = 3,
-    ClientCredentials = 4,
+    ClientCredentials = 4
 }
 export interface PagedSessionTokens {
     nextRowNumber: number;
@@ -33225,12 +34822,12 @@ export interface SessionToken {
 }
 export enum SessionTokenType {
     SelfDescribing = 0,
-    Compact = 1,
+    Compact = 1
 }
 export enum SortByOptions {
     DisplayName = 1,
     DisplayDate = 2,
-    Status = 3,
+    Status = 3
 }
 /**
  * Used to transmit an SSH public key in the RemovePublicKey API
@@ -33270,6 +34867,7 @@ export enum TokenError {
     InvalidPublicAccessTokenKey = 28,
     InvalidPublicAccessToken = 29,
     PublicFeatureFlagNotEnabled = 30,
+    SSHPolicyDisabled = 31
 }
 export var TypeInfo: {
     AccessToken: any;
@@ -33362,11 +34960,23 @@ export var TypeInfo: {
             "invalidPublicAccessTokenKey": number;
             "invalidPublicAccessToken": number;
             "publicFeatureFlagNotEnabled": number;
+            "sSHPolicyDisabled": number;
         };
     };
 };
 }
 declare module "VSS/Token/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("VSS/Token/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods2To5 extends VSS_WebApi.VssHttpClient {
@@ -33541,14 +35151,25 @@ export class TokenHttpClient extends TokenHttpClient5 {
 export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): TokenHttpClient4_1;
 }
 declare module "VSS/UserAccountMapping/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\useraccountmapping.genclient.json
+ */
 export enum UserRole {
     Member = 1,
-    Owner = 2,
+    Owner = 2
 }
 export enum VisualStudioLevel {
     None = 0,
     Professional = 1,
-    TestManager = 2,
+    TestManager = 2
 }
 export var TypeInfo: {
     UserRole: {
@@ -33567,9 +35188,20 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/UserMapping/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\usermapping.genclient.json
+ */
 export enum UserType {
     Member = 1,
-    Owner = 2,
+    Owner = 2
 }
 export var TypeInfo: {
     UserType: {
@@ -33581,6 +35213,17 @@ export var TypeInfo: {
 };
 }
 declare module "VSS/UserMapping/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\usermapping.genclient.json
+ */
 import Contracts = require("VSS/UserMapping/Contracts");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
 export class CommonMethods3_1To5 extends VSS_WebApi.VssHttpClient {
@@ -33649,6 +35292,31 @@ export function getClient(options?: VSS_WebApi.IVssHttpClientOptions): UserMappi
 }
 declare module "VSS/User/Contracts" {
 /**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\user.genclient.json
+ */
+/**
+ * Host accessed by a user.
+ */
+export interface AccessedHost {
+    accessTime: Date;
+    hostId: string;
+}
+/**
+ * Request to update a user's accessed hosts.
+ */
+export interface AccessedHostsParameters {
+    accessedHosts: AccessedHost[];
+    userDescriptor: string;
+}
+/**
  * The user's picture.
  */
 export interface Avatar {
@@ -33684,7 +35352,7 @@ export enum AvatarSize {
     /**
      * 220 x 220 pixels
      */
-    Large = 2,
+    Large = 2
 }
 /**
  * Used at the time of initial user creation.
@@ -33710,6 +35378,10 @@ export interface CreateUserParameters {
      */
     mail: string;
     /**
+     * Identifier to mark whether user's profile is pending
+     */
+    pendingProfileCreation: boolean;
+    /**
      * The region in which the user resides or is associated.
      */
     region: string;
@@ -33723,19 +35395,6 @@ export interface MailConfirmationParameters {
      * The email address to be confirmed.
      */
     mailAddress: string;
-}
-/**
- * Request to send notification
- */
-export interface SendUserNotificationParameters {
-    /**
-     * Notification to be delivered
-     */
-    notification: UserNotification;
-    /**
-     * Users whom this notification is addressed to
-     */
-    recipients: string[];
 }
 /**
  * Used for updating a user's attributes.
@@ -33813,6 +35472,10 @@ export interface User {
      */
     revision: number;
     /**
+     * The status of the user
+     */
+    state: UserState;
+    /**
      * The user's preferred email address which has not yet been confirmed.
      */
     unconfirmedMail: string;
@@ -33849,27 +35512,14 @@ export interface UserAttributes {
      */
     continuationToken: string;
 }
-export interface UserNotification {
-    /**
-     * Unique notification id (must be idempotent)
-     */
-    eventId: string;
-    /**
-     * Time at which notification was posted (must be idempotent)
-     */
-    timeStamp: Date;
-}
-export interface UserNotifications {
-    /**
-     * Continuation token to query the next segment
-     */
-    continuationToken: string;
-    /**
-     * Collection of notifications
-     */
-    notifications: UserNotification[];
+export enum UserState {
+    Wellformed = 0,
+    PendingProfileCreation = 1,
+    Deleted = 2
 }
 export var TypeInfo: {
+    AccessedHost: any;
+    AccessedHostsParameters: any;
     Avatar: any;
     AvatarSize: {
         enumValues: {
@@ -33878,13 +35528,17 @@ export var TypeInfo: {
             "large": number;
         };
     };
-    SendUserNotificationParameters: any;
     SetUserAttributeParameters: any;
     User: any;
     UserAttribute: any;
     UserAttributes: any;
-    UserNotification: any;
-    UserNotifications: any;
+    UserState: {
+        enumValues: {
+            "wellformed": number;
+            "pendingProfileCreation": number;
+            "deleted": number;
+        };
+    };
 };
 }
 declare module "VSS/User/Services" {
@@ -33963,8 +35617,8 @@ export class MultiProgressAnnouncer {
      * then make appropriate announcements.
      */
     update(): void;
-    private _startAnnounceTimer(delay, message, targetState);
-    private _cancelAnnounceTimer();
+    private _startAnnounceTimer;
+    private _cancelAnnounceTimer;
 }
 export interface ProgressAnnouncerOptions {
     /**
@@ -34010,7 +35664,7 @@ export class ProgressAnnouncer {
      * @param options
      */
     static forPromise<T>(promise: IPromise<T>, options: ProgressAnnouncerOptions): void;
-    private _start();
+    private _start;
     /**
      * Call this method when the operation has completed. This will cause the end message to be
      * announced if the start message was announced or if alwaysAnnounceEnd is set to true.
@@ -34216,11 +35870,11 @@ export function mergeSorted<T>(listA: T[], listB: T[], comparer?: IComparer<T>):
 export class StableSorter<T> {
     private cmpFunc;
     constructor(cmpFunc: (a: T, b: T) => number);
-    private msort(array, begin, end);
-    private merge_sort(array);
-    private merge(array, begin, begin_right, end);
-    private arr_swap(arr, a, b);
-    private insert(array, begin, end, v);
+    private msort;
+    private merge_sort;
+    private merge;
+    private arr_swap;
+    private insert;
     /**
      * Returns a copy of array that is sorted using a stable sorting routine
      * @param array
@@ -34380,8 +36034,8 @@ export class DelayedFunction {
     /**
      * Invokes the delegate and starts (or restars) the cooldown period.
      */
-    private _invoke();
-    private _startCooldown();
+    private _invoke;
+    private _startCooldown;
 }
 /**
  * Executes the provided function after the specified amount of time
@@ -34419,7 +36073,7 @@ export enum ThrottledDelegateOptions {
      * If not set, each call to the delegate will reset the timer. This means the function
      * might never get executed as long as the delegate continues to be called fast enough.
      */
-    NeverResetTimer = 4,
+    NeverResetTimer = 4
 }
 /**
  * Creates a delegate that is delayed for the specified interval when invoked.
@@ -34899,6 +36553,7 @@ export function isGivenDayInFuture(date: Date): boolean;
 export function friendly(date: Date, now?: Date): string;
 }
 declare module "VSS/Utils/Draggable" {
+/// <amd-dependency path="jQueryUI/draggable" />
 export {};
 }
 declare module "VSS/Utils/File" {
@@ -34913,7 +36568,7 @@ export enum FileEncoding {
     UTF32_BE = 4,
     UTF32_LE = 5,
     UTF16_BE = 6,
-    UTF16_LE = 7,
+    UTF16_LE = 7
 }
 export function tryDetectFileEncoding(base64Content: string): FileEncoding;
 /**
@@ -34982,9 +36637,11 @@ export module HtmlNormalizer {
      * @param additionalValidAttributes Additional attributes to keep
      * @param additionalInvalidStyles Additional styles to remove
      * @param additionalValidStyles Additional styles to keep
+     * @param encodeUnknownText
+     * @param additionalInvalidProtocols Specify what link protocols to block (eg data to stop embedded images that may contain malicious content)
      * @return {string}
      */
-    function normalizeStripAttributes(html: string, additionalInvalidAttributes: string[], additionalValidAttributes?: string[], additionalInvalidStyles?: string[], additionalValidStyles?: string[], encodeUnknownText?: boolean): string;
+    function normalizeStripAttributes(html: string, additionalInvalidAttributes: string[], additionalValidAttributes?: string[], additionalInvalidStyles?: string[], additionalValidStyles?: string[], encodeUnknownText?: boolean, additionalInvalidProtocols?: string[]): string;
     /**
      * Sanitizes the specified HTML by removing also all formatting.
      *
@@ -35015,7 +36672,7 @@ export class TemplateEngine {
      * @param data The data to render.
      * @return The HTML string with template replacements.
      */
-    private static _replaceSimpleTemplateTokens(template, data);
+    private static _replaceSimpleTemplateTokens;
     /**
      * Replaces simple tokens which will not be HTML encoded, such as {{html Foo}}, in the input HTML template.
      *
@@ -35023,7 +36680,7 @@ export class TemplateEngine {
      * @param data The data to render.
      * @return The HTML string with template replacements.
      */
-    private static _replaceUnencodedTemplateTokens(template, data);
+    private static _replaceUnencodedTemplateTokens;
     /**
      * Replaces foreach style tokens, such as {{each Foo}}, in the input HTML template.
      *
@@ -35031,7 +36688,7 @@ export class TemplateEngine {
      * @param data The data to render.
      * @return The HTML string with template replacements.
      */
-    private static _replaceForEachTemplateTokens(template, data);
+    private static _replaceForEachTemplateTokens;
     /**
      * Replaces a Regex match within some text with a replacement.
      *
@@ -35040,9 +36697,9 @@ export class TemplateEngine {
      * @param replacement The replacement string.
      * @return The updated string.
      */
-    private static _replaceMatch(text, match, replacement);
-    private static _getEncodedTextPropertyValue(data, propertyPath);
-    private static _getTextPropertyValue(data, propertyPath);
+    private static _replaceMatch;
+    private static _getEncodedTextPropertyValue;
+    private static _getTextPropertyValue;
     /**
      * Obtains a value from a given data object using a string property path.
      *
@@ -35050,7 +36707,7 @@ export class TemplateEngine {
      * @param propertyPath A dot separrated property path. Undefined or empty string returns the plain data object.
      * @return The resolved data property value or undefined if property was not found.
      */
-    private static _getPropertyValue(data, propertyPath);
+    private static _getPropertyValue;
     /**
      * A poor man's implementation of $.tmpl() from jquery templates. Renderes the
      * specified HTML content as a template, using the specified data.
@@ -35099,7 +36756,7 @@ export interface ITableFormatterOptions {
 export class HtmlTableFormatter {
     protected _rows: string[][];
     protected _columns: IHtmlTableFormatterColumn[];
-    protected _options: ITableFormatterOptions;
+    protected _options?: ITableFormatterOptions;
     private static readonly HEADER_BACKGROUND_COLOR;
     private static readonly HEADER_COLOR;
     private static readonly FONT_SIZE;
@@ -35115,7 +36772,7 @@ export class HtmlTableFormatter {
     private static readonly TABLE_STYLE;
     constructor(_rows: string[][], _columns: IHtmlTableFormatterColumn[], _options?: ITableFormatterOptions);
     protected _getCellValue(rowIndex: number, column: IHtmlTableFormatterColumn): string;
-    private _getSafeCellValue(rowIndex, column);
+    private _getSafeCellValue;
     /**
      * Iterates through the rows and builds a HTML table containing the results.
      * @return HTML table containing all rows and all columns
@@ -35128,7 +36785,7 @@ export enum MobileOperatingSystem {
     iOS = 0,
     Android = 1,
     WindowsPhone = 2,
-    Other = 3,
+    Other = 3
 }
 export function getMobileOperatingSystem(): MobileOperatingSystem;
 /**
@@ -35204,7 +36861,7 @@ export const enum MergeArrayOptions {
      * When a source property and its target property are both arrays, concatenate
      * the values in the source array into the target array.
      */
-    concat = 1,
+    concat = 1
 }
 /**
  * Options when performing a deep merge
@@ -35562,7 +37219,7 @@ export enum KeyCode {
     T = 84,
     U = 85,
     QUESTION_MARK = 191,
-    CONTEXT_MENU = 93,
+    CONTEXT_MENU = 93
 }
 export module KeyUtils {
     /**
@@ -35606,7 +37263,7 @@ export module Positioning {
         Default = 0,
         Top = 1,
         Middle = 2,
-        Bottom = 3,
+        Bottom = 3
     }
     interface IPositionOptions {
         /**
@@ -35733,7 +37390,7 @@ export module Positioning {
      */
     function scrollIntoViewVertical($element: JQuery, position?: Positioning.VerticalScrollBehavior, scrollIfAlreadyVisible?: boolean, scrollAnimationDuration?: number): void;
 }
-export function attachResize(element: any, handler: (e: JQueryEventObject, args?) => void): void;
+export function attachResize(element: any, handler: (e: JQueryEventObject, args?: any) => void): void;
 export function detachResize(element: any): void;
 export function clearResizeHandlers(): void;
 export interface SelectionRange {
@@ -35989,8 +37646,8 @@ export class Uri {
     * @param uri Optional uri string to populate values with
     */
     constructor(uri?: string);
-    private _setFromUriString(uriString, options?);
-    private _decodeUriComponent(value);
+    private _setFromUriString;
+    private _decodeUriComponent;
     /**
     * Get the absolute uri string for this Uri
     */
@@ -36233,10 +37890,10 @@ export class ErrorHandler {
      * (Internal function) Initializes error handler
      */
     initialize(): void;
-    private attachWindowErrorHandler();
+    private attachWindowErrorHandler;
     static readonly ignoreRejectedPromiseTag: string;
-    private attachQPromiseErrorHandler();
-    private publishError(error);
+    private attachQPromiseErrorHandler;
+    private publishError;
     /**
      * (Internal function) Checks whether error container exists or not
      */
@@ -36324,9 +37981,9 @@ export class GlobalProgressIndicator {
     getProgressElements(): JQuery[];
     registerProgressElement(element: JQuery): void;
     unRegisterProgressElement(element: JQuery): void;
-    private _addProgressElement(element);
-    private _showProgressElements();
-    private _hideProgressElements();
+    private _addProgressElement;
+    private _showProgressElements;
+    private _hideProgressElements;
     actionStarted(name: string, immediate?: boolean): number;
     actionCompleted(id: number): void;
     getPendingActions(): string[];
@@ -36334,7 +37991,7 @@ export class GlobalProgressIndicator {
 export function hasUnloadRequest(): boolean;
 export enum GlobalMessagePosition {
     default = 0,
-    top = 1,
+    top = 1
 }
 export class GlobalMessageIndicator {
     updateGlobalMessageIfEmpty(message: string, messageLevel?: string, customIcon?: string, onDismiss?: () => void, position?: GlobalMessagePosition): HTMLElement;
@@ -36367,7 +38024,7 @@ export enum DynamicModuleExcludeOptions {
     /**
     * Modules from the common, area and view bundles are excluded. The resulting bundle should be always same on the particular page (may differ in other page).
     */
-    AllPageBundles = 3,
+    AllPageBundles = 3
 }
 /**
 * Options for async require modules call
@@ -36416,8 +38073,13 @@ export module AccessMappingConstants {
     var AzureInstanceMappingMoniker: string;
     var ServicePathMappingMoniker: string;
     var ServiceDomainMappingMoniker: string;
+    var LegacyPublicAccessMappingMoniker: string;
+    var MessageQueueAccessMappingMoniker: string;
+    var LegacyAppDotAccessMappingMoniker: string;
+    var AffinitizedMultiInstanceAccessMappingMoniker: string;
+    var VstsAccessMapping: string;
+    var CodexAccessMapping: string;
     var ServiceAccessMappingMoniker: string;
-    var MultiInstanceAccessMappingMoniker: string;
 }
 export module AuthenticationResourceIds {
     var AuthenticationLocationId: string;
@@ -36592,8 +38254,6 @@ export module ServiceInstanceTypes {
     var TFSOnPremisesString: string;
     var SpsExtensionString: string;
     var SDKSampleString: string;
-    var BlobStore: string;
-    var Artifact: string;
 }
 export module SettingsApiResourceIds {
     var SettingEntriesLocationId: string;
@@ -36615,6 +38275,17 @@ export module UserMetaType {
 }
 }
 declare module "VSS/WebApi/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://dev.azure.com/mseng/VSOnline/_wiki/wikis/VSOnline.wiki?pagePath=%2FOrphaned%20pages%2FDocQuality%2FDocQuality%252DInProgress%2FRest%20Client%20Generation
+ *
+ * Configuration file:
+ *   vssf\client\webapi\httpclients\clientgeneratorconfigs\genclient.json
+ */
 import VSS_Graph_Contracts = require("VSS/Graph/Contracts");
 /**
  * Information about the location of a REST API resource
@@ -36670,6 +38341,87 @@ export interface ApiResourceVersion {
      */
     resourceVersion: number;
 }
+export interface AuditLogEntry {
+    /**
+     * The action if for the event, i.e Git.CreateRepo, Project.RenameProject
+     */
+    actionId: string;
+    /**
+     * ActivityId
+     */
+    activityId: string;
+    /**
+     * The Actor's CUID
+     */
+    actorCUID: string;
+    /**
+     * The Actor's User Id
+     */
+    actorUserId: string;
+    /**
+     * Type of authentication used by the author
+     */
+    authenticationMechanism: string;
+    /**
+     * This allows us to group things together, like one user action that caused a cascade of event entries (project creation).
+     */
+    correlationId: string;
+    /**
+     * External data such as CUIDs, item names, etc.
+     */
+    data: {
+        [key: string]: any;
+    };
+    /**
+     * EventId, should be unique
+     */
+    id: string;
+    /**
+     * IP Address where the event was originated
+     */
+    iPAddress: string;
+    /**
+     * The org, collection or project Id
+     */
+    scopeId: string;
+    /**
+     * The type of the scope, collection, org, project, etc.
+     */
+    scopeType: AuditScopeType;
+    /**
+     * The time when the event occurred in UTC
+     */
+    timestamp: Date;
+    /**
+     * The user agent from the request
+     */
+    userAgent: string;
+}
+/**
+ * The type of scope from where the event is originated
+ */
+export enum AuditScopeType {
+    /**
+     * The scope is not known or has not been set
+     */
+    Unknown = 0,
+    /**
+     * Deployment
+     */
+    Deployment = 1,
+    /**
+     * Organization
+     */
+    Organization = 2,
+    /**
+     * Collection
+     */
+    Collection = 4,
+    /**
+     * Project
+     */
+    Project = 8
+}
 /**
  * Enumeration of the options that can be passed in on Connect.
  */
@@ -36693,12 +38445,12 @@ export enum ConnectOptions {
     /**
      * When true will only return non inherited definitions. Only valid at non-deployment host.
      */
-    IncludeNonInheritedDefinitionsOnly = 8,
+    IncludeNonInheritedDefinitionsOnly = 8
 }
 export enum DeploymentFlags {
     None = 0,
     Hosted = 1,
-    OnPremises = 2,
+    OnPremises = 2
 }
 /**
  * Defines an "actor" for an event.
@@ -36737,6 +38489,7 @@ export interface IdentityRef extends VSS_Graph_Contracts.GraphSubjectBase {
     inactive: boolean;
     isAadIdentity: boolean;
     isContainer: boolean;
+    isDeletedInOrigin: boolean;
     profileUrl: string;
     uniqueName: string;
 }
@@ -36774,7 +38527,7 @@ export interface JsonWebToken {
 export enum JWTAlgorithm {
     None = 0,
     HS256 = 1,
-    RS256 = 2,
+    RS256 = 2
 }
 export enum Operation {
     Add = 0,
@@ -36782,7 +38535,7 @@ export enum Operation {
     Replace = 2,
     Move = 3,
     Copy = 4,
-    Test = 5,
+    Test = 5
 }
 /**
  * Represents the public key portion of an RSA asymmetric key.
@@ -36881,6 +38634,32 @@ export interface TimingGroup {
      */
     timings: TimingEntry[];
 }
+/**
+ * This class describes a trace filter, i.e. a set of criteria on whether or not a trace event should be emitted
+ */
+export interface TraceFilter {
+    area: string;
+    exceptionType: string;
+    isEnabled: boolean;
+    layer: string;
+    level: number;
+    method: string;
+    /**
+     * Used to serialize additional identity information (display name, etc) to clients. Not set by default. Server-side callers should use OwnerId.
+     */
+    owner: IdentityRef;
+    ownerId: string;
+    path: string;
+    processName: string;
+    service: string;
+    serviceHost: string;
+    timeCreated: Date;
+    traceId: string;
+    tracepoint: number;
+    uri: string;
+    userAgent: string;
+    userLogin: string;
+}
 export interface VssJsonCollectionWrapper extends VssJsonCollectionWrapperBase {
     value: any[];
 }
@@ -36914,9 +38693,25 @@ export interface VssNotificationEvent {
      */
     eventType: string;
     /**
+     * How long before the event expires and will be cleaned up.  The default is to use the system default.
+     */
+    expiresIn: any;
+    /**
+     * The id of the item, artifact, extension, project, etc.
+     */
+    itemId: string;
+    /**
+     * How long to wait before processing this event.  The default is to process immediately.
+     */
+    processDelay: any;
+    /**
      * Optional: A list of scopes which are are relevant to the event.
      */
     scopes: EventScope[];
+    /**
+     * This is the time the original source event for this VssNotificationEvent was created.  For example, for something like a build completion notification SourceEventCreatedTime should be the time the build finished not the time this event was raised.
+     */
+    sourceEventCreatedTime: Date;
 }
 export interface WrappedException {
     customProperties: {
@@ -36932,6 +38727,16 @@ export interface WrappedException {
     typeName: string;
 }
 export var TypeInfo: {
+    AuditLogEntry: any;
+    AuditScopeType: {
+        enumValues: {
+            "unknown": number;
+            "deployment": number;
+            "organization": number;
+            "collection": number;
+            "project": number;
+        };
+    };
     ConnectOptions: {
         enumValues: {
             "none": number;
@@ -36966,6 +38771,8 @@ export var TypeInfo: {
             "test": number;
         };
     };
+    TraceFilter: any;
+    VssNotificationEvent: any;
 };
 }
 declare module "VSS/WebApi/RestClient" {
@@ -37116,7 +38923,7 @@ export class VssHttpClient {
     */
     _beginRequest<T>(requestParams: VssApiResourceRequestParams, useAjaxResult?: boolean): IPromise<T>;
     _autoNegotiateApiVersion(location: WebApi_Contracts.ApiResourceLocation, requestedVersion: string): string;
-    private _beginRequestToResolvedUrl<T>(requestUrl, apiVersion, requestParams, useAjaxResult);
+    private _beginRequestToResolvedUrl;
     /**
     * Issue a request to a VSS REST endpoint and makes sure the result contains jqXHR. Use spread to access jqXHR.
     *
@@ -37140,12 +38947,12 @@ export class VssHttpClient {
      * @param locationId Guid of the location to get
      */
     _beginGetLocation(area: string, locationId: string): IPromise<WebApi_Contracts.ApiResourceLocation>;
-    private static processOptionsRequestResponse(locationsResult?, textStatus?, jqXHR?);
-    private static initializeLocationsByAreaJsonIslandCacheIfNecessary();
-    private static createLocationsByAreaPromisesCache();
-    private beginGetAreaLocations(area);
+    private static processOptionsRequestResponse;
+    private static initializeLocationsByAreaJsonIslandCacheIfNecessary;
+    private static createLocationsByAreaPromisesCache;
+    private beginGetAreaLocations;
     protected getRequestUrl(routeTemplate: string, area: string, resource: string, routeValues: any, queryParams?: IDictionaryStringTo<any>): string;
-    private convertQueryParamsValues(queryParams);
+    private convertQueryParamsValues;
     _getLinkResponseHeaders(xhr: XMLHttpRequest): {
         [relName: string]: string;
     };

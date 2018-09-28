@@ -98,8 +98,8 @@ declare module XDM {
         * @param contextData Optional context data to pass to a registered object's factory method
         */
         getRemoteObjectProxy<T>(instanceId: string, contextData?: Object): IPromise<T>;
-        private invokeMethod(registeredInstance, rpcMessage);
-        private getRegisteredObject(instanceId, instanceContext?);
+        private invokeMethod;
+        private getRegisteredObject;
         /**
         * Handle a received message on this channel. Dispatch to the appropriate object found via object registry
         *
@@ -110,13 +110,13 @@ declare module XDM {
         onMessage(data: any, origin: string): boolean;
         owns(source: Window, origin: string, data: any): boolean;
         error(data: any, errorObj: any): void;
-        private _error(messageObj, errorObj, handshakeToken);
-        private _success(messageObj, result, handshakeToken);
-        private _sendRpcMessage(message);
-        private _shouldSkipSerialization(obj);
-        private _customSerializeObject(obj, settings, parentObjects?, nextCircularRefId?, depth?);
-        private _registerProxyFunction(func, context);
-        private _customDeserializeObject(obj, circularRefs?);
+        private _error;
+        private _success;
+        private _sendRpcMessage;
+        private _shouldSkipSerialization;
+        private _customSerializeObject;
+        private _registerProxyFunction;
+        private _customDeserializeObject;
     }
     /**
     * Registry of XDM channels kept per target frame/window
@@ -134,8 +134,8 @@ declare module XDM {
         */
         addChannel(window: Window, targetOrigin?: string): IXDMChannel;
         removeChannel(channel: IXDMChannel): void;
-        private _handleMessageReceived(event);
-        private _subscribe(windowObj);
+        private _handleMessageReceived;
+        private _subscribe;
     }
 }
 declare module VSS {
@@ -267,4 +267,8 @@ declare module VSS {
     * @param height Optional height, defaults to scrollHeight
     */
     function resize(width?: number, height?: number): void;
+    /**
+     * Applies theme variables to the current document
+     */
+    function applyTheme(themeData: any): void;
 }

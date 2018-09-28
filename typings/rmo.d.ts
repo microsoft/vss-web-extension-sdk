@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v134.20180525.1751
+// Type definitions for Microsoft Visual Studio Services v141.20180928.1724
 // Project: https://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -10,6 +10,7 @@
 /// <reference types='react' />
 /// <reference types='mousetrap' />
 /// <reference path='vss.d.ts' />
+/// <reference path='rmo.contracts.d.ts' />
 /// <reference path='tfs.d.ts' />
 declare module "ReleaseManagement/Core/Constants" {
 export module ApprovalOptions {
@@ -46,6 +47,7 @@ export module ArtifactDefinitionConstants {
     var LabelSources: string;
     var LabelSourcesFormat: string;
     var CheckoutSubmodules: string;
+    var CheckoutNestedSubmodules: string;
     var GitLfsSupport: string;
     var FetchDepth: string;
     var ReportBuildStatus: string;
@@ -85,6 +87,7 @@ export module BuildVersionConstants {
     var RepositoryIdKey: string;
     var RepositoryTypeKey: string;
     var PullRequestSourceBranchCommitIdKey: string;
+    var PullRequestMergedAtKey: string;
     var PullRequestIdKey: string;
     var CommitMessageKey: string;
 }
@@ -139,6 +142,7 @@ export module WellKnownPullRequestVariables {
     var PullRequestId: string;
     var PullRequestSourceBranchCommitId: string;
     var PullRequestMergeCommitId: string;
+    var PullRequestMergedAt: string;
     var TfsGitRepositoryId: string;
     var TfsGitProjectId: string;
     var GitHubRepositoryName: string;
@@ -176,6 +180,8 @@ export module WellKnownReleaseVariables {
     var ReleaseRequestedForEmail: string;
     var AttemptNumber: string;
     var ReleaseReason: string;
+    var ReleasePrimaryArtifactSourceAlias: string;
+    var ReleaseTriggeringArtifactAlias: string;
     var ReleaseDeploymentRequestedForId: string;
     var ReleaseDeploymentRequestedForEmail: string;
     var ReleaseDeploymentRequestedFor: string;
@@ -183,6 +189,17 @@ export module WellKnownReleaseVariables {
 }
 }
 declare module "ReleaseManagement/Core/Contracts" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *
+ * Configuration file:
+ *   releasemanagement\client\webapi\clientgeneratorconfigs\genclient.json
+ */
 import TFS_DistributedTask_Common_Contracts = require("TFS/DistributedTaskCommon/Contracts");
 import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
 import VSS_FormInput_Contracts = require("VSS/Common/Contracts/FormInput");
@@ -204,7 +221,7 @@ export enum AgentArtifactType {
     TFGit = 7,
     ExternalTfsBuild = 8,
     Custom = 9,
-    Tfvc = 10,
+    Tfvc = 10
 }
 export interface AgentBasedDeployPhase extends DeployPhase {
     deploymentInput: AgentDeploymentInput;
@@ -216,7 +233,7 @@ export interface AgentDeploymentInput extends DeploymentInput {
 export enum ApprovalExecutionOrder {
     BeforeGates = 1,
     AfterSuccessfulGates = 2,
-    AfterGatesAlways = 4,
+    AfterGatesAlways = 4
 }
 export enum ApprovalFilters {
     /**
@@ -238,7 +255,7 @@ export enum ApprovalFilters {
     /**
      * All approval steps and approval snapshots
      */
-    All = 7,
+    All = 7
 }
 export interface ApprovalOptions {
     autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped: boolean;
@@ -255,13 +272,13 @@ export enum ApprovalStatus {
     Rejected = 4,
     Reassigned = 6,
     Canceled = 7,
-    Skipped = 8,
+    Skipped = 8
 }
 export enum ApprovalType {
     Undefined = 0,
     PreDeploy = 1,
     PostDeploy = 2,
-    All = 3,
+    All = 3
 }
 export interface Artifact {
     /**
@@ -278,6 +295,7 @@ export interface Artifact {
      * Gets or sets as artifact is primary or not.
      */
     isPrimary: boolean;
+    isRetained: boolean;
     sourceId: string;
     /**
      * Gets or sets type. It can have value as 'Build', 'Jenkins', 'GitHub', 'Nuget', 'Team Build (external)', 'ExternalTFSBuild', 'Git', 'TFVC', 'ExternalTfsXamlBuild'.
@@ -298,6 +316,9 @@ export interface ArtifactContributionDefinition {
     endpointTypeId: string;
     inputDescriptors: VSS_FormInput_Contracts.InputDescriptor[];
     name: string;
+    taskInputMapping: {
+        [key: string]: string;
+    };
     uniqueSourceIdentifier: string;
 }
 export interface ArtifactDownloadInputBase {
@@ -375,11 +396,11 @@ export enum AuditAction {
     Add = 1,
     Update = 2,
     Delete = 3,
-    Undelete = 4,
+    Undelete = 4
 }
 export enum AuthorizationHeaderFor {
     RevalidateApproverIdentity = 0,
-    OnBehalfOf = 1,
+    OnBehalfOf = 1
 }
 export interface AutoTriggerIssue {
     issue: Issue;
@@ -434,7 +455,7 @@ export interface Change {
      */
     author: VSS_Common_Contracts.IdentityRef;
     /**
-     * The type of change. "commit", "changeset", etc.
+     * The type of source. "TfsVersionControl", "TfsGit", etc.
      */
     changeType: string;
     /**
@@ -453,6 +474,10 @@ export interface Change {
      * A description of the change. This might be a commit message or changeset description.
      */
     message: string;
+    /**
+     * The person or process that pushed the change.
+     */
+    pushedBy: VSS_Common_Contracts.IdentityRef;
     /**
      * The person or process that pushed the change.
      */
@@ -501,9 +526,13 @@ export enum ConditionType {
     /**
      * The condition type is artifact.
      */
-    Artifact = 4,
+    Artifact = 4
 }
 export interface ConfigurationVariableValue {
+    /**
+     * Gets or sets if a variable can be overridden at deployment time or not.
+     */
+    allowOverride: boolean;
     /**
      * Gets or sets as variable is secret or not.
      */
@@ -533,9 +562,12 @@ export interface ControlOptions {
 export interface CustomArtifactDownloadInput extends ArtifactDownloadInputBase {
 }
 export interface DataSourceBinding {
+    callbackContextTemplate: string;
+    callBackRequiredTemplate: string;
     dataSourceName: string;
     endpointId: string;
     endpointUrl: string;
+    initialContextTemplate: string;
     parameters: {
         [key: string]: string;
     };
@@ -697,7 +729,7 @@ export interface DeploymentAuthorizationInfo {
 export enum DeploymentAuthorizationOwner {
     Automatic = 0,
     DeploymentSubmitter = 1,
-    FirstPreDeploymentApprover = 2,
+    FirstPreDeploymentApprover = 2
 }
 export interface DeploymentCompletedEvent {
     comment: string;
@@ -712,7 +744,7 @@ export enum DeploymentExpands {
     All = 0,
     DeploymentOnly = 1,
     Approvals = 2,
-    Artifacts = 4,
+    Artifacts = 4
 }
 export interface DeploymentInput extends BaseDeploymentInput {
     artifactsDownloadInput: ArtifactsDownloadInput;
@@ -813,7 +845,7 @@ export enum DeploymentOperationStatus {
     /**
      * The deployment operation status is all.
      */
-    All = 258047,
+    All = 258047
 }
 export interface DeploymentQueryParameters {
     artifactSourceId: string;
@@ -853,11 +885,11 @@ export enum DeploymentReason {
     /**
      * The deployment reason is RedeployTrigger.
      */
-    RedeployTrigger = 8,
+    RedeployTrigger = 8
 }
 export enum DeploymentsQueryType {
     Regular = 1,
-    FailingSince = 2,
+    FailingSince = 2
 }
 export interface DeploymentStartedEvent {
     environment: ReleaseEnvironment;
@@ -892,7 +924,7 @@ export enum DeploymentStatus {
     /**
      * The deployment status is all.
      */
-    All = 31,
+    All = 31
 }
 export interface DeployPhase {
     name: string;
@@ -909,13 +941,13 @@ export enum DeployPhaseStatus {
     Failed = 16,
     Canceled = 32,
     Skipped = 64,
-    Cancelling = 128,
+    Cancelling = 128
 }
 export enum DeployPhaseTypes {
     Undefined = 0,
     AgentBasedDeployment = 1,
     RunOnServer = 2,
-    MachineGroupBasedDeployment = 4,
+    MachineGroupBasedDeployment = 4
 }
 export interface EmailRecipients {
     emailAddresses: string[];
@@ -959,7 +991,7 @@ export enum EnvironmentStatus {
     Rejected = 16,
     Queued = 32,
     Scheduled = 64,
-    PartiallySucceeded = 128,
+    PartiallySucceeded = 128
 }
 export interface EnvironmentTrigger {
     definitionEnvironmentId: number;
@@ -973,7 +1005,7 @@ export interface EnvironmentTriggerContent {
 }
 export enum EnvironmentTriggerType {
     Undefined = 0,
-    DeploymentGroupRedeploy = 1,
+    DeploymentGroupRedeploy = 1
 }
 export interface ExecutionInput {
     parallelExecutionType: ParallelExecutionTypes;
@@ -1019,7 +1051,7 @@ export enum FolderPathQueryOrder {
     /**
      * Order by folder name and path descending.
      */
-    Descending = 2,
+    Descending = 2
 }
 export enum GateStatus {
     None = 0,
@@ -1027,10 +1059,31 @@ export enum GateStatus {
     InProgress = 2,
     Succeeded = 4,
     Failed = 8,
+    Canceled = 16
+}
+export interface GateUpdateMetadata {
+    /**
+     * Comment
+     */
+    comment: string;
+    /**
+     * Name of gate to be ignored.
+     */
+    gatesToIgnore: string[];
 }
 export interface GitArtifactDownloadInput extends ArtifactDownloadInputBase {
 }
 export interface GitHubArtifactDownloadInput extends ArtifactDownloadInputBase {
+}
+export interface IgnoredGate {
+    /**
+     * Gets the date on which gate is last ignored.
+     */
+    lastModifiedOn: Date;
+    /**
+     * Name of gate ignored.
+     */
+    name: string;
 }
 export interface Issue {
     data: {
@@ -1042,7 +1095,7 @@ export interface Issue {
 export enum IssueSource {
     None = 0,
     User = 1,
-    System = 2,
+    System = 2
 }
 export interface JenkinsArtifactDownloadInput extends ArtifactDownloadInputBase {
     artifactItems: string[];
@@ -1073,7 +1126,7 @@ export enum MailSectionType {
     Issues = 2,
     TestResults = 3,
     WorkItems = 4,
-    ReleaseInfo = 5,
+    ReleaseInfo = 5
 }
 export interface ManualIntervention {
     /**
@@ -1152,7 +1205,7 @@ export enum ManualInterventionStatus {
     /**
      * The manual intervention is canceled.
      */
-    Canceled = 8,
+    Canceled = 8
 }
 export interface ManualInterventionUpdateMetadata {
     /**
@@ -1188,14 +1241,14 @@ export interface ParallelExecutionInputBase extends ExecutionInput {
 export enum ParallelExecutionTypes {
     None = 0,
     MultiConfiguration = 1,
-    MultiMachine = 2,
+    MultiMachine = 2
 }
 export interface PipelineProcess {
     type: PipelineProcessTypes;
 }
 export enum PipelineProcessTypes {
     Designer = 1,
-    Yaml = 2,
+    Yaml = 2
 }
 export interface ProjectReference {
     /**
@@ -1213,7 +1266,7 @@ export interface PropertySelector {
 }
 export enum PropertySelectorType {
     Inclusion = 0,
-    Exclusion = 1,
+    Exclusion = 1
 }
 export interface PullRequestConfiguration {
     codeRepositoryReference: CodeRepositoryReference;
@@ -1229,7 +1282,7 @@ export interface PullRequestFilter {
 export enum PullRequestSystemType {
     None = 0,
     TfsGit = 1,
-    GitHub = 2,
+    GitHub = 2
 }
 export interface PullRequestTrigger extends ReleaseTriggerBase {
     artifactAlias: string;
@@ -1616,13 +1669,14 @@ export enum ReleaseDefinitionExpands {
     Triggers = 8,
     Variables = 16,
     Tags = 32,
-    LastRelease = 64,
+    LastRelease = 64
 }
 export interface ReleaseDefinitionGate {
     tasks: WorkflowTask[];
 }
 export interface ReleaseDefinitionGatesOptions {
     isEnabled: boolean;
+    minimumSuccessDuration: number;
     samplingInterval: number;
     stabilizationTime: number;
     timeout: number;
@@ -1636,7 +1690,7 @@ export enum ReleaseDefinitionQueryOrder {
     IdAscending = 0,
     IdDescending = 1,
     NameAscending = 2,
-    NameDescending = 3,
+    NameDescending = 3
 }
 export interface ReleaseDefinitionRevision {
     /**
@@ -1703,7 +1757,7 @@ export enum ReleaseDefinitionSource {
     RestApi = 1,
     UserInterface = 2,
     Ibiza = 4,
-    PortalExtensionApi = 8,
+    PortalExtensionApi = 8
 }
 export interface ReleaseDefinitionSummary {
     environments: ReleaseDefinitionEnvironmentSummary[];
@@ -1921,16 +1975,18 @@ export enum ReleaseExpands {
     Approvals = 8,
     ManualInterventions = 16,
     Variables = 32,
-    Tags = 64,
+    Tags = 64
 }
 export interface ReleaseGates {
     deploymentJobs: DeploymentJob[];
     id: number;
+    ignoredGates: IgnoredGate[];
     lastModifiedOn: Date;
     runPlanId: string;
     stabilizationCompletedOn: Date;
     startedOn: Date;
     status: GateStatus;
+    succeedingSince: Date;
 }
 export interface ReleaseManagementInputValue {
     /**
@@ -1944,14 +2000,14 @@ export interface ReleaseManagementInputValue {
 }
 export enum ReleaseQueryOrder {
     Descending = 0,
-    Ascending = 1,
+    Ascending = 1
 }
 export enum ReleaseReason {
     None = 0,
     Manual = 1,
     ContinuousIntegration = 2,
     Schedule = 3,
-    PullRequest = 4,
+    PullRequest = 4
 }
 export interface ReleaseReference {
     /**
@@ -2049,6 +2105,18 @@ export interface ReleaseShallowReference {
      */
     url: string;
 }
+export interface ReleaseStartEnvironmentMetadata {
+    /**
+     * Sets release definition environment id.
+     */
+    definitionEnvironmentId: number;
+    /**
+     * Sets list of environments variables to be overridden at deployment time.
+     */
+    variables: {
+        [key: string]: ConfigurationVariableValue;
+    };
+}
 export interface ReleaseStartMetadata {
     /**
      * Sets list of artifact to create a release.
@@ -2063,6 +2131,10 @@ export interface ReleaseStartMetadata {
      */
     description: string;
     /**
+     * Sets list of environments meta data.
+     */
+    environmentsMetadata: ReleaseStartEnvironmentMetadata[];
+    /**
      * Sets 'true' to create release in draft mode, 'false' otherwise.
      */
     isDraft: boolean;
@@ -2075,12 +2147,18 @@ export interface ReleaseStartMetadata {
      * Sets reason to create a release.
      */
     reason: ReleaseReason;
+    /**
+     * Sets list of release variables to be overridden at deployment time.
+     */
+    variables: {
+        [key: string]: ConfigurationVariableValue;
+    };
 }
 export enum ReleaseStatus {
     Undefined = 0,
     Draft = 1,
     Active = 2,
-    Abandoned = 4,
+    Abandoned = 4
 }
 export interface ReleaseTask {
     agentName: string;
@@ -2131,7 +2209,7 @@ export enum ReleaseTriggerType {
     SourceRepo = 3,
     ContainerImage = 4,
     Package = 5,
-    PullRequest = 6,
+    PullRequest = 6
 }
 export interface ReleaseUpdatedEvent extends RealtimeReleaseEvent {
     release: Release;
@@ -2182,7 +2260,7 @@ export enum ScheduleDays {
     Friday = 16,
     Saturday = 32,
     Sunday = 64,
-    All = 127,
+    All = 127
 }
 export interface ScheduledReleaseTrigger extends ReleaseTriggerBase {
     /**
@@ -2192,14 +2270,14 @@ export interface ScheduledReleaseTrigger extends ReleaseTriggerBase {
 }
 export enum SenderType {
     ServiceAccount = 1,
-    RequestingUser = 2,
+    RequestingUser = 2
 }
 export interface ServerDeploymentInput extends BaseDeploymentInput {
     parallelExecution: ExecutionInput;
 }
 export enum SingleReleaseExpands {
     None = 0,
-    Tasks = 1,
+    Tasks = 1
 }
 export interface SourceIdInput {
     id: string;
@@ -2210,6 +2288,7 @@ export interface SourcePullRequestVersion {
      * Pull Request Id for which the release will publish status
      */
     pullRequestId: string;
+    pullRequestMergedAt: Date;
     /**
      * Source branch commit Id of the Pull Request for which the release will publish status
      */
@@ -2242,7 +2321,7 @@ export enum TaskStatus {
     Skipped = 6,
     Succeeded = 7,
     Failed = 8,
-    PartiallySucceeded = 9,
+    PartiallySucceeded = 9
 }
 export interface TfvcArtifactDownloadInput extends ArtifactDownloadInputBase {
 }
@@ -2298,7 +2377,7 @@ export interface VariableGroup {
 export enum VariableGroupActionFilter {
     None = 0,
     Manage = 2,
-    Use = 16,
+    Use = 16
 }
 export interface VariableGroupProviderData {
 }
@@ -2385,8 +2464,11 @@ export var TypeInfo: {
         };
     };
     ArtifactContributionDefinition: any;
+    ArtifactMetadata: any;
     ArtifactSourceTrigger: any;
     ArtifactTypeDefinition: any;
+    ArtifactVersion: any;
+    ArtifactVersionQueryResult: any;
     AuditAction: {
         enumValues: {
             "add": number;
@@ -2404,6 +2486,7 @@ export var TypeInfo: {
     AutoTriggerIssue: any;
     AzureKeyVaultVariableGroupProviderData: any;
     AzureKeyVaultVariableValue: any;
+    BuildVersion: any;
     Change: any;
     CodeRepositoryReference: any;
     Condition: any;
@@ -2550,8 +2633,10 @@ export var TypeInfo: {
             "inProgress": number;
             "succeeded": number;
             "failed": number;
+            "canceled": number;
         };
     };
+    IgnoredGate: any;
     IssueSource: {
         enumValues: {
             "none": number;
@@ -2746,6 +2831,7 @@ export var TypeInfo: {
             "tasks": number;
         };
     };
+    SourcePullRequestVersion: any;
     SourceRepoTrigger: any;
     SummaryMailSection: any;
     TaskStatus: {
@@ -2912,6 +2998,17 @@ export interface IReleaseEnvironmentNodeExtensionContext extends IExtensionConte
 }
 }
 declare module "ReleaseManagement/Core/RestClient" {
+/**
+ * ---------------------------------------------------------
+ * Generated file, DO NOT EDIT
+ * ---------------------------------------------------------
+ *
+ * See following wiki page for instructions on how to regenerate:
+ *   https://vsowiki.com/index.php?title=Rest_Client_Generation
+ *
+ * Configuration file:
+ *   releasemanagement\client\webapi\clientgeneratorconfigs\genclient.json
+ */
 import Contracts = require("ReleaseManagement/Core/Contracts");
 import VSS_FormInput_Contracts = require("VSS/Common/Contracts/FormInput");
 import VSS_WebApi = require("VSS/WebApi/RestClient");
@@ -3175,26 +3272,6 @@ export class CommonMethods2_2To5 extends CommonMethods2To5 {
      */
     updateReleaseDefinition(releaseDefinition: Contracts.ReleaseDefinition, project: string): IPromise<Contracts.ReleaseDefinition>;
     /**
-     * [Preview API] Get a list of release definitions.
-     *
-     * @param {string} project - Project ID or project name
-     * @param {string} searchText - Get release definitions with names starting with searchText.
-     * @param {Contracts.ReleaseDefinitionExpands} expand - The properties that should be expanded in the list of Release definitions.
-     * @param {string} artifactType - Release definitions with given artifactType will be returned. Values can be Build, Jenkins, GitHub, Nuget, Team Build (external), ExternalTFSBuild, Git, TFVC, ExternalTfsXamlBuild.
-     * @param {string} artifactSourceId - Release definitions with given artifactSourceId will be returned. e.g. For build it would be {projectGuid}:{BuildDefinitionId}, for Jenkins it would be {JenkinsConnectionId}:{JenkinsDefinitionId}, for TfsOnPrem it would be {TfsOnPremConnectionId}:{ProjectName}:{TfsOnPremDefinitionId}. For third-party artifacts e.g. TeamCity, BitBucket you may refer 'uniqueSourceIdentifier' inside vss-extension.json at https://github.com/Microsoft/vsts-rm-extensions/blob/master/Extensions.
-     * @param {number} top - Number of release definitions to get.
-     * @param {string} continuationToken - Gets the release definitions after the continuation token provided.
-     * @param {Contracts.ReleaseDefinitionQueryOrder} queryOrder - Gets the results in the defined order. Default is 'IdAscending'.
-     * @param {string} path - Gets the release definitions under the specified path.
-     * @param {boolean} isExactNameMatch - 'true'to gets the release definitions with exact match as specified in searchText. Default is 'false'.
-     * @param {string[]} tagFilter - A comma-delimited list of tags. Only release definitions with these tags will be returned.
-     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
-     * @param {string[]} definitionIdFilter - A comma-delimited list of release definitions to retrieve.
-     * @param {boolean} isDeleted - 'true' to get release definitions that has been deleted. Default is 'false'
-     * @return IPromise<Contracts.ReleaseDefinition[]>
-     */
-    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands, artifactType?: string, artifactSourceId?: string, top?: number, continuationToken?: string, queryOrder?: Contracts.ReleaseDefinitionQueryOrder, path?: string, isExactNameMatch?: boolean, tagFilter?: string[], propertyFilters?: string[], definitionIdFilter?: string[], isDeleted?: boolean): IPromise<Contracts.ReleaseDefinition[]>;
-    /**
      * [Preview API] Get release definition of a given revision.
      *
      * @param {string} project - Project ID or project name
@@ -3203,15 +3280,6 @@ export class CommonMethods2_2To5 extends CommonMethods2To5 {
      * @return IPromise<string>
      */
     getReleaseDefinitionRevision(project: string, definitionId: number, revision: number): IPromise<string>;
-    /**
-     * [Preview API] Get a release definition.
-     *
-     * @param {string} project - Project ID or project name
-     * @param {number} definitionId - Id of the release definition.
-     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
-     * @return IPromise<Contracts.ReleaseDefinition>
-     */
-    getReleaseDefinition(project: string, definitionId: number, propertyFilters?: string[]): IPromise<Contracts.ReleaseDefinition>;
     /**
      * [Preview API] Delete a release definition.
      *
@@ -3353,11 +3421,12 @@ export class CommonMethods3To5 extends CommonMethods2_2To5 {
      * @param {string} project - Project ID or project name
      * @param {number} releaseId - Id of the release.
      * @param {Contracts.ApprovalFilters} approvalFilters - A filter which would allow fetching approval steps selectively based on whether it is automated, or manual. This would also decide whether we should fetch pre and post approval snapshots. Assumes All by default
-     * @param {string[]} propertyFilters - A comma-delimited list of properties to include in the results.
+     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to be retrieved. If set, the returned Release will contain values for the specified property Ids (if they exist). If not set, properties will not be included.
      * @param {Contracts.SingleReleaseExpands} expand - A property that should be expanded in the release.
+     * @param {number} topGateRecords - Number of release gate records to get. Default is 5.
      * @return IPromise<Contracts.Release>
      */
-    getRelease(project: string, releaseId: number, approvalFilters?: Contracts.ApprovalFilters, propertyFilters?: string[], expand?: Contracts.SingleReleaseExpands): IPromise<Contracts.Release>;
+    getRelease(project: string, releaseId: number, approvalFilters?: Contracts.ApprovalFilters, propertyFilters?: string[], expand?: Contracts.SingleReleaseExpands, topGateRecords?: number): IPromise<Contracts.Release>;
     /**
      * [Preview API] Update manual intervention.
      *
@@ -3466,7 +3535,7 @@ export class CommonMethods3_1To5 extends CommonMethods3To5 {
      * @param {string} project - Project ID or project name
      * @param {number} definitionId - Releases from this release definition Id.
      * @param {number} definitionEnvironmentId
-     * @param {string} searchText - Releases with names starting with searchText.
+     * @param {string} searchText - Releases with names containing searchText.
      * @param {string} createdBy - Releases created by this user.
      * @param {Contracts.ReleaseStatus} statusFilter - Releases that have this status.
      * @param {number} environmentStatusFilter
@@ -3482,7 +3551,7 @@ export class CommonMethods3_1To5 extends CommonMethods3To5 {
      * @param {string} sourceBranchFilter - Releases with given sourceBranchFilter will be returned.
      * @param {boolean} isDeleted - Gets the soft deleted releases, if true.
      * @param {string[]} tagFilter - A comma-delimited list of tags. Only releases with these tags will be returned.
-     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
+     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to be retrieved. If set, the returned Releases will contain values for the specified property Ids (if they exist). If not set, properties will not be included. Note that this will not filter out any Release from results irrespective of whether it has property set or not.
      * @param {number[]} releaseIdFilter - A comma-delimited list of releases Ids. Only releases with these Ids will be returned.
      * @return IPromise<Contracts.Release[]>
      */
@@ -3695,6 +3764,35 @@ export class CommonMethods4To5 extends CommonMethods3_2To5 {
      */
     undeleteReleaseDefinition(releaseDefinitionUndeleteParameter: Contracts.ReleaseDefinitionUndeleteParameter, project: string, definitionId: number): IPromise<Contracts.ReleaseDefinition>;
     /**
+     * [Preview API] Get a list of release definitions.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} searchText - Get release definitions with names containing searchText.
+     * @param {Contracts.ReleaseDefinitionExpands} expand - The properties that should be expanded in the list of Release definitions.
+     * @param {string} artifactType - Release definitions with given artifactType will be returned. Values can be Build, Jenkins, GitHub, Nuget, Team Build (external), ExternalTFSBuild, Git, TFVC, ExternalTfsXamlBuild.
+     * @param {string} artifactSourceId - Release definitions with given artifactSourceId will be returned. e.g. For build it would be {projectGuid}:{BuildDefinitionId}, for Jenkins it would be {JenkinsConnectionId}:{JenkinsDefinitionId}, for TfsOnPrem it would be {TfsOnPremConnectionId}:{ProjectName}:{TfsOnPremDefinitionId}. For third-party artifacts e.g. TeamCity, BitBucket you may refer 'uniqueSourceIdentifier' inside vss-extension.json at https://github.com/Microsoft/vsts-rm-extensions/blob/master/Extensions.
+     * @param {number} top - Number of release definitions to get.
+     * @param {string} continuationToken - Gets the release definitions after the continuation token provided.
+     * @param {Contracts.ReleaseDefinitionQueryOrder} queryOrder - Gets the results in the defined order. Default is 'IdAscending'.
+     * @param {string} path - Gets the release definitions under the specified path.
+     * @param {boolean} isExactNameMatch - 'true'to gets the release definitions with exact match as specified in searchText. Default is 'false'.
+     * @param {string[]} tagFilter - A comma-delimited list of tags. Only release definitions with these tags will be returned.
+     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to be retrieved. If set, the returned Release Definitions will contain values for the specified property Ids (if they exist). If not set, properties will not be included. Note that this will not filter out any Release Definition from results irrespective of whether it has property set or not.
+     * @param {string[]} definitionIdFilter - A comma-delimited list of release definitions to retrieve.
+     * @param {boolean} isDeleted - 'true' to get release definitions that has been deleted. Default is 'false'
+     * @return IPromise<Contracts.ReleaseDefinition[]>
+     */
+    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands, artifactType?: string, artifactSourceId?: string, top?: number, continuationToken?: string, queryOrder?: Contracts.ReleaseDefinitionQueryOrder, path?: string, isExactNameMatch?: boolean, tagFilter?: string[], propertyFilters?: string[], definitionIdFilter?: string[], isDeleted?: boolean): IPromise<Contracts.ReleaseDefinition[]>;
+    /**
+     * [Preview API] Get a release definition.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId - Id of the release definition.
+     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to be retrieved. If set, the returned Release Definition will contain values for the specified property Ids (if they exist). If not set, properties will not be included.
+     * @return IPromise<Contracts.ReleaseDefinition>
+     */
+    getReleaseDefinition(project: string, definitionId: number, propertyFilters?: string[]): IPromise<Contracts.ReleaseDefinition>;
+    /**
      * [Preview API]
      *
      * @param {string} artifactType
@@ -3729,7 +3827,7 @@ export class CommonMethods4_1To5 extends CommonMethods4To5 {
      */
     getDeploymentBadge(projectId: string, releaseDefinitionId: number, environmentId: number, branchName?: string): IPromise<string>;
     /**
-     * [Preview API]
+     * [Obsolete - GetTaskAttachments API is deprecated. Use GetReleaseTaskAttachments API instead.]
      *
      * @param {string} project - Project ID or project name
      * @param {number} releaseId
@@ -3741,7 +3839,7 @@ export class CommonMethods4_1To5 extends CommonMethods4To5 {
      */
     getTaskAttachments(project: string, releaseId: number, environmentId: number, attemptId: number, timelineId: string, type: string): IPromise<Contracts.ReleaseTaskAttachment[]>;
     /**
-     * [Preview API]
+     * [Obsolete - GetTaskAttachmentContent API is deprecated. Use GetReleaseTaskAttachmentContent API instead.]
      *
      * @param {string} project - Project ID or project name
      * @param {number} releaseId
@@ -3760,6 +3858,42 @@ export class CommonMethods4_1To5 extends CommonMethods4To5 {
  */
 export class ReleaseHttpClient5 extends CommonMethods4_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} environmentId
+     * @param {number} attemptId
+     * @param {string} planId
+     * @param {string} timelineId
+     * @param {string} recordId
+     * @param {string} type
+     * @param {string} name
+     * @return IPromise<ArrayBuffer>
+     */
+    getReleaseTaskAttachmentContent(project: string, releaseId: number, environmentId: number, attemptId: number, planId: string, timelineId: string, recordId: string, type: string, name: string): IPromise<ArrayBuffer>;
+    /**
+     * [Preview API]
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} releaseId
+     * @param {number} environmentId
+     * @param {number} attemptId
+     * @param {string} planId
+     * @param {string} type
+     * @return IPromise<Contracts.ReleaseTaskAttachment[]>
+     */
+    getReleaseTaskAttachments(project: string, releaseId: number, environmentId: number, attemptId: number, planId: string, type: string): IPromise<Contracts.ReleaseTaskAttachment[]>;
+    /**
+     * [Preview API] Updates the gate for a deployment.
+     *
+     * @param {Contracts.GateUpdateMetadata} gateUpdateMetadata - Metadata to patch the Release Gates.
+     * @param {string} project - Project ID or project name
+     * @param {number} gateStepId - Gate step Id.
+     * @return IPromise<Contracts.ReleaseGates>
+     */
+    updateGates(gateUpdateMetadata: Contracts.GateUpdateMetadata, project: string, gateStepId: number): IPromise<Contracts.ReleaseGates>;
 }
 /**
  * @exemptedapi
@@ -3778,12 +3912,70 @@ export class ReleaseHttpClient4 extends CommonMethods4To5 {
  */
 export class ReleaseHttpClient3_2 extends CommonMethods3_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Get a release definition.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId - Id of the release definition.
+     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
+     * @return IPromise<Contracts.ReleaseDefinition>
+     */
+    getReleaseDefinition(project: string, definitionId: number, propertyFilters?: string[]): IPromise<Contracts.ReleaseDefinition>;
+    /**
+     * [Preview API] Get a list of release definitions.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} searchText - Get release definitions with names containing searchText.
+     * @param {Contracts.ReleaseDefinitionExpands} expand - The properties that should be expanded in the list of Release definitions.
+     * @param {string} artifactType - Release definitions with given artifactType will be returned. Values can be Build, Jenkins, GitHub, Nuget, Team Build (external), ExternalTFSBuild, Git, TFVC, ExternalTfsXamlBuild.
+     * @param {string} artifactSourceId - Release definitions with given artifactSourceId will be returned. e.g. For build it would be {projectGuid}:{BuildDefinitionId}, for Jenkins it would be {JenkinsConnectionId}:{JenkinsDefinitionId}, for TfsOnPrem it would be {TfsOnPremConnectionId}:{ProjectName}:{TfsOnPremDefinitionId}. For third-party artifacts e.g. TeamCity, BitBucket you may refer 'uniqueSourceIdentifier' inside vss-extension.json at https://github.com/Microsoft/vsts-rm-extensions/blob/master/Extensions.
+     * @param {number} top - Number of release definitions to get.
+     * @param {string} continuationToken - Gets the release definitions after the continuation token provided.
+     * @param {Contracts.ReleaseDefinitionQueryOrder} queryOrder - Gets the results in the defined order. Default is 'IdAscending'.
+     * @param {string} path - Gets the release definitions under the specified path.
+     * @param {boolean} isExactNameMatch - 'true'to gets the release definitions with exact match as specified in searchText. Default is 'false'.
+     * @param {string[]} tagFilter - A comma-delimited list of tags. Only release definitions with these tags will be returned.
+     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
+     * @param {string[]} definitionIdFilter - A comma-delimited list of release definitions to retrieve.
+     * @param {boolean} isDeleted - 'true' to get release definitions that has been deleted. Default is 'false'
+     * @return IPromise<Contracts.ReleaseDefinition[]>
+     */
+    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands, artifactType?: string, artifactSourceId?: string, top?: number, continuationToken?: string, queryOrder?: Contracts.ReleaseDefinitionQueryOrder, path?: string, isExactNameMatch?: boolean, tagFilter?: string[], propertyFilters?: string[], definitionIdFilter?: string[], isDeleted?: boolean): IPromise<Contracts.ReleaseDefinition[]>;
 }
 /**
  * @exemptedapi
  */
 export class ReleaseHttpClient3_1 extends CommonMethods3_1To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
+    /**
+     * [Preview API] Get a release definition.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId - Id of the release definition.
+     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
+     * @return IPromise<Contracts.ReleaseDefinition>
+     */
+    getReleaseDefinition(project: string, definitionId: number, propertyFilters?: string[]): IPromise<Contracts.ReleaseDefinition>;
+    /**
+     * [Preview API] Get a list of release definitions.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} searchText - Get release definitions with names containing searchText.
+     * @param {Contracts.ReleaseDefinitionExpands} expand - The properties that should be expanded in the list of Release definitions.
+     * @param {string} artifactType - Release definitions with given artifactType will be returned. Values can be Build, Jenkins, GitHub, Nuget, Team Build (external), ExternalTFSBuild, Git, TFVC, ExternalTfsXamlBuild.
+     * @param {string} artifactSourceId - Release definitions with given artifactSourceId will be returned. e.g. For build it would be {projectGuid}:{BuildDefinitionId}, for Jenkins it would be {JenkinsConnectionId}:{JenkinsDefinitionId}, for TfsOnPrem it would be {TfsOnPremConnectionId}:{ProjectName}:{TfsOnPremDefinitionId}. For third-party artifacts e.g. TeamCity, BitBucket you may refer 'uniqueSourceIdentifier' inside vss-extension.json at https://github.com/Microsoft/vsts-rm-extensions/blob/master/Extensions.
+     * @param {number} top - Number of release definitions to get.
+     * @param {string} continuationToken - Gets the release definitions after the continuation token provided.
+     * @param {Contracts.ReleaseDefinitionQueryOrder} queryOrder - Gets the results in the defined order. Default is 'IdAscending'.
+     * @param {string} path - Gets the release definitions under the specified path.
+     * @param {boolean} isExactNameMatch - 'true'to gets the release definitions with exact match as specified in searchText. Default is 'false'.
+     * @param {string[]} tagFilter - A comma-delimited list of tags. Only release definitions with these tags will be returned.
+     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
+     * @param {string[]} definitionIdFilter - A comma-delimited list of release definitions to retrieve.
+     * @param {boolean} isDeleted - 'true' to get release definitions that has been deleted. Default is 'false'
+     * @return IPromise<Contracts.ReleaseDefinition[]>
+     */
+    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands, artifactType?: string, artifactSourceId?: string, top?: number, continuationToken?: string, queryOrder?: Contracts.ReleaseDefinitionQueryOrder, path?: string, isExactNameMatch?: boolean, tagFilter?: string[], propertyFilters?: string[], definitionIdFilter?: string[], isDeleted?: boolean): IPromise<Contracts.ReleaseDefinition[]>;
     /**
      * [Preview API] Returns throttled queue as per the task hub license of parallel releases
      *
@@ -3799,12 +3991,41 @@ export class ReleaseHttpClient3_1 extends CommonMethods3_1To5 {
 export class ReleaseHttpClient3 extends CommonMethods3To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
+     * [Preview API] Get a release definition.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId - Id of the release definition.
+     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
+     * @return IPromise<Contracts.ReleaseDefinition>
+     */
+    getReleaseDefinition(project: string, definitionId: number, propertyFilters?: string[]): IPromise<Contracts.ReleaseDefinition>;
+    /**
+     * [Preview API] Get a list of release definitions.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} searchText - Get release definitions with names containing searchText.
+     * @param {Contracts.ReleaseDefinitionExpands} expand - The properties that should be expanded in the list of Release definitions.
+     * @param {string} artifactType - Release definitions with given artifactType will be returned. Values can be Build, Jenkins, GitHub, Nuget, Team Build (external), ExternalTFSBuild, Git, TFVC, ExternalTfsXamlBuild.
+     * @param {string} artifactSourceId - Release definitions with given artifactSourceId will be returned. e.g. For build it would be {projectGuid}:{BuildDefinitionId}, for Jenkins it would be {JenkinsConnectionId}:{JenkinsDefinitionId}, for TfsOnPrem it would be {TfsOnPremConnectionId}:{ProjectName}:{TfsOnPremDefinitionId}. For third-party artifacts e.g. TeamCity, BitBucket you may refer 'uniqueSourceIdentifier' inside vss-extension.json at https://github.com/Microsoft/vsts-rm-extensions/blob/master/Extensions.
+     * @param {number} top - Number of release definitions to get.
+     * @param {string} continuationToken - Gets the release definitions after the continuation token provided.
+     * @param {Contracts.ReleaseDefinitionQueryOrder} queryOrder - Gets the results in the defined order. Default is 'IdAscending'.
+     * @param {string} path - Gets the release definitions under the specified path.
+     * @param {boolean} isExactNameMatch - 'true'to gets the release definitions with exact match as specified in searchText. Default is 'false'.
+     * @param {string[]} tagFilter - A comma-delimited list of tags. Only release definitions with these tags will be returned.
+     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
+     * @param {string[]} definitionIdFilter - A comma-delimited list of release definitions to retrieve.
+     * @param {boolean} isDeleted - 'true' to get release definitions that has been deleted. Default is 'false'
+     * @return IPromise<Contracts.ReleaseDefinition[]>
+     */
+    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands, artifactType?: string, artifactSourceId?: string, top?: number, continuationToken?: string, queryOrder?: Contracts.ReleaseDefinitionQueryOrder, path?: string, isExactNameMatch?: boolean, tagFilter?: string[], propertyFilters?: string[], definitionIdFilter?: string[], isDeleted?: boolean): IPromise<Contracts.ReleaseDefinition[]>;
+    /**
      * [Preview API] Get Releases
      *
      * @param {string} project - Project ID or project name
      * @param {number} definitionId - Releases from this release definition Id.
      * @param {number} definitionEnvironmentId
-     * @param {string} searchText - Releases with names starting with searchText.
+     * @param {string} searchText - Releases with names containing searchText.
      * @param {string} createdBy - Releases created by this user.
      * @param {Contracts.ReleaseStatus} statusFilter - Releases that have this status.
      * @param {number} environmentStatusFilter
@@ -3840,6 +4061,35 @@ export class ReleaseHttpClient3 extends CommonMethods3To5 {
 export class ReleaseHttpClient2_3 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
+     * [Preview API] Get a release definition.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId - Id of the release definition.
+     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
+     * @return IPromise<Contracts.ReleaseDefinition>
+     */
+    getReleaseDefinition(project: string, definitionId: number, propertyFilters?: string[]): IPromise<Contracts.ReleaseDefinition>;
+    /**
+     * [Preview API] Get a list of release definitions.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} searchText - Get release definitions with names containing searchText.
+     * @param {Contracts.ReleaseDefinitionExpands} expand - The properties that should be expanded in the list of Release definitions.
+     * @param {string} artifactType - Release definitions with given artifactType will be returned. Values can be Build, Jenkins, GitHub, Nuget, Team Build (external), ExternalTFSBuild, Git, TFVC, ExternalTfsXamlBuild.
+     * @param {string} artifactSourceId - Release definitions with given artifactSourceId will be returned. e.g. For build it would be {projectGuid}:{BuildDefinitionId}, for Jenkins it would be {JenkinsConnectionId}:{JenkinsDefinitionId}, for TfsOnPrem it would be {TfsOnPremConnectionId}:{ProjectName}:{TfsOnPremDefinitionId}. For third-party artifacts e.g. TeamCity, BitBucket you may refer 'uniqueSourceIdentifier' inside vss-extension.json at https://github.com/Microsoft/vsts-rm-extensions/blob/master/Extensions.
+     * @param {number} top - Number of release definitions to get.
+     * @param {string} continuationToken - Gets the release definitions after the continuation token provided.
+     * @param {Contracts.ReleaseDefinitionQueryOrder} queryOrder - Gets the results in the defined order. Default is 'IdAscending'.
+     * @param {string} path - Gets the release definitions under the specified path.
+     * @param {boolean} isExactNameMatch - 'true'to gets the release definitions with exact match as specified in searchText. Default is 'false'.
+     * @param {string[]} tagFilter - A comma-delimited list of tags. Only release definitions with these tags will be returned.
+     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
+     * @param {string[]} definitionIdFilter - A comma-delimited list of release definitions to retrieve.
+     * @param {boolean} isDeleted - 'true' to get release definitions that has been deleted. Default is 'false'
+     * @return IPromise<Contracts.ReleaseDefinition[]>
+     */
+    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands, artifactType?: string, artifactSourceId?: string, top?: number, continuationToken?: string, queryOrder?: Contracts.ReleaseDefinitionQueryOrder, path?: string, isExactNameMatch?: boolean, tagFilter?: string[], propertyFilters?: string[], definitionIdFilter?: string[], isDeleted?: boolean): IPromise<Contracts.ReleaseDefinition[]>;
+    /**
      * [Preview API] Get A Release
      *
      * @param {string} project - Project ID or project name
@@ -3847,16 +4097,17 @@ export class ReleaseHttpClient2_3 extends CommonMethods2_2To5 {
      * @param {Contracts.ApprovalFilters} approvalFilters - A filter which would allow fetching approval steps selectively based on whether it is automated, or manual. This would also decide whether we should fetch pre and post approval snapshots. Assumes All by default
      * @param {string[]} propertyFilters - A comma-delimited list of properties to include in the results.
      * @param {Contracts.SingleReleaseExpands} expand - A property that should be expanded in the release.
+     * @param {number} topGateRecords
      * @return IPromise<Contracts.Release>
      */
-    getRelease(project: string, releaseId: number, approvalFilters?: Contracts.ApprovalFilters, propertyFilters?: string[], expand?: Contracts.SingleReleaseExpands): IPromise<Contracts.Release>;
+    getRelease(project: string, releaseId: number, approvalFilters?: Contracts.ApprovalFilters, propertyFilters?: string[], expand?: Contracts.SingleReleaseExpands, topGateRecords?: number): IPromise<Contracts.Release>;
     /**
      * [Preview API] Get a list of releases
      *
      * @param {string} project - Project ID or project name
      * @param {number} definitionId - Releases from this release definition Id.
      * @param {number} definitionEnvironmentId
-     * @param {string} searchText - Releases with names starting with searchText.
+     * @param {string} searchText - Releases with names containing searchText.
      * @param {string} createdBy - Releases created by this user.
      * @param {Contracts.ReleaseStatus} statusFilter - Releases that have this status.
      * @param {number} environmentStatusFilter
@@ -3884,6 +4135,35 @@ export class ReleaseHttpClient2_3 extends CommonMethods2_2To5 {
 export class ReleaseHttpClient2_2 extends CommonMethods2_2To5 {
     constructor(rootRequestPath: string, options?: VSS_WebApi.IVssHttpClientOptions);
     /**
+     * [Preview API] Get a release definition.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {number} definitionId - Id of the release definition.
+     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
+     * @return IPromise<Contracts.ReleaseDefinition>
+     */
+    getReleaseDefinition(project: string, definitionId: number, propertyFilters?: string[]): IPromise<Contracts.ReleaseDefinition>;
+    /**
+     * [Preview API] Get a list of release definitions.
+     *
+     * @param {string} project - Project ID or project name
+     * @param {string} searchText - Get release definitions with names containing searchText.
+     * @param {Contracts.ReleaseDefinitionExpands} expand - The properties that should be expanded in the list of Release definitions.
+     * @param {string} artifactType - Release definitions with given artifactType will be returned. Values can be Build, Jenkins, GitHub, Nuget, Team Build (external), ExternalTFSBuild, Git, TFVC, ExternalTfsXamlBuild.
+     * @param {string} artifactSourceId - Release definitions with given artifactSourceId will be returned. e.g. For build it would be {projectGuid}:{BuildDefinitionId}, for Jenkins it would be {JenkinsConnectionId}:{JenkinsDefinitionId}, for TfsOnPrem it would be {TfsOnPremConnectionId}:{ProjectName}:{TfsOnPremDefinitionId}. For third-party artifacts e.g. TeamCity, BitBucket you may refer 'uniqueSourceIdentifier' inside vss-extension.json at https://github.com/Microsoft/vsts-rm-extensions/blob/master/Extensions.
+     * @param {number} top - Number of release definitions to get.
+     * @param {string} continuationToken - Gets the release definitions after the continuation token provided.
+     * @param {Contracts.ReleaseDefinitionQueryOrder} queryOrder - Gets the results in the defined order. Default is 'IdAscending'.
+     * @param {string} path - Gets the release definitions under the specified path.
+     * @param {boolean} isExactNameMatch - 'true'to gets the release definitions with exact match as specified in searchText. Default is 'false'.
+     * @param {string[]} tagFilter - A comma-delimited list of tags. Only release definitions with these tags will be returned.
+     * @param {string[]} propertyFilters - A comma-delimited list of extended properties to retrieve.
+     * @param {string[]} definitionIdFilter - A comma-delimited list of release definitions to retrieve.
+     * @param {boolean} isDeleted - 'true' to get release definitions that has been deleted. Default is 'false'
+     * @return IPromise<Contracts.ReleaseDefinition[]>
+     */
+    getReleaseDefinitions(project: string, searchText?: string, expand?: Contracts.ReleaseDefinitionExpands, artifactType?: string, artifactSourceId?: string, top?: number, continuationToken?: string, queryOrder?: Contracts.ReleaseDefinitionQueryOrder, path?: string, isExactNameMatch?: boolean, tagFilter?: string[], propertyFilters?: string[], definitionIdFilter?: string[], isDeleted?: boolean): IPromise<Contracts.ReleaseDefinition[]>;
+    /**
      * [Preview API] Get A Release
      *
      * @param {string} project - Project ID or project name
@@ -3891,16 +4171,17 @@ export class ReleaseHttpClient2_2 extends CommonMethods2_2To5 {
      * @param {Contracts.ApprovalFilters} approvalFilters - A filter which would allow fetching approval steps selectively based on whether it is automated, or manual. This would also decide whether we should fetch pre and post approval snapshots. Assumes All by default
      * @param {string[]} propertyFilters - A comma-delimited list of properties to include in the results.
      * @param {Contracts.SingleReleaseExpands} expand - A property that should be expanded in the release.
+     * @param {number} topGateRecords
      * @return IPromise<Contracts.Release>
      */
-    getRelease(project: string, releaseId: number, approvalFilters?: Contracts.ApprovalFilters, propertyFilters?: string[], expand?: Contracts.SingleReleaseExpands): IPromise<Contracts.Release>;
+    getRelease(project: string, releaseId: number, approvalFilters?: Contracts.ApprovalFilters, propertyFilters?: string[], expand?: Contracts.SingleReleaseExpands, topGateRecords?: number): IPromise<Contracts.Release>;
     /**
      * [Preview API] Get a list of releases
      *
      * @param {string} project - Project ID or project name
      * @param {number} definitionId - Releases from this release definition Id.
      * @param {number} definitionEnvironmentId
-     * @param {string} searchText - Releases with names starting with searchText.
+     * @param {string} searchText - Releases with names containing searchText.
      * @param {string} createdBy - Releases created by this user.
      * @param {Contracts.ReleaseStatus} statusFilter - Releases that have this status.
      * @param {number} environmentStatusFilter

@@ -6,6 +6,7 @@
             "es6",
             "dom"
         ],
+        "skipLibCheck": true,
         "types": []
     },
     "include": [
