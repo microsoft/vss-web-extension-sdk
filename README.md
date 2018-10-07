@@ -112,7 +112,7 @@ If you are developing a web extension for Visual Studio Team Service using TypeS
 
 1. Place TypeScript source files in `src`
 2. Place static content (CSS, images, HTML, etc) in `static`
-   * This simplifes the process of packaging all necessary static content in your
+   * This simplifes the process of packaging all necessary static content in your extension.
 
 ### TypeScript project file (`tsconfig.json`)
 
