@@ -1,8 +1,8 @@
-# Visual Studio Services Web Extension SDK
+# Azure DevOps Services Web Extension SDK
 
 ## Overview
 
-Client SDK and TypeScript declare files for developing [Visual Studio Team Services Extensions](https://www.visualstudio.com/integrate/extensions/overview).
+Client SDK and TypeScript declare files for developing [Azure DevOps Services Extensions](https://www.visualstudio.com/integrate/extensions/overview).
 
 The core SDK script, `VSS.SDK.js`, enables web extensions to communicate to the host Team Services frame and to perform operations like initializing, notifying extension is loaded or getting context about the current page.
 
@@ -89,7 +89,7 @@ Alternatively, you can explicitly reference the types at the top of your TypeScr
 
 ## Organizing your web extension project
 
-If you are developing a web extension for Visual Studio Team Service using TypeScript, we recommend the following organization:
+If you are developing a web extension for Azure DevOps Services using TypeScript, we recommend the following organization:
 
 ### Project structure
 
