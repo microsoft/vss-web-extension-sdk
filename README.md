@@ -235,7 +235,7 @@ Learn more about the [extension manifest](https://www.visualstudio.com/docs/inte
       usePlatformStyles: true
   });
 
-  VSS.require(["dist/app"], function (app) { 
+  VSS.require(["../dist/app"], function (app) { 
       ...
   });
 
