@@ -59,7 +59,7 @@ From your web extension's HTML page, include and initialize the VSS SDK like thi
 </script>
   ```
       
-Full API reference of VSS.SDK.js can be found at [Core Client SDK](https://www.visualstudio.com/docs/integrate/extensions/reference/client/core-sdk) page.
+Full API reference of VSS.SDK.js can be found at [Core Client SDK](https://docs.microsoft.com/en-us/previous-versions/azure/devops/extend/reference/client/api/VSS/SDK/VSS_SDK/VSS?view=tfs-2017&viewFallbackFrom=azure-devops) page.
 
 ## Types
 
