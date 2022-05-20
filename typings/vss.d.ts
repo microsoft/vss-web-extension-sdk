@@ -171,7 +171,7 @@ interface IXDMChannelManager {
     *
     * @param channel The channel to remove from the channel manager
     */
-    removeChannel(channel: IXDMChannel);
+    removeChannel(channel: IXDMChannel) : void;
 }
 
 /**
@@ -200,7 +200,7 @@ interface IXDMObjectRegistry {
     * @param instanceId unique id of the registered object
     * @param contextData Optional context data to pass to the contructor of an object factory method
     */
-    getInstance<T>(instanceId: string, contextData?: Object): T;
+    getInstance<T>(instanceId: string, contextData?: Object): T | undefined ;
 }
 
 /**
@@ -246,6 +246,11 @@ interface IExtensionInitializationOptions {
      * If true, send back the theme data as part of the initial handshake
      */
     applyTheme?: boolean;
+
+    /**
+     * If set will use the channel specified for all commmunication
+     */
+    parentChannel?: IXDMChannel;
 }
 
 /**
@@ -470,19 +475,19 @@ interface IExternalDialog {
     /**
     * Close the dialog
     */
-    close();
+    close(): void;
 
     /**
     * Update the title of the dialog
     *
     * @param title New dialog title
     */
-    setTitle(title: string);
+    setTitle(title: string): void;
 
     /**
     * Update the enablement of the OK button
     */
-    updateOkButton(enabled: boolean);
+    updateOkButton(enabled: boolean): void;
 }
 
 /**
@@ -804,7 +809,7 @@ interface IContributedMenuSource {
     *
     * @param actionContext Menu-specific context information
     */
-    execute?(actionContext: any);
+    execute?(actionContext: any): void;
 }
 
 /**

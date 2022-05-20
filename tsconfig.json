@@ -7,7 +7,10 @@
             "dom"
         ],
         "skipLibCheck": true,
-        "types": []
+        "types": [],
+        "strict": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true
     },
     "include": [
         "typings/**/*.ts"
