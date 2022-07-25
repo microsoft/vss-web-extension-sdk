@@ -1,5 +1,7 @@
 # Visual Studio Services Web Extension SDK
 
+**Please refer to [Azure DevOps Extension SDK](https://github.com/Microsoft/azure-devops-extension-sdk) instead of this repo!**
+
 ## Overview
 
 Client SDK and TypeScript declare files for developing [Visual Studio Team Services Extensions](https://www.visualstudio.com/integrate/extensions/overview).
