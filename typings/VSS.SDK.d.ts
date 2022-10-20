@@ -50,7 +50,7 @@ declare module XDM {
         * @param instanceId unique id of the registered object
         * @param contextData Optional context data to pass to a registered object's factory method
         */
-        getInstance<T>(instanceId: string, contextData?: Object): T;
+        getInstance<T>(instanceId: string, contextData?: Object): T | undefined ;
     }
     /**
     * The registry of global XDM handlers
