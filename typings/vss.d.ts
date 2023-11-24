@@ -3064,7 +3064,7 @@ interface WebPageGlobalizationContext {
 
 interface EventTarget {
     checked: boolean;
-    nodeType: number;
+    readonly nodeType: number;
 }
 
 interface Date {
